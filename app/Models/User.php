@@ -2,48 +2,115 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'legacy_id', 'login', 'email', 'password', 'category_id', 'brand', 'locale',
+        'firstname', 'lastname', 'company', 'civility', 'status',
+        'address', 'zipcode', 'city', 'country', 'phone', 'mobile', 'latitude', 'longitude',
+        'website', 'facebook_url', 'twitter_url', 'instagram_url', 'custom_domain',
+        'is_published', 'in_directory', 'is_selected', 'is_available',
+        'accepts_sms', 'shares_link',
+        'plan', 'plan_started_at', 'plan_months',
+        'storage_used', 'media_count',
+        'signup_ip', 'signup_referer', 'admin_note',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'plan_started_at' => 'datetime',
+            'is_published' => 'boolean',
+            'in_directory' => 'boolean',
+            'is_selected' => 'boolean',
+            'is_available' => 'boolean',
+            'accepts_sms' => 'boolean',
+            'shares_link' => 'boolean',
+            'latitude' => 'float',
+            'longitude' => 'float',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'login';
+    }
+
+    /** URL publique du book, sur son sous-domaine. */
+    public function bookUrl(): string
+    {
+        return 'https://'.$this->login.'.'.config('ubdf.book_domain');
+    }
+
+    public function fullName(): string
+    {
+        return trim($this->firstname.' '.$this->lastname) ?: $this->login;
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function bookSetting(): HasOne
+    {
+        return $this->hasOne(BookSetting::class);
+    }
+
+    public function galleries(): HasMany
+    {
+        return $this->hasMany(Gallery::class);
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class);
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(BookSection::class);
+    }
+
+    public function articles(): HasMany
+    {
+        return $this->hasMany(BookArticle::class);
+    }
+
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function visitStats(): HasMany
+    {
+        return $this->hasMany(VisitStat::class);
+    }
+
+    public function selections(): BelongsToMany
+    {
+        return $this->belongsToMany(Selection::class)
+            ->withPivot(['sent_twitter', 'sent_instagram', 'sent_mail'])
+            ->withTimestamps();
     }
 }

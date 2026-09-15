@@ -77,8 +77,14 @@ return [
             'username' => env('DB_LEGACY_USERNAME', 'root'),
             'password' => env('DB_LEGACY_PASSWORD', ''),
             'unix_socket' => env('DB_LEGACY_SOCKET', ''),
-            'charset' => 'utf8',
-            'collation' => 'utf8_general_ci',
+            /*
+             * Les tables ub2020 sont declarees en latin1 mais contiennent des
+             * octets UTF-8 bruts (l'ancien site ecrivait en connexion latin1).
+             * On lit donc en latin1 pour recuperer les octets tels quels :
+             * toute autre valeur produit du double encodage (« ScÃ©nographe »).
+             */
+            'charset' => 'latin1',
+            'collation' => 'latin1_swedish_ci',
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => false,
