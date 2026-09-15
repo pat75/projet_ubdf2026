@@ -78,10 +78,19 @@ return [
             'password' => env('DB_LEGACY_PASSWORD', ''),
             'unix_socket' => env('DB_LEGACY_SOCKET', ''),
             /*
-             * Les tables ub2020 sont declarees en latin1 mais contiennent des
-             * octets UTF-8 bruts (l'ancien site ecrivait en connexion latin1).
-             * On lit donc en latin1 pour recuperer les octets tels quels :
-             * toute autre valeur produit du double encodage (« ScÃ©nographe »).
+             * NE PAS « CORRIGER » EN utf8mb4.
+             *
+             * Les tables ub2020 sont declarees latin1_swedish_ci mais
+             * contiennent des octets UTF-8 bruts : l'ancien site ecrivait via
+             * une connexion latin1. Lire en latin1 restitue donc ces octets
+             * tels quels. En utf8/utf8mb4, MySQL convertit latin1 -> utf8 et
+             * produit du double encodage (« Scenographe » devient
+             * « ScÃ©nographe ») sur l'integralite du corpus.
+             *
+             * Verifie le 2026-09-15 sur 2 031 104 valeurs textuelles :
+             * 2 anomalies au total (varchar tronques), aucun double encodage.
+             * Les tests du groupe « slow » de tests/Feature/Legacy rejouent
+             * cet audit. Toute chaine reprise passe par App\Support\LegacyText.
              */
             'charset' => 'latin1',
             'collation' => 'latin1_swedish_ci',

@@ -47,3 +47,58 @@ it('ne referme aucun slug de legacy_map hors des categories declarees', function
 
     expect(collect(config('categories.legacy_map'))->values()->unique()->diff($slugs))->toBeEmpty();
 });
+
+/*
+ * Audit d'encodage rejoue a chaque execution : si une valeur du legacy sort
+ * du profil mesure le 2026-09-15, la migration de donnees doit etre revue
+ * avant d'etre relancee.
+ */
+it('ne contient aucune valeur non UTF-8 hors les deux troncatures connues', function () {
+    $columns = [
+        'inc_user' => ['us_nom', 'us_prenom', 'us_ville'],
+        'inc_user_pref' => ['us_pf_nom', 'us_pf_descp', 'us_pf_piedpage'],
+        'ub2_gal_rub' => ['rub_nom'],
+        'ub2_gal_img' => ['img_titre', 'img_desc'],
+    ];
+
+    $invalid = 0;
+
+    foreach ($columns as $table => $cols) {
+        foreach ($cols as $column) {
+            DB::connection('legacy')->table($table)
+                ->select($column)->whereNotNull($column)->where($column, '<>', '')
+                ->orderBy(DB::raw(1))
+                ->chunk(50000, function ($rows) use ($column, &$invalid) {
+                    foreach ($rows as $row) {
+                        if (! mb_check_encoding($row->{$column}, 'UTF-8')) {
+                            $invalid++;
+                        }
+                    }
+                });
+        }
+    }
+
+    // Les deux seules anomalies connues : ub2_gal_img 477277 et 1414387.
+    expect($invalid)->toBeLessThanOrEqual(2);
+})->group('slow');
+
+it('ne contient aucun double encodage au niveau des octets', function () {
+    $columns = [
+        'inc_user' => ['us_nom', 'us_ville'],
+        'inc_user_pref' => ['us_pf_descp'],
+        'ub2_gal_rub' => ['rub_nom'],
+        'ub2_gal_img' => ['img_titre', 'img_desc'],
+    ];
+
+    foreach ($columns as $table => $cols) {
+        foreach ($cols as $column) {
+            $count = DB::connection('legacy')->table($table)
+                ->whereRaw("HEX({$column}) LIKE '%C383C2%'")
+                ->orWhereRaw("HEX({$column}) LIKE '%C383C3%'")
+                ->orWhereRaw("HEX({$column}) LIKE '%C3A2C280%'")
+                ->count();
+
+            expect($count)->toBe(0, "{$table}.{$column}");
+        }
+    }
+})->group('slow');
