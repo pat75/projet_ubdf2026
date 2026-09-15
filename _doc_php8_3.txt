@@ -1,0 +1,1 @@
+echo -e '\nphp() {\n  if [[ "$PWD" == "/Users/pat/Sites_2026/projet_ubdf2026"* ]]; then\n    /usr/local/opt/php@8.3/bin/php "$@"\n  else\n    command php "$@"\n  fi\n}' >> ~/.zshrc && source ~/.zshrc
