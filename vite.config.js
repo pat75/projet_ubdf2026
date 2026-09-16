@@ -22,17 +22,58 @@ export default defineConfig({
             // ubdf.css porte les surcharges du portail ; app.css/app.js sont
             // reserves a la refonte Tailwind de la phase 9.
             input: ['resources/css/ubdf.css', 'resources/js/app.js'],
-            refresh: true,
+            /*
+             * Recharge la page des qu'une vue, une route ou un composant
+             * change. « true » ne couvre pas app/View/Components ni les
+             * fichiers de configuration, alors que les deux pilotent le
+             * rendu du portail.
+             */
+            refresh: [
+                'resources/views/**',
+                'resources/css/**',
+                'resources/js/**',
+                'routes/**',
+                'config/**',
+                'app/View/Components/**',
+                'app/Http/Controllers/**',
+                'public/js/**',
+            ],
         }),
         tailwindcss(),
     ],
     server: {
-        // Le site est servi par Valet en HTTPS : sans hote explicite, le
-        // navigateur refuse les ressources du serveur de developpement.
-        host: '127.0.0.1',
+        /*
+         * Ecoute sur toutes les interfaces. Se lier au domaine directement
+         * ne reservait que l'adresse IPv6 (::1) vers laquelle il resout en
+         * premier, et un navigateur qui tentait 127.0.0.1 n'obtenait rien.
+         */
+        host: '::',
+
+        /*
+         * Les ressources sont donc annoncees sous le nom du site, pour
+         * lequel le certificat de Valet est emis : servi depuis une autre
+         * adresse, ce certificat ferait rejeter aussi bien la feuille de
+         * style que le websocket de rechargement.
+         */
+        origin: `https://${domaine}:5273`,
+
         https: httpsValet,
         cors: true,
-        hmr: { host: '127.0.0.1', protocol: httpsValet ? 'wss' : 'ws' },
+
+        /*
+         * Port fixe : le 5173 par defaut est occupe par le pont de Valet,
+         * Vite basculait donc sur 5174 a chaque demarrage et public/hot
+         * pouvait pointer vers une instance morte. strictPort fait echouer
+         * le demarrage plutot que de deriver en silence.
+         */
+        port: 5273,
+        strictPort: true,
+
+        hmr: {
+            host: domaine,
+            protocol: httpsValet ? 'wss' : 'ws',
+        },
+
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
