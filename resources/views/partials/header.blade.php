@@ -1,0 +1,628 @@
+{{-- En-tete du portail : menu, slider, recherche, bannieres.
+     Repris du rendu de https://ub2020ssl.localhost:4433/accueil --}}
+
+
+<!-- template !-->
+
+
+
+
+<!-- Page contain !-->
+<div class="pusher" id="bloc_home_content">
+
+	<div class="btn_top_move cursor_effect" id="btn_top_action"></div>
+
+	<div class="ui vertical masthead_for_light_menu"></div>
+
+
+	<div class="top_position_show"></div>
+
+
+	<!-- template !-->
+	<div class="ui vertical masthead bloc_base_contant ">
+
+
+
+
+
+
+	
+
+	<!-- Slides UB -->
+    <style>
+
+            .bloc_slide_video {
+                height: 480px !important;
+                background-image: linear-gradient(to right, rgba(0, 129, 199, 0.65), rgba(0, 49, 114, 0.82));
+            }
+
+            .video_header {
+                display: block;
+                height: 480px;
+                overflow-x: hidden;
+                overflow-y: hidden;
+                position: relative;
+            }
+            .video_source {
+                position: absolute;
+                top:-260px;
+                width:100%;
+                height: auto;
+                background-size: cover;
+            }
+            .video_bg {
+                background-size: cover;
+                position: absolute;
+                width:100%;
+                height: 480px;
+                overflow-x: hidden;
+                overflow-y: hidden;
+                background-image: linear-gradient(to right, rgba(1, 143, 220, 0.65), rgba(0, 88, 150, 0.82));
+                background-image: linear-gradient(to right, rgba(0, 129, 199, 0.65), rgba(0, 49, 114, 0.82));
+            }
+            .video_titre {
+                max-width:960px;
+                padding:90px 0 0 0;
+                color: white;
+                z-index: 10;
+                margin: auto;
+                font-size:78px;
+                font-family: 'Lato',sans-serif;
+                font-weight: 400;
+            }
+            .video_soustitre {
+                max-width:960px;
+                margin: auto;
+                padding:48px 0 0 0;
+                font-size:24px;
+                font-family: 'Lato',sans-serif;
+                font-weight: 400;
+                color: white;
+                z-index: 10;
+                opacity: 0.8;
+            }
+
+
+
+             #bloc_rechercher h1 {
+                font-size: 30px!important;
+                text-align: left;
+                margin-left:38px;
+
+            }
+
+             #bloc_rechercher {
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+
+            /* Accueil : bloc "Trouvez les meilleurs portfolios de creatifs"
+               - remonte pour venir juste sous la ligne "Illustration, graphisme,
+                 design, photo et plasticien" du header video
+               - fond blanc a 80% (20% de transparence) : uniquement la couleur de
+                 fond, le contenu (titre, champ de recherche) reste opaque
+               - le remontage (-100px) est compense par un margin-bottom de +100px
+                 pour que le bloc des mots-cles (illustrateur, bande dessinee...)
+                 reste a sa place, sous le bloc video du header
+               Desktop uniquement : en dessous de 980px le header video est reduit
+               et les titres sont masques (voir media query plus bas). */
+            &#64;media only screen and (min-width: 981px) {
+                #bloc_rechercher {
+                    margin-top: -260px !important;
+                    margin-bottom: 100px !important;
+                    background-color: rgba(255, 255, 255, 0.8) !important;
+                }
+            }
+
+            /* Accueil : barre de recherche (champ + bouton "Rechercher")
+               - suppression du filet entre le champ et le bouton : l'arrondi
+                 complet du champ (border-radius 7000px) et la bordure blanche
+                 de 6px du bouton laissaient voir le fond entre les deux
+               - le fond blanc et l'arrondi sont portes par le conteneur
+                 .ui.action, le champ devient transparent
+               - champ et bouton etires sur toute la hauteur du conteneur :
+                 meme hauteur et meme alignement vertical
+               Desktop uniquement, comme le bloc ci-dessus. */
+            &#64;media only screen and (min-width: 981px) {
+
+                #bloc_rechercher .form_rechercher2018 .ui.action {
+                    background-color: #fff;
+                    align-items: stretch;
+                    /* arrondi de 8px sur les quatre coins de la barre */
+                    border-radius: 8px !important;
+                }
+
+                #bloc_rechercher .form_rechercher2018 .ui.action .ui.input {
+                    align-items: stretch;
+                }
+
+                #bloc_rechercher .form_rechercher2018 .ui.action input.prompt {
+                    margin-top: 0 !important;
+                    padding-top: 0 !important;
+                    padding-bottom: 0 !important;
+                    height: 68px;
+                    /* arrondi de 8px sur le bord gauche du champ */
+                    border-radius: 8px 0 0 8px !important;
+                    background: transparent !important;
+                }
+
+                #bloc_rechercher .form_rechercher2018 .ui.action .ui.button {
+                    border: 0 !important;
+                    /* arrondi de 8px sur le bord droit du bouton */
+                    border-radius: 0 8px 8px 0 !important;
+                    align-self: stretch;
+                    height: 68px;
+                }
+
+                /* le libelle flottant suit la nouvelle hauteur du champ */
+                #bloc_rechercher .form_rechercher2018 .ui.action .floating-label {
+                    top: 50%;
+                    transform: translateY(-50%);
+                }
+                #bloc_rechercher .form_rechercher2018 .ui.action input:focus ~ .floating-label,
+                #bloc_rechercher .form_rechercher2018 .ui.action input:not(:focus):valid ~ .floating-label {
+                    top: 12px;
+                    transform: none;
+                }
+            }
+
+
+            &#64;media only screen and (max-width: 1280px) {
+                .video_source {
+                    top:unset!important;
+                }
+            }
+
+
+            &#64;media only screen and (max-width: 980px) {
+
+                [class*="mobile_hidden"] {
+                    display: none !important;
+                }
+
+                .bloc_slide_video {
+                    margin-bottom: -30px!important;
+                    height: 320px!important;
+                }
+
+                .video_header {
+                    height: 380px!important;
+                }
+
+                .video_source {
+                    top:unset!important;
+                }
+                .video_titre, .video_soustitre {
+                    display:none;
+                }
+            }
+
+        </style>
+
+    <div class="ui container bloc_slide mobile bloc_slide_video ">
+
+		<!-- Slider main container -->
+		<div class="ui active loader hidden"></div>
+
+        <header class="video_header">
+            <video autoplay loop muted playsinline webkit-playsinline
+                   class="video_source" id="myVideo">
+                    <source src="/_video/crea3.mov" type="video/mp4">
+            </video>
+       
+            <div class="video_bg">
+                <div class="video_titre">Une mine de créatifs</div>
+                <div class="video_soustitre">Illustration, graphisme, design, photo et plasticien</div>
+            </div>
+        </header>
+
+	</div>
+    
+
+
+	<!-- Recherche  -->
+	<div class="ui  container bloc_rechercher ">
+		<div class="ui two column stackable center aligned grid segment" id="bloc_rechercher">
+
+			<div class="row one column ">
+				<div class="column aligned">
+					<div class="ui segment basic ">
+						<h1>Trouvez les meilleurs portfolios de créatifs.</h1>
+					</div>
+				</div>
+			</div>
+
+			<div class="row one column ">
+				<div class="column recherche_nom">
+
+					<div class="ui segment basic left aligned">
+						<form action="/rechercher" class="form_rechercher2018">
+							<div class="ui action input search rech2018">
+								<div class="ui left icon input">
+									<i class="search big icon"></i>
+									<input class="prompt" type="text" name="q" value="" required>
+									<span class="floating-label mobile-hidden">Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...</span>
+                                    <span class="floating-label mobile only">Métier, mots clés ou Nom...</span>
+                                    <input type="hidden" name="type_recherche" value="">
+									<button type="submit" class="ui huge button submit_rechercher_accueil cursor_effect">
+										Rechercher									</button>
+								</div>
+
+								<div class="results"></div>
+							</div>
+							<div class="ui basic red pointing prompt label transition error_prompt ">Indiquez un mot clé ou un nom</div>
+
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+    <!-- Last recherche -->
+
+
+    <div class="ui container bloc_last_recherche mobile_hidden">
+        <div class="ui grid">
+	                <div class="row">
+
+                <div class="two wide column">
+                    <h4>illustration</h4>
+                </div>
+
+                <div class="fourteen wide column">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,illustration">
+                        <i class="chevron right icon"></i><strong>illustrateur</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,bande dessinée">
+                        <i class="chevron right icon"></i><strong>bande dessinée</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,jeunesse">
+                        <i class="chevron right icon"></i><strong>jeunesse</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,comics">
+                        <i class="chevron right icon"></i><strong>comics</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,presse">
+                        <i class="chevron right icon"></i><strong>presse</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,publicité">
+                        <i class="chevron right icon"></i><strong>publicité</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,personnages">
+                        <i class="chevron right icon"></i><strong>personnages</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,iso">
+                        <i class="chevron right icon"></i><strong>isométrie</strong>
+                    </a>
+
+                                </div>
+
+            </div>
+	                <div class="row">
+
+                <div class="two wide column">
+                    <h4>graphisme</h4>
+                </div>
+
+                <div class="fourteen wide column">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,graphisme">
+                        <i class="chevron right icon"></i><strong>graphistes</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,da">
+                        <i class="chevron right icon"></i><strong>directeur artistique</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,print">
+                        <i class="chevron right icon"></i><strong>print</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,communication">
+                        <i class="chevron right icon"></i><strong>communication</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,logo">
+                        <i class="chevron right icon"></i><strong>logo</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,flyer">
+                        <i class="chevron right icon"></i><strong>flyer</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,brochure">
+                        <i class="chevron right icon"></i><strong>brochure</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,maquettiste">
+                        <i class="chevron right icon"></i><strong>maquettiste</strong>
+                    </a>
+
+                                </div>
+
+            </div>
+	                <div class="row">
+
+                <div class="two wide column">
+                    <h4>digital</h4>
+                </div>
+
+                <div class="fourteen wide column">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,web">
+                        <i class="chevron right icon"></i><strong>web, site internet</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,UX designer">
+                        <i class="chevron right icon"></i><strong>UX designer</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,digital UI Designer">
+                        <i class="chevron right icon"></i><strong>UI designer</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,directeur artistique digital">
+                        <i class="chevron right icon"></i><strong>directeur artistique web</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,dévelopeur wordpress">
+                        <i class="chevron right icon"></i><strong>dévelopeur wordpress</strong>
+                    </a>
+
+                                </div>
+
+            </div>
+	                <div class="row">
+
+                <div class="two wide column">
+                    <h4>photo</h4>
+                </div>
+
+                <div class="fourteen wide column">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,presse">
+                        <i class="chevron right icon"></i><strong>presse</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,portrait">
+                        <i class="chevron right icon"></i><strong>portrait</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,architecture">
+                        <i class="chevron right icon"></i><strong>architecture</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,culinaire">
+                        <i class="chevron right icon"></i><strong>culinaire</strong>
+                    </a>
+
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,corporate">
+                        <i class="chevron right icon"></i><strong>corporate / entreprise</strong>
+                    </a>
+
+                                </div>
+
+            </div>
+	    
+
+        </div>
+    </div>
+
+
+    <!-- Modeles 2020 -->
+    <div class="ui container bloc_slide mobile bloc_accueil_modele2020">
+        <div class="ui middle aligned two column stackable grid">
+                <div class="right aligned column ">
+                    <h5>Freelances</h5>
+                    <h1>Créer votre portfolio</h1>
+                    <h4>Chargez vos images par glisser-poser</h4>
+                    <h4>Modifiez l’apparence, et diffusez</h4>
+                    <button class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl">
+                        <i class="right arrow icon"></i>
+                        CRÉEZ UN BOOK                    </button>
+                </div>
+                <div class=" center aligned olive+ column col_visuel_mdl_book">
+                    <div class="accueil_mdl_book_visuel"></div>
+                </div>
+        </div>
+    </div>
+    <!-- Modeles 2020 #end -->
+
+
+
+
+
+
+    <!-- entreprises 2020-->
+    <div class="ui container bloc_slide mobile bloc_accueil_entreprise2020_stats">
+
+        <div class="ui middle aligned two column stackable grid">
+
+            <div class="right aligned olive+ column ">
+                <img src="/img_front/accueil_entreprise_consult-b.svg" alt="freelance, entreprise">
+            </div>
+
+            <div class="left aligned olive+ column">
+                <h5>Entreprises</h5>
+                <h1>Une sélection de qualité</h1>
+
+                <div class="accueil_stats ">
+
+                    <div class="stats_nbselection">
+                        <h3>58 133</h3>
+                        <h6>Books actifs</h6>
+                    </div>
+
+                    <div class="stats_nbbook">
+                        <h3>4 325</h3>
+                        <h6>Books selectionnés</h6>
+                    </div>
+
+                </div>
+
+
+                <h4>Trouver et contacter les meilleurs créatifs freelances !</h4>
+
+                <div class="ui black  buttons ubdf_principes">
+                    <div class="ui button right pointing label">
+                        <i class="heart icon"></i>
+                        Sélectionnez un créatif                    </div>
+                    <div class="ui button right pointing label">
+                        <i class="paper plane icon"></i>
+                        Envoyez votre demande                    </div>
+                    <div class="ui button label">
+                        <i class="rocket icon"></i>
+                        Validez et démarrez un projet                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <!-- entreprises 2020 #end -->
+
+
+
+
+	
+
+
+
+    <!-- ubsite Pro 2022 -->
+    <a href="https://www.ultrabook.pro/?utm_source=ubaccueil" target="_blank">
+        <div class="ui container bloc_slide mobile bloc_accueil_ubsitepro">
+            <div class="ui middle aligned two column stackable grid">
+                <div class="right aligned column ">
+                    <h5>Mon site web PRO</h5>
+
+                    <h1>Installer <strong>mon site internet PRO</strong></h1>
+                    <h4>Un vrai site complet, extensible et illimité, </h4>
+                    <h4>installé sur votre nom de domaine et votre hébergement.</h4>
+                    <h6 style="    margin-bottom: 8px;">Forfait installation, configuration et licence illimitée.</h6>
+
+                    <button class="ui inverted basic right labeled icon button mobile-hidden cursor_effect">
+                        <i class="right arrow icon" style="    background-color: blueviolet;"></i> Détail de l’offre                    </button>
+                    <br/>
+                    <br/>
+                    <img src="https://www.ultrabook.pro/img/ub_logo_web_wp_2022.svg" class="visuel_avantages">
+                </div>
+
+                <div class=" center aligned column col_visuel_mdl_book">
+                    <img src="https://www.ultrabook.pro/img/enplusconstruction.svg" alt="Ultra-book site PRO">
+                </div>
+
+            </div>
+        </div>
+    </a>
+    <!-- #end -->
+
+
+
+
+    <!-- banniere dispo -->
+    <style>
+        /* Styles CSS */
+        .pt-8 { padding-top: 2rem; }
+        .pb-8 { padding-bottom: 2rem; }
+        .max-lg\\:pb-1 { padding-bottom: 0.25rem; }
+        .max-lg\\:pt-2 { padding-top: 0.5rem; }
+        .relative { position: relative; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .max-w-7xl { max-width: 80rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .sm\\:static { position: static; }
+        .sm\\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .lg\\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .md\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .md\\:col-span-1 { grid-column: span 1 / span 1; }
+        .md\\:col-span-2 { grid-column: span 2 / span 2; }
+        .max-lg\\:ml-6 { margin-left: 1.5rem; }
+        .max-h-32 { max-height: 8rem; }
+        .md\\:max-h-60 { max-height: 15rem; }
+        .max-lg\\:ml-4 { margin-left: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .max-lg\\:mb-4 { margin-bottom: 1rem; }
+        .text-6xl { font-size: 3.75rem; }
+        .max-lg\\:text-3xl { font-size: 1.875rem; }
+        .font-thin { font-weight: 100; }
+        .max-lg\\:font-normal { font-weight: 400; }
+        .tracking-tight { letter-spacing: -0.025em; }
+        .text-gray-900 { color: #111827; }
+        .text-white { color: #fff; }
+        .font-light { font-weight: 300; }
+        .text-4xl { font-size: 2.25rem; }
+        .leading-10 { line-height: 2.5rem; }
+        .max-lg\\:text-lg { font-size: 1.125rem; }
+        .text-black { color: #000; }
+        .hidden { display: none; }
+        .mt-2 { margin-top: 0.5rem; }
+        .text-xl { font-size: 1.25rem; }
+        .max-lg\\:text-base { font-size: 1rem; }
+
+        a.dispo_link { color: black;  font-size: 24px;   }
+        a.dispo_link:hover { color: white; }
+
+        .dispo_new { color: #9dfff4; margin-bottom:-10px;line-height:10px; font-weight: 600;font-size: 32px}
+
+        .dispo_bouton_arrondi {
+            display: inline-block;
+            padding: 6px 28px;
+            border-radius: 28px;
+            background-color: black;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .dispo_bouton_arrondi:hover {
+            background-color: #444;
+            color: white;
+            transform: scale(1.01);
+        }
+        .dispo_desc {
+            font-size: 20px;
+        }
+    </style>
+    <header class="ui pt-4 md:pt-10 pb-10 mb-12 max-lg:mb-8 ubd-header shadow" style="padding: 90px 0 ;background-image: url('https://les-illustrateurs.com/_img/degrade.svg'); background-size: cover;">
+        <div class="ui container">
+            <div class="ui grid">
+                <div class="ui four wide computer sixteen wide mobile column">
+                    <img src="https://les-illustrateurs.com/_img/diffusion.svg" class="ui image" alt="Les illustrateurs/rices disponibles aujourd’hui">
+                </div>
+                <div class="ui twelve wide computer sixteen wide mobile column">
+
+                    <div class="dispo_new" >NOUVEAU !</div>
+                    <h1  class="mb-6 max-lg:mb-4 text-6xl max-lg:text-3xl font-thin max-lg:font-normal tracking-tight text-gray-900">
+                        Retrouver les illustrateurs/rices<div style="line-height: 42px;" class="text-white font-normal">disponibles aujourd’hui</div>
+                    </h1>
+                    <h2   class="text-4xl leading-10 max-lg:text-lg font-light max-lg:font-light text-black">
+                        <a href="https://www.les-illustrateurs.com" class="dispo_bouton_arrondi">CONTACTER LES DISPOS</a>
+                        <a href="https://www.les-illustrateurs.com" class="dispo_link">www.les-illustrateurs.com</a>
+
+                        <h3 class="dispo_desc">
+                            Le meilleur de la sélection Ultra-book des illustrateurs et illustratrices en fonction de leurs disponibilités
+                        </h3>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- banniere dispo #end-->
+
+
+
+
+
+
+
+
+    

@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Assets du front repris du projet 2019 (37 Mo, non versionnes)
+/public/html_pages_v2018
+/public/img_front
+/public/img_default
+/public/js_jquery

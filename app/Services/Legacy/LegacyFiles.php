@@ -18,6 +18,9 @@ final class LegacyFiles
     /** Dossiers du book contenant les originaux, par ordre de preference. */
     private const SOURCE_DIRS = ['img_', 'img_adm_medium', 'img_ptf_medium'];
 
+    /** Vignettes et visuels de presentation, stockes a part dans le legacy. */
+    private const EXTRA_DIRS = ['cms_pref'];
+
     private int $copiedFiles = 0;
 
     private int $copiedBytes = 0;
@@ -39,7 +42,7 @@ final class LegacyFiles
         $target = storage_path('app/public/books/'.$user->login);
         File::ensureDirectoryExists($target);
 
-        foreach (self::SOURCE_DIRS as $dir) {
+        foreach ([...self::SOURCE_DIRS, ...self::EXTRA_DIRS] as $dir) {
             $path = $source.'/'.$dir;
 
             if (! is_dir($path)) {

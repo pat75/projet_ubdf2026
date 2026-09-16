@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -60,6 +61,34 @@ class User extends Authenticatable
     public function fullName(): string
     {
         return trim($this->firstname.' '.$this->lastname) ?: $this->login;
+    }
+
+    /** URL de la fiche du book sur le portail (format SEO du legacy). */
+    public function portfolioUrl(): string
+    {
+        return route('portfolio.show', [
+            'login' => $this->login,
+            'slug' => Str::slug($this->fullName().'-'.($this->category?->slug ?? 'autre')),
+        ]);
+    }
+
+    /** Vignette du creatif, affichee sur la carte du portail. */
+    public function thumbnailUrl(): ?string
+    {
+        $thumbnail = $this->bookSetting?->thumbnail;
+
+        return $thumbnail
+            ? route('book.media', ['login' => $this->login, 'file' => basename($thumbnail)])
+            : null;
+    }
+
+    /**
+     * Identifiant public non devinable, utilise par le front pour les
+     * appels de statistiques. Ne revele pas la cle primaire.
+     */
+    public function publicKey(): string
+    {
+        return sha1($this->login.'|'.config('app.key'));
     }
 
     public function category(): BelongsTo

@@ -215,10 +215,20 @@ final class LegacyMigrator
         $galleries = Gallery::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
         $count = 0;
 
+        $orphans = 0;
+
         foreach ($this->legacyChunks('ub2_gal_img', 'img_id_us', $resolver->legacyIds()) as $row) {
             $userId = $resolver->fromLegacyId((int) $row->img_id_us);
 
             if ($userId === null) {
+                continue;
+            }
+
+            // 248 746 lignes de ub2_gal_img (23 %) n'ont aucun nom de fichier :
+            // enregistrements fantomes, sans visuel associe. On ne les reprend pas.
+            if (trim((string) $row->img_fichier) === '') {
+                $orphans++;
+
                 continue;
             }
 
@@ -243,6 +253,7 @@ final class LegacyMigrator
         }
 
         $this->counts['media'] = $count;
+        $this->counts['visuels_sans_fichier_ignores'] = $orphans;
     }
 
     public function migrateContent(LegacyUserResolver $resolver): void
