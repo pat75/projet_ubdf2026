@@ -630,3 +630,123 @@ est en francais, ces URL etant indexees separement.
 
 111 tests PHP au total. 18 pour ce lot : 12 fonctionnels sur les routes, la publication differee et le
 cloisonnement des langues, 6 unitaires sur la resolution des codes courts.
+
+---
+
+# Phase 3f — Multi-marque Ultra-book / Dustfolio (2026-09-16)
+
+## Deux sites, un seul code
+
+Dustfolio est la marque soeur d'Ultra-book : meme plateforme, meme base,
+domaines distincts. Chaque compte porte la sienne (`users.brand`, reprise de
+`inc_user.us_view`), chaque hote determine celle du visiteur.
+
+Proportions reelles dans ub2020, sur les comptes non supprimes :
+
+| `us_view` | comptes |
+|---|---|
+| *(vide)* | 51 197 |
+| `ub` | 9 275 |
+| `df` | 388 |
+
+La colonne n'a ete remplie qu'a partir d'un certain moment : **84 % des
+comptes n'ont pas de marque**. Le migrateur les rattache a `ub`, ce qui est
+le bon defaut — Dustfolio n'existait pas au debut.
+
+## La table des domaines servait de table de motifs
+
+Le legacy tenait la meme correspondance dans `conf/conf_domaine_2018.php`
+et la parcourait ainsi :
+
+```php
+foreach ($domaine_table as $key => $dom) {
+    if ( preg_match('/'.$key.'/i', $_SERVER['HTTP_HOST']) ) { … break; }
+}
+```
+
+La cle servait donc de **motif**, pas de nom d'hote :
+
+- `ultra-book` reconnaissait n'importe quel hote contenant ces lettres,
+  y compris `faux-ultra-book.com.attaquant.net` ;
+- le point de `extra-book.net` valait n'importe quel caractere ;
+- le premier motif qui mordait l'emportait, ce qui faisait de **l'ordre du
+  tableau une partie du comportement**, sans que rien ne le signale.
+
+Ici la comparaison se fait par **egalite**, sur l'hote prive de son port et
+de son prefixe `www.`. Un hote inconnu rend la marque par defaut plutot
+qu'une page blanche.
+
+## Un piege de regex : `$` dans une alternative
+
+Le portail repond desormais sur tous les hotes, le middleware
+`ResoudreMarque` deduisant la marque de `HTTP_HOST` — c'est le modele du
+legacy, un seul point d'entree, sans sa table de motifs.
+
+Il fallait donc empecher `df.<book_domain>` d'etre pris pour le book d'un
+creatif nomme « df ». Premier essai :
+
+```php
+$loginPattern = '(?!'.implode('$|', $reserves).'$)[-a-zA-Z0-9]+';
+```
+
+Sans effet. Le `$` d'une alternative comme `(?!df$|www$)` s'ancre a la fin
+du **sujet entier** — ici l'hote complet, `df.ubdf2026.ultra-book.name` — et
+non a la fin de l'etiquette capturee. La negation ne mordait jamais.
+
+Le controle porte en fait sur la limite d'etiquette :
+
+```php
+$loginPattern = '(?!(?:'.$reserves.')(?![-a-zA-Z0-9]))[-a-zA-Z0-9]+';
+```
+
+`df.` va au portail, `dfx.` reste un login valide. Les deux cas sont testes.
+
+Au passage, cette reserve corrige un manque du legacy : **rien n'empechait
+un creatif de prendre le login « www »** et de capter le sous-domaine
+correspondant.
+
+## Dustfolio n'a pas de contenu propre
+
+Le legacy servait les pages d'Ultra-book en y remplacant le nom au vol,
+juste avant l'affichage :
+
+```php
+$cont_wp  = preg_replace('/ultra-book/i', $inc_action->site_name, $cont_wp);
+$cont_wp  = preg_replace('/POLYGUN/i', 'DustWare SAS', $cont_wp);
+```
+
+Le comportement est conserve — c'est la seule facon de ne pas dupliquer 27
+pages pour 388 comptes — mais la table des substitutions est declaree dans
+`config/marques.php` au lieu d'etre dispersee dans `action.php`.
+
+## Ressources : un dossier, pas un suffixe de fichier
+
+`image_dir` du legacy (`''` / `'_df'`) s'ajoute au **nom du dossier** :
+`img_front` et `img_front_df`. Les 10 fichiers de `img_front_df` (68 Ko) sont
+repris. `Marque::asset()` applique la regle.
+
+## Domaines
+
+| Marque | Developpement | Production |
+|---|---|---|
+| Ultra-book | `ubdf2026.ultra-book.name` | `ultra-book.com`, `ultrabook.pro`, `extra-book.net`… |
+| Dustfolio | `df.ubdf2026.ultra-book.name` | `dustfolio.com`, `extra-book.biz` |
+
+L'hote de developpement de Dustfolio est un sous-domaine du domaine
+principal : le server block nginx couvre deja `*.ubdf2026.ultra-book.name`
+(cf. `_doc/03`), aucune modification de Valet n'est donc necessaire.
+**L'URL de test principale reste `https://ubdf2026.ultra-book.name/`.**
+
+## Reste a faire
+
+Le pied de page et les fenetres modales reprises du front 2018 contiennent
+encore des libelles « Ultra-book » en clair. Le legacy avait exactement le
+meme defaut : il ne substituait que dans le contenu WordPress. Ces gabarits
+seront repris a la reecriture Alpine/Tailwind (phase 9).
+
+## Tests
+
+119 tests PHP. 10 pour la marque : reconnaissance par egalite, prefixe
+`www.` et port, repli par defaut, cloisonnement des deux portails,
+sous-domaines reserves, substitution editoriale et repartition des
+ressources.

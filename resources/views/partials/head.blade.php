@@ -8,26 +8,26 @@
 <meta name="viewport" 				content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 
-    <title>@yield('title', 'Portfolios freelance,illustrateur,graphiste,creer son book|Ultra-book')</title>
-    <meta name="Description" 			content=\"@yield('description', 'Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book')\"/>
+    <title>@yield('title', 'Portfolios freelance,illustrateur,graphiste,creer son book|'.$marque->nom)</title>
+    <meta name="Description" 			content=\"@yield('description', 'Vous recherchez un créatif freelance ? '.$marque->nom.' vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book')\"/>
 
 
 
-<meta name="Keywords" 				content="Ultra-book,book freelance,portfolio gratuit,book gratuit,création de portfolio,art graphique,portfolio creatif,book de creatifs,book illustrateur,book graphiste,book webdesign,book freelance,book directeurs artistique,créer un book,créer son book"/>
-<meta name="application-name" 	    content="Ultra-book" />
+<meta name="Keywords" 				content="{{ $marque->nom }},book freelance,portfolio gratuit,book gratuit,création de portfolio,art graphique,portfolio creatif,book de creatifs,book illustrateur,book graphiste,book webdesign,book freelance,book directeurs artistique,créer un book,créer son book"/>
+<meta name="application-name" 	    content="{{ $marque->nom }}" />
 
-<meta property='og:locale' 		    content='fr_FR'/>
+<meta property='og:locale' 		    content='{{ str_replace('-', '_', app()->getLocale()) }}'/>
 <meta property='og:type' 			content='website'/>
-<meta property='og:title' 			content='@yield('title', 'Ultra-book')'/>
+<meta property='og:title' 			content='@yield('title', $marque->nom)'/>
 <meta property='og:url' 			content='{{ url()->current() }}'/>
-<meta property='og:site_name'		content='Ultra-book'/>
-<meta property='og:description' 	content='Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book'/>
+<meta property='og:site_name'		content='{{ $marque->nom }}'/>
+<meta property='og:description' 	content='Vous recherchez un créatif freelance ? {{ $marque->nom }} vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book'/>
 <meta property='og:image' 			content='https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png'/>
 
 <meta name="twitter:card" 			content="summary" />
 <meta name="twitter:site" 			content="&#64;ultra_book" />
-<meta name="twitter:title" 		    content=\"@yield('title', 'Ultra-book')\" />
-<meta name="twitter:description"    content="Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book"/>
+<meta name="twitter:title" 		    content=\"@yield('title', $marque->nom)\" />
+<meta name="twitter:description"    content="Vous recherchez un créatif freelance ? {{ $marque->nom }} vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book"/>
 <meta name="twitter:url" 			content="{{ url()->current() }}" />
 <meta name="twitter:image" 		    content="https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png" />
 <meta name="twitter:creator" 		content="&#64;ultra_book" />

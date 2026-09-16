@@ -9,7 +9,7 @@
 		<div class="ui top attached button+">
 			<div class="logo ">
 
-				                    <img class="logo_normal" src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book">
+				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
 				
 			</div>
 		</div>
@@ -21,7 +21,7 @@
 				<div class="one olive+ column space2">
 					<div class="ui segment basic space1">
 						<div class="intro">
-							Depuis 2007 Ultra-book vous permet de créer votre portfolio, d’y ajouter vos images,
+							Depuis 2007 {{ $marque->nom }} vous permet de créer votre portfolio, d’y ajouter vos images,
 							légendes, liens web, textes de présentation, et surtout de personnaliser votre espace
 							book. Les books sont classés par domaine, une selection est faite tous les trois mois
 							par des professionnels.						</div>
@@ -33,8 +33,8 @@
 						<div class="ui link list">
 
                             <!--<a class="item" href="https://www.ultra-book.pro/contact/" >Contact / Aide</a>-->
-							                                <a class="item " href="mailto:contact2019&#64;ultra-book.net?subject=Aide Ultra-book&body=Indiquez l’adresse de votre portfolio, merci.">
-									Contact/aide<br/>contact2019&#64;ultra-book.net
+							                                <a class="item " href="mailto:{{ $marque->email }}?subject={{ rawurlencode('Aide '.$marque->nom) }}&body={{ rawurlencode('Indiquez l’adresse de votre portfolio, merci.') }}">
+									Contact/aide<br/>{{ $marque->email }}
                                 </a>
                             
                             <a class="item" href="/doc/">Documentation / Tuto</a>

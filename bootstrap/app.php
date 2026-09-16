@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Toute entree utilisateur est ramenee a de l'UTF-8 normalise (NFC).
         $middleware->append(App\Http\Middleware\NormalizeUnicodeInput::class);
 
+        // La marque (Ultra-book ou Dustfolio) se deduit de l'hote et
+        // conditionne le nom du site, les books listes et les courriels.
+        $middleware->append(App\Http\Middleware\ResoudreMarque::class);
+
         /*
          | Le formulaire de contact du front 2018 est poste par un JavaScript
          | qui ne connait pas le jeton CSRF de Laravel, et qu'on ne reecrit

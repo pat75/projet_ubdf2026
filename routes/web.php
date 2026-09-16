@@ -14,25 +14,47 @@ use Illuminate\Support\Facades\Route;
 $bookDomain = config('ubdf.book_domain');
 
 /*
-|--------------------------------------------------------------------------
-| Books creatifs — sous-domaine <login>.<book_domain>
-|--------------------------------------------------------------------------
-| Declare avant le portail : une route sans contrainte de domaine capterait
-| aussi les sous-domaines.
+| Etiquettes de sous-domaine qui ne peuvent pas designer un book : elles
+| servent au portail (« df » pour Dustfolio) ou a l'infrastructure. Sans
+| cette exclusion, `df.<book_domain>` serait pris pour le book d'un creatif
+| nomme « df » — et rien n'empechait un compte de reserver « www ».
 */
-Route::domain('{login}.'.$bookDomain)->group(function () {
-    Route::get('/', function (string $login) {
-        return response("BOOK · login = {$login}", 200)
-            ->header('Content-Type', 'text/plain; charset=utf-8');
-    })->name('book.home');
-});
+/*
+| Le « $ » d'une alternative comme `(?!df$|www$)` s'ancre a la fin du sujet
+| entier — ici l'hote complet, `df.ubdf2026.ultra-book.name` — et non a la
+| fin de l'etiquette capturee. La negation ne mordait donc jamais. Le
+| controle porte sur la limite d'etiquette : le mot reserve ne doit pas
+| etre suivi d'un caractere d'etiquette.
+*/
+$reserves = implode('|', config('marques.sous_domaines_reserves'));
+$loginPattern = '(?!(?:'.$reserves.')(?![-a-zA-Z0-9]))[-a-zA-Z0-9]+';
 
 /*
 |--------------------------------------------------------------------------
-| Portail public
+| Books creatifs — sous-domaine <login>.<book_domain>
 |--------------------------------------------------------------------------
+| Declare avant le portail : celui-ci repond sur tous les hotes et capterait
+| aussi les sous-domaines.
 */
-Route::domain($bookDomain)->group(function () {
+Route::domain('{login}.'.$bookDomain)
+    ->where(['login' => $loginPattern])
+    ->group(function () {
+        Route::get('/', function (string $login) {
+            return response("BOOK · login = {$login}", 200)
+                ->header('Content-Type', 'text/plain; charset=utf-8');
+        })->name('book.home');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Portail public — Ultra-book et Dustfolio
+|--------------------------------------------------------------------------
+| Aucune contrainte de domaine : le portail repond sur tous les hotes
+| declares dans `config/marques.php`, et le middleware `ResoudreMarque`
+| deduit la marque de l'hote. C'est le modele du legacy — un seul point
+| d'entree, la marque venant de `HTTP_HOST` — sans sa table de motifs.
+*/
+Route::group([], function () {
 
     // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
     Route::get('/cache_js/data_stats.json', StatsController::class)->name('stats');
