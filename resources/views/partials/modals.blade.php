@@ -776,6 +776,9 @@
 
                             <form id="mdp_form" class="ui form">
 
+                                @csrf
+
+
                                 <input type="hidden" name="form_action" value="form_valide" >
                                 <input type="hidden" name="form_id" value="form_mdpoublie">
                                 <input type="hidden" name="action" value="form">
@@ -812,6 +815,9 @@
                         <div class="ui left aligned basic small segment">
 
                             <form action="/ubaction__user_open" id="login_form" method="post" class="ui form ">
+
+                                @csrf
+
 
                                 <input type="hidden" name="g-recaptcha-response">
 
@@ -958,6 +964,9 @@
 
                                 <form class="ui form " id="inscription_google">
 
+                                @csrf
+
+
                                     <input type="hidden" name="action" value="form">
                                     <input type="hidden" name="form_id" value="">
                                     <input type="hidden" value="form_valide" name="form_action">
@@ -1028,7 +1037,7 @@
                                                     <label>
 														J’accepte les                                                        <a href="/doc/conditions-dutilisations"
                                                            target="_blank">conditions d’utilisation</a>
-														de la plateforme Ultra-book                                                    </label>
+														{{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1059,6 +1068,9 @@
                             <div class="ui left aligned basic small segment">
 
                                 <form class="ui form " id="inscription_classic">
+
+                                @csrf
+
 
                                     <input type="hidden" name="action" value="form">
                                     <input type="hidden" name="form_id" value="form_adduser">
@@ -1167,7 +1179,7 @@
                                                     <label>
 														J’accepte les                                                        <a href="/doc/conditions-dutilisations"
                                                            target="_blank">conditions d’utilisation</a>
-														de la plateforme Ultra-book                                                    </label>
+														{{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}                                                    </label>
                                                 </div>
                                             </div>
                                         </div>

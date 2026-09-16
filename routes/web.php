@@ -4,11 +4,17 @@ use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
+use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
+use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\FilController;
+use App\Http\Controllers\Front\InscriptionController;
+use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
 use App\Http\Controllers\Front\StatsController;
+use App\Http\Middleware\ForcerLangue;
+use App\Http\Middleware\ResoudreLangue;
 use Illuminate\Support\Facades\Route;
 
 $bookDomain = config('ubdf.book_domain');
@@ -109,6 +115,35 @@ Route::group([], function () {
         ->name('contact.envoyer');
     Route::get('/captcha_img', [ContactController::class, 'captcha'])->name('captcha');
 
+    /*
+     | Comptes creatifs
+     |
+     | `/ubaction__user_open` et `/ubaction__user_out` gardent les chemins
+     | du legacy : le formulaire de la fenetre modale, repris tel quel du
+     | front de 2019, y poste en dur. Ils restent hors langue, comme les
+     | autres points d'entree du JavaScript.
+     |
+     | `/inscription` remplace en revanche `/front/ajax_2010.php`, et c'est
+     | le seul chemin que ce lot deplace. Nginx attribue toute URL en
+     | `.php` a PHP-FPM avant que Laravel ne la voie : le fichier n'existant
+     | pas, le serveur repondait « File not found. » La route etait
+     | pourtant declaree et les tests verts — le client de test de Laravel
+     | ne passe pas par nginx. Les deux `url` de `js_core_inscription.js`
+     | sont mises a jour en consequence.
+     */
+    Route::post('/ubaction__user_open', [ConnexionController::class, 'connecter'])
+        ->name('connexion');
+    Route::post('/ubaction__user_out', [ConnexionController::class, 'deconnecter'])
+        ->name('deconnexion');
+
+    // Disponibilite d'un identifiant, interrogee a la frappe (texte brut).
+    Route::get('/inscription', [InscriptionController::class, 'loginDisponible'])
+        ->name('inscription.login-disponible');
+
+    // Inscription et mot de passe oublie, aiguilles sur `form_id`.
+    Route::post('/inscription', [InscriptionController::class, 'soumettre'])
+        ->name('inscription.soumettre');
+
     Route::get('/messages/{role}/{selector}/{jeton}', [FilController::class, 'show'])
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
         ->name('messagerie.fil');
@@ -130,6 +165,25 @@ $portail = function () {
     Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
 
     Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
+
+    /*
+     | Comptes creatifs — les pages, celles-ci traduites.
+     |
+     | `espace` est la destination de la connexion, de l'inscription et de
+     | la reinitialisation. Son contenu est le sujet de la phase 5.
+     */
+    Route::get('/espace', EspaceController::class)
+        ->middleware('auth')->name('espace');
+
+    Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
+        ->middleware('signed')->name('inscription.confirmer');
+
+    Route::get('/mot-de-passe/{demande}/{jeton}', [MotDePasseController::class, 'formulaire'])
+        ->where(['demande' => '[0-9]+', 'jeton' => '[a-f0-9]{64}'])
+        ->name('mot-de-passe.formulaire');
+    Route::post('/mot-de-passe/{demande}/{jeton}', [MotDePasseController::class, 'enregistrer'])
+        ->where(['demande' => '[0-9]+', 'jeton' => '[a-f0-9]{64}'])
+        ->name('mot-de-passe.enregistrer');
 
     /*
      | Pages editoriales et actualites
@@ -195,7 +249,6 @@ $portail = function () {
     }
 };
 
-
 /*
 | Ultra-book : URL sans segment de langue.
 |
@@ -204,7 +257,7 @@ $portail = function () {
 | leur equivalent prefixe : une page n'a ainsi qu'une seule adresse par
 | langue.
 */
-Route::middleware(App\Http\Middleware\ResoudreLangue::class)->group($portail);
+Route::middleware(ResoudreLangue::class)->group($portail);
 
 /*
 | Dustfolio : une copie des memes routes par langue servie, prefixee et
@@ -221,6 +274,6 @@ Route::middleware(App\Http\Middleware\ResoudreLangue::class)->group($portail);
 foreach (array_keys(config('langues.disponibles', [])) as $langue) {
     Route::prefix($langue)
         ->name($langue.'.')
-        ->middleware(App\Http\Middleware\ForcerLangue::class.':'.$langue)
+        ->middleware(ForcerLangue::class.':'.$langue)
         ->group($portail);
 }

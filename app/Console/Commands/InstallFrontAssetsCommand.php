@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+
+/**
+ * Reinstalle dans `public/` les fichiers du front repris du site 2019.
+ *
+ * Ces 37 Mo ne sont pas versionnes : ce sont des fichiers d'origine, repris
+ * tels quels. Ils etaient jusqu'ici recopies a la main, ce qui posait un
+ * probleme des lors qu'il a fallu **corriger** l'un d'eux : la correction
+ * vivait dans un fichier ignore par git, et disparaissait a la copie
+ * suivante sans que rien ne le signale.
+ *
+ * Cette commande fait donc les deux : elle copie, puis elle applique les
+ * retouches connues. Elle est idempotente.
+ */
+class InstallFrontAssetsCommand extends Command
+{
+    protected $signature = 'ubdf:install-front-assets {--force : Ecrase les dossiers deja presents}';
+
+    protected $description = 'Copie les assets du front 2019 dans public/ et y applique les retouches';
+
+    /** Dossiers repris tels quels depuis la racine du site 2019. */
+    private const DOSSIERS = [
+        'html_pages_v2018',
+        'img_front',
+        'img_front_df',
+        'img_default',
+        'js_jquery',
+        '_video',
+    ];
+
+    /**
+     * Retouches appliquees apres copie.
+     *
+     * `/front/ajax_2010.php` : nginx attribue toute URL en `.php` a PHP-FPM
+     * avant que Laravel ne la voie. Le fichier n'existant plus, le serveur
+     * repondait « File not found. » de lui-meme — sans qu'aucun test PHP ne
+     * puisse le montrer, le client de test ne passant pas par nginx. Le
+     * point d'entree de l'inscription est donc `/inscription`.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private const RETOUCHES = [
+        'html_pages_v2018/_/js2019/js_core_inscription.js' => ['/front/ajax_2010.php' => '/inscription'],
+        'html_pages_v2018/_/js2019/js_core_inscription.min.js' => ['/front/ajax_2010.php' => '/inscription'],
+    ];
+
+    public function handle(): int
+    {
+        $source = rtrim((string) config('ubdf.legacy_path'), '/');
+
+        if (! File::isDirectory($source)) {
+            $this->error("Source introuvable : {$source}");
+
+            return self::FAILURE;
+        }
+
+        foreach (self::DOSSIERS as $dossier) {
+            $de = $source.'/'.$dossier;
+            $vers = public_path($dossier);
+
+            if (! File::isDirectory($de)) {
+                $this->warn("Absent de la source, ignore : {$dossier}");
+
+                continue;
+            }
+
+            if (File::isDirectory($vers) && ! $this->option('force')) {
+                $this->line("Deja present, conserve : {$dossier}");
+
+                continue;
+            }
+
+            File::copyDirectory($de, $vers);
+            $this->info("Copie : {$dossier}");
+        }
+
+        $this->retoucher();
+
+        return self::SUCCESS;
+    }
+
+    private function retoucher(): void
+    {
+        foreach (self::RETOUCHES as $chemin => $substitutions) {
+            $fichier = public_path($chemin);
+
+            if (! File::exists($fichier)) {
+                $this->warn("Retouche impossible, fichier absent : {$chemin}");
+
+                continue;
+            }
+
+            $contenu = File::get($fichier);
+            $avant = $contenu;
+
+            foreach ($substitutions as $cherche => $remplace) {
+                $contenu = str_replace($cherche, $remplace, $contenu);
+            }
+
+            if ($contenu === $avant) {
+                $this->line("Retouche deja appliquee : {$chemin}");
+
+                continue;
+            }
+
+            File::put($fichier, $contenu);
+            $this->info("Retouche : {$chemin}");
+        }
+    }
+}

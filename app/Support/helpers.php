@@ -22,16 +22,33 @@ if (! function_exists('lien')) {
      */
     function lien(string $nom, mixed $parametres = [], bool $absolu = true): string
     {
+        return route(nom_route($nom), $parametres, $absolu);
+    }
+}
+
+if (! function_exists('nom_route')) {
+    /**
+     * Nom effectif d'une route du portail pour la marque et la langue
+     * courantes : `accueil` sur Ultra-book, `en.accueil` sur Dustfolio.
+     *
+     * `lien()` suffit pour construire une URL. Ce helper existe pour les
+     * cas ou c'est le **nom** qu'il faut, et non l'URL : une URL signee
+     * (`URL::temporarySignedRoute`) doit viser la route prefixee, sinon
+     * `ResoudreLangue` redirige vers la version prefixee et la signature,
+     * calculee sur l'URL complete, ne correspond plus.
+     */
+    function nom_route(string $nom): string
+    {
         $marque = request()?->attributes->get('marque') ?? Marque::defaut();
 
         if ($marque->multilingue()) {
             $prefixe = app()->getLocale().'.';
 
             if (RouteFacade::has($prefixe.$nom)) {
-                return route($prefixe.$nom, $parametres, $absolu);
+                return $prefixe.$nom;
             }
         }
 
-        return route($nom, $parametres, $absolu);
+        return $nom;
     }
 }

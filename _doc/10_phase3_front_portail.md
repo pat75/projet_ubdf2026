@@ -952,3 +952,145 @@ la maison. Ils passent sous `@if ($marque->estDefaut())`.
 > Reste a trancher : le pied de page et une fenetre modale citent encore ces
 > memes domaines sur les deux marques. Ils seront repris avec les gabarits
 > en phase 9, ou plus tot si tu veux les traiter maintenant.
+
+---
+
+# Phase 3e — inscription et connexion
+
+Dernier lot de la phase 3. Trois formulaires de la fenetre modale de
+l'accueil trouvent enfin leur contrepartie serveur : connexion, inscription,
+mot de passe oublie. Le JavaScript de 2019 (`js_core_inscription.js`) est
+conserve ; c'est son contrat qui a dicte la forme des reponses.
+
+## Ce que le legacy faisait, et pourquoi trois choses changent
+
+### 1. Les mots de passe ne sont plus reversibles — la recuperation non plus
+
+`user2010_open()` comparait `$pass == $pass2->decode_2($d->us_pass)` : les
+mots de passe etaient **chiffres de facon reversible**, pas haches. C'est ce
+qui permettait a « mot de passe oublie » d'expedier la chose en clair dans le
+corps du mail (« Mot de passe: %us_pass% »).
+
+L'import les avait deja rehashes en bcrypt (`LegacyMigrator::password()`).
+La recuperation devient donc une **reinitialisation** : un lien a usage
+unique, valable deux heures, dont seul le sha256 est stocke.
+
+`users.email` n'etant pas unique — le legacy laissait ouvrir plusieurs books
+sur une meme adresse, au point d'avoir un message dedie — la table
+`password_reset_tokens` de Laravel, dont l'adresse est la cle primaire, ne
+convenait pas. D'ou `user_password_resets`, rattachee au **compte**. Un mail
+porte un lien par compte.
+
+### 2. Le comptage des tentatives servait a quelque chose
+
+Le legacy faisait `$_SESSION['us_essai']--` sans jamais lire le compteur pour
+bloquer quoi que ce soit — et une session se jette. Le comptage se fait
+desormais cote serveur sur le couple identifiant + IP : cinq essais, puis une
+minute d'attente.
+
+Dans la foulee, « identifiant inconnu » et « mot de passe faux » recoivent le
+meme message, et « mot de passe oublie » repond la meme chose que l'adresse
+existe ou non. Le legacy repondait « Votre mail ne correspond a aucun
+compte », ce qui permettait de tester une adresse.
+
+### 3. Un identifiant ne peut plus masquer le portail
+
+`user2010_isloginexist()` ne consultait que la table des comptes. Or le login
+devient un sous-domaine : rien n'empechait d'ouvrir un book « www » ou
+« df ». La verification passe maintenant par
+`Marque::sousDomaineReserve()` — la meme liste que celle qui exclut ces
+etiquettes du routage.
+
+## Un ecart assume sur la confirmation d'adresse
+
+Le legacy renvoyait au navigateur l'URL `ubaction__user_confirm&clef=…` et
+l'y envoyait immediatement : la confirmation etait franchie sans jamais
+passer par la boite mail, et ne confirmait donc rien.
+
+Le compte est desormais ouvert directement — le creatif est connecte a l'issue
+de l'inscription — et le lien signe du mail de bienvenue sert a ce a quoi il
+sert vraiment : verifier qu'on peut le joindre.
+
+## reCAPTCHA
+
+La cle publique etait ecrite en dur dans le gabarit ; elle passe dans
+`config/services.php`. Sans `RECAPTCHA_SECRET`, la verification est
+**desactivee et le dit dans les logs**. Le legacy, lui, ecrivait
+`$error = false;` juste apres l'appel dans le cas « mot de passe oublie » :
+le captcha y etait neutralise en production sans que rien ne l'indique.
+
+Une erreur reseau ne bloque pas la requete : Google indisponible ne doit pas
+empecher un creatif de se connecter.
+
+## Le piege du jour : une route verte qui repond 404
+
+`/front/ajax_2010.php` etait declaree, les 22 tests passaient — et l'URL
+reelle repondait « File not found. » Nginx attribue toute URL en `.php` a
+PHP-FPM avant que Laravel ne la voie ; le fichier n'existant pas, le serveur
+repond de lui-meme. Le client de test de Laravel, lui, ne passe pas par
+nginx.
+
+C'est le seul chemin que ce lot deplace : le point d'entree devient
+`/inscription`, et les deux `url` de `js_core_inscription.js` suivent.
+`/ubaction__user_open` et `/ubaction__user_out` gardent en revanche leur
+forme legacy — ils n'ont pas d'extension et passent tres bien.
+
+> A retenir pour les phases suivantes : une URL en `.php` ne peut pas etre
+> servie par Laravel derriere cette configuration nginx, et aucun test PHP ne
+> le montrera.
+
+### Consequence : les assets du front ont enfin une commande
+
+Retoucher `js_core_inscription.js` posait un second probleme, moins visible
+que le premier : `public/html_pages_v2018` est **ignore par git** (37 Mo
+repris tels quels du site 2019) et recopie a la main. La correction vivait
+donc dans un fichier non versionne, et aurait disparu a la copie suivante
+sans que rien ne le signale.
+
+D'ou `php artisan ubdf:install-front-assets` : elle copie les six dossiers
+depuis `config('ubdf.legacy_path')` puis applique les retouches connues,
+declarees dans la constante `RETOUCHES`. Elle est idempotente, et c'est
+desormais elle qui porte la trace de la modification. Toute retouche future
+d'un fichier d'origine doit passer par la.
+
+## CSRF plutot qu'exception
+
+Les quatre formulaires de la modale n'avaient pas de jeton. Plutot que de les
+sortir de la verification CSRF, `@csrf` y est ajoute : Semantic UI renvoie
+tous les champs nommes du formulaire via `form('get values')`, le jeton part
+donc avec le reste.
+
+## Points d'entree
+
+| Chemin | Role |
+|---|---|
+| `POST /ubaction__user_open` | Connexion (chemin du legacy) |
+| `POST /ubaction__user_out` | Deconnexion |
+| `GET /inscription` | Disponibilite d'un identifiant, en texte brut |
+| `POST /inscription` | Inscription et mot de passe oublie, aiguilles sur `form_id` |
+| `GET /espace` | Destination apres connexion — **place tenue pour la phase 5** |
+| `GET /inscription/confirmer/{login}` | Lien signe du mail de bienvenue |
+| `GET\|POST /mot-de-passe/{demande}/{jeton}` | Reinitialisation |
+
+Les quatre premiers ne portent pas de segment de langue, comme les autres
+points d'entree du JavaScript. Les trois derniers rendent des pages : ils
+sont traduits et prefixes sur Dustfolio.
+
+Il n'y a pas de page de connexion — le formulaire vit dans la modale. Un
+visiteur envoye vers `/espace` revient a l'accueil, la fenetre ouverte
+(`connexion_ouverte`), et repart vers sa destination via
+`redirect()->intended()`.
+
+## Au passage
+
+- `UserFactory` posait encore un champ `name` que la table `users` n'a pas :
+  elle etait inutilisable. Reecrite sur le schema reel.
+- L'etiquette des conditions d'utilisation disait « de la plateforme
+  Ultra-book » sur les deux marques ; elle suit desormais `$marque->nom`.
+- 36 chaines anglaises ajoutees pour Dustfolio.
+
+## Tests
+
+23 scenarios dans `tests/Feature/Front/CompteTest.php`, et une verification
+de bout en bout sur `https://ubdf2026.ultra-book.name` avec cookies et jeton
+CSRF reels — c'est elle qui a montre le 404 de nginx.

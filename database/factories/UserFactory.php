@@ -12,30 +12,28 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        /*
+         | La factory livree par Laravel posait un champ `name`, que la table
+         | `users` n'a pas : un compte Ultra-book porte un login (qui est
+         | aussi son sous-domaine), un nom et un prenom separes.
+         */
         return [
-            'name' => fake()->name(),
+            'login' => Str::slug(fake()->unique()->userName()),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'firstname' => fake()->firstName(),
+            'lastname' => fake()->lastName(),
+            'brand' => 'ub',
+            'locale' => 'fr',
             'remember_token' => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

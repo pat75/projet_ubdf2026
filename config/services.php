@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    /*
+    | reCAPTCHA v3 - protege la connexion, l'inscription et la demande de
+    | mot de passe oublie.
+    |
+    | La cle publique etait ecrite en dur dans le gabarit ; elle passe ici.
+    | Sans `secret`, la verification est **desactivee** et non pas reputee
+    | reussie a l'aveugle : App\Services\Auth\Recaptcha le signale dans les
+    | logs. C'est le cas en local et en test, ou aucun appel reseau ne doit
+    | partir.
+    */
+    'recaptcha' => [
+        'key' => env('RECAPTCHA_KEY', '6Lc8O5IUAAAAAJer15iYwddEROZzZnnIVzQe4P_1'),
+        'secret' => env('RECAPTCHA_SECRET'),
+        'score_minimum' => (float) env('RECAPTCHA_SCORE_MIN', 0.3),
+    ],
+
 ];

@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Middleware\NormalizeUnicodeInput;
+use App\Http\Middleware\ResoudreMarque;
+use App\Support\Langue;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,11 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Toute entree utilisateur est ramenee a de l'UTF-8 normalise (NFC).
-        $middleware->append(App\Http\Middleware\NormalizeUnicodeInput::class);
+        $middleware->append(NormalizeUnicodeInput::class);
 
         // La marque (Ultra-book ou Dustfolio) se deduit de l'hote et
         // conditionne le nom du site, les books listes et les courriels.
-        $middleware->append(App\Http\Middleware\ResoudreMarque::class);
+        $middleware->append(ResoudreMarque::class);
 
         /*
          | Le cookie de langue reste en clair.
@@ -27,11 +31,24 @@ return Application::configure(basePath: dirname(__DIR__))
          | Chiffre, il serait illisible pour eux — et indechiffrable pour
          | Laravel lui-meme s'il venait de l'ancien site.
          */
+        /*
+         | Il n'y a pas de page de connexion : le formulaire vit dans une
+         | fenetre modale de l'accueil. Un visiteur envoye vers une page
+         | protegee revient donc a l'accueil, la fenetre ouverte
+         | (`connexion_ouverte`), et repart ensuite vers sa destination
+         | grace a `redirect()->intended()`.
+         */
+        $middleware->redirectGuestsTo(function (Request $requete) {
+            $requete->session()?->flash('connexion_ouverte', true);
+
+            return lien('accueil');
+        });
+
         $middleware->encryptCookies(except: [
-            App\Support\Langue::COOKIE,
+            Langue::COOKIE,
             // Celui pose par le site de 2019, encore present chez les
             // visiteurs : chiffre, il serait illisible et son choix perdu.
-            App\Support\Langue::COOKIE_LEGACY,
+            Langue::COOKIE_LEGACY,
         ]);
 
         /*
