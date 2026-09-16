@@ -19,6 +19,18 @@ it('refuse toute ecriture sur la connexion legacy', function () {
     DB::connection('legacy')->statement('UPDATE inc_user SET us_nom = us_nom');
 })->throws(RuntimeException::class, 'Ecriture interdite');
 
+it('refuse toute ecriture sur la connexion WordPress', function () {
+    DB::connection('legacy_wp')->statement('UPDATE wp_posts SET post_title = post_title');
+})->throws(RuntimeException::class, 'Ecriture interdite');
+
+it('lit le WordPress du magazine en UTF-8, sans double encodage', function () {
+    // Contrairement a ub2020, cette base est declaree utf8 et contient
+    // reellement de l'UTF-8 : la lire en latin1 l'abimerait.
+    $titre = DB::connection('legacy_wp')->table('posts')->where('ID', 16)->value('post_title');
+
+    expect($titre)->toBe('Écoles partenaires');
+});
+
 it('mappe toutes les valeurs de us_type vers une categorie', function () {
     $map = config('categories.legacy_map');
 

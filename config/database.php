@@ -69,6 +69,36 @@ return [
          * Utilisee uniquement par les commandes de migration de donnees.
          * Aucune ecriture ne doit jamais transiter par cette connexion.
          */
+        /*
+         * Base WordPress du magazine (/magazine du site 2019) — LECTURE SEULE.
+         *
+         * Contrairement a ub2020, cette base est **propre** : `wp_posts` est
+         * declaree utf8 et contient reellement de l'UTF-8. Elle se lit donc
+         * en utf8mb4, et surtout **pas** en latin1 comme la connexion
+         * « legacy » — ce serait y introduire le double encodage que l'autre
+         * connexion sert justement a eviter.
+         *
+         * Le site de 2019 chargeait ce WordPress dans le processus du
+         * portail (`require '../magazine/wp-load.php'`) pour en tirer 27
+         * pages et 71 actualites. Les contenus sont desormais importes par
+         * `ubdf:import-cms` ; cette connexion ne sert qu'a cet import.
+         */
+        'legacy_wp' => [
+            'driver' => 'mysql',
+            'host' => env('DB_LEGACY_HOST', '127.0.0.1'),
+            'port' => env('DB_LEGACY_PORT', '8889'),
+            'database' => env('DB_LEGACY_WP_DATABASE', '_projet_ultra-bookb_magazine_2018'),
+            'username' => env('DB_LEGACY_USERNAME', 'root'),
+            'password' => env('DB_LEGACY_PASSWORD', ''),
+            'unix_socket' => env('DB_LEGACY_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => 'wp_',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+        ],
+
         'legacy' => [
             'driver' => 'mysql',
             'host' => env('DB_LEGACY_HOST', '127.0.0.1'),

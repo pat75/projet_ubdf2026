@@ -3,6 +3,7 @@
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
+use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\PortfolioController;
@@ -86,6 +87,32 @@ Route::domain($bookDomain)->group(function () {
     Route::post('/messages/{role}/{selector}/{jeton}', [FilController::class, 'repondre'])
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
         ->name('messagerie.repondre');
+
+    /*
+     | Pages editoriales et actualites
+     |
+     | Reprises de l'ancien WordPress du magazine, que le portail de 2019
+     | chargeait dans son propre processus a chaque requete
+     | (`require '../magazine/wp-load.php'`). Les URL sont conservees telles
+     | quelles : elles sont indexees.
+     */
+    Route::get('/actus', [CmsController::class, 'actualites'])->name('actualites');
+    Route::get('/actus/{slug}', [CmsController::class, 'actualite'])
+        ->where('slug', '[-a-zA-Z0-9_]+')->name('actualite');
+
+    Route::get('/doc/{slug}', [CmsController::class, 'page'])
+        ->where('slug', '[-a-zA-Z0-9_]+')->name('cms.doc');
+    Route::get('/page__{slug}', [CmsController::class, 'page'])
+        ->where('slug', '[-a-zA-Z0-9_]+')->name('cms.page');
+
+    // Anciennes formes des memes pages, par marque.
+    foreach (['ultra-book', 'dustfolio'] as $marque) {
+        Route::get('/'.$marque.'__{slug}', [CmsController::class, 'page'])
+            ->where('slug', '[-a-zA-Z0-9_]+');
+    }
+
+    // Le blog du legacy renvoyait vers un site externe ; il rejoint les actus.
+    Route::get('/blog', fn () => redirect()->route('actualites', status: 301));
 
     // Selections editoriales.
     Route::get('/les-ultra-books', fn () => redirect()->route('accueil'))->name('selection.lub');

@@ -15,6 +15,12 @@ return [
     'legacy_books_path' => env('LEGACY_BOOKS_PATH'),
 
     /*
+     * Racine du site 2019 lui-meme (lecture seule), d'ou sont repris les
+     * medias de l'ancien WordPress du magazine.
+     */
+    'legacy_path' => env('LEGACY_PATH', '/Users/pat/Sites_2019/_projet_ubdf_2020'),
+
+    /*
      * Nombre de comptes importes en developpement.
      */
     'dev_users_sample' => (int) env('DEV_USERS_SAMPLE', 100),

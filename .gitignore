@@ -29,3 +29,12 @@ Thumbs.db
 /public/img_default
 /public/js_jquery
 /public/_video
+
+# Medias de l'ancien WordPress, recopies par `ubdf:import-cms`.
+# Meme regle que html_pages_v2018 et _video : les fichiers repris du site
+# 2019 ne sont pas versionnes, ils se regenerent par commande.
+/public/magazine
+
+# Graphe de connaissance : artefact derive du code, reconstruit par le hook
+# git post-commit (5 Mo, dont un manifeste qui change a chaque commit).
+/graphify-out

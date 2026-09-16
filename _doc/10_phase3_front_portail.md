@@ -540,3 +540,93 @@ ci-dessus : jetons distincts, jeton jamais stocke en clair, refus du role
 croise, expiration, renouvellement, captcha a usage unique, spam enregistre
 mais non relaye, limite de debit, et absence de l'adresse du visiteur dans
 la page du creatif.
+
+---
+
+# Phase 3e — Pages editoriales et actualites (2026-09-16)
+
+## Un WordPress entier demarrait a chaque requete
+
+Le portail de 2019 ne stockait pas ses pages editoriales. Il chargeait
+WordPress dans son propre processus et l'interrogeait :
+
+```php
+require('../magazine/wp-load.php');
+$tpl->wp_cont = new WP_Query(['pagename' => '/'.$page_wp]);
+$tpl->cont_wp  = apply_filters('the_content', get_the_content());
+```
+
+Soit, pour **27 pages et 71 actualites**, un second framework a demarrer a
+chaque affichage, ses tables, son cycle de mise a jour et sa surface
+d'attaque — le tout dans une installation figee depuis 2018.
+
+Les contenus sont repris dans `cms_pages` et `cms_posts`. La commande
+`ubdf:import-cms` rejoue l'import a la demande, ce qui laisse la porte
+ouverte si la redaction continue dans WordPress en attendant le
+back-office (phase 6).
+
+## La base WordPress se lit en UTF-8, pas en latin1
+
+Point a ne pas confondre avec ub2020. `wp_posts` est declaree `utf8` et
+contient reellement de l'UTF-8 (`C389` pour « É »). La connexion
+`legacy_wp` est donc en **utf8mb4** : la lire en latin1, comme la connexion
+`legacy`, y introduirait precisement le double encodage que cette derniere
+sert a eviter.
+
+Les deux connexions sont desormais protegees par le meme garde-fou en
+lecture seule, et deux tests le verrouillent.
+
+## Codes courts : trois utilises, un sans gestionnaire
+
+Le contenu WordPress est deja du HTML — pas de `wpautop` a reproduire. Seuls
+trois codes courts apparaissent, tous dans les pages :
+
+| Code | Occurrences | Traitement |
+|---|---|---|
+| `[perso]` | 7 | developpe a l'import (bloc nom + role + photo) |
+| `[clear]` | 2 | developpe a l'import |
+| `[ub_formule]` | 2 | **aucun gestionnaire dans le legacy** |
+
+`[ub_formule]` n'est declare nulle part : ni dans le theme, ni dans
+`front/`, ni dans `inc/`. Les deux pages de tarifs (« Les formules
+Ultra-book » et « Packages », dont le corps ne contient que ce code) **ont
+donc toujours affiche le code court en toutes lettres** sur le site en
+production. Il est retire a l'import et la page signalee : le bloc de tarifs
+sera produit en phase 7, avec le paiement.
+
+Les deux autres sont resolus **une fois, a l'import**, plutot que de
+reconduire un moteur de codes courts a l'affichage.
+
+## Medias : 86 fichiers sur 531
+
+Le dossier `wp-content/uploads` pese 80 Mo pour 531 fichiers, essentiellement
+des declinaisons produites par WordPress et jamais referencees. L'import ne
+copie que les fichiers **reellement cites** par les contenus repris : 86, et
+signale les 4 references dont le fichier a disparu du disque — meme
+phenomene que pour les visuels des books.
+
+## Langues
+
+WPML donne la langue et le groupe de traduction de chaque contenu
+(`wp_icl_translations`) : 17 pages FR, 11 EN, 74 actualites FR. Le
+`translation_group` est conserve, il reliera les versions entre elles quand
+le multi-langue sera en place.
+
+Le sommaire lateral d'une page ne montre que ses soeurs **de la meme
+langue** ; une page anglaise reste servie par son slug meme quand le portail
+est en francais, ces URL etant indexees separement.
+
+## URL conservees
+
+| URL | Origine |
+|---|---|
+| `/doc/<slug>` | pages de l'arbre de documentation |
+| `/page__<slug>` | meme page, forme de premier niveau |
+| `/ultra-book__<slug>`, `/dustfolio__<slug>` | formes par marque |
+| `/actus`, `/actus/<slug>` | actualites |
+| `/blog` | 301 vers `/actus` (renvoyait vers un site externe) |
+
+## Tests
+
+111 tests PHP au total. 18 pour ce lot : 12 fonctionnels sur les routes, la publication differee et le
+cloisonnement des langues, 6 unitaires sur la resolution des codes courts.
