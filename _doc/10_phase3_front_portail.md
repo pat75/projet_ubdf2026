@@ -869,3 +869,69 @@ URL prefixees, redirection de Dustfolio, priorite de l'URL sur le cookie,
 cookie de l'ancien site, `Accept-Language`, langue non servie, traductions,
 accroches propres a Dustfolio, `og:locale` et non-prefixage des points
 d'entree techniques.
+
+---
+
+# Phase 3h — En-tete propre a Dustfolio (2026-09-16)
+
+## Une illustration a la place de la video
+
+Ultra-book garde la video du front 2018. Dustfolio recoit
+`img_front_df/accueil-freelance.svg` : 150 Ko contre 2,9 Mo, net a toute
+definition, et pas de telechargement automatique impose au visiteur.
+
+L'accroche demandee remplace le titre d'Ultra-book :
+
+```
+FREELANCE
+Créez gratuitement votre portfolio
+Diffusez-le et proposez vos services
+          [ Créer un book  → ]
+```
+
+Le bouton reprend le declencheur existant (`btn_modal_creerbook_mdl`) : c'est
+le JavaScript du front 2018 qui ouvre la fenetre d'inscription, comme pour le
+bouton « Créez un book » plus bas dans la page. Aucune route nouvelle n'est
+inventee avant le lot inscription.
+
+## La marque en classe du body
+
+`<body class="marque_ub …">` / `marque_df`. Ces classes servent de selecteur
+aux regles qui ne valent que pour l'une des deux marques, plutot que de
+dupliquer la feuille de style.
+
+## Deux reglages trouves par la mesure, pas par lecture du CSS
+
+**1. Le bloc de recherche masquait le bouton.** La remontee de `-260px`
+calee en phase 3c vaut pour un en-tete qui ne porte qu'un titre et un
+sous-titre. Sur Dustfolio, qui porte en plus un appel a l'action, elle
+recouvrait le bouton. Elle est desormais reservee a `body.marque_ub` ; sur
+Dustfolio l'en-tete passe a 560px et le bloc de recherche suit normalement.
+
+**2. Le fond apparaissait presque noir.** `core.css` peint
+`background-color: rgb(27,27,27)` sur `.video_header`. La video le recouvrait
+entierement ; l'illustration, ajustee sans recadrage (`object-fit: contain`),
+le laissait apparaitre. Le fond redevient transparent sur Dustfolio, ce qui
+laisse voir le degrade bleu de la marque.
+
+> Ces deux points ne se voyaient pas dans la feuille de style : le premier
+> parce que la regle etait correcte pour l'autre marque, le second parce que
+> la couleur venait d'un fichier repris tel quel. Ils sont sortis de
+> `getComputedStyle` et d'une capture — la meme methode qu'en phase 3b.
+
+## Sous 980px
+
+L'illustration est masquee : elle ne laisse plus assez de place au texte.
+L'accroche passe seule sur le degrade, centree.
+
+## Traductions au passage
+
+Le champ de recherche et son bouton affichaient encore leurs libelles
+francais sur le site anglais. Ils sont marques, comme les quatre chaines de
+la nouvelle accroche.
+
+## Tests
+
+142 tests PHP. Trois ajouts : presence de l'illustration et absence de la
+video sur Dustfolio, l'inverse sur Ultra-book, et la classe de marque sur le
+body.

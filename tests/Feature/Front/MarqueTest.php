@@ -119,6 +119,31 @@ it('reconnait les domaines de production avec et sans www', function () {
     }
 });
 
+it('remplace la video de l en-tete par une illustration sur Dustfolio', function () {
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en'))
+        ->assertOk()
+        ->assertSee('/img_front_df/accueil-freelance.svg', false)
+        ->assertDontSee('crea3.mov', false)
+        ->assertSee('Create your portfolio for free', false)
+        ->assertSee('Publish it and offer your services', false)
+        ->assertSee('Create a portfolio', false);
+});
+
+it('garde la video et l accroche d origine sur Ultra-book', function () {
+    $this->get(hote('ubdf2026.ultra-book.name'))
+        ->assertOk()
+        ->assertSee('crea3.mov', false)
+        ->assertSee('Une mine de créatifs', false)
+        ->assertDontSee('accueil-freelance.svg', false);
+});
+
+it('porte la marque en classe du body', function () {
+    // Elle sert de selecteur aux regles qui ne valent que pour l'une des
+    // deux marques : en-tete de l'accueil, remontee du bloc de recherche.
+    $this->get(hote('ubdf2026.ultra-book.name'))->assertSee('class="marque_ub', false);
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en'))->assertSee('class="marque_df', false);
+});
+
 it('repartit les ressources par dossier, comme le legacy', function () {
     // image_dir du legacy : img_front et img_front_df, pas un suffixe de
     // nom de fichier.

@@ -42,6 +42,98 @@
                 background-image: linear-gradient(to right, rgba(1, 143, 220, 0.65), rgba(0, 88, 150, 0.82));
                 background-image: linear-gradient(to right, rgba(0, 129, 199, 0.65), rgba(0, 49, 114, 0.82));
             }
+            /*
+             | Dustfolio : illustration fixe et accroche a la place de la
+             | video.
+             |
+             | L'illustration est posee a droite, sans recadrage — c'est un
+             | dessin, le couper le mutile, contrairement a une video de
+             | fond. Le degrade du conteneur reste visible derriere elle.
+             */
+            .illustration_header {
+                object-fit: contain;
+                object-position: right center;
+                left: auto;
+                right: 0;
+                width: 58%;
+            }
+            .accroche_header {
+                /* Le degrade est deja porte par .bloc_slide_video : le
+                   repeter ici masquerait l'illustration. */
+                background-image: none;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                max-width: 960px;
+                left: 0;
+                right: 0;
+                margin: auto;
+                padding: 0 24px;
+                align-items: flex-start;
+                text-align: left;
+            }
+            .accroche_surtitre {
+                color: #fff;
+                font-family: 'Lato', sans-serif;
+                font-size: 22px;
+                font-weight: 400;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                opacity: 0.85;
+            }
+            .accroche_titre {
+                color: #fff;
+                font-family: 'Lato', sans-serif;
+                font-size: 52px;
+                font-weight: 700;
+                line-height: 1.12;
+                margin: 14px 0 0 0;
+                max-width: 560px;
+            }
+            .accroche_soustitre {
+                color: #fff;
+                font-family: 'Lato', sans-serif;
+                font-size: 26px;
+                font-weight: 300;
+                margin-top: 12px;
+                max-width: 560px;
+            }
+            .accroche_bouton {
+                margin-top: 34px !important;
+                background-color: #fff !important;
+                color: #02187C !important;
+            }
+            /* L'en-tete de Dustfolio porte quatre elements au lieu de deux :
+               il lui faut plus de hauteur qu'a celui d'Ultra-book. */
+            body.marque_df .bloc_slide_video,
+            body.marque_df .video_header,
+            body.marque_df .video_bg {
+                height: 560px !important;
+            }
+            /* core.css peint un fond presque noir sur .video_header. La
+               video le recouvrait entierement ; l'illustration, elle, est
+               ajustee sans recadrage et le laissait apparaitre. Le fond
+               redevient transparent pour laisser voir le degrade de la
+               marque porte par le conteneur. */
+            body.marque_df .video_header {
+                background-color: transparent !important;
+            }
+            body.marque_df #bloc_rechercher {
+                margin-top: 40px;
+                margin-bottom: 40px;
+            }
+
+            @@media only screen and (max-width: 980px) {
+                /* Sous cette largeur l'illustration ne laisse plus de place
+                   au texte : l'accroche passe seule, sur le degrade. */
+                .illustration_header {
+                    display: none;
+                }
+                .accroche_titre { font-size: 34px; }
+                .accroche_soustitre { font-size: 19px; }
+                .accroche_header { text-align: center; align-items: center; }
+            }
+
             .video_titre {
                 max-width:960px;
                 padding:90px 0 0 0;
@@ -89,7 +181,16 @@
                Desktop uniquement : en dessous de 980px le header video est reduit
                et les titres sont masques (voir media query plus bas). */
             @@media only screen and (min-width: 981px) {
-                #bloc_rechercher {
+                /*
+                 | Remontee reservee a Ultra-book, dont l'en-tete ne porte
+                 | qu'un titre et un sous-titre : le bloc de recherche vient
+                 | s'y superposer.
+                 |
+                 | Sur Dustfolio l'en-tete porte une accroche **et** un
+                 | bouton d'appel a l'action. Les superposer masquerait le
+                 | bouton — c'est ce que la premiere capture montrait.
+                 */
+                body.marque_ub #bloc_rechercher {
                     /* Mesure dans le navigateur : le bloc video occupe
                        480px, le sous-titre se termine a 269px. Un remontage
                        de 260px place le haut du bloc a 305px, soit 36px sous
@@ -206,16 +307,39 @@
 		<div class="ui active loader hidden"></div>
 
         <header class="video_header">
-            <video autoplay loop muted playsinline webkit-playsinline
-                   class="video_source" id="myVideo">
-                    <source src="/_video/crea3.mov" type="video/mp4">
-            </video>
-       
-            <div class="video_bg">
-                <div class="video_titre">Une mine de créatifs</div>
-                <div class="video_soustitre">Illustration, graphisme, design, photo et plasticien</div>
-            </div>
+            @if ($marque->estDefaut())
+                {{-- Ultra-book : la video d'origine du front 2018. --}}
+                <video autoplay loop muted playsinline webkit-playsinline
+                       class="video_source" id="myVideo">
+                        <source src="/_video/crea3.mov" type="video/mp4">
+                </video>
 
+                <div class="video_bg">
+                    <div class="video_titre">Une mine de créatifs</div>
+                    <div class="video_soustitre">Illustration, graphisme, design, photo et plasticien</div>
+                </div>
+            @else
+                {{-- Dustfolio : une illustration fixe a la place de la video.
+                     Elle pese 150 Ko contre 2,9 Mo pour la video, se
+                     redimensionne sans perte, et n'impose pas un
+                     telechargement automatique au visiteur. --}}
+                <img class="video_source illustration_header"
+                     src="{{ $marque->asset('accueil-freelance.svg') }}" alt="">
+
+                <div class="video_bg accroche_header">
+                    <div class="accroche_surtitre">{{ __('freelance') }}</div>
+                    <h2 class="accroche_titre">{{ __('Créez gratuitement votre portfolio') }}</h2>
+                    <div class="accroche_soustitre">{{ __('Diffusez-le et proposez vos services') }}</div>
+
+                    {{-- Meme declencheur que le bouton « Creez un book » plus
+                         bas dans la page : c'est le JavaScript du front 2018
+                         qui ouvre la fenetre d'inscription. --}}
+                    <button class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl">
+                        <i class="right arrow icon"></i>
+                        {{ __('Créer un book') }}
+                    </button>
+                </div>
+            @endif
         </header>
 
 	</div>
@@ -242,11 +366,11 @@
 								<div class="ui left icon input">
 									<i class="search big icon"></i>
 									<input class="prompt" type="text" name="q" value="" required>
-									<span class="floating-label mobile-hidden">Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...</span>
+									<span class="floating-label mobile-hidden">{{ __('Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...') }}</span>
                                     <span class="floating-label mobile only">{{ __('Métier, mots clés ou Nom...') }}</span>
                                     <input type="hidden" name="type_recherche" value="">
 									<button type="submit" class="ui huge button submit_rechercher_accueil cursor_effect">
-										Rechercher									</button>
+										{{ __('Rechercher') }}									</button>
 								</div>
 
 								<div class="results"></div>
