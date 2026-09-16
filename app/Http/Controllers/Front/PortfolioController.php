@@ -20,7 +20,7 @@ class PortfolioController extends Controller
     {
         $book = User::with(['category', 'bookSetting', 'media' => fn ($query) => $query->published()])
             ->where('login', $login)
-            ->where('is_published', true)
+            ->where('in_home_selection', true)
             ->firstOrFail();
 
         if (! str_ends_with($book->portfolioUrl(), $slug)) {

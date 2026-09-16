@@ -17,7 +17,7 @@ class AnnuaireController extends Controller
         $creatifs = User::query()
             ->with('category')
             ->where('brand', $brand)
-            ->where('is_published', true)
+            ->where('in_home_selection', true)
             ->where('in_directory', true)
             ->when($lettre, fn ($query) => $query->where('login', 'like', $lettre.'%'))
             ->orderBy('login')

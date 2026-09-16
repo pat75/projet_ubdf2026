@@ -10,9 +10,9 @@
             @if ($navigation->count() > 1)
                 <div class="four wide column">
                     <nav class="ui vertical fluid menu sommaire_cms">
-                        @foreach ($navigation as $lien)
-                            <a class="item @if ($lien->is($page)) active @endif"
-                               href="{{ route('cms.doc', $lien->slug) }}">{{ $lien->title }}</a>
+                        @foreach ($navigation as $soeur)
+                            <a class="item @if ($soeur->is($page)) active @endif"
+                               href="{{ lien('cms.doc', $soeur->slug) }}">{{ $soeur->title }}</a>
                         @endforeach
                     </nav>
                 </div>

@@ -24,7 +24,7 @@
 
             <div class="ui four doubling stackable cards">
                 @foreach ($suivantes as $autre)
-                    <a class="ui card" href="{{ route('actualite', $autre->slug) }}">
+                    <a class="ui card" href="{{ lien('actualite', $autre->slug) }}">
                         <div class="content">
                             <div class="header">{{ $autre->title }}</div>
                         </div>

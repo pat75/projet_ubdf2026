@@ -10,43 +10,68 @@ use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Determine la langue d'affichage.
+ * Langue des URL **sans** segment de langue.
  *
- * Ordre de preference, du plus explicite au plus general :
+ * Sur une marque monolingue (Ultra-book), il n'y a rien a choisir : c'est
+ * sa langue, toujours.
  *
- *   1. le parametre `lang` de la requete — la bascule du selecteur ;
- *   2. le cookie, ou le visiteur a laisse son choix precedent ;
- *   3. la session, pour la duree de la visite ;
- *   4. l'en-tete Accept-Language du navigateur ;
- *   5. la langue par defaut de la marque.
+ * Sur une marque multilingue (Dustfolio), une URL sans segment est une URL
+ * incomplete : le visiteur est renvoye vers la meme page prefixee, dans la
+ * langue la plus probable. Cela garantit qu'une seule adresse existe par
+ * page et par langue, ce qui est la raison d'etre du prefixe.
  *
- * Le legacy s'arretait au point 3 puis retombait sur le defaut : un
- * visiteur japonais arrivait en francais tant qu'il n'avait pas trouve le
- * selecteur, alors que son navigateur annoncait sa langue.
+ * Ordre de preference pour deviner cette langue, repris de Tesli :
+ * cookie, puis session, puis `Accept-Language`, puis la langue par defaut
+ * de la marque. Le legacy s'arretait a la session : un visiteur anglophone
+ * arrivait en francais alors que son navigateur annoncait sa langue.
  */
 class ResoudreLangue
 {
-    /** Repris ici pour rester referencable depuis bootstrap/app.php. */
-    public const COOKIE_NOM = Langue::COOKIE;
-
-
     public function handle(Request $request, Closure $next): Response
     {
         $marque = $request->attributes->get('marque') ?? Marque::defaut();
 
-        $langue = Langue::normaliser($request->query('lang'))
-            ?? Langue::normaliser($request->cookie(Langue::COOKIE))
-            ?? Langue::normaliser($request->session()->get(Langue::COOKIE))
-            ?? Langue::depuisNavigateur($request->getLanguages())
-            ?? $marque->locale;
+        if (! $marque->multilingue()) {
+            app()->setLocale($marque->locale());
+            $request->attributes->set('langue', $marque->locale());
+            View::share('langue', $marque->locale());
 
-        app()->setLocale($langue);
+            return $next($request);
+        }
 
-        $request->attributes->set('langue', $langue);
-        $request->session()->put(Langue::COOKIE, $langue);
+        $langue = $this->deviner($request, $marque);
 
-        View::share('langue', $langue);
+        return redirect()->to($this->versionPrefixee($request, $langue), 302);
+    }
 
-        return $next($request);
+    private function deviner(Request $request, Marque $marque): string
+    {
+        $candidats = [
+            $request->cookie(Langue::COOKIE),
+            $request->cookie(Langue::COOKIE_LEGACY),
+            $request->session()->get(Langue::COOKIE),
+        ];
+
+        foreach ($candidats as $candidat) {
+            $code = Langue::normaliser(is_string($candidat) ? $candidat : null);
+
+            if ($code !== null && $marque->sert($code)) {
+                return $code;
+            }
+        }
+
+        return Langue::depuisNavigateur($request->getLanguages(), $marque->langues)
+            ?? $marque->locale();
+    }
+
+    /** Meme page, meme parametres, avec le segment de langue en tete. */
+    private function versionPrefixee(Request $request, string $langue): string
+    {
+        $chemin = trim($request->path(), '/');
+        $chemin = $chemin === '/' ? '' : $chemin;
+
+        $url = $request->getSchemeAndHttpHost().'/'.$langue.($chemin !== '' ? '/'.$chemin : '');
+
+        return $request->getQueryString() ? $url.'?'.$request->getQueryString() : $url;
     }
 }

@@ -35,7 +35,7 @@ class StatsController extends Controller
 
             return [
                 'menu_stats' => [
-                    'nb_book' => $this->format(User::where('brand', $brand)->where('is_published', true)->count()),
+                    'nb_book' => $this->format(User::where('brand', $brand)->where('in_home_selection', true)->count()),
                     'nb_selection' => $this->format(User::where('brand', $brand)->where('is_selected', true)->count()),
                     'nb_visuel' => $this->format(Media::published()->count()),
                     'nb_galerie' => $this->format(Gallery::published()->count()),
@@ -55,7 +55,7 @@ class StatsController extends Controller
     {
         return User::with('category')
             ->where('brand', $brand)
-            ->where('is_published', true)
+            ->where('in_home_selection', true)
             ->where('is_selected', true)
             ->inRandomOrder()
             ->limit(13)

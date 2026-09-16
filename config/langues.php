@@ -1,25 +1,30 @@
 <?php
 
 /*
-| Langues du portail.
+| Langues disponibles sur la plateforme.
 |
-| Le legacy les designait par un identifiant POSIX (`fr_FR`, `en_US`,
-| `ja_JP`) parce que gettext en a besoin pour `setlocale`. Laravel n'en a
-| pas besoin : la cle courte suffit, et c'est elle qui apparait dans les URL
-| (`/fr`, `/en`, `/ja`), comme deja dans `.htaccess`.
+| Meme convention que Tesli (`app.available_locales`) : code court => libelle
+| affiche dans le selecteur. Le code court est celui qui apparait dans les
+| URL.
 |
-| `posix` ne sert plus qu'a retrouver le catalogue d'origine a l'import et a
-| remplir la balise `og:locale`.
+| `posix` ne sert qu'a deux choses : retrouver le catalogue gettext d'origine
+| a l'import, et remplir la balise `og:locale`.
+|
+| Ajouter une langue se fait ici, puis dans la liste `langues` de la marque
+| concernee (`config/marques.php`) : les routes prefixees sont produites par
+| une boucle, il n'y a rien a declarer route par route.
 */
 
 return [
 
-    'defaut' => 'fr',
-
-    'langues' => [
+    'disponibles' => [
         'fr' => ['nom' => 'Français', 'posix' => 'fr_FR'],
         'en' => ['nom' => 'English', 'posix' => 'en_US'],
-        'ja' => ['nom' => '日本語', 'posix' => 'ja_JP'],
+
+        // Mis de cote : le catalogue existe (630 chaines reprises de
+        // ja_JP) mais la langue n'est pas ouverte. Les trois langues
+        // supplementaires prevues pour Dustfolio viendront ici.
+        // 'ja' => ['nom' => '日本語', 'posix' => 'ja_JP'],
     ],
 
     // Duree du choix de langue, reprise du legacy (setcookie + 90 jours).

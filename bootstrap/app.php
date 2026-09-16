@@ -18,10 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // conditionne le nom du site, les books listes et les courriels.
         $middleware->append(App\Http\Middleware\ResoudreMarque::class);
 
-        // La langue vient ensuite : son dernier recours est la langue par
-        // defaut de la marque, qu'il faut donc avoir resolue avant.
-        $middleware->appendToGroup('web', App\Http\Middleware\ResoudreLangue::class);
-
         /*
          | Le cookie de langue reste en clair.
          |
@@ -31,7 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
          | Chiffre, il serait illisible pour eux — et indechiffrable pour
          | Laravel lui-meme s'il venait de l'ancien site.
          */
-        $middleware->encryptCookies(except: [App\Http\Middleware\ResoudreLangue::COOKIE_NOM]);
+        $middleware->encryptCookies(except: [
+            App\Support\Langue::COOKIE,
+            // Celui pose par le site de 2019, encore present chez les
+            // visiteurs : chiffre, il serait illisible et son choix perdu.
+            App\Support\Langue::COOKIE_LEGACY,
+        ]);
 
         /*
          | Le formulaire de contact du front 2018 est poste par un JavaScript

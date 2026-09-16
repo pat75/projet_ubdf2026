@@ -93,7 +93,7 @@ class DemandeContactRequest extends FormRequest
     public function destinataire(): ?User
     {
         $user = User::where('login', $this->input('us_dir'))
-            ->where('is_published', true)
+            ->where('in_home_selection', true)
             ->first();
 
         if (! $user || ! hash_equals($user->publicKey(), (string) $this->input('us_key'))) {

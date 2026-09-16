@@ -26,7 +26,13 @@ return [
         'ub' => [
             'nom' => 'Ultra-book',
             'email' => 'contact@ultra-book.net',
-            'locale' => 'fr',
+
+            /*
+            | Ultra-book est **monolingue**. Ses URL n'ont pas de segment de
+            | langue, et une URL prefixee n'existe pas : c'est ce qui evite
+            | de publier deux adresses pour une meme page francaise.
+            */
+            'langues' => ['fr'],
 
             // Suffixe du dossier de ressources (`image_dir` du legacy) :
             // /img_front pour Ultra-book, /img_front_df pour Dustfolio.
@@ -36,6 +42,11 @@ return [
             // Domaine canonique en production : c'est lui qui sert a
             // construire les URL absolues (courriels, sitemap, og:url).
             'canonique' => env('UB_CANONIQUE', 'https://www.ultra-book.com'),
+
+            // Titre et description par defaut. Ultra-book etant monolingue,
+            // ils sont ecrits en francais, sans passer par __().
+            'titre' => 'Portfolios freelance, illustrateur, graphiste, creer son book | Ultra-book',
+            'description' => 'Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs.',
 
             // Hotes reconnus. Le prefixe « www. » est retire avant
             // comparaison : www.ultra-book.com et ultra-book.com sont le
@@ -53,11 +64,29 @@ return [
         'df' => [
             'nom' => 'Dustfolio',
             'email' => 'contact@dustfolio.com',
-            'locale' => 'fr',
+
+            /*
+            | Dustfolio est **multilingue**, et anglophone par defaut. La
+            | premiere langue de la liste est celle vers laquelle pointe la
+            | racine du site. Chaque page porte sa langue en tete d'URL
+            | (/en/illustrator, /fr/illustrateur), ce qui donne une adresse
+            | distincte et indexable par langue.
+            |
+            | Les trois langues supplementaires prevues s'ajoutent ici.
+            */
+            'langues' => ['en', 'fr'],
             'assets' => '_df',
             'logo' => '/img_front_df/dustfolio.svg',
 
             'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
+
+            /*
+            | Dustfolio a ses propres accroches, relevees sur le site en
+            | production : ce ne sont pas celles d'Ultra-book traduites.
+            | Elles passent par __() pour suivre la langue de l'URL.
+            */
+            'titre' => 'Dustfolio, create an online portfolio, book and online portfolio',
+            'description' => 'Dustfolio allows you to create your portfolio, add your images, captions, web links, presentation texts, and above all customize it.',
 
             'hotes' => array_filter([
                 env('DF_DOMAIN', 'ubdf-dust-2026.ultra-book.name'),

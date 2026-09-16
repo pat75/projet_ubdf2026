@@ -10,9 +10,9 @@
         <div class="ui text menu annuaire_alpha">
             @foreach ($lettres as $l)
                 <a class="item {{ $lettre === $l ? 'active' : '' }}"
-                   href="{{ route('annuaire.lettre', ['lettre' => $l]) }}">{{ strtoupper($l) }}</a>
+                   href="{{ lien('annuaire.lettre', ['lettre' => $l]) }}">{{ strtoupper($l) }}</a>
             @endforeach
-            <a class="item {{ $lettre === null ? 'active' : '' }}" href="{{ route('annuaire') }}">{{ __('Tous') }}</a>
+            <a class="item {{ $lettre === null ? 'active' : '' }}" href="{{ lien('annuaire') }}">{{ __('Tous') }}</a>
         </div>
 
         <div class="ui three column grid annuaire_liste">

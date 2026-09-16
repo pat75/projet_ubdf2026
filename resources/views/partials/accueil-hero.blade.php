@@ -228,7 +228,7 @@
 			<div class="row one column ">
 				<div class="column aligned">
 					<div class="ui segment basic ">
-						<h1>Trouvez les meilleurs portfolios de créatifs.</h1>
+						<h1>{{ __('Trouvez les meilleurs portfolios de créatifs.') }}</h1>
 					</div>
 				</div>
 			</div>
@@ -243,7 +243,7 @@
 									<i class="search big icon"></i>
 									<input class="prompt" type="text" name="q" value="" required>
 									<span class="floating-label mobile-hidden">Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...</span>
-                                    <span class="floating-label mobile only">Métier, mots clés ou Nom...</span>
+                                    <span class="floating-label mobile only">{{ __('Métier, mots clés ou Nom...') }}</span>
                                     <input type="hidden" name="type_recherche" value="">
 									<button type="submit" class="ui huge button submit_rechercher_accueil cursor_effect">
 										Rechercher									</button>
@@ -423,7 +423,7 @@
         <div class="ui middle aligned two column stackable grid">
                 <div class="right aligned column ">
                     <h5>Freelances</h5>
-                    <h1>Créer votre portfolio</h1>
+                    <h1>{{ __('Créer votre portfolio') }}</h1>
                     <h4>Chargez vos images par glisser-poser</h4>
                     <h4>Modifiez l’apparence, et diffusez</h4>
                     <button class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl">
@@ -453,7 +453,7 @@
 
             <div class="left aligned olive+ column">
                 <h5>Entreprises</h5>
-                <h1>Une sélection de qualité</h1>
+                <h1>{{ __('Une sélection de qualité') }}</h1>
 
                 <div class="accueil_stats ">
 

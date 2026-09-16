@@ -7,19 +7,32 @@ use Illuminate\Support\Str;
 /**
  * Langue d'affichage du portail.
  *
- * Le legacy travaillait en identifiants POSIX (`fr_FR`, `en_US`, `ja_JP`)
- * parce que gettext en a besoin pour `setlocale`. Laravel n'en a pas
- * besoin : la cle courte suffit, et c'est deja elle qui apparait dans les
- * URL de bascule (`/fr`, `/en`, `/ja`) declarees dans `.htaccess`.
+ * Deux regimes, selon la marque :
+ *
+ *  - **Ultra-book** est monolingue. Ses URL ne portent pas de segment de
+ *    langue, et `/fr/illustrateur` n'existe pas : publier deux adresses
+ *    pour la meme page francaise n'apporterait rien et diluerait son
+ *    referencement.
+ *  - **Dustfolio** est multilingue, anglophone par defaut. Chaque page
+ *    porte sa langue en tete d'URL — `/en/illustrator`, `/fr/illustrateur`
+ *    — ce qui donne une adresse distincte et indexable par langue.
+ *
+ * Le legacy travaillait en identifiants POSIX (`fr_FR`, `en_US`) parce que
+ * gettext en a besoin pour `setlocale`. Ils restent compris a l'entree :
+ * les visiteurs de l'ancien site portent un cookie `lang=fr_FR`.
  */
 final class Langue
 {
-    public const COOKIE = 'lang';
+    /** Partage avec les books des sous-domaines, d'ou le nom explicite. */
+    public const COOKIE = 'ub_lang';
+
+    /** Nom du cookie pose par le site de 2019. */
+    public const COOKIE_LEGACY = 'lang';
 
     /** @return list<string> */
     public static function codes(): array
     {
-        return array_keys(config('langues.langues', []));
+        return array_keys(config('langues.disponibles', []));
     }
 
     public static function supportee(?string $code): bool
@@ -28,10 +41,9 @@ final class Langue
     }
 
     /**
-     * Ramene une valeur quelconque a un code supporte, ou null.
+     * Ramene une valeur quelconque a un code servi, ou null.
      *
-     * Accepte la forme POSIX du legacy : les visiteurs de l'ancien site
-     * portent un cookie `lang=fr_FR`, qui doit continuer a etre compris.
+     * Accepte la forme POSIX (`fr_FR`) et la forme IETF (`en-GB`).
      */
     public static function normaliser(?string $valeur): ?string
     {
@@ -45,17 +57,18 @@ final class Langue
     }
 
     /**
-     * Meilleure langue d'apres l'en-tete Accept-Language.
-     *
-     * Le legacy ne la regardait pas : un visiteur japonais arrivait en
-     * francais tant qu'il n'avait pas trouve le selecteur.
+     * Meilleure langue d'apres l'en-tete Accept-Language, parmi celles que
+     * la marque sert reellement.
      *
      * @param  list<string>  $preferees
+     * @param  list<string>  $servies
      */
-    public static function depuisNavigateur(array $preferees): ?string
+    public static function depuisNavigateur(array $preferees, array $servies): ?string
     {
         foreach ($preferees as $preferee) {
-            if ($code = self::normaliser($preferee)) {
+            $code = self::normaliser($preferee);
+
+            if ($code !== null && in_array($code, $servies, true)) {
                 return $code;
             }
         }
@@ -66,11 +79,11 @@ final class Langue
     /** Identifiant POSIX, pour la balise og:locale. */
     public static function posix(string $code): string
     {
-        return config('langues.langues.'.$code.'.posix', 'fr_FR');
+        return config('langues.disponibles.'.$code.'.posix', 'fr_FR');
     }
 
     public static function nom(string $code): string
     {
-        return config('langues.langues.'.$code.'.nom', $code);
+        return config('langues.disponibles.'.$code.'.nom', $code);
     }
 }

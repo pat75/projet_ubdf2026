@@ -48,7 +48,12 @@ it('sert le portail Ultra-book sur le domaine de developpement', function () {
 });
 
 it('sert le portail Dustfolio sur son propre hote', function () {
+    // Dustfolio etant multilingue, la racine renvoie vers sa langue par
+    // defaut : ses pages portent toutes leur langue en tete d'URL.
     $this->get(hote('ubdf-dust-2026.ultra-book.name'))
+        ->assertRedirect(hote('ubdf-dust-2026.ultra-book.name', '/en'));
+
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en'))
         ->assertOk()
         ->assertSee("content='Dustfolio'", false)
         ->assertDontSee("content='Ultra-book'", false);
@@ -80,7 +85,7 @@ it('substitue le nom de la marque dans les contenus editoriaux', function () {
 
     // Dustfolio n'a jamais eu de pages a lui : le legacy servait celles
     // d'Ultra-book en y remplacant le nom juste avant l'affichage.
-    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/doc/qui-sommes-nous'))
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en/doc/qui-sommes-nous'))
         ->assertOk()
         ->assertSee('Dustfolio est une plate-forme', false)
         ->assertSee('DustWare SAS', false);

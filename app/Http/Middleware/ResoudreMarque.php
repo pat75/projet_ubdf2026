@@ -34,7 +34,9 @@ class ResoudreMarque
             'mail.from.name' => $marque->nom,
         ]);
 
-        app()->setLocale($marque->locale);
+        // Langue par defaut de la marque. Sur une marque multilingue, le
+        // segment de langue de l'URL la remplacera (ForcerLangue).
+        app()->setLocale($marque->locale());
 
         return $next($request);
     }

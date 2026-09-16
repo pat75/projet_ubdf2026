@@ -11,7 +11,7 @@
 
         <div class="ui three doubling stackable cards liste_actus">
             @foreach ($actualites as $actualite)
-                <a class="ui card" href="{{ route('actualite', $actualite->slug) }}">
+                <a class="ui card" href="{{ lien('actualite', $actualite->slug) }}">
                     @if ($actualite->image)
                         <div class="image"><img src="{{ $actualite->image }}" alt=""></div>
                     @endif

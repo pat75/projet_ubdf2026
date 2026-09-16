@@ -8,8 +8,8 @@
 <meta name="viewport" 				content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 
-    <title>@yield('title', 'Portfolios freelance,illustrateur,graphiste,creer son book|'.$marque->nom)</title>
-    <meta name="Description" 			content=\"@yield('description', 'Vous recherchez un créatif freelance ? '.$marque->nom.' vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book')\"/>
+    <title>@yield('title', $marque->titre())</title>
+    <meta name="Description" 			content="@yield('description', $marque->description())"/>
 
 
 
@@ -19,16 +19,16 @@
 {{-- og:locale attend la forme POSIX complete (fr_FR), pas le code court. --}}
 <meta property='og:locale' 		    content='{{ App\Support\Langue::posix(app()->getLocale()) }}'/>
 <meta property='og:type' 			content='website'/>
-<meta property='og:title' 			content='@yield('title', $marque->nom)'/>
+<meta property='og:title' 			content='@yield('title', $marque->titre())'/>
 <meta property='og:url' 			content='{{ url()->current() }}'/>
 <meta property='og:site_name'		content='{{ $marque->nom }}'/>
-<meta property='og:description' 	content='Vous recherchez un créatif freelance ? {{ $marque->nom }} vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book'/>
+<meta property='og:description' 	content='{{ $marque->description() }}'/>
 <meta property='og:image' 			content='https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png'/>
 
 <meta name="twitter:card" 			content="summary" />
 <meta name="twitter:site" 			content="&#64;ultra_book" />
-<meta name="twitter:title" 		    content=\"@yield('title', $marque->nom)\" />
-<meta name="twitter:description"    content="Vous recherchez un créatif freelance ? {{ $marque->nom }} vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs | Créer votre portfolio, créer un book"/>
+<meta name="twitter:title" 		    content="@yield('title', $marque->titre())" />
+<meta name="twitter:description"    content="{{ $marque->description() }}"/>
 <meta name="twitter:url" 			content="{{ url()->current() }}" />
 <meta name="twitter:image" 		    content="https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png" />
 <meta name="twitter:creator" 		content="&#64;ultra_book" />

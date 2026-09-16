@@ -36,8 +36,12 @@ class BookRepository
         return $this->baseQuery($brand)
             ->when($categorySlug && $categorySlug !== 'all',
                 fn (Builder $query) => $query->whereRelation('category', 'slug', $categorySlug))
+            // « sel » n'est pas un filtre mais un tri : le legacy classait
+            // par `user.us_affhome ASC`, ce qui remonte la selection
+            // editoriale en tete sans ecarter les autres books.
             ->when($selection === 'ult', fn (Builder $query) => $query->where('is_selected', true))
             ->when($selection === 'lub', fn (Builder $query) => $query->where('plan', '>', 0))
+            ->orderByDesc('in_home_selection')
             ->orderByDesc('is_selected')
             ->orderByDesc('media_count')
             ->skip($page * $perPage)
@@ -169,7 +173,20 @@ class BookRepository
         return addcslashes($terme, '%_\\');
     }
 
-    /** Books visibles : publies, en annuaire, et pourvus d'au moins un visuel. */
+    /**
+     * Books visibles : diffuses, et pourvus d'au moins un visuel.
+     *
+     * La visibilite tient aux **deux indicateurs de diffusion** du creatif,
+     * comme dans le legacy :
+     *
+     *     AND user_pref.us_pf_diff_web = 'true' AND user_pref.us_pf_diff_ub = 'true'
+     *
+     * `us_affhome` — repris sous le nom `in_home_selection` — ne designe
+     * que la selection editoriale mise en avant, et sert au tri et au
+     * filtre « sel », pas a la visibilite. Les avoir confondus rendait
+     * invisibles les 8 comptes Dustfolio de l'echantillon, tous diffuses
+     * mais aucun en selection.
+     */
     private function baseQuery(string $brand): Builder
     {
         return User::query()
@@ -179,7 +196,9 @@ class BookRepository
                 'media' => fn ($query) => $query->published()->whereNot('filename', '')->orderBy('position')->limit(6),
             ])
             ->where('brand', $brand)
-            ->where('is_published', true)
+            ->whereHas('bookSetting', fn (Builder $query) => $query
+                ->where('diffuse_web', true)
+                ->where('diffuse_ub', true))
             ->whereHas('media', fn (Builder $query) => $query->published()->whereNot('filename', ''));
     }
 }

@@ -17,10 +17,13 @@ final class Marque
         public readonly string $code,
         public readonly string $nom,
         public readonly string $email,
-        public readonly string $locale,
+        /** @var list<string> Langues servies, la premiere etant la langue par defaut. */
+        public readonly array $langues,
         public readonly string $assets,
         public readonly string $logo,
         public readonly string $canonique,
+        public readonly string $titre,
+        public readonly string $description,
     ) {}
 
     /**
@@ -58,10 +61,15 @@ final class Marque
             code: $code,
             nom: $marque['nom'],
             email: $marque['email'],
-            locale: $marque['locale'],
+            langues: array_values(array_filter(
+                $marque['langues'],
+                fn (string $code) => array_key_exists($code, config('langues.disponibles', [])),
+            )),
             assets: $marque['assets'],
             logo: $marque['logo'],
             canonique: $marque['canonique'],
+            titre: $marque['titre'],
+            description: $marque['description'],
         );
     }
 
@@ -73,6 +81,35 @@ final class Marque
     public function estDefaut(): bool
     {
         return $this->code === config('marques.defaut');
+    }
+
+    /** Langue servie a defaut d'indication contraire : la premiere declaree. */
+    public function locale(): string
+    {
+        return $this->langues[0] ?? 'fr';
+    }
+
+    /**
+     * Une marque multilingue porte la langue en tete de chaque URL.
+     *
+     * Une marque monolingue n'en porte aucune : publier `/fr/illustrateur`
+     * a cote de `/illustrateur` donnerait deux adresses pour la meme page
+     * francaise.
+     */
+    public function multilingue(): bool
+    {
+        return count($this->langues) > 1;
+    }
+
+    public function sert(string $langue): bool
+    {
+        return in_array($langue, $this->langues, true);
+    }
+
+    /** Segment de langue a placer en tete des URL, vide si monolingue. */
+    public function prefixe(?string $langue = null): string
+    {
+        return $this->multilingue() ? ($langue ?? app()->getLocale()) : '';
     }
 
     /**
@@ -94,6 +131,22 @@ final class Marque
         }
 
         return $texte;
+    }
+
+    /**
+     * Titre par defaut, traduit sur une marque multilingue.
+     *
+     * Ultra-book reste en francais : la chaine passe telle quelle. Sur
+     * Dustfolio, `__()` suit la langue imposee par l'URL.
+     */
+    public function titre(): string
+    {
+        return $this->multilingue() ? __($this->titre) : $this->titre;
+    }
+
+    public function description(): string
+    {
+        return $this->multilingue() ? __($this->description) : $this->description;
     }
 
     /**

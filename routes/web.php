@@ -4,7 +4,6 @@ use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
-use App\Http\Controllers\Front\LangueController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\PortfolioController;
@@ -55,6 +54,16 @@ Route::domain('{login}.'.$bookDomain)
 | deduit la marque de l'hote. C'est le modele du legacy — un seul point
 | d'entree, la marque venant de `HTTP_HOST` — sans sa table de motifs.
 */
+/*
+| Points d'entree techniques : JSON du defilement, visuels, captcha, depot
+| du formulaire de contact.
+|
+| Ils ne portent **jamais** de segment de langue, sur aucune marque. Le
+| JavaScript repris du front 2018 les appelle a des chemins ecrits en dur
+| (`/rechercher_submit`, `/captcha_img`, `/accueil__…`) : les prefixer
+| reviendrait a les rendre introuvables des que Dustfolio sert une page.
+| Ils ne rendent d'ailleurs pas de texte a traduire.
+*/
 Route::group([], function () {
 
     // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
@@ -64,9 +73,6 @@ Route::group([], function () {
     Route::get('/books/{login}/{file}', [BookMediaController::class, 'show'])
         ->where(['login' => '[-a-zA-Z0-9]+', 'file' => '[^/]+'])
         ->name('book.media');
-
-    Route::get('/', [AccueilController::class, 'index'])->name('home');
-    Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
 
     // Defilement infini : cartes rendues par le serveur.
     Route::get('/cartes/{categorie}/{page}', [AccueilController::class, 'cartes'])
@@ -85,7 +91,6 @@ Route::group([], function () {
      | garde le contrat du legacy (parametres a plat, tableau JSON).
      | `/recherche` est la page equivalente rendue par le serveur.
      */
-    Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
     Route::get('/recherche/cartes/{page}', [RechercheController::class, 'cartes'])
         ->where('page', '[0-9]{1,3}')->name('recherche.cartes');
     Route::get('/rechercher_submit', [RechercheController::class, 'legacy'])
@@ -111,16 +116,20 @@ Route::group([], function () {
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
         ->name('messagerie.repondre');
 
-    /*
-     | Bascule de langue
-     |
-     | URL reprises telles quelles du legacy (`.htaccess` : ^en$, ^fr$,
-     | ^ja$). Elles posent le choix puis renvoient d'ou l'on vient, au lieu
-     | d'afficher l'accueil comme le faisait `action.php?lang=…`.
-     */
-    Route::get('/{langue}', LangueController::class)
-        ->where('langue', implode('|', array_keys(config('langues.langues'))))
-        ->name('langue');
+});
+
+/*
+| Pages du portail.
+|
+| Ce sont elles qui portent la langue : chacune est enregistree une fois
+| sans prefixe (Ultra-book) et une fois par langue servie (Dustfolio).
+*/
+$portail = function () {
+
+    Route::get('/', [AccueilController::class, 'index'])->name('home');
+    Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
+
+    Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
 
     /*
      | Pages editoriales et actualites
@@ -146,11 +155,11 @@ Route::group([], function () {
     }
 
     // Le blog du legacy renvoyait vers un site externe ; il rejoint les actus.
-    Route::get('/blog', fn () => redirect()->route('actualites', status: 301));
+    Route::get('/blog', fn () => redirect()->to(lien('actualites'), 301));
 
     // Selections editoriales.
-    Route::get('/les-ultra-books', fn () => redirect()->route('accueil'))->name('selection.lub');
-    Route::get('/les-ultra-selections', fn () => redirect()->route('accueil'))->name('selection.ult');
+    Route::get('/les-ultra-books', fn () => redirect()->to(lien('accueil')))->name('selection.lub');
+    Route::get('/les-ultra-selections', fn () => redirect()->to(lien('accueil')))->name('selection.ult');
 
     // Annuaire alphabetique.
     Route::get('/annuaire', [AnnuaireController::class, 'index'])->name('annuaire');
@@ -178,10 +187,40 @@ Route::group([], function () {
      | sont plus canoniques.
      */
     foreach (config('seo_routes.accueil_aliases') as $alias) {
-        Route::get('/'.$alias, fn () => redirect()->route('accueil', status: 301));
+        Route::get('/'.$alias, fn () => redirect()->to(lien('accueil'), 301));
     }
 
     foreach (config('seo_routes.category_aliases') as $alias => $slug) {
-        Route::get('/'.$alias, fn () => redirect()->route('categorie', ['categorie' => $slug], 301));
+        Route::get('/'.$alias, fn () => redirect()->to(lien('categorie', ['categorie' => $slug]), 301));
     }
-});
+};
+
+
+/*
+| Ultra-book : URL sans segment de langue.
+|
+| Ces routes portent les noms canoniques (`accueil`, `categorie`, …). Sur
+| une marque multilingue, `ResoudreLangue` les intercepte et renvoie vers
+| leur equivalent prefixe : une page n'a ainsi qu'une seule adresse par
+| langue.
+*/
+Route::middleware(App\Http\Middleware\ResoudreLangue::class)->group($portail);
+
+/*
+| Dustfolio : une copie des memes routes par langue servie, prefixee et
+| nommee `<langue>.` — `en.accueil`, `fr.accueil`.
+|
+| La boucle est le point important : ajouter une langue se fait dans
+| `config/langues.php` et dans la liste de la marque, sans toucher ici.
+| (Tesli declare chaque route prefixee a la main, ce qui l'a conduit a en
+| oublier au fil des ajouts.)
+|
+| `ForcerLangue` impose la langue du segment quel que soit le cookie : sur
+| une URL qui porte sa langue, c'est l'URL qui fait foi.
+*/
+foreach (array_keys(config('langues.disponibles', [])) as $langue) {
+    Route::prefix($langue)
+        ->name($langue.'.')
+        ->middleware(App\Http\Middleware\ForcerLangue::class.':'.$langue)
+        ->group($portail);
+}

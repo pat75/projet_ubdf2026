@@ -88,7 +88,7 @@ final class LegacyMigrator
                     'instagram_url' => $row->us_instagram_url ?: null,
                     'custom_domain' => $row->us_domaine ?: null,
 
-                    'is_published' => $row->us_affhome === 'true',
+                    'in_home_selection' => $row->us_affhome === 'true',
                     'in_directory' => $row->us_anu === 'true',
                     'is_selected' => $row->us_ultraselection === 'true',
                     'is_available' => $row->us_dispo === '1',
@@ -276,7 +276,7 @@ final class LegacyMigrator
                     'user_id' => $userId,
                     'title' => LegacyText::clean($row->rub_titre) ?: 'Sans titre',
                     'slug' => Str::slug(LegacyText::clean($row->rub_titre) ?? '') ?: null,
-                    'is_published' => $row->rub_pub === 'on',
+                    'in_home_selection' => $row->rub_pub === 'on',
                     'is_private' => $row->rub_type === 'prive',
                     'position' => max(0, (int) $row->rub_ord),
                     'color' => $row->rub_color ?: null,

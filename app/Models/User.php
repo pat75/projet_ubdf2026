@@ -21,7 +21,7 @@ class User extends Authenticatable
         'firstname', 'lastname', 'company', 'civility', 'status',
         'address', 'zipcode', 'city', 'country', 'phone', 'mobile', 'latitude', 'longitude',
         'website', 'facebook_url', 'twitter_url', 'instagram_url', 'custom_domain',
-        'is_published', 'in_directory', 'is_selected', 'is_available',
+        'in_home_selection', 'in_directory', 'is_selected', 'is_available',
         'accepts_sms', 'shares_link',
         'plan', 'plan_started_at', 'plan_months',
         'storage_used', 'media_count',
@@ -36,7 +36,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'plan_started_at' => 'datetime',
-            'is_published' => 'boolean',
+            'in_home_selection' => 'boolean',
             'in_directory' => 'boolean',
             'is_selected' => 'boolean',
             'is_available' => 'boolean',
@@ -66,7 +66,7 @@ class User extends Authenticatable
     /** URL de la fiche du book sur le portail (format SEO du legacy). */
     public function portfolioUrl(): string
     {
-        return route('portfolio.show', [
+        return lien('portfolio.show', [
             'login' => $this->login,
             'slug' => Str::slug($this->fullName().'-'.($this->category?->slug ?? 'autre')),
         ]);

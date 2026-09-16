@@ -3,6 +3,7 @@
 use App\Mail\DemandeRecue;
 use App\Mail\DemandeTransmise;
 use App\Mail\ReponseRecue;
+use App\Models\BookSetting;
 use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\Media;
@@ -25,7 +26,13 @@ beforeEach(function () {
         'category_id' => $categorie->id,
         'firstname' => 'Nolwenn',
         'lastname' => 'Créatif',
-        'is_published' => true,
+        'in_home_selection' => true,
+    ]);
+
+    BookSetting::create([
+        'user_id' => $this->creatif->id,
+        'diffuse_web' => true,
+        'diffuse_ub' => true,
     ]);
 
     Media::create([

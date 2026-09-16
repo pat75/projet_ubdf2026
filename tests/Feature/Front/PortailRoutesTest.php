@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BookSetting;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\User;
@@ -16,8 +17,14 @@ beforeEach(function () {
         'category_id' => $category->id,
         'firstname' => 'Amélie',
         'lastname' => 'Falière',
-        'is_published' => true,
+        'in_home_selection' => true,
         'in_directory' => true,
+    ]);
+
+    BookSetting::create([
+        'user_id' => $this->book->id,
+        'diffuse_web' => true,
+        'diffuse_ub' => true,
     ]);
 
     Media::create([

@@ -1,115 +1,150 @@
 <?php
 
 use App\Support\Langue;
+use App\Support\Marque;
 
-function site(string $path = '/'): string
+beforeEach(function () {
+    config([
+        'marques.marques.ub.hotes' => ['ubdf2026.ultra-book.name'],
+        'marques.marques.df.hotes' => ['ubdf-dust-2026.ultra-book.name'],
+    ]);
+});
+
+function ub(string $path = '/'): string
 {
-    return 'https://'.config('ubdf.book_domain').$path;
+    return 'https://ubdf2026.ultra-book.name'.$path;
+}
+
+function df(string $path = '/'): string
+{
+    return 'https://ubdf-dust-2026.ultra-book.name'.$path;
 }
 
 it('normalise la forme POSIX du legacy', function () {
     // Les visiteurs de l'ancien site portent un cookie « lang=fr_FR ».
     expect(Langue::normaliser('fr_FR'))->toBe('fr')
         ->and(Langue::normaliser('en_US'))->toBe('en')
-        ->and(Langue::normaliser('ja_JP'))->toBe('ja')
         ->and(Langue::normaliser('en-GB'))->toBe('en')
         ->and(Langue::normaliser('de_DE'))->toBeNull()
         ->and(Langue::normaliser(null))->toBeNull();
+
+    // Le japonais est mis de cote : le catalogue existe, la langue n'est
+    // pas ouverte.
+    expect(Langue::normaliser('ja_JP'))->toBeNull();
 });
 
-it('affiche le portail dans la langue de la marque quand rien ne la designe', function () {
-    // L'en-tete est explicite : le client de test de Laravel envoie
-    // « Accept-Language: en-us,en;q=0.5 » par defaut, ce qui masquerait le
-    // repli que ce test verifie.
-    $this->withHeader('Accept-Language', 'de-DE,de;q=0.9')
-        ->get(site('/'))
+it('declare Ultra-book monolingue et Dustfolio multilingue', function () {
+    expect(Marque::depuisCode('ub')->multilingue())->toBeFalse()
+        ->and(Marque::depuisCode('ub')->locale())->toBe('fr')
+        ->and(Marque::depuisCode('df')->multilingue())->toBeTrue()
+        ->and(Marque::depuisCode('df')->locale())->toBe('en');
+});
+
+it('sert Ultra-book en francais, sans segment de langue', function () {
+    // Le cookie et le navigateur ne doivent rien y changer : le site est
+    // francais, et une seule adresse existe par page.
+    $this->withUnencryptedCookie(Langue::COOKIE, 'en')
+        ->withHeader('Accept-Language', 'en-US,en;q=0.9')
+        ->get(ub('/'))
         ->assertOk()
         ->assertSee('lang="fr"', false);
 });
 
-it('suit le cookie de langue', function () {
-    $this->withUnencryptedCookie(Langue::COOKIE, 'en')
-        ->get(site('/'))
+it('refuse une URL prefixee sur Ultra-book', function () {
+    // Publier /fr/illustrateur a cote de /illustrateur donnerait deux
+    // adresses pour la meme page francaise.
+    $this->get(ub('/fr'))->assertNotFound();
+    $this->get(ub('/en'))->assertNotFound();
+    $this->get(ub('/en/illustrateur'))->assertNotFound();
+});
+
+it('renvoie Dustfolio vers l anglais par defaut', function () {
+    $this->withHeader('Accept-Language', 'de-DE')
+        ->get(df('/'))
+        ->assertRedirect(df('/en'));
+});
+
+it('conserve le chemin et la requete en ajoutant le segment', function () {
+    $this->withHeader('Accept-Language', 'de-DE')
+        ->get(df('/recherche?q=illustration'))
+        ->assertRedirect(df('/en/recherche?q=illustration'));
+});
+
+it('sert Dustfolio dans la langue du segment', function () {
+    $this->get(df('/en'))->assertOk()->assertSee('lang="en"', false);
+    $this->get(df('/fr'))->assertOk()->assertSee('lang="fr"', false);
+});
+
+it('fait primer l URL sur le cookie', function () {
+    // Principe repris de Tesli : sur une URL qui porte sa langue, c'est
+    // l'URL qui fait foi — sinon un moteur indexerait la page anglaise
+    // avec un contenu francais.
+    $this->withUnencryptedCookie(Langue::COOKIE, 'fr')
+        ->get(df('/en'))
         ->assertOk()
         ->assertSee('lang="en"', false);
 });
 
-it('traduit les chaines du catalogue repris', function () {
-    $this->withUnencryptedCookie(Langue::COOKIE, 'en')
-        ->get(site('/illustrateur'))
-        ->assertOk()
-        ->assertSee('Loading...', false);
+it('suit le cookie pour choisir vers quelle langue rediriger', function () {
+    $this->withUnencryptedCookie(Langue::COOKIE, 'fr')
+        ->get(df('/'))
+        ->assertRedirect(df('/fr'));
+});
 
-    $this->withUnencryptedCookie(Langue::COOKIE, 'ja')
-        ->get(site('/illustrateur'))
-        ->assertOk()
-        ->assertSee('読み込んでいます...', false);
+it('comprend le cookie de l ancien site', function () {
+    $this->withUnencryptedCookie(Langue::COOKIE_LEGACY, 'fr_FR')
+        ->get(df('/'))
+        ->assertRedirect(df('/fr'));
 });
 
 it('tient compte de l en-tete Accept-Language', function () {
-    // Le legacy ne le regardait pas : un visiteur japonais arrivait en
-    // francais tant qu'il n'avait pas trouve le selecteur.
-    $this->withHeader('Accept-Language', 'ja,en;q=0.8')
-        ->get(site('/'))
+    // Le legacy ne le regardait pas.
+    $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')
+        ->get(df('/'))
+        ->assertRedirect(df('/fr'));
+});
+
+it('ignore une langue que la marque ne sert pas', function () {
+    $this->withUnencryptedCookie(Langue::COOKIE, 'ja')
+        ->withHeader('Accept-Language', 'ja-JP')
+        ->get(df('/'))
+        ->assertRedirect(df('/en'));
+});
+
+it('traduit les chaines du catalogue repris', function () {
+    $this->get(df('/en/illustrateur'))->assertOk()->assertSee('Loading...', false);
+    $this->get(df('/fr/illustrateur'))->assertOk()->assertSee('Chargement...', false);
+});
+
+it('donne a Dustfolio ses propres accroches, pas celles d Ultra-book traduites', function () {
+    // Relevees sur https://www.dustfolio.com/en.
+    $this->get(df('/en'))
         ->assertOk()
-        ->assertSee('lang="ja"', false);
-});
+        ->assertSee('Find the best creative portfolios.', false)
+        ->assertSee('Dustfolio, create an online portfolio', false);
 
-it('retombe sur une langue connue quand celle du navigateur est absente', function () {
-    $this->withHeader('Accept-Language', 'de,en;q=0.9')
-        ->get(site('/'))
+    $this->get(ub('/'))
         ->assertOk()
-        ->assertSee('lang="en"', false);
-});
-
-it('fait primer le cookie sur le navigateur', function () {
-    $this->withUnencryptedCookie(Langue::COOKIE, 'fr')
-        ->withHeader('Accept-Language', 'ja')
-        ->get(site('/'))
-        ->assertOk()
-        ->assertSee('lang="fr"', false);
-});
-
-it('bascule la langue et revient sur la page consultee', function () {
-    // Le legacy renvoyait /en sur action.php?lang=en_US, qui affichait
-    // l'accueil : on perdait la page en cours.
-    $this->withHeader('referer', site('/illustrateur'))
-        ->get(site('/en'))
-        ->assertRedirect(site('/illustrateur'))
-        ->assertPlainCookie(Langue::COOKIE, 'en');
-});
-
-it('ignore un referer exterieur au site', function () {
-    // Sans ce controle, /en serait une redirection ouverte.
-    $this->withHeader('referer', 'https://attaquant.example/piege')
-        ->get(site('/en'))
-        ->assertRedirect(site('/accueil'));
-});
-
-it('rend 404 sur une langue non servie', function () {
-    $this->get(site('/de'))->assertNotFound();
-});
-
-it('laisse le cookie de langue en clair', function () {
-    // Le JavaScript du front 2018 lit `lang`, et les books servis sur les
-    // sous-domaines partagent ce cookie.
-    $reponse = $this->get(site('/ja'));
-
-    expect($reponse->headers->getCookies()[0]->getValue())->toBe('ja');
+        ->assertSee('Trouvez les meilleurs portfolios de créatifs.', false)
+        ->assertSee('Portfolios freelance, illustrateur', false);
 });
 
 it('expose la langue au JavaScript repris du front 2018', function () {
     // js_core_pages.js teste `lang == 'fr'` pour choisir le catalogue de
     // mots-cles a charger.
-    $this->withUnencryptedCookie(Langue::COOKIE, 'en')
-        ->get(site('/'))
-        ->assertOk()
-        ->assertSee("lang =              'en'", false);
+    $this->get(df('/en'))->assertOk()->assertSee("lang =              'en'", false);
 });
 
 it('donne la forme POSIX a og:locale', function () {
-    $this->withUnencryptedCookie(Langue::COOKIE, 'ja')
-        ->get(site('/'))
-        ->assertOk()
-        ->assertSee("content='ja_JP'", false);
+    $this->get(df('/en'))->assertOk()->assertSee("content='en_US'", false);
+    $this->get(ub('/'))->assertOk()->assertSee("content='fr_FR'", false);
+});
+
+it('ne prefixe pas les points d entree techniques', function () {
+    // Le JavaScript du front 2018 les appelle a des chemins ecrits en dur :
+    // les prefixer les rendrait introuvables sur Dustfolio.
+    foreach (['/captcha_img', '/cache_js/data_stats.json'] as $chemin) {
+        $this->get(df($chemin))->assertOk();
+        $this->get(ub($chemin))->assertOk();
+    }
 });

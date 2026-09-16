@@ -23,7 +23,7 @@ function book(string $login, Category $categorie, string $keywords, bool $select
         'category_id' => $categorie->id,
         'firstname' => ucfirst($login),
         'lastname' => 'Créatif',
-        'is_published' => true,
+        'in_home_selection' => true,
         'in_directory' => true,
         'is_selected' => $selection,
     ]);
@@ -35,7 +35,12 @@ function book(string $login, Category $categorie, string $keywords, bool $select
         'status' => 'published',
     ]);
 
-    BookSetting::create(['user_id' => $user->id, 'keywords' => $keywords]);
+    BookSetting::create([
+        'user_id' => $user->id,
+        'keywords' => $keywords,
+        'diffuse_web' => true,
+        'diffuse_ub' => true,
+    ]);
 
     return $user;
 }
