@@ -22,18 +22,14 @@
 /* --- Video d'en-tete ------------------------------------------------- */
 
 /*
- * La video est decorative : si le fichier manque ou que le navigateur
- * refuse la lecture automatique, l'en-tete garde une hauteur et un fond
+ * Le cadrage de la video (couverture du bloc bleu) et le bloc de recherche
+ * sont regles dans la balise <style> de partials/accueil-hero.blade.php,
+ * au plus pres du balisage repris du front 2018. Rien a surcharger ici.
+ *
+ * La video est decorative : si le fichier manque ou que la lecture
+ * automatique est refusee, l'en-tete garde une hauteur et un fond sombre
  * plutot que de s'effondrer.
  */
 .video_header {
-    position: relative;
-    overflow: hidden;
     background: #1b1b1b;
-}
-
-.video_header .video_source {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }

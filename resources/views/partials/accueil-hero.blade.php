@@ -23,10 +23,14 @@
             }
             .video_source {
                 position: absolute;
-                top:-260px;
-                width:100%;
-                height: auto;
-                background-size: cover;
+                /* Recadree pour couvrir tout le bloc plutot que d'etre
+                   decalee de -260px avec une hauteur libre, qui la laissait
+                   coupee sur une partie du fond bleu. */
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
             .video_bg {
                 background-size: cover;
@@ -86,16 +90,20 @@
                et les titres sont masques (voir media query plus bas). */
             &#64;media only screen and (min-width: 981px) {
                 #bloc_rechercher {
-                    /* Remonte de 40px de plus que le front 2018 (-260px),
-                       pour venir juste sous la ligne « Illustration,
-                       graphisme, design, photo et plasticien ». */
-                    margin-top: -300px !important;
-                    /* Le remontage est compense ici pour que le bloc des
-                       mots-cles reste sous l'en-tete video. */
-                    margin-bottom: 140px !important;
-                    /* Fond blanc a 20 % d'opacite : la video reste largement
-                       visible au travers. */
-                    background-color: rgba(255, 255, 255, 0.2) !important;
+                    /* Le bloc video fait 480px ; le titre occupe environ
+                       184px et le sous-titre se termine vers 261px. Un
+                       remontage de 200px place donc le haut du bloc juste
+                       sous « Illustration, graphisme, design, photo et
+                       plasticien ». */
+                    margin-top: -200px !important;
+                    /* Compense le remontage pour que le bloc des mots-cles
+                       reste sous l'en-tete video. */
+                    margin-bottom: 40px !important;
+                    /* Opacite de 80 % sur la seule couleur de fond : elle
+                       porte sur le canal alpha du blanc, pas sur la
+                       propriete « opacity », qui aurait aussi affaibli le
+                       titre et le champ de recherche. */
+                    background-color: rgba(255, 255, 255, 0.8) !important;
                 }
             }
 
@@ -154,7 +162,10 @@
 
             &#64;media only screen and (max-width: 1280px) {
                 .video_source {
-                    top:unset!important;
+                    /* Corrigeait le decalage de -260px du front 2018.
+                       La video etant desormais recadree en couverture,
+                       elle reste calee sur le haut du bloc. */
+                    top: 0 !important;
                 }
             }
 
@@ -175,7 +186,10 @@
                 }
 
                 .video_source {
-                    top:unset!important;
+                    /* Corrigeait le decalage de -260px du front 2018.
+                       La video etant desormais recadree en couverture,
+                       elle reste calee sur le haut du bloc. */
+                    top: 0 !important;
                 }
                 .video_titre, .video_soustitre {
                     display:none;
