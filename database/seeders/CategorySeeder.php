@@ -12,7 +12,12 @@ class CategorySeeder extends Seeder
         foreach (config('categories.list') as $position => $category) {
             Category::updateOrCreate(
                 ['slug' => $category['slug']],
-                $category + ['position' => $position, 'is_active' => true],
+                [
+                    'name' => $category['name'],
+                    'name_plural' => $category['name_plural'],
+                    'position' => $category['accueil'] ?? 90 + $position,
+                    'is_active' => true,
+                ],
             );
         }
     }

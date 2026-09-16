@@ -37,7 +37,12 @@ Route::domain($bookDomain)->group(function () {
     Route::get('/', [AccueilController::class, 'index'])->name('home');
     Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
 
-    // Defilement infini : contrat JSON repris du legacy.
+    // Defilement infini : cartes rendues par le serveur.
+    Route::get('/cartes/{categorie}/{page}', [AccueilController::class, 'cartes'])
+        ->where(['categorie' => '[-a-z]+', 'page' => '[0-9]{1,3}'])
+        ->name('cartes');
+
+    // Ancien contrat JSON du legacy, conserve pour le JavaScript repris tel quel.
     Route::get('/accueil__{page}__{selection}__{type}', [AccueilController::class, 'ajax'])
         ->where(['page' => '[0-9]{1,3}', 'selection' => 'sel|ult|lub', 'type' => '[-a-z_]+'])
         ->name('accueil.ajax');
@@ -56,14 +61,14 @@ Route::domain($bookDomain)->group(function () {
         ->where('login', '[-a-zA-Z0-9]+')->name('portfolio.show');
 
     // Categories metier.
-    Route::get('/{categorie}', [AccueilController::class, 'index'])
+    Route::get('/{categorie}', [AccueilController::class, 'categorie'])
         ->where('categorie', implode('|', array_column(config('categories.list'), 'slug')))
         ->name('categorie');
 
     // Landings SEO : meme contenu qu'une categorie, titre different.
     foreach (config('seo_routes.landings') as $url => $landing) {
-        Route::get('/'.$url, [AccueilController::class, 'index'])
-            ->defaults('category', $landing['categorie'])
+        Route::get('/'.$url, [AccueilController::class, 'categorie'])
+            ->defaults('categorie', $landing['categorie'])
             ->name('landing.'.$url);
     }
 

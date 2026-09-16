@@ -4,28 +4,90 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Repository\BookRepository;
+use App\Support\Metier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AccueilController extends Controller
 {
+    /** Books affiches dans chaque bloc metier de l'accueil. */
+    private const PAR_BLOC = 9;
+
     public function __construct(private readonly BookRepository $books) {}
 
-    /** Page d'accueil : premier ecran de books rendu cote serveur. */
-    public function index(Request $request, ?string $category = null): View
+    /**
+     * Page d'accueil : un bloc par metier, comme le front 2018.
+     *
+     * Chaque bloc porte son titre, une selection de books, le nombre total
+     * de creatifs de la categorie et le lien vers la page du metier.
+     */
+    public function index(Request $request): View
+    {
+        $brand = $request->attributes->get('brand', 'ub');
+        $counts = $this->books->countsByCategory($brand);
+
+        $blocs = Metier::blocsAccueil()->map(fn (array $metier) => [
+            'slug' => $metier['slug'],
+            'books' => $this->books->portfolios('sel', $metier['slug'], 0, $brand, self::PAR_BLOC),
+            'total' => $counts[$metier['slug']] ?? 0,
+        ])->reject(fn (array $bloc) => $bloc['books']->isEmpty());
+
+        return view('front.accueil', [
+            'blocs' => $blocs,
+            'ubdf' => [
+                'per_page' => BookRepository::PER_PAGE,
+                'book_domain' => config('ubdf.book_domain'),
+            ],
+        ]);
+    }
+
+    /**
+     * Page d'une categorie : liste continue, alimentee par le defilement
+     * infini a partir du deuxieme ecran.
+     */
+    public function categorie(Request $request, string $categorie): View
     {
         $brand = $request->attributes->get('brand', 'ub');
 
-        return view('front.accueil', [
-            'books' => $this->books->portfolios('sel', $category, 0, $brand),
-            'category' => $category,
+        return view('front.categorie', [
+            'categorie' => $categorie,
+            'books' => $this->books->portfolios('sel', $categorie, 0, $brand),
+            'total' => $this->books->count($categorie, $brand),
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
-                'total' => $this->books->count($category, $brand),
-                'category' => $category ?? 'all',
+                'total' => $this->books->count($categorie, $brand),
+                'category' => $categorie,
+                'selection' => 'sel',
                 'book_domain' => config('ubdf.book_domain'),
             ],
+        ]);
+    }
+
+    /**
+     * Cartes suivantes du defilement infini, rendues en HTML.
+     *
+     * Le legacy renvoyait du JSON que le navigateur assemblait avec un
+     * template Handlebars : deux rendus a maintenir pour une meme carte, qui
+     * finissaient par diverger. Ici le serveur rend le meme composant Blade
+     * que le premier ecran, ce qui garantit qu'une carte chargee au
+     * defilement est identique a une carte rendue au chargement.
+     *
+     * La classe « newitem_hide » masque chaque carte a l'arrivee ; le script
+     * la retire une par une, ce qui produit le fondu en cascade du legacy
+     * (regle CSS existante : opacite 0, translation de -30px, 0,3 s).
+     */
+    public function cartes(Request $request, string $categorie, int $page): JsonResponse
+    {
+        $brand = $request->attributes->get('brand', 'ub');
+        $selection = $request->query('selection', 'sel');
+
+        $books = $this->books->portfolios($selection, $categorie, $page, $brand);
+
+        return response()->json([
+            'html' => view('front.partials.cartes', ['books' => $books])->render(),
+            'count' => $books->count(),
+            'fin' => $books->count() < BookRepository::PER_PAGE,
         ]);
     }
 

@@ -1,0 +1,60 @@
+/*
+ * Surcharges du portail Ultra-book.
+ *
+ * Les feuilles du front 2018 (core.css, Semantic UI) sont reprises telles
+ * quelles et chargees avant ce fichier : on ne les modifie pas, on ajuste
+ * ici. Tailwind n'est volontairement pas importe — son preflight
+ * reinitialiserait Semantic UI. La bascule est prevue en phase 9.
+ */
+
+/* --- Bloc de recherche, remonte dans le bloc video ------------------- */
+
+/*
+ * Le bloc se superpose desormais a la video : son fond blanc est ramene a
+ * 20 % d'opacite pour laisser voir l'image, avec un flou d'arriere-plan
+ * qui garde le texte lisible quelle que soit l'image sous-jacente.
+ */
+.video_header .bloc_rechercher {
+    position: relative;
+    z-index: 2;
+    margin-top: -40px;
+}
+
+.video_header .bloc_rechercher #bloc_rechercher.ui.segment,
+.video_header .bloc_rechercher .ui.segment.basic {
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 0;
+    box-shadow: none;
+}
+
+/* Le titre passe sur fond sombre : il doit rester lisible. */
+.video_header .bloc_rechercher h1 {
+    color: #fff;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
+/* Le champ de saisie, lui, reste opaque pour rester utilisable. */
+.video_header .bloc_rechercher .ui.input input {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+/* --- Video d'en-tete ------------------------------------------------- */
+
+/*
+ * La video est decorative : si le fichier manque ou que le navigateur
+ * refuse la lecture automatique, l'en-tete garde une hauteur et un fond
+ * plutot que de s'effondrer.
+ */
+.video_header {
+    position: relative;
+    overflow: hidden;
+    background: #1b1b1b;
+}
+
+.video_header .video_source {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

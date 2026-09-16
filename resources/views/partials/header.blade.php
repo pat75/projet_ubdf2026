@@ -214,13 +214,10 @@
                 <div class="video_titre">Une mine de créatifs</div>
                 <div class="video_soustitre">Illustration, graphisme, design, photo et plasticien</div>
             </div>
-        </header>
 
-	</div>
-    
-
-
-	<!-- Recherche  -->
+            {{-- Recherche, remontee dans le bloc video : elle se superpose
+                 desormais a la video au lieu de la suivre. --}}
+<!-- Recherche  -->
 	<div class="ui  container bloc_rechercher ">
 		<div class="ui two column stackable center aligned grid segment" id="bloc_rechercher">
 
@@ -259,8 +256,13 @@
 		</div>
 	</div>
 
+        </header>
 
-    <!-- Last recherche -->
+	</div>
+    
+
+
+	<!-- Last recherche -->
 
 
     <div class="ui container bloc_last_recherche mobile_hidden">

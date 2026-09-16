@@ -69,3 +69,57 @@ CSS et JavaScript sont repris **tels quels**, aux memes chemins (`/html_pages_v2
 - Multi-marque Dustfolio : middleware de resolution de domaine.
 - Multi-langue `fr` / `en` / `ja`.
 - Memo book, inscription, connexion.
+
+---
+
+# Phase 3b — Blocs metier, defilement et ouverture des books (2026-09-16)
+
+## Accueil : un bloc par metier
+
+L'accueil n'est pas une liste plate de books. Le front 2018 affiche **9 blocs metier**, chacun compose de :
+
+- un titre et un sous-titre — « Illustration » / « Derniere selection illustrateur freelance » ;
+- une rangee de cartes ;
+- une derniere carte portant le compteur (« 13 164 illustrateurs ») ;
+- un lien « Voir tous les illustrateurs ».
+
+Chaque metier porte donc **trois libelles distincts**, qui ne se deduisent pas les uns des autres : le nom (`Illustrateur`), le titre du bloc (`Illustration`, mais `Art` pour les plasticiens et `Digital & développement` pour le digital) et la forme du sous-titre (`designer objet`). Ils sont declares dans `config/categories.php` et lus par `App\Support\Metier`.
+
+Les 4 categories restantes (styliste, scenographe, modele, autre) restent accessibles par leur URL mais n'apparaissent pas sur l'accueil, comme dans le legacy. Un bloc sans book n'est pas affiche.
+
+## Defilement infini avec fondu en cascade
+
+Sur une page de metier, les cartes suivantes arrivent par `GET /cartes/{categorie}/{page}`.
+
+**Ecart assume avec le legacy** : celui-ci renvoyait du JSON que le navigateur assemblait avec un template Handlebars, soit deux rendus a maintenir pour une meme carte. Ici le serveur rend le **meme composant Blade** que le premier ecran : une carte chargee au defilement est forcement identique a une carte rendue au chargement. L'ancien contrat JSON (`/accueil__…`) reste servi pour le JavaScript repris tel quel, et reste verrouille par un test.
+
+Le fondu reprend le mecanisme d'origine : chaque carte arrive avec la classe `newitem_hide` (opacite 0, translation de -30px, transition 0,3 s — regle deja presente dans `core.css`), que `public/js/ubdf-infinite.js` retire une par une avec 40 ms d'ecart.
+
+## Le clic sur une carte n'ouvrait aucun book
+
+Symptome : cliquer sur une carte ne faisait rien.
+
+Cause : `data-user_detail` et `data-slider` sortaient **vides** (`{}`). **Laravel expose les methodes publiques d'un composant a sa vue**, ou elles masquent une variable du meme nom : `$detail` dans le template resolvait vers la methode `detail()`, pas vers le tableau passe par `render()`. `@json()` d'une fonction rend `{}`.
+
+Le JavaScript lisait donc un diaporama vide et echouait sur `slider_data.book_img.length`. Les deux methodes sont passees en `private`, et un test verifie desormais que les attributs sont remplis.
+
+> Fausse piste ecartee en chemin : `jquery.swipebox.min.js` repond 404, mais ce fichier n'existe pas davantage dans le legacy — la lightbox est incluse dans le bundle `js_allplug2018.js`. L'URL testee etait inventee, pas referencee par la page.
+
+## En-tete : video et bloc de recherche
+
+- La video `/_video/crea3.mov` n'etait pas servie : le dossier `_video/` n'avait pas ete copie. Seul `crea3.mov` (2,9 Mo) est repris, sur les 24 Mo du dossier d'origine.
+- Le bloc « Trouvez les meilleurs portfolios de creatifs » est **remonte dans le bloc video** : il se superpose desormais a la video au lieu de la suivre.
+- Son fond blanc passe a **20 % d'opacite**, avec un flou d'arriere-plan et un titre en blanc ombre — sans quoi le texte devient illisible selon l'image. Le champ de saisie, lui, reste opaque pour rester utilisable.
+
+## Vite
+
+`npm run dev` sert `resources/css/ubdf.css`, charge **apres** les feuilles du front 2018 pour les surcharger sans les modifier.
+
+Deux points de configuration :
+
+- **Tailwind n'est pas importe.** Son preflight reinitialiserait Semantic UI. `app.css` et `app.js` restent en place pour la refonte de la phase 9.
+- **Le serveur de developpement repond en HTTPS**, avec le certificat que Valet a genere pour le domaine. En HTTP, le navigateur bloquerait ses ressources pour contenu mixte et la feuille ne serait jamais appliquee.
+
+## Tests
+
+45 tests verts, dont la non-regression sur les attributs `data-*` des cartes, la presence des blocs metier et le contrat du defilement.

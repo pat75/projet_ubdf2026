@@ -2,7 +2,7 @@
      Structure et classes reprises telles quelles du front 2018 : les
      attributs data-* sont consommes par js2019/js_core_cards.js (zoom,
      slider, memo book, statistiques). --}}
-@props(['book'])
+@props(['book', 'nouvelle' => false])
 
 @php
     $category = $book->category?->slug ?? 'autre';
@@ -10,7 +10,7 @@
     $cover = $book->media->first();
 @endphp
 
-<div class="ui card {{ $category }} ptf_index_static dimmable cursor_effect"
+<div class="ui card {{ $category }} ptf_index_static dimmable cursor_effect {{ $nouvelle ? 'newitem_hide' : '' }}"
      id="user_{{ $book->login }}"
      data-user="{{ $book->login }}"
      data-us_="us_prenom_nom"

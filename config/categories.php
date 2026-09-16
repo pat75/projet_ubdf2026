@@ -11,20 +11,45 @@
 
 return [
 
+    /*
+     * Chaque categorie porte trois libelles distincts, comme dans le front
+     * 2018 : le nom du metier, le titre du bloc d'accueil (« Illustration »
+     * pour les illustrateurs, « Art » pour les plasticiens) et la forme
+     * employee dans « Derniere selection <...> freelance ».
+     *
+     * « accueil » donne l'ordre des blocs de la page d'accueil ; les
+     * categories sans cette cle restent accessibles par leur URL mais
+     * n'apparaissent pas sur l'accueil, comme dans le legacy.
+     */
     'list' => [
-        ['slug' => 'graphiste',             'name' => 'Graphiste',             'name_plural' => 'Graphistes'],
-        ['slug' => 'illustrateur',          'name' => 'Illustrateur',          'name_plural' => 'Illustrateurs'],
-        ['slug' => 'illustrateur-jeunesse', 'name' => 'Illustrateur jeunesse', 'name_plural' => 'Illustrateurs jeunesse'],
-        ['slug' => 'photographe',           'name' => 'Photographe',           'name_plural' => 'Photographes'],
-        ['slug' => 'plasticien',            'name' => 'Plasticien',            'name_plural' => 'Plasticiens'],
-        ['slug' => 'architecte',            'name' => 'Architecte',            'name_plural' => 'Architectes'],
-        ['slug' => 'design',                'name' => 'Designer',              'name_plural' => 'Designers'],
-        ['slug' => 'directeur-artistique',  'name' => 'Directeur artistique',  'name_plural' => 'Directeurs artistiques'],
-        ['slug' => 'styliste',              'name' => 'Styliste',              'name_plural' => 'Stylistes'],
-        ['slug' => 'digital',               'name' => 'Webdesigner',           'name_plural' => 'Webdesigners'],
-        ['slug' => 'scenographe',           'name' => 'Scenographe',           'name_plural' => 'Scenographes'],
-        ['slug' => 'modele',                'name' => 'Modele',                'name_plural' => 'Modeles'],
-        ['slug' => 'autre',                 'name' => 'Autre',                 'name_plural' => 'Autres'],
+        ['slug' => 'illustrateur',          'name' => 'Illustrateur',          'name_plural' => 'illustrateurs',
+         'titre_bloc' => 'Illustration',           'freelance' => 'illustrateur',          'accueil' => 1],
+        ['slug' => 'illustrateur-jeunesse', 'name' => 'Illustrateur jeunesse', 'name_plural' => 'illustrateurs jeunesse',
+         'titre_bloc' => 'Illustration jeunesse',  'freelance' => 'illustrateur jeunesse', 'accueil' => 2],
+        ['slug' => 'graphiste',             'name' => 'Graphiste',             'name_plural' => 'graphistes',
+         'titre_bloc' => 'Graphisme',              'freelance' => 'graphiste',             'accueil' => 3],
+        ['slug' => 'directeur-artistique',  'name' => 'Directeur artistique',  'name_plural' => 'directeurs artistiques',
+         'titre_bloc' => 'Direction artistique',   'freelance' => 'directeur artistique',  'accueil' => 4],
+        ['slug' => 'digital',               'name' => 'Webdesigner',           'name_plural' => 'webdesigners',
+         'titre_bloc' => 'Digital & développement', 'freelance' => 'digital',              'accueil' => 5],
+        ['slug' => 'plasticien',            'name' => 'Plasticien',            'name_plural' => 'plasticiens',
+         'titre_bloc' => 'Art',                    'freelance' => 'plasticien',            'accueil' => 6],
+        ['slug' => 'photographe',           'name' => 'Photographe',           'name_plural' => 'photographes',
+         'titre_bloc' => 'Photographie',           'freelance' => 'photographe',           'accueil' => 7],
+        ['slug' => 'design',                'name' => 'Designer',              'name_plural' => 'designers',
+         'titre_bloc' => 'Design objet',           'freelance' => 'designer objet',        'accueil' => 8],
+        ['slug' => 'architecte',            'name' => 'Architecte',            'name_plural' => 'architectes',
+         'titre_bloc' => 'Architecture',           'freelance' => 'architecte',            'accueil' => 9],
+
+        // Presentes dans l'annuaire et par leur URL, absentes de l'accueil.
+        ['slug' => 'styliste',              'name' => 'Styliste',              'name_plural' => 'stylistes',
+         'titre_bloc' => 'Stylisme',               'freelance' => 'styliste'],
+        ['slug' => 'scenographe',           'name' => 'Scenographe',           'name_plural' => 'scenographes',
+         'titre_bloc' => 'Scenographie',           'freelance' => 'scenographe'],
+        ['slug' => 'modele',                'name' => 'Modele',                'name_plural' => 'modeles',
+         'titre_bloc' => 'Modele',                 'freelance' => 'modele'],
+        ['slug' => 'autre',                 'name' => 'Autre',                 'name_plural' => 'autres',
+         'titre_bloc' => 'Autre',                  'freelance' => 'creatif'],
     ],
 
     /*

@@ -84,3 +84,35 @@ it('affiche l annuaire alphabetique', function () {
     $this->get(portail('/annuaire'))->assertOk()->assertSee('Amélie Falière', false);
     $this->get(portail('/annuaire_p'))->assertOk();
 });
+
+it('remplit les attributs data des cartes', function () {
+    // Une methode publique sur le composant masquerait la variable de meme
+    // nom dans la vue : les data-* sortiraient vides et le clic sur une
+    // carte n'ouvrirait aucun book.
+    $html = $this->get(portail('/illustrateur'))->assertOk()->getContent();
+
+    preg_match("/data-slider='([^']*)'/", $html, $slider);
+    preg_match("/data-user_detail='([^']*)'/", $html, $detail);
+
+    $slider = json_decode(html_entity_decode($slider[1] ?? '{}'), true);
+    $detail = json_decode(html_entity_decode($detail[1] ?? '{}'), true);
+
+    expect($slider['book_img'] ?? [])->not->toBeEmpty()
+        ->and($detail['book_prenom_nom'] ?? '')->toBe('Amélie Falière');
+});
+
+it('affiche un bloc par metier sur l accueil', function () {
+    $this->get(portail('/accueil'))
+        ->assertOk()
+        ->assertSee('metier_group coultxt_illustrateur', false)
+        ->assertSee('Dernière sélection illustrateur freelance', false)
+        ->assertSee('voir_tous_metier_link', false)
+        ->assertSee('cat_link_txt', false);
+});
+
+it('sert les cartes suivantes du defilement, masquees pour le fondu', function () {
+    $reponse = $this->get(portail('/cartes/illustrateur/1'))->assertOk();
+
+    $reponse->assertJsonStructure(['html', 'count', 'fin']);
+    expect($reponse->json('fin'))->toBeTrue();
+});
