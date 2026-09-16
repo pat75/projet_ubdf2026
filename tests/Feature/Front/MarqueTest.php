@@ -137,6 +137,22 @@ it('garde la video et l accroche d origine sur Ultra-book', function () {
         ->assertDontSee('accueil-freelance.svg', false);
 });
 
+it('masque sur Dustfolio les blocs propres a Ultra-book', function () {
+    // « Installer mon site internet PRO » renvoie vers ultrabook.pro et la
+    // banniere des disponibilites vers les-illustrateurs.com : deux
+    // services de la marque Ultra-book, sans equivalent chez Dustfolio.
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en'))
+        ->assertOk()
+        ->assertDontSee('bloc_accueil_ubsitepro', false)
+        ->assertDontSee('site internet PRO', false)
+        ->assertDontSee('CONTACTER LES DISPOS', false);
+
+    $this->get(hote('ubdf2026.ultra-book.name'))
+        ->assertOk()
+        ->assertSee('bloc_accueil_ubsitepro', false)
+        ->assertSee('CONTACTER LES DISPOS', false);
+});
+
 it('porte la marque en classe du body', function () {
     // Elle sert de selecteur aux regles qui ne valent que pour l'une des
     // deux marques : en-tete de l'accueil, remontee du bloc de recherche.

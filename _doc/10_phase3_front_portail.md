@@ -935,3 +935,20 @@ la nouvelle accroche.
 142 tests PHP. Trois ajouts : presence de l'illustration et absence de la
 video sur Dustfolio, l'inverse sur Ultra-book, et la classe de marque sur le
 body.
+
+## Blocs reserves a Ultra-book
+
+Deux blocs de l'accueil ne s'affichent plus sur Dustfolio :
+
+| Bloc | Renvoie vers |
+|---|---|
+| « Installer mon site internet PRO » | `ultrabook.pro` |
+| Banniere des disponibilites (« NOUVEAU ! ») | `les-illustrateurs.com` |
+
+Ce sont deux services de la marque Ultra-book, sans equivalent chez
+Dustfolio : les afficher enverrait ses visiteurs vers le site concurrent de
+la maison. Ils passent sous `@if ($marque->estDefaut())`.
+
+> Reste a trancher : le pied de page et une fenetre modale citent encore ces
+> memes domaines sur les deux marques. Ils seront repris avec les gabarits
+> en phase 9, ou plus tot si tu veux les traiter maintenant.

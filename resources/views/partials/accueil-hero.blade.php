@@ -621,6 +621,10 @@
 
 
 
+@if ($marque->estDefaut())
+    {{-- Reserve a Ultra-book : ce bloc renvoie vers ultrabook.pro et
+         les-illustrateurs.com, deux services de la marque Ultra-book qui
+         n'ont pas d'equivalent chez Dustfolio. --}}
     <!-- ubsite Pro 2022 -->
     <a href="https://www.ultrabook.pro/?utm_source=ubaccueil" target="_blank">
         <div class="ui container bloc_slide mobile bloc_accueil_ubsitepro">
@@ -648,10 +652,15 @@
         </div>
     </a>
     <!-- #end -->
+@endif
 
 
 
 
+@if ($marque->estDefaut())
+    {{-- Reserve a Ultra-book : ce bloc renvoie vers ultrabook.pro et
+         les-illustrateurs.com, deux services de la marque Ultra-book qui
+         n'ont pas d'equivalent chez Dustfolio. --}}
     <!-- banniere dispo -->
     <style>
         /* Styles CSS */
@@ -744,3 +753,4 @@
         </div>
     </header>
     <!-- banniere dispo #end-->
+@endif
