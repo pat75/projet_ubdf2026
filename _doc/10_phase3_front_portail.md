@@ -420,3 +420,123 @@ le meme script sans le modifier.
 
 75 tests PHP (10 unitaires sur la normalisation, 12 fonctionnels sur la
 recherche) et 4 scenarios JS.
+
+---
+
+# Phase 3d — Messagerie intermediee (2026-09-16)
+
+## Ce que le dispositif protege
+
+Un visiteur ecrit a un creatif sans jamais obtenir son adresse, et
+reciproquement. C'est la raison d'etre de l'intermediation : sans elle, les
+18 000 adresses des books seraient moissonnees en une nuit. Chaque partie
+recoit un lien qui ouvre le fil **de son cote**.
+
+## Le controle d'acces de 2019 ne controlait rien
+
+Les liens emis par le legacy avaient cette forme :
+
+```
+/intermediate_msg_/cust<verif>/<token>/<selector>
+/intermediate_msg_/user<verif>/<token>/<selector>
+```
+
+Le `token` et le `selector` sont **les memes pour les deux parties**. Seul le
+segment `verif` change — et il est derive du jeton :
+
+```php
+verif_from_cust($token) = substr(substr($token,0,4).substr($token,2,4), 0, 6);
+verif_from_user($token) = substr(substr($token,1,4).substr($token,3,4), 0, 6);
+```
+
+Quiconque detient son propre lien peut donc calculer celui de l'autre, lire
+le fil de son point de vue et y repondre en son nom. Le `SELECT` ne portait
+d'ailleurs que sur `mf_token` et `mf_selector` : le role venait du seul
+parametre `from` de l'URL.
+
+Le remplacement : **deux jetons independants**, de 256 bits, stockes haches
+en SHA-256. Le `selector` reste en clair — il designe la ligne, sans quoi il
+faudrait comparer le hachage de toutes les conversations. Une base volee ne
+rend aucun lien utilisable.
+
+Trois consequences assumees :
+
+- **les liens de ub2020 ne sont plus honores.** Ils ont ete emis sous ce
+  schema et resteraient exploitables. La valeur d'origine est conservee en
+  `legacy_token`, pour la trace ;
+- **un lien expire** au bout de 180 jours sans nouveau message. Le legacy
+  n'en posait aucune : un lien de 2019 ouvrait encore le fil en 2026 ;
+- **chaque notification emet un jeton neuf** pour son destinataire. Le lien
+  qui a circule par courriel depuis l'ouverture du fil cesse alors
+  d'ouvrir quoi que ce soit.
+
+Un lien invalide et un lien expire rendent la meme reponse : rien ne permet
+de distinguer les deux cas.
+
+## Le spam : marque, jamais rejete
+
+Parti pris repris du legacy, et il est juste — un faux positif qui
+supprimerait une vraie demande de commande coute beaucoup plus cher a un
+creatif qu'un message indesirable de plus. La demande est **toujours**
+enregistree ; seule la notification par courriel est retenue.
+
+Ce qui change : le marqueur est une colonne (`conversations.is_spam`). Le
+legacy inserait une banniere HTML rouge en tete du message et prefixait le
+nom de `[ ALERTE ]` — un indicateur de traitement ecrit dans la donnee
+elle-meme, impossible a retirer ensuite. Le migrateur reconnait ces deux
+marques, remonte l'information en colonne et rend la donnee a son etat
+d'origine.
+
+Les listes (67 adresses, 13 IP, 26 expressions) sont reprises dans
+`config/messagerie.php`. Leur interrogation est corrigee : le legacy faisait
+
+```php
+preg_match('/'.$mail.'/', $conf['contact']['spam_list'])
+```
+
+soit la valeur saisie comme **motif** et la liste comme sujet. Une adresse
+d'une lettre correspondait donc a tout, et un « / » dans la saisie rompait
+l'expression. La liste d'IP comparait `$mail` au lieu de `$ip` — le fichier
+d'origine porte d'ailleurs la mention « no active ». Ce sont maintenant des
+listes, comparees par egalite.
+
+## Captcha
+
+Meme principe qu'en 2020 (cinq caracteres sans ambiguite visuelle, gardes en
+session), avec deux corrections :
+
+- le code est **toujours** retire de la session apres verification. Le
+  legacy ne l'effacait qu'en cas de succes, ce qui laissait reessayer
+  indefiniment sur la meme image ;
+- la comparaison passe par `hash_equals`.
+
+Le rendu passe de GD a **SVG** : plus de dependance a l'extension GD ni aux
+fichiers de police du projet, et une image nette a toute definition.
+
+## Contrat conserve avec le JavaScript de 2018
+
+`js_core_cards.js` poste sur `/intermediate_send` et ne branche que son
+gestionnaire de succes : sur un code 4xx il reste sur son indicateur de
+chargement, sans rien afficher. La reponse garde donc la forme qu'il sait
+lire — code 200, `error`, `error_list`, `action`, `savedb_result` — y compris
+quand la validation echoue (`failedValidation` est surchargee).
+
+Ce meme JavaScript ne connait pas le jeton CSRF de Laravel.
+`/intermediate_send` en est exemptee, ce qui est sans consequence : la route
+n'agit sur aucune session, elle enregistre la demande d'un visiteur anonyme.
+Il n'y a rien qu'un tiers puisse y declencher au nom de quelqu'un d'autre.
+Elle reste protegee par le captcha et par une limite de cinq demandes par
+heure et par adresse IP. Le fil de discussion, lui, est rendu par Blade et
+reste sous CSRF.
+
+`us_key` est conserve : cette cle publique, exposee par la seule page du
+book, empeche de poster une demande a un login devine. La comparaison se
+fait en temps constant.
+
+## Tests
+
+91 tests PHP au total. 16 portent sur cette messagerie, dont la non-regression sur chacun des points
+ci-dessus : jetons distincts, jeton jamais stocke en clair, refus du role
+croise, expiration, renouvellement, captcha a usage unique, spam enregistre
+mais non relaye, limite de debit, et absence de l'adresse du visiteur dans
+la page du creatif.

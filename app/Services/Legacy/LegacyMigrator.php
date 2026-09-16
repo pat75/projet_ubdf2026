@@ -385,12 +385,16 @@ final class LegacyMigrator
                     'channel' => 'intermediate',
                     'subject' => LegacyText::clean($row->mf_action),
                     'request_detail' => LegacyText::clean($row->mf_request_detail),
-                    'sender_name' => LegacyText::clean($row->mf_nom),
+                    'sender_name' => $this->sansMarqueurSpam(LegacyText::clean($row->mf_nom)),
                     'sender_company' => LegacyText::clean($row->mf_societe),
                     'sender_email' => $row->mf_mail ?: null,
                     'sender_phone' => $row->mf_tel ?: null,
-                    'token' => $row->mf_token ?: null,
+                    // Jetons conserves pour la trace seulement : le schema
+                    // de 2019 les rendait derivables l'un de l'autre, les
+                    // anciens liens ne sont plus honores.
+                    'legacy_token' => $row->mf_token ?: null,
                     'selector' => $row->mf_selector ?: null,
+                    'is_spam' => $this->estSpamLegacy($row),
                     'book_image' => $row->mf_book_visuel ?: null,
                     'last_message_at' => $this->date($row->mf_update) ?? $this->date($row->mf_date),
                     'deleted_at' => $row->mf_del === 'true' ? now() : null,
@@ -402,7 +406,7 @@ final class LegacyMigrator
                 [
                     'conversation_id' => $conversation->id,
                     'from_owner' => $row->mf_is_my_msg === 'true',
-                    'body' => LegacyText::clean($row->mf_message) ?? '',
+                    'body' => $this->sansBanniereSpam(LegacyText::clean($row->mf_message)) ?? '',
                     'ip' => Str::limit((string) $row->mf_ip, 45, ''),
                     'read_at' => $row->mf_lu === 'true' ? $this->date($row->mf_date) : null,
                     'created_at' => $this->date($row->mf_date) ?? now(),
@@ -643,4 +647,30 @@ final class LegacyMigrator
             ->map(fn ($value) => LegacyText::clean((string) $value))
             ->all();
     }
+
+    /**
+     * Le legacy ne portait pas d'indicateur de spam : il prefixait le nom de
+     * l'expediteur et le corps du message. Le marqueur est remonte en
+     * colonne, et la donnee rendue a son etat d'origine.
+     */
+    private function estSpamLegacy(object $row): bool
+    {
+        return str_contains((string) $row->mf_nom, '[ ALERTE ]')
+            || str_contains((string) $row->mf_message, 'ALERTE : message de type SPAM');
+    }
+
+    private function sansMarqueurSpam(?string $nom): ?string
+    {
+        return $nom === null ? null : (trim(str_replace('[ ALERTE ]', '', $nom)) ?: null);
+    }
+
+    private function sansBanniereSpam(?string $corps): ?string
+    {
+        if ($corps === null || ! str_contains($corps, 'ALERTE : message de type SPAM')) {
+            return $corps;
+        }
+
+        return trim(preg_replace('#^<strong[^>]*>.*?</strong><br/>\s*#s', '', $corps) ?? $corps);
+    }
+
 }

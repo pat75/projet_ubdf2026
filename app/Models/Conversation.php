@@ -14,14 +14,16 @@ class Conversation extends Model
     protected $fillable = [
         'legacy_id', 'user_id', 'channel', 'subject', 'request_detail',
         'sender_name', 'sender_company', 'sender_email', 'sender_phone',
-        'token', 'selector', 'book_image', 'last_message_at',
+        'legacy_token', 'selector', 'owner_token', 'sender_token',
+        'book_image', 'is_spam', 'last_message_at',
     ];
 
-    protected $hidden = ['token'];
+    /** Les jetons haches ne sortent jamais du modele. */
+    protected $hidden = ['legacy_token', 'owner_token', 'sender_token'];
 
     protected function casts(): array
     {
-        return ['last_message_at' => 'datetime'];
+        return ['last_message_at' => 'datetime', 'is_spam' => 'boolean'];
     }
 
     public function user(): BelongsTo
@@ -32,5 +34,11 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class)->orderBy('created_at');
+    }
+
+    /** Intitule lisible de la demande, tel qu'affiche dans le fil. */
+    public function objet(): string
+    {
+        return config('messagerie.demandes.'.$this->subject.'.libelle', $this->subject ?? '');
     }
 }

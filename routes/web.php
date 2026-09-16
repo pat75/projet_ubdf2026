@@ -3,6 +3,8 @@
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
+use App\Http\Controllers\Front\ContactController;
+use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
 use App\Http\Controllers\Front\StatsController;
@@ -64,6 +66,26 @@ Route::domain($bookDomain)->group(function () {
         ->where('page', '[0-9]{1,3}')->name('recherche.cartes');
     Route::get('/rechercher_submit', [RechercheController::class, 'legacy'])
         ->name('recherche.legacy');
+
+    /*
+     | Messagerie intermediee
+     |
+     | `/intermediate_send` et `/captcha_img` sont les URL construites par
+     | js_core_cards.js ; elles gardent leur nom. Le fil de discussion, lui,
+     | remplace les liens `/intermediate_msg_/cust<verif>/<token>/<selector>`
+     | du legacy, dont le segment de controle etait derive du jeton et ne
+     | verifiait donc rien (voir la migration 2026_01_02_000200).
+     */
+    Route::post('/intermediate_send', [ContactController::class, 'envoyer'])
+        ->name('contact.envoyer');
+    Route::get('/captcha_img', [ContactController::class, 'captcha'])->name('captcha');
+
+    Route::get('/messages/{role}/{selector}/{jeton}', [FilController::class, 'show'])
+        ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
+        ->name('messagerie.fil');
+    Route::post('/messages/{role}/{selector}/{jeton}', [FilController::class, 'repondre'])
+        ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
+        ->name('messagerie.repondre');
 
     // Selections editoriales.
     Route::get('/les-ultra-books', fn () => redirect()->route('accueil'))->name('selection.lub');
