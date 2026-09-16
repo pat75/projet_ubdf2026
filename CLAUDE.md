@@ -28,3 +28,13 @@ Le `php` du PATH est **MAMP 8.1.13**, pas 8.3. Toujours utiliser :
 | Serveur | Valet (nginx, tld `.name`), server block patche — voir `_doc/03_valet_sous_domaines.md` |
 | MySQL | MAMP, **socket uniquement** (`/Applications/MAMP/tmp/mysql/mysql.sock`), pas de TCP sur 8889 |
 | Connexion `legacy` | base `ub2020`, protegee en ecriture par `App\Providers\LegacyDatabaseServiceProvider` |
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
