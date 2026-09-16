@@ -156,3 +156,19 @@ Le partial est scinde :
 | `partials/accueil-hero.blade.php` | video et titre, bloc de recherche, derniers mots-cles, « Creer votre portfolio », « Une selection de qualite », « Installer mon site internet pro », banniere des disponibilites | accueil seul |
 
 La recherche du menu haut (`bloc_rechercher_top2_mobile`, `bloc_rechercher_top_menu_modal`) reste commune : c'est une fonction de navigation, pas une accroche.
+
+## Les cartes chargees au defilement ne s'ouvraient pas
+
+Symptome : sur `/illustrateur`, les books du premier ecran s'ouvrent en pleine page, mais ceux qui arrivent au defilement restent muets au clic.
+
+Cause : le front 2018 ne pose le gestionnaire de clic qu'**une seule fois**, au chargement du document, via `book.book_static_show('.ptf_index_static')`. Une carte inseree ensuite n'en herite pas. Le legacy le savait et rappelait, apres chaque insertion :
+
+```js
+ub_infinit.post_traitement_dom('#user_' + id_user);  // -> btn_slide()
+```
+
+`public/js/ubdf-infinite.js` retirait bien `newitem_hide` et initialisait le `dimmer`, mais n'appelait pas cette fonction. C'est corrige : chaque carte inseree est activee, **avant** l'animation, pour qu'un clic pendant le fondu fonctionne aussi.
+
+`js_core_cards.js` etant charge de facon asynchrone par LABjs, l'activation reessaie brievement (20 tentatives, 150 ms) si l'objet n'est pas encore defini — sinon un defilement tres rapide laisserait des cartes inertes.
+
+> **Non repris volontairement** : `ub_ill_plus_de_book.stats_book()`, que le legacy appelle au meme endroit. Il emet un `action=add` vers `https://www.extra-book.com/2012_stats/st_action.php`, soit le serveur de statistiques **de production** : l'appeler depuis le developpement gonflerait les compteurs reels. Le comptage des vues sera reimplemente cote Laravel, sur la table `visit_stats` deja prevue.

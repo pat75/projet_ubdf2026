@@ -27,10 +27,55 @@
     var enCours = false;
     var termine = false;
 
+    /**
+     * Active une carte fraichement inseree.
+     *
+     * Le front 2018 n'attache l'ouverture en pleine page qu'au chargement du
+     * document, sur les cartes deja presentes. Une carte arrivee par
+     * defilement doit donc etre activee explicitement, exactement comme le
+     * fait le legacy apres chaque insertion :
+     * ub_infinit.post_traitement_dom() appelle btn_slide(), qui pose le
+     * gestionnaire de clic ouvrant la lightbox.
+     *
+     * Sans cet appel, les premieres cartes s'ouvrent et les suivantes non.
+     */
+    function activer($carte, essai) {
+        var selecteur = '#user_' + $carte.data('user');
+
+        if (window.ub_infinit && typeof ub_infinit.post_traitement_dom === 'function') {
+            ub_infinit.post_traitement_dom(selecteur);
+
+            return;
+        }
+
+        /*
+         * js_core_cards.js est charge de facon asynchrone par LABjs : sur un
+         * defilement tres rapide, il peut ne pas etre encore la. On reessaie
+         * brievement plutot que d'abandonner la carte, qui resterait alors
+         * muette au clic.
+         */
+        essai = essai || 0;
+
+        if (essai < 20) {
+            setTimeout(function () {
+                activer($carte, essai + 1);
+            }, 150);
+        }
+
+        // ub_ill_plus_de_book.stats_book() n'est volontairement pas appele :
+        // il envoie un « action=add » vers https://www.extra-book.com, qui
+        // est le serveur de statistiques de production. Le comptage des vues
+        // sera reimplemente cote Laravel (table visit_stats).
+    }
+
     /** Revele les cartes une a une, pour l'effet de cascade. */
     function reveler($nouvelles) {
         $nouvelles.each(function (index) {
             var $carte = $(this);
+
+            // L'activation ne depend pas de l'animation : on l'applique
+            // tout de suite, pour qu'un clic pendant le fondu fonctionne.
+            activer($carte);
 
             setTimeout(function () {
                 $carte.removeClass('newitem_hide');

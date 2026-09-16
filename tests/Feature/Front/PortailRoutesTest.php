@@ -134,3 +134,20 @@ it('reserve les blocs d accroche a l accueil', function () {
             ->assertDontSee('bloc_last_recherche', false);
     }
 });
+
+it('sert au defilement des cartes activables par le JavaScript du front', function () {
+    // Le clic qui ouvre un book en pleine page est pose par btn_slide() sur
+    // « #user_<login> », a partir de data-slider. Une carte chargee au
+    // defilement doit donc porter le meme identifiant et le meme diaporama
+    // qu'une carte rendue au chargement, sans quoi elle reste muette.
+    $html = $this->get(portail('/cartes/illustrateur/0'))->assertOk()->json('html');
+
+    expect($html)->toContain('id="user_pat10"')
+        ->toContain('data-user="pat10"')
+        ->toContain('newitem_hide');
+
+    preg_match("/data-slider='([^']*)'/", $html, $slider);
+    $slider = json_decode(html_entity_decode($slider[1] ?? '{}'), true);
+
+    expect($slider['book_img'] ?? [])->not->toBeEmpty();
+});
