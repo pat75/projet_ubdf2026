@@ -42,7 +42,7 @@ return new class extends Migration
 
             // Coordonnees
             $table->string('address')->nullable();
-            $table->string('zipcode', 10)->nullable();
+            $table->string('zipcode', 20)->nullable();
             $table->string('city', 100)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('phone', 40)->nullable();
@@ -76,7 +76,7 @@ return new class extends Migration
 
             // Traces d'inscription
             $table->string('signup_ip', 45)->nullable();
-            $table->string('signup_referer')->nullable();
+            $table->text('signup_referer')->nullable();
             $table->text('admin_note')->nullable();
 
             $table->timestamps();

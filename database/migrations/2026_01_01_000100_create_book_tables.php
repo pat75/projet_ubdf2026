@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('bio_photo')->nullable();
 
             // Personnalisation avancee
-            $table->string('custom_css', 400)->nullable();
+            $table->text('custom_css')->nullable();
             $table->text('custom_js')->nullable();
             $table->string('analytics_id', 40)->nullable();
 

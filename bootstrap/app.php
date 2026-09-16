@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Toute entree utilisateur est ramenee a de l'UTF-8 normalise (NFC).
+        $middleware->append(App\Http\Middleware\NormalizeUnicodeInput::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
