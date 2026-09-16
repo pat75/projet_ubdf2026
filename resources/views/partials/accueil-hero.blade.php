@@ -86,9 +86,16 @@
                et les titres sont masques (voir media query plus bas). */
             &#64;media only screen and (min-width: 981px) {
                 #bloc_rechercher {
-                    margin-top: -260px !important;
-                    margin-bottom: 100px !important;
-                    background-color: rgba(255, 255, 255, 0.8) !important;
+                    /* Remonte de 40px de plus que le front 2018 (-260px),
+                       pour venir juste sous la ligne « Illustration,
+                       graphisme, design, photo et plasticien ». */
+                    margin-top: -300px !important;
+                    /* Le remontage est compense ici pour que le bloc des
+                       mots-cles reste sous l'en-tete video. */
+                    margin-bottom: 140px !important;
+                    /* Fond blanc a 20 % d'opacite : la video reste largement
+                       visible au travers. */
+                    background-color: rgba(255, 255, 255, 0.2) !important;
                 }
             }
 
