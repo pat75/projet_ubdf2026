@@ -127,7 +127,17 @@ it('masque une page dont la date de publication est a venir', function () {
 });
 
 it('liste les actualites', function () {
-    $this->get(page_portail('/actus'))
+    $this->withHeader('Accept-Language', 'fr')
+        ->get(page_portail('/actus'))
+        ->assertOk()
+        ->assertSee('Rencontres illustrateurs');
+});
+
+it('sert les actualites de la langue par defaut quand la langue courante n en a aucune', function () {
+    // Les 74 actualites reprises de WordPress sont toutes en francais :
+    // un visiteur anglophone verrait une page vide.
+    $this->withHeader('Accept-Language', 'en')
+        ->get(page_portail('/actus'))
         ->assertOk()
         ->assertSee('Rencontres illustrateurs');
 });

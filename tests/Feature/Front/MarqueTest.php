@@ -6,7 +6,7 @@ use App\Support\Marque;
 beforeEach(function () {
     config([
         'marques.marques.ub.hotes' => ['ubdf2026.ultra-book.name', 'ultra-book.com'],
-        'marques.marques.df.hotes' => ['df.ubdf2026.ultra-book.name', 'dustfolio.com'],
+        'marques.marques.df.hotes' => ['ubdf-dust-2026.ultra-book.name', 'dustfolio.com'],
     ]);
 });
 
@@ -48,17 +48,17 @@ it('sert le portail Ultra-book sur le domaine de developpement', function () {
 });
 
 it('sert le portail Dustfolio sur son propre hote', function () {
-    $this->get(hote('df.ubdf2026.ultra-book.name'))
+    $this->get(hote('ubdf-dust-2026.ultra-book.name'))
         ->assertOk()
         ->assertSee("content='Dustfolio'", false)
         ->assertDontSee("content='Ultra-book'", false);
 });
 
 it('ne prend pas un sous-domaine reserve pour un book', function () {
-    // Sans cette reserve, « df. » serait le book d'un creatif nomme « df »,
-    // et rien n'empechait un compte de prendre le login « www ».
-    $this->get(hote('df.ubdf2026.ultra-book.name'))->assertOk()->assertDontSee('BOOK · login');
+    // Rien n'empechait, dans le legacy, qu'un compte prenne le login
+    // « www » et capte le sous-domaine correspondant.
     $this->get(hote('www.ubdf2026.ultra-book.name'))->assertOk()->assertDontSee('BOOK · login');
+    $this->get(hote('api.ubdf2026.ultra-book.name'))->assertOk()->assertDontSee('BOOK · login');
 });
 
 it('sert bien un book sur un sous-domaine ordinaire', function () {
@@ -80,7 +80,7 @@ it('substitue le nom de la marque dans les contenus editoriaux', function () {
 
     // Dustfolio n'a jamais eu de pages a lui : le legacy servait celles
     // d'Ultra-book en y remplacant le nom juste avant l'affichage.
-    $this->get(hote('df.ubdf2026.ultra-book.name', '/doc/qui-sommes-nous'))
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/doc/qui-sommes-nous'))
         ->assertOk()
         ->assertSee('Dustfolio est une plate-forme', false)
         ->assertSee('DustWare SAS', false);
@@ -95,6 +95,23 @@ it('donne a chaque marque son adresse de contact et son logo', function () {
     expect(Marque::depuisCode('ub')->email)->toBe('contact@ultra-book.net')
         ->and(Marque::depuisCode('df')->email)->toBe('contact@dustfolio.com')
         ->and(Marque::depuisCode('df')->logo)->toBe('/img_front_df/dustfolio.svg');
+});
+
+it('connait le domaine canonique de production de chaque marque', function () {
+    // Les URL absolues (courriels, sitemap, og:url) doivent porter le
+    // domaine public, pas celui du poste de developpement.
+    expect(Marque::depuisCode('ub')->canonique)->toBe('https://www.ultra-book.com')
+        ->and(Marque::depuisCode('df')->canonique)->toBe('https://www.dustfolio.com');
+});
+
+it('reconnait les domaines de production avec et sans www', function () {
+    foreach (['www.ultra-book.com', 'ultra-book.com'] as $hote) {
+        expect(Marque::depuisHote($hote)->code)->toBe('ub');
+    }
+
+    foreach (['www.dustfolio.com', 'dustfolio.com'] as $hote) {
+        expect(Marque::depuisHote($hote)->code)->toBe('df');
+    }
 });
 
 it('repartit les ressources par dossier, comme le legacy', function () {

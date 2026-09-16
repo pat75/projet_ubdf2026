@@ -104,7 +104,10 @@ it('remplit les attributs data des cartes', function () {
 });
 
 it('affiche un bloc par metier sur l accueil', function () {
-    $this->get(portail('/accueil'))
+    // Le sous-titre passe par __() : la langue doit etre explicite, le
+    // client de test envoyant « Accept-Language: en-us » par defaut.
+    $this->withHeader('Accept-Language', 'fr')
+        ->get(portail('/accueil'))
         ->assertOk()
         ->assertSee('metier_group coultxt_illustrateur', false)
         ->assertSee('Dernière sélection illustrateur freelance', false)

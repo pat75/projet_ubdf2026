@@ -33,6 +33,13 @@ return [
             'assets' => '',
             'logo' => '/img_front/ultra-book_logo_nb.svg',
 
+            // Domaine canonique en production : c'est lui qui sert a
+            // construire les URL absolues (courriels, sitemap, og:url).
+            'canonique' => env('UB_CANONIQUE', 'https://www.ultra-book.com'),
+
+            // Hotes reconnus. Le prefixe « www. » est retire avant
+            // comparaison : www.ultra-book.com et ultra-book.com sont le
+            // meme hote.
             'hotes' => array_filter([
                 env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
                 'ultra-book.com',
@@ -50,8 +57,10 @@ return [
             'assets' => '_df',
             'logo' => '/img_front_df/dustfolio.svg',
 
+            'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
+
             'hotes' => array_filter([
-                env('DF_DOMAIN', 'df.ubdf2026.ultra-book.name'),
+                env('DF_DOMAIN', 'ubdf-dust-2026.ultra-book.name'),
                 'dustfolio.com',
                 'extra-book.biz',
             ]),

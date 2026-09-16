@@ -16,7 +16,8 @@
 <meta name="Keywords" 				content="{{ $marque->nom }},book freelance,portfolio gratuit,book gratuit,création de portfolio,art graphique,portfolio creatif,book de creatifs,book illustrateur,book graphiste,book webdesign,book freelance,book directeurs artistique,créer un book,créer son book"/>
 <meta name="application-name" 	    content="{{ $marque->nom }}" />
 
-<meta property='og:locale' 		    content='{{ str_replace('-', '_', app()->getLocale()) }}'/>
+{{-- og:locale attend la forme POSIX complete (fr_FR), pas le code court. --}}
+<meta property='og:locale' 		    content='{{ App\Support\Langue::posix(app()->getLocale()) }}'/>
 <meta property='og:type' 			content='website'/>
 <meta property='og:title' 			content='@yield('title', $marque->nom)'/>
 <meta property='og:url' 			content='{{ url()->current() }}'/>
@@ -126,12 +127,12 @@
 		page_domaine =      '',
 		type_action =       '___',
 		layoutType =        'classic',
-		conf_view =         'ub',
+		conf_view =         '{{ $marque->code }}',
 		user_admin_js =      false,
 
 		ext_min =           '',
-		lang =              'fr',
-		user_admin_lang =   'fr',
+		lang =              '{{ app()->getLocale() }}',
+		user_admin_lang =   '{{ app()->getLocale() }}',
 		user_connect =      true,
 		reCAPTCHA_key_public  =      '6Lc8O5IUAAAAAJer15iYwddEROZzZnnIVzQe4P_1',
 		user_formule =      false	;

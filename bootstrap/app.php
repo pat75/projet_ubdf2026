@@ -18,6 +18,21 @@ return Application::configure(basePath: dirname(__DIR__))
         // conditionne le nom du site, les books listes et les courriels.
         $middleware->append(App\Http\Middleware\ResoudreMarque::class);
 
+        // La langue vient ensuite : son dernier recours est la langue par
+        // defaut de la marque, qu'il faut donc avoir resolue avant.
+        $middleware->appendToGroup('web', App\Http\Middleware\ResoudreLangue::class);
+
+        /*
+         | Le cookie de langue reste en clair.
+         |
+         | Ce n'est pas un secret, et il doit rester lisible par autre chose
+         | que Laravel : le JavaScript repris du front 2018 lit `lang`, et
+         | le cookie est partage avec les books servis sur les sous-domaines.
+         | Chiffre, il serait illisible pour eux — et indechiffrable pour
+         | Laravel lui-meme s'il venait de l'ancien site.
+         */
+        $middleware->encryptCookies(except: [App\Http\Middleware\ResoudreLangue::COOKIE_NOM]);
+
         /*
          | Le formulaire de contact du front 2018 est poste par un JavaScript
          | qui ne connait pas le jeton CSRF de Laravel, et qu'on ne reecrit

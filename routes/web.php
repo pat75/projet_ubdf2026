@@ -4,6 +4,7 @@ use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
+use App\Http\Controllers\Front\LangueController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\PortfolioController;
@@ -109,6 +110,17 @@ Route::group([], function () {
     Route::post('/messages/{role}/{selector}/{jeton}', [FilController::class, 'repondre'])
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
         ->name('messagerie.repondre');
+
+    /*
+     | Bascule de langue
+     |
+     | URL reprises telles quelles du legacy (`.htaccess` : ^en$, ^fr$,
+     | ^ja$). Elles posent le choix puis renvoient d'ou l'on vient, au lieu
+     | d'afficher l'accueil comme le faisait `action.php?lang=…`.
+     */
+    Route::get('/{langue}', LangueController::class)
+        ->where('langue', implode('|', array_keys(config('langues.langues'))))
+        ->name('langue');
 
     /*
      | Pages editoriales et actualites

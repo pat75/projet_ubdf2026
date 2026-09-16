@@ -20,6 +20,7 @@ final class Marque
         public readonly string $locale,
         public readonly string $assets,
         public readonly string $logo,
+        public readonly string $canonique,
     ) {}
 
     /**
@@ -60,6 +61,7 @@ final class Marque
             locale: $marque['locale'],
             assets: $marque['assets'],
             logo: $marque['logo'],
+            canonique: $marque['canonique'],
         );
     }
 

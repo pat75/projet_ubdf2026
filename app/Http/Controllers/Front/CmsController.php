@@ -35,12 +35,23 @@ class CmsController extends Controller
         ]);
     }
 
-    /** Liste des actualites : /actus. */
+    /**
+     * Liste des actualites : /actus.
+     *
+     * Les 74 actualites reprises de WordPress sont toutes en francais. Un
+     * visiteur anglophone verrait donc une page vide si la langue filtrait
+     * strictement : a defaut d'actualites dans sa langue, on lui sert
+     * celles de la langue par defaut plutot que rien.
+     */
     public function actualites(): View
     {
+        $locale = $this->locale();
+
+        $existe = CmsPost::publiees()->where('locale', $locale)->exists();
+
         return view('front.cms.actualites', [
             'actualites' => CmsPost::publiees()
-                ->where('locale', $this->locale())
+                ->where('locale', $existe ? $locale : config('langues.defaut'))
                 ->orderByDesc('published_at')
                 ->paginate(12),
         ]);

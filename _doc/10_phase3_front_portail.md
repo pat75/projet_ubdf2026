@@ -750,3 +750,87 @@ seront repris a la reecriture Alpine/Tailwind (phase 9).
 `www.` et port, repli par defaut, cloisonnement des deux portails,
 sous-domaines reserves, substitution editoriale et repartition des
 ressources.
+
+---
+
+# Phase 3g — Multi-langue fr / en / ja (2026-09-16)
+
+## Les catalogues gettext se reprennent tels quels
+
+Le site de 2019 traduisait avec gettext, catalogues `.po` dans
+`languages/<posix>/LC_MESSAGES/`. Les deux systemes partagent la convention
+qui compte : **la cle est la chaine francaise**. `msgid` devient la cle JSON,
+`msgstr` la traduction, et rien n'est a reecrire dans les vues.
+
+`ubdf:import-langues` fait la conversion :
+
+| Catalogue | Entrees | Reprises |
+|---|---|---|
+| `fr_FR` | 862 | 0 — 848 `msgstr` vides, c'est la langue des cles |
+| `en_US` | 1 474 | 1 473 |
+| `ja_JP` | 621 | 630 |
+
+Les entrees marquees `fuzzy` sont ecartees : ce sont des propositions non
+relues, que gettext lui-meme n'utilise pas.
+
+> A savoir : le catalogue anglais contient des traductions douteuses
+> heritees — « Enregistrer » y est rendu par « Record » la ou « Save »
+> s'impose. Elles sont reprises **telles quelles** ; les corriger releve
+> d'une relecture editoriale, pas du portage.
+
+## Ordre de resolution
+
+1. le parametre `lang` de la requete — la bascule du selecteur ;
+2. le cookie, ou le visiteur a laisse son choix precedent ;
+3. la session, pour la duree de la visite ;
+4. **l'en-tete `Accept-Language`** ;
+5. la langue par defaut de la marque.
+
+Le legacy s'arretait au point 3 puis retombait sur le defaut : un visiteur
+japonais arrivait en francais tant qu'il n'avait pas trouve le selecteur,
+alors que son navigateur annoncait sa langue.
+
+La forme POSIX du legacy reste comprise (`lang=fr_FR`) : les visiteurs de
+l'ancien site en portent une dans leur cookie.
+
+## Le cookie de langue reste en clair
+
+Laravel chiffre les cookies par defaut. Celui-ci en est exempte : ce n'est
+pas un secret, le JavaScript repris du front 2018 le lit (`lang == 'fr'`
+decide quel catalogue de mots-cles charger), et il est partage avec les
+books servis sur les sous-domaines. Chiffre, il serait illisible pour eux —
+et indechiffrable pour Laravel lui-meme s'il venait de l'ancien site.
+
+## Bascule sans perdre la page
+
+`.htaccess` renvoyait `^en$` sur `action.php?lang=en_US`, qui affichait
+l'accueil : changer de langue depuis une fiche de book faisait perdre la
+page consultee. Les URL `/fr`, `/en`, `/ja` sont conservees, mais elles
+enregistrent le choix et renvoient d'ou vient le visiteur — apres avoir
+verifie que le `Referer` appartient bien au site, sans quoi ce serait une
+redirection ouverte.
+
+## Un repli sur les actualites
+
+Les 74 actualites reprises de WordPress sont **toutes en francais**. Filtrer
+strictement par langue donnait une page vide a un visiteur anglophone.
+`/actus` sert donc les actualites de la langue par defaut quand la langue
+courante n'en a aucune.
+
+## Limite connue : les vues Blade ne portent pas les appels de traduction
+
+Les templates PHP du legacy appelaient `_('…')` a chaque libelle. Les vues
+Blade de la phase 3a ont ete derivees du **HTML deja rendu** — plus fidele
+au resultat, mais ces appels ont disparu au passage. Le mecanisme est en
+place et les catalogues sont importes ; seules les chaines explicitement
+marquees `__()` sont traduites a ce jour.
+
+Le reste des libelles sera marque au fil de la reecriture des gabarits
+(phase 9). Les 2 103 chaines importees attendent leurs cles.
+
+## Tests
+
+135 tests PHP. 13 pour la langue : forme POSIX, cookie, session,
+`Accept-Language`, priorites entre les sources, bascule avec retour,
+refus d'un `Referer` exterieur, cookie non chiffre, exposition au
+JavaScript et forme POSIX de `og:locale`.

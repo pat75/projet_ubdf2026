@@ -11,7 +11,7 @@
         </div>
 
         <div class="item logo mode_accueil  cursor_effect">
-			                <img  class="logo_normal" src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book">
+			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
 			        </div>
 
         <div class="item right btn_rechercher mode_accueil">
@@ -73,7 +73,7 @@
 		
         <div class="item logo">
             <a href="/" class=" cursor_effect">
-				                    <img class="logo_normal" src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book" style="width:120px;">
+				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:120px;">
 				            </a>
         </div>
 
@@ -363,7 +363,7 @@
             <div class="sixteen wide column head">
                 <div class="ui center aligned basic space1 segment ">
 
-					                        <img class="logo_normal" src="/img_front/ultra-book_logo_nb-light.svg" alt="Ultra-book">
+					                        <img class="logo_normal" src="{{ $marque->estDefaut() ? '/img_front/ultra-book_logo_nb-light.svg' : $marque->logo }}" alt="{{ $marque->nom }}">
 					
                     <h3>Une mine de créatifs</h3>
                     <h5>Trouver et contacter les meilleurs créatifs freelances !</h5>
@@ -728,7 +728,7 @@
                     <div class="segment basic space1">
 
 						                            <div class="logo">
-                                <img class="logo_normal" src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book" >
+                                <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
                             </div>
                             <h3>Une mine de créatifs</h3>
 						
@@ -887,7 +887,7 @@
                             <!--<p>La plateforme est gratuite par défaut.<br/></p>-->
 
 							                                <div class="logo">
-                                    <img class="logo_normal" src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book" >
+                                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
                                 </div>
                                 <h3>Une mine de créatifs</h3>
 							
