@@ -250,3 +250,27 @@ Le seuil est desormais reevalue apres chaque insertion, ainsi qu'au redimensionn
 `tests/js/enchainement.test.mjs` place la page dans ce cas precis — une hauteur inferieure a la fenetre, donc aucun defilement possible — et verifie que les trois pages sont demandees d'elles-memes, que les 27 cartes s'affichent, et qu'aucune quatrieme requete n'est emise apres la fin.
 
 `npm run test:js` execute les quatre scenarios JavaScript.
+
+## La vraie cause : jQuery n'existait pas encore
+
+Malgre les corrections precedentes, le defilement ne chargeait toujours rien : seuls les 10 books du premier ecran s'affichaient.
+
+`public/js/ubdf-infinite.js` s'ouvrait par :
+
+```js
+(function ($) { … })(jQuery);
+```
+
+Or le front 2018 charge jQuery **par LABjs, de facon asynchrone** :
+
+| Position dans la page | Script |
+|---|---|
+| 5 635 | `LAB.min.js` |
+| 14 707 | `the_LAB = $LAB … .script("js_cdn/jquery-1.12.4.min.js")` |
+| 139 440 | `ubdf-infinite.js` |
+
+Notre balise est un `<script src>` classique : elle s'execute **des qu'elle est atteinte**, bien avant que LABjs ait fini. `jQuery` etait donc indefini, l'IIFE levait une `ReferenceError`, et le module entier ne s'executait jamais. Aucun gestionnaire de defilement n'etait pose.
+
+Le script attend desormais la disponibilite de `window.jQuery` avant de demarrer, et renonce au bout de dix secondes en le signalant en console — un echec silencieux serait pire.
+
+> **Pourquoi les tests ne l'avaient pas vu.** Ils injectaient jQuery *avant* d'evaluer le script, ce qui ne correspond a aucune situation reelle. Ils validaient donc du code qui ne s'executait jamais en production. `tests/js/enchainement.test.mjs` evalue maintenant le script **d'abord**, et ne fournit jQuery que 400 ms plus tard, comme LABjs.
