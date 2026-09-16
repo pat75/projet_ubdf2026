@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Repository\BookRepository;
+use App\Support\CarteLegacy;
 use App\Support\Metier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,8 +58,8 @@ class AccueilController extends Controller
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
                 'total' => $this->books->count($categorie, $brand),
-                'category' => $categorie,
-                'selection' => 'sel',
+                'cartes_url' => '/cartes/'.$categorie,
+                'cartes_params' => ['selection' => 'sel'],
                 'book_domain' => config('ubdf.book_domain'),
             ],
         ]);
@@ -105,36 +106,6 @@ class AccueilController extends Controller
 
         $books = $this->books->portfolios($selection, $type, $page, $brand);
 
-        return response()->json($books->map(fn ($book) => [
-            'us_id' => (string) $book->id,
-            'us_key' => $book->publicKey(),
-            'us_formule' => $book->plan > 0,
-            'us_statut' => $book->status,
-            'us_prenom' => $book->firstname,
-            'us_nom' => $book->lastname,
-            'us_dir' => $book->login,
-            'us_type' => $book->category?->name,
-            'us_type_titre' => $book->status,
-            'us_date' => $book->created_at?->toDateString(),
-            'us_ville' => $book->city,
-            'us_pays' => $book->country,
-            'us_lat' => (string) ($book->latitude ?? ''),
-            'us_lng' => (string) ($book->longitude ?? ''),
-            'us_twitter_url' => $book->twitter_url,
-            'us_facebook_url' => $book->facebook_url,
-            'us_pf_img_vignette' => $book->thumbnailUrl(),
-            'us_pf_diff_dispo' => $book->is_available ? 'true' : 'false',
-            'us_path' => '/books/'.$book->login,
-            'stats_st_cles' => $book->publicKey(),
-            'img' => $book->media->map(fn ($media) => [
-                'img_id' => (string) $media->id,
-                'img_titre' => $media->title,
-                'img_fichier' => $media->url(),
-            ])->values(),
-            'slider' => $book->media->map(fn ($media) => [
-                'fichier' => $media->url(),
-                'title' => $media->title,
-            ])->values(),
-        ])->values());
+        return response()->json($books->map(CarteLegacy::depuis(...))->values());
     }
 }

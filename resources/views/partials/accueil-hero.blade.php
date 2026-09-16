@@ -237,7 +237,7 @@
 				<div class="column recherche_nom">
 
 					<div class="ui segment basic left aligned">
-						<form action="/rechercher" class="form_rechercher2018">
+						<form action="/recherche" class="form_rechercher2018">
 							<div class="ui action input search rech2018">
 								<div class="ui left icon input">
 									<i class="search big icon"></i>

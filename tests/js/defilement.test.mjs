@@ -23,7 +23,7 @@ dom.window.eval(jqSrc);
 const $ = dom.window.jQuery;
 
 // Configuration injectee par le layout
-dom.window.ubdf = { per_page: 10, category: 'illustrateur', selection: 'sel' };
+dom.window.ubdf = { per_page: 10, cartes_url: '/cartes/illustrateur', cartes_params: { selection: 'sel' } };
 
 /*
  * Scenario pilote par la variable d'environnement SCENARIO :

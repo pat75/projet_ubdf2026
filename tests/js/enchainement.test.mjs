@@ -27,7 +27,7 @@ const dom = new JSDOM(`<!doctype html><html><body>
 global.window = dom.window;
 global.document = dom.window.document;
 
-dom.window.ubdf = { per_page: 10, category: 'illustrateur', selection: 'sel' };
+dom.window.ubdf = { per_page: 10, cartes_url: '/cartes/illustrateur', cartes_params: { selection: 'sel' } };
 
 // Le script est evalue AVANT que jQuery soit disponible, comme en production.
 dom.window.eval(fs.readFileSync('public/js/ubdf-infinite.js', 'utf8'));

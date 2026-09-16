@@ -20,7 +20,7 @@
 
 
         <div class="item recherche mode_rechercher" id="bloc_rechercher_top2_mobile">
-            <form action="/rechercher" class="form_rechercher2018">
+            <form action="/recherche" class="form_rechercher2018">
                 <div class="ui action input search rech2018">
                     <div class="ui menu ">
 
@@ -303,7 +303,7 @@
            </svg>
        </span>
 
-        <form action="/rechercher" class="form_rechercher2018">
+        <form action="/recherche" class="form_rechercher2018">
             <div class="ui action input search rech2018">
                 <div class="ui menu ">
 

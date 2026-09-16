@@ -48,7 +48,9 @@ it('redirige les anciennes URL vers l URL canonique', function (string $ancienne
     $this->get(portail($ancienne))->assertRedirect(portail($cible));
 })->with([
     ['/portfolios', '/accueil'],
-    ['/recherche', '/accueil'],
+    // « /recherche » a quitte cette liste : c'est une page a part entiere,
+    // couverte par RechercheTest.
+    ['/rechercher', '/accueil'],
     ['/graphisme', '/graphiste'],
     ['/illustration', '/illustrateur'],
 ]);

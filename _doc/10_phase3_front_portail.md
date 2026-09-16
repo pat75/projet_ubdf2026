@@ -309,3 +309,114 @@ Une fois la media query valide, la valeur du front 2018 s'est revelee juste. Mes
 Ce qui correspond a la maquette de reference. `margin-top: -260px`, `margin-bottom: 100px`, fond `rgba(255, 255, 255, 0.8)`.
 
 > Les tentatives precedentes (-300px, puis -200px) ajustaient une regle qui n'etait jamais appliquee. **Mesurer le rendu avant de corriger** aurait evite trois allers-retours : `getComputedStyle` dit ce qui s'applique vraiment, la feuille de style dit seulement ce qu'on a demande.
+
+---
+
+# Phase 3c — Recherche par mots-cles (2026-09-16)
+
+## `us_pf_css` ne contient pas de CSS
+
+La colonne `inc_user_pref.us_pf_css` avait ete reprise telle quelle, sous le
+nom `book_settings.custom_css`. C'etait une erreur de lecture du legacy : la
+requete de recherche du front 2018 porte sur cette colonne.
+
+```sql
+WHERE user_pref.us_pf_css LIKE '%illustration%'
+```
+
+Le contenu le confirme — « Brochures,Affiches,Flyers,Logos »,
+« #fashion, #chanel, #nyc ». Elle stocke les **mots-cles** du book. Renommee
+en `keywords` (migration `2026_01_02_000100`). 18 225 comptes en portent dans
+ub2020.
+
+## Quinze ans de formats dans une meme colonne
+
+Un echantillon de 4 000 comptes donne cinq formats coexistants :
+
+| Forme | Origine probable |
+|---|---|
+| `illustration, aquarelle, presse` | liste simple |
+| `[&#34; architecture&#34;,&#34; interieur&#34;]` | tableau JSON echappe |
+| `#fashion, #chanel, #nyc` | saisie en hashtags |
+| `&lt;meta name=&quot;keywords&quot; content=&quot;flyer,3d&quot;/&gt;` | balise collee dans le champ |
+| `webdesigner，平面设计师` | virgule ideographique |
+
+`App\Support\MotsCles` les ramene a une liste comparable : double decodage
+des entites, extraction de l'attribut `content`, suppression des crochets,
+guillemets et hashtags, decoupage sur `, ; | \n 、 ，`, dedoublonnage
+insensible a la casse et aux accents, bornage a 40 mots de 60 caracteres.
+L'apostrophe est conservee (« vue d'ensemble »). Les ideogrammes aussi :
+`Str::ascii` les rend vides, un repli sur `mb_strtolower` les preserve.
+
+Sur les 100 comptes migres, 74 portent des mots-cles ; 74 valeurs sur 74 ont
+ete modifiees par la normalisation.
+
+## Le contrat de la recherche, releve dans le JavaScript
+
+`js_core_pages.js` construit une requete **GET** vers `/rechercher_submit`,
+parametres a plat, et attend un **tableau JSON** :
+
+```
+q=illustration;drawing&anu_type=tous&recherche=mcles&flt_sel=false&flt_pro=false&suite=0
+```
+
+Le `;` n'est pas un separateur de mots-cles : il precede la **traduction**
+du terme, que le JavaScript ajoute depuis `motcles_data_front_fr_en.json`.
+Un book redige en anglais doit donc ressortir sur une recherche en francais.
+`MotsCles` decoupe sur ce caractere comme sur la virgule, ce qui produit
+exactement ce comportement.
+
+Trois routes servent la recherche :
+
+| URL | Reponse | Pour qui |
+|---|---|---|
+| `/recherche?q=…` | page HTML | navigateur, moteurs de recherche |
+| `/recherche/cartes/{page}` | fragment HTML | defilement infini |
+| `/rechercher_submit` | tableau JSON | `js_core_pages.js`, inchange |
+
+`/recherche` etait jusqu'ici une redirection 301 vers l'accueil ; c'est
+desormais une page a part entiere. Le legacy n'avait pas d'equivalent : la
+recherche n'existait que dans le navigateur, sur une page d'accueil dont il
+remplacait le contenu. Une URL propre est partageable, indexable, et
+fonctionne sans JavaScript — le formulaire pointe dessus en GET.
+
+## Ecart assume : OR plutot que AND
+
+Le legacy exigeait les **deux premiers** termes et ignorait les suivants :
+
+```php
+$where = " us_pf_css LIKE '%$en%' OR ( us_pf_css LIKE '%$fr1%' AND us_pf_css LIKE '%$fr2%' ) ";
+```
+
+Une recherche de trois mots rendait donc presque toujours une page vide.
+Ici un book ressort des qu'il porte **un** des termes, et le nombre de
+termes trouves sert de score de tri, calcule par la base :
+
+```sql
+((keywords LIKE ?) + (keywords LIKE ?)) AS pertinence
+```
+
+Les books qui correspondent le mieux remontent, les autres suivent au lieu
+de disparaitre.
+
+## Pas d'index FULLTEXT
+
+La recherche reste un `LIKE '%terme%'`. Les mots-cles sont choisis dans une
+liste fermee, mais la saisie libre doit continuer a trouver un prefixe
+(« illustr »), ce qu'un index en texte integral ne fait pas. A reconsiderer
+en phase 8 si la volumetrie de production le demande.
+
+Les jokers de `LIKE` saisis par l'utilisateur sont echappes : sans cela,
+une recherche sur `%` ramenait la table entiere. Un test le verrouille.
+
+## Defilement generalise
+
+`public/js/ubdf-infinite.js` interrogeait `/cartes/<categorie>/<page>`, une
+URL qu'il construisait lui-meme. La page declare desormais sa source
+(`cartes_url`, `cartes_params`), ce qui permet a la recherche de reutiliser
+le meme script sans le modifier.
+
+## Tests
+
+75 tests PHP (10 unitaires sur la normalisation, 12 fonctionnels sur la
+recherche) et 4 scenarios JS.

@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\VisitStat;
 use App\Support\LegacyPassword;
 use App\Support\LegacyText;
+use App\Support\MotsCles;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -156,7 +157,9 @@ final class LegacyMigrator
                     'thumbnail' => $row->us_pf_img_vignette ?: null,
                     'bio_photo' => $row->us_pf_img_photo_bio ?: null,
 
-                    'custom_css' => $row->us_pf_css ?: null,
+                    // us_pf_css ne contient pas de CSS mais les mots-cles
+                    // du book : voir la migration de renommage.
+                    'keywords' => MotsCles::normaliser(LegacyText::clean($row->us_pf_css)),
                     'custom_js' => $row->us_pf_js ?: null,
                     'analytics_id' => $row->us_pf_analytic ?: null,
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\PortfolioController;
+use App\Http\Controllers\Front\RechercheController;
 use App\Http\Controllers\Front\StatsController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,19 @@ Route::domain($bookDomain)->group(function () {
     Route::get('/accueil__{page}__{selection}__{type}', [AccueilController::class, 'ajax'])
         ->where(['page' => '[0-9]{1,3}', 'selection' => 'sel|ult|lub', 'type' => '[-a-z_]+'])
         ->name('accueil.ajax');
+
+    /*
+     | Recherche
+     |
+     | `/rechercher_submit` est l'URL construite par js_core_pages.js : elle
+     | garde le contrat du legacy (parametres a plat, tableau JSON).
+     | `/recherche` est la page equivalente rendue par le serveur.
+     */
+    Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
+    Route::get('/recherche/cartes/{page}', [RechercheController::class, 'cartes'])
+        ->where('page', '[0-9]{1,3}')->name('recherche.cartes');
+    Route::get('/rechercher_submit', [RechercheController::class, 'legacy'])
+        ->name('recherche.legacy');
 
     // Selections editoriales.
     Route::get('/les-ultra-books', fn () => redirect()->route('accueil'))->name('selection.lub');

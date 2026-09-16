@@ -237,7 +237,7 @@ S’il y a lieu pour calculer les droits d’auteur, le type de diffusion (numé
 
 			<div id="bloc_rechercher_top2" class="ui mobile hidden">
 
-				<form action="/rechercher" class="form_rechercher2018">
+				<form action="/recherche" class="form_rechercher2018">
 
 					<div class="ui action input search rech2018">
 						<div class="ui menu ">

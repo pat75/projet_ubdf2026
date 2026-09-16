@@ -17,8 +17,10 @@
     function demarrer($) {
         var conf = window.ubdf || {};
 
-        if (!conf.category) {
-            return; // L'accueil affiche des blocs par metier, sans defilement.
+        // La page indique ou aller chercher la suite. L'accueil n'en
+        // declare pas : elle affiche des blocs par metier, sans defilement.
+        if (!conf.cartes_url) {
+            return;
         }
 
         var $cards = $('#accueil_portfolio');
@@ -134,7 +136,7 @@
             page += 1;
             $loader.addClass('active');
 
-            $.getJSON('/cartes/' + conf.category + '/' + page, { selection: conf.selection || 'sel' })
+            $.getJSON(conf.cartes_url + '/' + page, conf.cartes_params || {})
                 .done(function (reponse) {
                     if (reponse.count > 0) {
                         var $nouvelles = $(reponse.html);

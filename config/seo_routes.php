@@ -16,7 +16,9 @@ return [
      * une seule est canonique, les autres redirigent en 301.
      */
     'accueil_aliases' => [
-        'portfolios', 'portfolio-freelance', 'recherche', 'rechercher',
+        // « recherche » a quitte cette liste : c'est desormais une page a
+        // part entiere (/recherche?q=…), plus une redirection.
+        'portfolios', 'portfolio-freelance', 'rechercher',
         'recherche-mots-cles', 'rechercher-des-portfolios',
     ],
 

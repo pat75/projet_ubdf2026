@@ -11,7 +11,7 @@ class BookSetting extends Model
         'legacy_id', 'user_id', 'title', 'description', 'description_mobile',
         'experience', 'footer', 'theme', 'theme_settings', 'theme_home_image',
         'background_image', 'background_color', 'background_mode', 'is_centered',
-        'thumbnail', 'bio_photo', 'custom_css', 'custom_js', 'analytics_id',
+        'thumbnail', 'bio_photo', 'keywords', 'custom_js', 'analytics_id',
         'diffuse_ub', 'diffuse_web', 'diffuse_newsletter', 'diffuse_availability',
         'legacy_payload',
     ];
