@@ -4,6 +4,7 @@ use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\PortfolioController;
+use App\Http\Controllers\Front\StatsController;
 use Illuminate\Support\Facades\Route;
 
 $bookDomain = config('ubdf.book_domain');
@@ -28,6 +29,9 @@ Route::domain('{login}.'.$bookDomain)->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::domain($bookDomain)->group(function () {
+
+    // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
+    Route::get('/cache_js/data_stats.json', StatsController::class)->name('stats');
 
     // Visuels des books : fichier reel, ou image par defaut s'il a disparu.
     Route::get('/books/{login}/{file}', [BookMediaController::class, 'show'])

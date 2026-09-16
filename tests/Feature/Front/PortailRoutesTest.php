@@ -151,3 +151,20 @@ it('sert au defilement des cartes activables par le JavaScript du front', functi
 
     expect($slider['book_img'] ?? [])->not->toBeEmpty();
 });
+
+it('sert les compteurs globaux au format attendu par le front', function () {
+    // js_core_pages.js appelle ce chemin exact au chargement de chaque page
+    // et alimente les compteurs du menu avec ces cles.
+    $reponse = $this->get(portail('/cache_js/data_stats.json'))->assertOk();
+
+    $reponse->assertJsonStructure([
+        'menu_stats' => [
+            'nb_book', 'nb_selection', 'nb_visuel', 'nb_galerie',
+            'nb_book_illustrateur', 'nb_book_illustrateur_jeunesse', 'nb_book_graphiste',
+        ],
+        'menu_book_exemple',
+    ]);
+
+    // Les nombres sont formates a la francaise, le front les affiche tels quels.
+    expect($reponse->json('menu_stats.nb_book'))->toBeString();
+});

@@ -202,3 +202,30 @@ Deux corrections :
 | `complet` | front 2018 entierement charge | cartes visibles **et** activees |
 
 Le scenario `partiel` est exactement celui qui produisait la regression.
+
+## Ressources appelees par le JavaScript du front
+
+`js_core_pages.js` reclame deux fichiers au chargement de chaque page. Les deux repondaient 404.
+
+### `/html_pages_v2018/tpl_conf_msg/motcles_data_front_fr_en.json`
+
+Donnees statiques de l'autocompletion de recherche (11 Ko). Le dossier `tpl_conf_msg/` n'avait pas ete copie avec les autres assets. Repris tel quel.
+
+### `/cache_js/data_stats.json`
+
+Compteurs globaux du portail : nombre de books, de selections, de visuels, de galeries, et le detail par metier — ce sont les « 13 164 illustrateurs » affiches sur l'accueil. S'y ajoute une liste de books mis en avant dans le menu.
+
+Le legacy servait un fichier regenere periodiquement par une tache. Il est desormais **calcule depuis la base** par `StatsController` et mis en cache une heure, servi au meme chemin. Deux raisons de ne pas copier le fichier : les chiffres de production seraient figes dans le depot, et ils ne correspondraient pas aux donnees affichees en developpement.
+
+## Appels encore sans reponse
+
+Quatre chemins restent en 404. Ils correspondent aux fonctions non encore developpees et ne se declenchent qu'a l'usage, pas au chargement d'une page :
+
+| Chemin | Fonction | Phase |
+|---|---|---|
+| `/rechercher_submit` | soumission d'une recherche | 3 (reste a faire) |
+| `/fm_ajax` | formulaires en edition directe | 5 |
+| `/ubaction__user_open` | connexion | 5 |
+| `/front/ajax_2010.php` | actions diverses du legacy | 5 |
+
+`https://www.extra-book.com/2012_stats/st_action.php` est appele par `stats_book()` : c'est le serveur de statistiques **de production**, volontairement non sollicite depuis le developpement.
