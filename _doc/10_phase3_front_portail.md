@@ -172,3 +172,33 @@ ub_infinit.post_traitement_dom('#user_' + id_user);  // -> btn_slide()
 `js_core_cards.js` etant charge de facon asynchrone par LABjs, l'activation reessaie brievement (20 tentatives, 150 ms) si l'objet n'est pas encore defini — sinon un defilement tres rapide laisserait des cartes inertes.
 
 > **Non repris volontairement** : `ub_ill_plus_de_book.stats_book()`, que le legacy appelle au meme endroit. Il emet un `action=add` vers `https://www.extra-book.com/2012_stats/st_action.php`, soit le serveur de statistiques **de production** : l'appeler depuis le developpement gonflerait les compteurs reels. Le comptage des vues sera reimplemente cote Laravel, sur la table `visit_stats` deja prevue.
+
+## Regression : les cartes du defilement etaient inserees mais invisibles
+
+En ajoutant l'activation des cartes (ci-dessus), le defilement a cesse d'afficher quoi que ce soit.
+
+Cause reproduite dans un DOM (`tests/js/defilement.test.mjs`) :
+
+```js
+if (window.ub_infinit && typeof ub_infinit.post_traitement_dom === 'function') {
+//                              ^^^^^^^^^^ reference nue
+```
+
+`public/js/ubdf-infinite.js` est en mode strict. Y referencer `ub_infinit` **sans prefixe `window.`** leve une `ReferenceError` tant que `js_core_cards.js` n'est pas charge par LABjs. L'exception remontait dans la boucle `$.each()`, qui s'interrompait : les cartes etaient bien inserees, mais `newitem_hide` n'etait jamais retire — opacite 0, donc rien a l'ecran.
+
+Deux corrections :
+
+1. les objets du front 2018 sont lus **uniquement** sur `window` (`var infinit = window.ub_infinit;`) ;
+2. l'apparition passe en premier et l'activation est isolee dans un `try`/`catch`. **Une carte doit s'afficher meme si le JavaScript repris du legacy est indisponible.**
+
+### Test
+
+`npm run test:js` rejoue trois etats de chargement dans jsdom, avec le jQuery 1.12.4 que le site sert reellement :
+
+| Scenario | Etat simule | Attendu |
+|---|---|---|
+| `absent` | `js_core_cards.js` pas encore charge | cartes visibles |
+| `partiel` | `ub_infinit` present, `ub_ill_plus_de_book` non | cartes visibles |
+| `complet` | front 2018 entierement charge | cartes visibles **et** activees |
+
+Le scenario `partiel` est exactement celui qui produisait la regression.

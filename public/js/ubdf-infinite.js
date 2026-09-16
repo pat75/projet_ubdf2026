@@ -32,27 +32,30 @@
      *
      * Le front 2018 n'attache l'ouverture en pleine page qu'au chargement du
      * document, sur les cartes deja presentes. Une carte arrivee par
-     * defilement doit donc etre activee explicitement, exactement comme le
-     * fait le legacy apres chaque insertion :
-     * ub_infinit.post_traitement_dom() appelle btn_slide(), qui pose le
-     * gestionnaire de clic ouvrant la lightbox.
+     * defilement doit donc etre activee explicitement, comme le fait le
+     * legacy apres chaque insertion : ub_infinit.post_traitement_dom()
+     * appelle btn_slide(), qui pose le gestionnaire de clic.
      *
-     * Sans cet appel, les premieres cartes s'ouvrent et les suivantes non.
+     * Les objets du front 2018 sont toujours lus sur « window ». Ce module
+     * est en mode strict : referencer « ub_infinit » nu leve une
+     * ReferenceError tant que js_core_cards.js n'est pas charge, et cette
+     * erreur interrompait la boucle d'affichage — les cartes etaient
+     * inserees mais restaient invisibles.
      */
     function activer($carte, essai) {
-        var selecteur = '#user_' + $carte.data('user');
+        var infinit = window.ub_infinit;
 
-        if (window.ub_infinit && typeof ub_infinit.post_traitement_dom === 'function') {
-            ub_infinit.post_traitement_dom(selecteur);
+        if (infinit && typeof infinit.post_traitement_dom === 'function') {
+            infinit.post_traitement_dom('#user_' + $carte.data('user'));
 
             return;
         }
 
         /*
          * js_core_cards.js est charge de facon asynchrone par LABjs : sur un
-         * defilement tres rapide, il peut ne pas etre encore la. On reessaie
-         * brievement plutot que d'abandonner la carte, qui resterait alors
-         * muette au clic.
+         * defilement rapide il peut ne pas etre encore la. On reessaie
+         * brievement plutot que d'abandonner la carte, qui resterait muette
+         * au clic.
          */
         essai = essai || 0;
 
@@ -63,9 +66,9 @@
         }
 
         // ub_ill_plus_de_book.stats_book() n'est volontairement pas appele :
-        // il envoie un « action=add » vers https://www.extra-book.com, qui
-        // est le serveur de statistiques de production. Le comptage des vues
-        // sera reimplemente cote Laravel (table visit_stats).
+        // il emet un « action=add » vers https://www.extra-book.com, le
+        // serveur de statistiques de production. Le comptage des vues sera
+        // reimplemente cote Laravel (table visit_stats).
     }
 
     /** Revele les cartes une a une, pour l'effet de cascade. */
@@ -73,20 +76,39 @@
         $nouvelles.each(function (index) {
             var $carte = $(this);
 
-            // L'activation ne depend pas de l'animation : on l'applique
-            // tout de suite, pour qu'un clic pendant le fondu fonctionne.
-            activer($carte);
-
+            /*
+             * L'apparition passe en premier et n'est jamais conditionnee par
+             * le reste : une carte doit s'afficher meme si le JavaScript du
+             * front 2018 n'est pas disponible. C'est le sens de ce
+             * decoupage — une erreur d'activation ne doit pas laisser de
+             * carte invisible.
+             */
             setTimeout(function () {
                 $carte.removeClass('newitem_hide');
 
-                if ($.fn.dimmer) {
-                    $carte.dimmer({
-                        selector: { dimmable: '.dimmable', dimmer: '.ui.dimmer' },
-                        on: 'hover'
-                    });
+                try {
+                    if ($.fn.dimmer) {
+                        $carte.dimmer({
+                            selector: { dimmable: '.dimmable', dimmer: '.ui.dimmer' },
+                            on: 'hover'
+                        });
+                    }
+                } catch (e) {
+                    // Le survol degrade ne justifie pas de masquer la carte.
                 }
             }, index * 40);
+
+            // Ouverture en pleine page au clic, posee des maintenant pour
+            // qu'un clic pendant le fondu fonctionne. Isolee : aucune
+            // defaillance du JavaScript repris du front 2018 ne doit
+            // empecher une carte de s'afficher.
+            try {
+                activer($carte);
+            } catch (e) {
+                if (window.console) {
+                    console.warn('ubdf : activation de la carte impossible', e);
+                }
+            }
         });
     }
 
