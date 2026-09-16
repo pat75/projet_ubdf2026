@@ -1271,8 +1271,8 @@
 
 	<script type="application/ld+json">
 		{
-			"&#64;context" : "https://schema.org",
-		    "&#64;type" : "Organization",
+			"@@context" : "https://schema.org",
+		    "@@type" : "Organization",
 		    "name" : "Ultra-book",
 		    "url" : "https://www.ultra-book.com",
 		    "sameAs" : [ "https://www.facebook.com/ultrabook.fr/",

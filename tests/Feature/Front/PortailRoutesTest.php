@@ -168,3 +168,22 @@ it('sert les compteurs globaux au format attendu par le front', function () {
     // Les nombres sont formates a la francaise, le front les affiche tels quels.
     expect($reponse->json('menu_stats.nb_book'))->toBeString();
 });
+
+it('ne laisse aucune entite HTML dans les balises style et script', function (string $page) {
+    // Les entites ne sont pas decodees a l'interieur de <style> et <script> :
+    // « &#64;media » y reste litteral et invalide toute la media query, et
+    // « &#64;context » casse les donnees structurees JSON-LD.
+    $html = $this->get(portail($page))->assertOk()->getContent();
+
+    preg_match_all('#<(style|script)\b[^>]*>(.*?)</\1>#si', $html, $blocs, PREG_SET_ORDER);
+
+    $fautifs = [];
+
+    foreach ($blocs as [$tout, $balise, $contenu]) {
+        if (preg_match('/&#\d+;|&[a-z]+;/i', $contenu, $m)) {
+            $fautifs[] = $balise.' : '.$m[0];
+        }
+    }
+
+    expect($fautifs)->toBeEmpty();
+})->with(['/accueil', '/illustrateur', '/annuaire']);

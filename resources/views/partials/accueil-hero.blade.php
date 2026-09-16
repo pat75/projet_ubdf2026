@@ -88,17 +88,19 @@
                  reste a sa place, sous le bloc video du header
                Desktop uniquement : en dessous de 980px le header video est reduit
                et les titres sont masques (voir media query plus bas). */
-            &#64;media only screen and (min-width: 981px) {
+            @@media only screen and (min-width: 981px) {
                 #bloc_rechercher {
-                    /* Le bloc video fait 480px ; le titre occupe environ
-                       184px et le sous-titre se termine vers 261px. Un
-                       remontage de 200px place donc le haut du bloc juste
-                       sous « Illustration, graphisme, design, photo et
-                       plasticien ». */
-                    margin-top: -200px !important;
+                    /* Mesure dans le navigateur : le bloc video occupe
+                       480px, le sous-titre se termine a 269px. Un remontage
+                       de 260px place le haut du bloc a 305px, soit 36px sous
+                       le sous-titre, et sa base 31px avant la fin du fond
+                       bleu — le calage de la maquette de reference.
+                       C'est la valeur du front 2018, qui ne s'appliquait pas
+                       tant que la media query etait invalide. */
+                    margin-top: -260px !important;
                     /* Compense le remontage pour que le bloc des mots-cles
                        reste sous l'en-tete video. */
-                    margin-bottom: 40px !important;
+                    margin-bottom: 100px !important;
                     /* Opacite de 80 % sur la seule couleur de fond : elle
                        porte sur le canal alpha du blanc, pas sur la
                        propriete « opacity », qui aurait aussi affaibli le
@@ -116,7 +118,7 @@
                - champ et bouton etires sur toute la hauteur du conteneur :
                  meme hauteur et meme alignement vertical
                Desktop uniquement, comme le bloc ci-dessus. */
-            &#64;media only screen and (min-width: 981px) {
+            @@media only screen and (min-width: 981px) {
 
                 #bloc_rechercher .form_rechercher2018 .ui.action {
                     background-color: #fff;
@@ -160,7 +162,7 @@
             }
 
 
-            &#64;media only screen and (max-width: 1280px) {
+            @@media only screen and (max-width: 1280px) {
                 .video_source {
                     /* Corrigeait le decalage de -260px du front 2018.
                        La video etant desormais recadree en couverture,
@@ -170,7 +172,7 @@
             }
 
 
-            &#64;media only screen and (max-width: 980px) {
+            @@media only screen and (max-width: 980px) {
 
                 [class*="mobile_hidden"] {
                     display: none !important;

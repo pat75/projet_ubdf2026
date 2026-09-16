@@ -274,3 +274,38 @@ Notre balise est un `<script src>` classique : elle s'execute **des qu'elle est 
 Le script attend desormais la disponibilite de `window.jQuery` avant de demarrer, et renonce au bout de dix secondes en le signalant en console — un echec silencieux serait pire.
 
 > **Pourquoi les tests ne l'avaient pas vu.** Ils injectaient jQuery *avant* d'evaluer le script, ce qui ne correspond a aucune situation reelle. Ils validaient donc du code qui ne s'executait jamais en production. `tests/js/enchainement.test.mjs` evalue maintenant le script **d'abord**, et ne fournit jQuery que 400 ms plus tard, comme LABjs.
+
+## La cause des ajustements sans effet : `&#64;` dans `<style>` et `<script>`
+
+Plusieurs reglages du bloc de recherche n'avaient aucun effet visible. La mesure dans Chrome l'a montre sans ambiguite :
+
+```
+marginTop : -160px        alors que la feuille declarait -200px !important
+fond      : rgb(255,255,255)   alors qu'elle declarait rgba(255,255,255,0.8)
+```
+
+Les valeurs appliquees etaient celles de `core.css` (`.bloc_rechercher #bloc_rechercher { margin-top: -160px }`), pas les notres.
+
+**Cause.** Le script qui a converti le HTML rendu en vues Blade (phase 3a) remplacait `@` par `&#64;` pour empecher Blade d'interpreter ses directives. Or **les entites HTML ne sont pas decodees a l'interieur de `<style>` et `<script>`** : `&#64;media only screen and (min-width: 981px)` restait litteral, la media query etait invalide, et **tout son contenu ignore**. Quatre media queries etaient mortes.
+
+Le meme echappement cassait le JSON-LD des donnees structurees : `"&#64;context"` au lieu de `"@context"`, soit un balisage Schema.org invalide pour les moteurs.
+
+**Correction.** Ces occurrences utilisent desormais `@@`, l'echappement de Blade, qui produit un `@` litteral en sortie. Les `&#64;` restants sont dans des attributs HTML (`mailto:`, `content="@ultra_book"`), ou ils sont correctement decodes.
+
+Un test parcourt le contenu de chaque balise `<style>` et `<script>` des pages du portail et echoue si une entite HTML y subsiste.
+
+## Calage final du bloc de recherche
+
+Une fois la media query valide, la valeur du front 2018 s'est revelee juste. Mesures dans Chrome a 1487px de large :
+
+| | |
+|---|---|
+| bloc video | 85 -> 565 (hauteur 480) |
+| sous-titre finit a | 269 |
+| bloc de recherche | 305 -> 534 |
+| ecart sous le sous-titre | **36 px** |
+| marge avant la fin du fond bleu | **31 px** |
+
+Ce qui correspond a la maquette de reference. `margin-top: -260px`, `margin-bottom: 100px`, fond `rgba(255, 255, 255, 0.8)`.
+
+> Les tentatives precedentes (-300px, puis -200px) ajustaient une regle qui n'etait jamais appliquee. **Mesurer le rendu avant de corriger** aurait evite trois allers-retours : `getComputedStyle` dit ce qui s'applique vraiment, la feuille de style dit seulement ce qu'on a demande.
