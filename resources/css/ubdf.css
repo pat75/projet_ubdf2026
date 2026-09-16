@@ -7,38 +7,17 @@
  * reinitialiserait Semantic UI. La bascule est prevue en phase 9.
  */
 
-/* --- Bloc de recherche, remonte dans le bloc video ------------------- */
+/* --- Bloc de recherche ---------------------------------------------- */
 
 /*
- * Le bloc se superpose desormais a la video : son fond blanc est ramene a
- * 20 % d'opacite pour laisser voir l'image, avec un flou d'arriere-plan
- * qui garde le texte lisible quelle que soit l'image sous-jacente.
+ * Rien a surcharger ici : le front 2018 remonte deja le bloc dans la video
+ * (#bloc_rechercher, margin-top -260px) et lui applique un fond blanc a
+ * 80 % d'opacite, soit les 20 % de transparence voulus. La regle vit dans
+ * la balise <style> de partials/header.blade.php, reprise telle quelle.
+ *
+ * Le bloc avait ete deplace dans le <header> : inutile, et cela cassait ce
+ * positionnement calcule en le sortant du flux. Il est revenu a sa place.
  */
-.video_header .bloc_rechercher {
-    position: relative;
-    z-index: 2;
-    margin-top: -40px;
-}
-
-.video_header .bloc_rechercher #bloc_rechercher.ui.segment,
-.video_header .bloc_rechercher .ui.segment.basic {
-    background: rgba(255, 255, 255, 0.2) !important;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 0;
-    box-shadow: none;
-}
-
-/* Le titre passe sur fond sombre : il doit rester lisible. */
-.video_header .bloc_rechercher h1 {
-    color: #fff;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
-}
-
-/* Le champ de saisie, lui, reste opaque pour rester utilisable. */
-.video_header .bloc_rechercher .ui.input input {
-    background: rgba(255, 255, 255, 0.92);
-}
 
 /* --- Video d'en-tete ------------------------------------------------- */
 

@@ -123,3 +123,36 @@ Deux points de configuration :
 ## Tests
 
 45 tests verts, dont la non-regression sur les attributs `data-*` des cartes, la presence des blocs metier et le contrat du defilement.
+
+## Correction : le bloc de recherche etait deja positionne par le legacy
+
+Le bloc « Trouvez les meilleurs portfolios de creatifs » avait ete deplace **dans** le `<header>` de la video. C'etait une erreur : le front 2018 le remonte deja par le CSS, sans toucher au DOM.
+
+```css
+@media only screen and (min-width: 981px) {
+    #bloc_rechercher {
+        margin-top: -260px !important;      /* remonte dans la video */
+        margin-bottom: 100px !important;    /* compense pour la suite */
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+}
+```
+
+Ce fond blanc a 80 % d'opacite est exactement la transparence de 20 % demandee : elle etait deja la. Le bloc paraissait mal place parce que **la video ne s'affichait pas** — le dossier `_video/` n'avait pas ete copie, l'en-tete etait donc vide.
+
+Le deplacement dans le DOM sortait le bloc du flux ou ce calcul s'applique, d'ou le decalage. Il est revenu a sa place, et `resources/css/ubdf.css` ne surcharge plus rien sur ce point.
+
+> A retenir : verifier ce que le CSS d'origine fait deja avant de deplacer un element. Ici le legacy avait raison, et la seule vraie anomalie etait un fichier manquant.
+
+## Blocs d'accroche reserves a l'accueil
+
+`partials/header.blade.php` contenait, en plus des conteneurs communs, les accroches de l'accueil. Elles s'affichaient donc aussi sur `/illustrateur` et `/annuaire`.
+
+Le partial est scinde :
+
+| Fichier | Contenu | Portee |
+|---|---|---|
+| `partials/header.blade.php` | ouverture des conteneurs (refermes dans le footer) | toutes les pages |
+| `partials/accueil-hero.blade.php` | video et titre, bloc de recherche, derniers mots-cles, « Creer votre portfolio », « Une selection de qualite », « Installer mon site internet pro », banniere des disponibilites | accueil seul |
+
+La recherche du menu haut (`bloc_rechercher_top2_mobile`, `bloc_rechercher_top_menu_modal`) reste commune : c'est une fonction de navigation, pas une accroche.

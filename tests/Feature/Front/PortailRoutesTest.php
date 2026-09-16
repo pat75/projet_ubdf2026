@@ -116,3 +116,21 @@ it('sert les cartes suivantes du defilement, masquees pour le fondu', function (
     $reponse->assertJsonStructure(['html', 'count', 'fin']);
     expect($reponse->json('fin'))->toBeTrue();
 });
+
+it('reserve les blocs d accroche a l accueil', function () {
+    // Video, « Creer votre portfolio », « Une selection de qualite » et
+    // « Installer mon site internet pro » sont des accroches d'accueil :
+    // elles feraient doublon sur une page de metier ou l'annuaire.
+    $this->get(portail('/accueil'))
+        ->assertSee('video_header', false)
+        ->assertSee('bloc_accueil_entreprise2020', false)
+        ->assertSee('bloc_accueil_ubsitepro', false);
+
+    foreach (['/illustrateur', '/annuaire'] as $page) {
+        $this->get(portail($page))
+            ->assertDontSee('video_header', false)
+            ->assertDontSee('bloc_accueil_entreprise2020', false)
+            ->assertDontSee('bloc_accueil_ubsitepro', false)
+            ->assertDontSee('bloc_last_recherche', false);
+    }
+});
