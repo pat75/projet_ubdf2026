@@ -23,6 +23,9 @@
         return;
     }
 
+    /** Distance au bas de page qui declenche le chargement suivant. */
+    var SEUIL = 600;
+
     var page = 0;
     var enCours = false;
     var termine = false;
@@ -112,6 +115,27 @@
         });
     }
 
+    /**
+     * Distance restante avant le bas du document, en pixels.
+     */
+    function restant() {
+        return $(document).height() - ($(window).scrollTop() + $(window).height());
+    }
+
+    /**
+     * Charge une page si le bas approche.
+     *
+     * Rappelee apres chaque insertion : quand les cartes ajoutees ne
+     * suffisent pas a rallonger la page au-dela du seuil, aucun nouvel
+     * evenement de defilement n'est emis et le chargement s'arretait la.
+     * C'est le cas des categories peu fournies, ou des grands ecrans.
+     */
+    function verifier() {
+        if (!termine && !enCours && restant() < SEUIL) {
+            charger();
+        }
+    }
+
     function charger() {
         if (enCours || termine) {
             return;
@@ -141,25 +165,29 @@
             .always(function () {
                 enCours = false;
                 $loader.removeClass('active');
+
+                // Laisser les cartes s'inserer avant de remesurer la page.
+                setTimeout(verifier, 250);
             });
     }
 
-    /** Declenche le chargement a l'approche du bas de page. */
+    /* Le defilement, le redimensionnement et le chargement initial passent
+       tous par la meme verification. */
     var attente = null;
 
-    $(window).on('scroll.ubdf', function () {
+    function planifier() {
         if (attente) {
             return;
         }
 
         attente = setTimeout(function () {
             attente = null;
-
-            var restant = $(document).height() - ($(window).scrollTop() + $(window).height());
-
-            if (restant < 600) {
-                charger();
-            }
+            verifier();
         }, 120);
-    });
+    }
+
+    $(window).on('scroll.ubdf resize.ubdf', planifier);
+
+    // Une page plus courte que la fenetre n'emet aucun defilement.
+    $(planifier);
 })(jQuery);

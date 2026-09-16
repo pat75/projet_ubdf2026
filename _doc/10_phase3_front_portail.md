@@ -229,3 +229,24 @@ Quatre chemins restent en 404. Ils correspondent aux fonctions non encore develo
 | `/front/ajax_2010.php` | actions diverses du legacy | 5 |
 
 `https://www.extra-book.com/2012_stats/st_action.php` est appele par `stats_book()` : c'est le serveur de statistiques **de production**, volontairement non sollicite depuis le developpement.
+
+## Le defilement s'arretait apres une page
+
+### Ce qui n'etait pas en cause
+
+Deux pistes verifiees et ecartees avant de corriger quoi que ce soit :
+
+- **Conflit avec le defilement du legacy.** `book.infinite()` attache bien un `onBottomVisible` de Semantic UI sur `.infinite`, classe que porte aussi notre page. Mais il commence par `if (!book.infinite_ready) return;`, et ce drapeau ne passe a `true` qu'apres un premier chargement via l'API du legacy, qui n'a jamais lieu ici. Le mecanisme d'origine reste donc inerte.
+- **Pagination.** Verifiee page par page sur les donnees reelles : 10 + 10 + 7 = 27 books, aucun doublon, aucun oubli. (Le comptage brut des `data-user` en annonce 12 sur la premiere page : deux d'entre eux sont des templates Handlebars, pas des cartes.)
+
+### La cause
+
+Le chargement n'etait declenche que par l'evenement `scroll`. Quand les cartes ajoutees ne rallongent pas la page au-dela du seuil — categorie peu fournie, ou simplement grand ecran — **aucun nouvel evenement n'est emis** et le chargement s'arretait apres la premiere page.
+
+Le seuil est desormais reevalue apres chaque insertion, ainsi qu'au redimensionnement et au chargement initial. Une page plus courte que la fenetre enchaine donc les pages jusqu'a epuisement.
+
+### Test
+
+`tests/js/enchainement.test.mjs` place la page dans ce cas precis — une hauteur inferieure a la fenetre, donc aucun defilement possible — et verifie que les trois pages sont demandees d'elles-memes, que les 27 cartes s'affichent, et qu'aucune quatrieme requete n'est emise apres la fin.
+
+`npm run test:js` execute les quatre scenarios JavaScript.
