@@ -46,10 +46,10 @@ final class CarteLegacy
             'img' => $book->media->map(fn ($media) => [
                 'img_id' => (string) $media->id,
                 'img_titre' => $media->title,
-                'img_fichier' => $media->url(),
+                'img_fichier' => $media->url('front_desk'),
             ])->values(),
             'slider' => $book->media->map(fn ($media) => [
-                'fichier' => $media->url(),
+                'fichier' => $media->url('front_desk'),
                 'title' => $media->title,
             ])->values(),
         ];

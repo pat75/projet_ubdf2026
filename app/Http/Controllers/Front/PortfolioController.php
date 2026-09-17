@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Marque;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -18,9 +19,21 @@ class PortfolioController extends Controller
      */
     public function show(string $login, string $slug): View|RedirectResponse
     {
+        $marque = request()->attributes->get('marque') ?? Marque::defaut();
+
+        /*
+         | La visibilite se lit sur les deux drapeaux de diffusion
+         | (`diffuse_web`, `diffuse_ub`), pas sur `in_home_selection` : ce
+         | dernier ne designe que la selection editoriale mise en avant.
+         | Meme correction que dans BookRepository::baseQuery() — voir sa
+         | note pour le detail (8 comptes Dustfolio invisibles a tort).
+         */
         $book = User::with(['category', 'bookSetting', 'media' => fn ($query) => $query->published()])
             ->where('login', $login)
-            ->where('in_home_selection', true)
+            ->where('brand', $marque->code)
+            ->whereHas('bookSetting', fn ($query) => $query
+                ->where('diffuse_web', true)
+                ->where('diffuse_ub', true))
             ->firstOrFail();
 
         if (! str_ends_with($book->portfolioUrl(), $slug)) {

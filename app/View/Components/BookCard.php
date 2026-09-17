@@ -45,7 +45,7 @@ class BookCard extends Component
     {
         return [
             'book_img' => $this->book->media->map(fn ($media) => [
-                'fichier' => $media->url(),
+                'fichier' => $media->url('front_desk'),
                 'title' => $media->title ?? '',
             ])->values()->all(),
             'book_type' => '',

@@ -20,7 +20,7 @@
             @foreach ($book->media->take(20) as $media)
                 <div class="ui card">
                     <a class="ui fluid image" href="{{ $media->url() }}" target="_blank">
-                        <img src="{{ $media->url() }}" alt="{{ $media->alt ?? $media->title }}">
+                        <img src="{{ $media->url('ptf_medium') }}" alt="{{ $media->alt ?? $media->title }}">
                     </a>
                     @if ($media->title)
                         <div class="content center aligned">
