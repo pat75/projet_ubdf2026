@@ -15,6 +15,7 @@ use App\Http\Controllers\Front\RechercheController;
 use App\Http\Controllers\Front\StatsController;
 use App\Http\Middleware\ForcerLangue;
 use App\Http\Middleware\ResoudreLangue;
+use App\Services\Images\Declinaison;
 use Illuminate\Support\Facades\Route;
 
 $bookDomain = config('ubdf.book_domain');
@@ -75,7 +76,26 @@ Route::group([], function () {
     // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
     Route::get('/cache_js/data_stats.json', StatsController::class)->name('stats');
 
-    // Visuels des books : fichier reel, ou image par defaut s'il a disparu.
+    /*
+     | Visuels des books.
+     |
+     | Deux formes : avec declinaison nommee, ou sans — la declinaison par
+     | defaut s'applique alors. Les dimensions ne figurent jamais dans
+     | l'URL, seul le nom d'une declinaison declaree dans `config/images.php`.
+     | C'etait la faiblesse de phpThumb, que ce point d'entree remplace : il
+     | acceptait ses dimensions de l'appelant, donc n'importe qui pouvait
+     | faire fabriquer n'importe quelle image.
+     |
+     | Un fichier absent rend l'image par defaut, comme le .htaccess de 2019.
+     */
+    Route::get('/books/{login}/{declinaison}/{file}', [BookMediaController::class, 'showDeclinaison'])
+        ->where([
+            'login' => '[-a-zA-Z0-9]+',
+            'declinaison' => implode('|', Declinaison::noms()),
+            'file' => '[^/]+',
+        ])
+        ->name('book.media.declinaison');
+
     Route::get('/books/{login}/{file}', [BookMediaController::class, 'show'])
         ->where(['login' => '[-a-zA-Z0-9]+', 'file' => '[^/]+'])
         ->name('book.media');

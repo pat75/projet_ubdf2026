@@ -72,13 +72,22 @@ class User extends Authenticatable
         ]);
     }
 
-    /** Vignette du creatif, affichee sur la carte du portail. */
-    public function thumbnailUrl(): ?string
+    /**
+     * Vignette du creatif, affichee sur la carte du portail.
+     *
+     * `front_desk` est la declinaison que le legacy pre-generait pour cet
+     * usage precis — 250x136, rognee.
+     */
+    public function thumbnailUrl(string $declinaison = 'front_desk'): ?string
     {
         $thumbnail = $this->bookSetting?->thumbnail;
 
         return $thumbnail
-            ? route('book.media', ['login' => $this->login, 'file' => basename($thumbnail)])
+            ? route('book.media.declinaison', [
+                'login' => $this->login,
+                'declinaison' => $declinaison,
+                'file' => basename($thumbnail),
+            ])
             : null;
     }
 

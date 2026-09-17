@@ -19,21 +19,25 @@ class Media extends Model
     ];
 
     /**
-     * URL publique du visuel.
+     * URL publique du visuel, dans la declinaison demandee.
      *
-     * Le legacy pre-generait 12 declinaisons sur le disque (img_front_desk,
-     * img_ptf_medium, img_iph_small…). Ici une seule copie est stockee : les
-     * declinaisons seront produites a la demande en phase 4, ce qui rend le
-     * parametre $variant sans effet pour l'instant.
+     * Le legacy pre-generait neuf declinaisons sur le disque a
+     * l'enregistrement. Ici une seule copie est stockee et les declinaisons
+     * naissent a la demande — les noms possibles sont ceux de
+     * `config/images.php`.
      */
-    public function url(?string $variant = null): string
+    public function url(?string $declinaison = null): string
     {
-        return route('book.media', [
+        $parametres = [
             'login' => $this->user->login,
             // Un nom vide est possible : la table source compte 23 % de
             // lignes sans fichier. La route rend alors l'image par defaut.
             'file' => $this->filename ?: 'introuvable',
-        ]);
+        ];
+
+        return $declinaison === null
+            ? route('book.media', $parametres)
+            : route('book.media.declinaison', $parametres + ['declinaison' => $declinaison]);
     }
 
     public function scopePublished(Builder $query): Builder
