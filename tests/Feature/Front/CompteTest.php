@@ -68,7 +68,7 @@ it('donne le meme message pour un compte inconnu et un mot de passe faux', funct
     expect(auth()->check())->toBeFalse();
 });
 
-it('bloque apres cinq tentatives infructueuses', function () {
+it('bloque dix minutes apres cinq tentatives infructueuses', function () {
     foreach (range(1, 5) as $i) {
         $this->from('/')->post('/ubaction__user_open', [
             'login' => 'nolwenn',
@@ -85,6 +85,13 @@ it('bloque apres cinq tentatives infructueuses', function () {
     ])->assertSessionHasErrors('login');
 
     expect(auth()->check())->toBeFalse();
+
+    // Dix minutes, annoncees en minutes : « Reessayez dans 487 secondes »
+    // donne un nombre que personne ne lit.
+    $attente = RateLimiter::availableIn('connexion|nolwenn|127.0.0.1');
+
+    expect($attente)->toBeGreaterThan(540)->toBeLessThanOrEqual(600)
+        ->and(session()->get('errors')->first('login'))->toContain('minutes');
 });
 
 it('deconnecte et vide la session', function () {

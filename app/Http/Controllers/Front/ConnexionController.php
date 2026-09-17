@@ -23,7 +23,14 @@ class ConnexionController extends Controller
     /** Tentatives autorisees avant blocage, par couple identifiant + IP. */
     private const ESSAIS_MAX = 5;
 
-    private const BLOCAGE_SECONDES = 60;
+    /**
+     * Duree du blocage apres la derniere tentative.
+     *
+     * Dix minutes : assez long pour qu'une attaque par dictionnaire n'ait
+     * plus de debit utile, assez court pour qu'un creatif qui s'est trompe
+     * cinq fois n'ait pas a ecrire au support.
+     */
+    private const BLOCAGE_SECONDES = 600;
 
     public function __construct(private readonly Recaptcha $recaptcha) {}
 
@@ -38,9 +45,7 @@ class ConnexionController extends Controller
          | couple identifiant + IP.
          */
         if (RateLimiter::tooManyAttempts($cle, self::ESSAIS_MAX)) {
-            return $this->echec($requete, __('Trop de tentatives. Réessayez dans :secondes secondes.', [
-                'secondes' => RateLimiter::availableIn($cle),
-            ]));
+            return $this->echec($requete, $this->messageAttente(RateLimiter::availableIn($cle)));
         }
 
         if (! $this->recaptcha->valide($requete->input('g-recaptcha-response'), 'validate_captcha')) {
@@ -92,6 +97,26 @@ class ConnexionController extends Controller
             ->withInput($requete->only('login'))
             ->with('connexion_ouverte', true)
             ->withErrors(['login' => $message]);
+    }
+
+    /**
+     * « Reessayez dans 8 minutes » plutot que « dans 487 secondes » : le
+     * blocage se compte en minutes, l'annoncer en secondes donne un nombre
+     * que personne ne lit.
+     */
+    private function messageAttente(int $secondes): string
+    {
+        if ($secondes < 60) {
+            return __('Trop de tentatives. Réessayez dans :secondes secondes.', [
+                'secondes' => $secondes,
+            ]);
+        }
+
+        return trans_choice(
+            'Trop de tentatives. Réessayez dans une minute.|Trop de tentatives. Réessayez dans :minutes minutes.',
+            $minutes = (int) ceil($secondes / 60),
+            ['minutes' => $minutes],
+        );
     }
 
     private function cleLimitation(ConnexionRequest $requete): string

@@ -985,8 +985,14 @@ porte un lien par compte.
 
 Le legacy faisait `$_SESSION['us_essai']--` sans jamais lire le compteur pour
 bloquer quoi que ce soit — et une session se jette. Le comptage se fait
-desormais cote serveur sur le couple identifiant + IP : cinq essais, puis une
-minute d'attente.
+desormais cote serveur sur le couple identifiant + IP : **cinq essais, puis
+dix minutes d'attente**.
+
+Dix minutes est un choix de Pat. C'est assez long pour qu'une attaque par
+dictionnaire n'ait plus de debit utile, et assez court pour qu'un creatif qui
+s'est trompe cinq fois n'ait pas a ecrire au support. L'attente est annoncee
+en minutes : « Reessayez dans 487 secondes » donne un nombre que personne ne
+lit.
 
 Dans la foulee, « identifiant inconnu » et « mot de passe faux » recoivent le
 meme message, et « mot de passe oublie » repond la meme chose que l'adresse
@@ -1080,6 +1086,17 @@ Il n'y a pas de page de connexion — le formulaire vit dans la modale. Un
 visiteur envoye vers `/espace` revient a l'accueil, la fenetre ouverte
 (`connexion_ouverte`), et repart vers sa destination via
 `redirect()->intended()`.
+
+## Pied de page : les liens Ultra-book restent sur les deux marques
+
+Le pied de page et une fenetre modale citent `ultrabook.pro` et
+`les-illustrateurs.com`. La question etait ouverte depuis le lot precedent,
+ou ces deux memes services avaient ete **masques** sur l'accueil de
+Dustfolio. Pat a tranche : **on les garde**, sur les deux marques.
+
+L'ecart avec le lot precedent est donc voulu et non un oubli : ce sont les
+deux gros blocs promotionnels de l'accueil qui ne vont pas sur Dustfolio, pas
+les liens discrets du pied de page.
 
 ## Au passage
 
