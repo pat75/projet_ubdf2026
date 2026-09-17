@@ -30,6 +30,12 @@
         @foreach ($navRubriques as $lien)
             <a href="{{ route('book.rubrique', ['login' => $book->login, 'slug' => $lien->slug]) }}">{{ $lien->title }}</a>
         @endforeach
+        {{-- Le formulaire de contact (js_core_cards.js, /intermediate_send)
+             vit dans la fenetre modale du portail. Plutot que d'en
+             dupliquer la mecanique JS sur le sous-domaine du book, ce lien
+             renvoie vers la fiche du createur sur le portail, ou il
+             fonctionne deja. --}}
+        <a href="{{ $book->portfolioUrl() }}">{{ __('Contacter') }}</a>
     </nav>
 </header>
 

@@ -173,3 +173,23 @@ galerie rendent correctement.
 > A faire au prochain demarrage de `npm run dev` : la feuille
 > `resources/css/book.css` est un nouveau point d'entree Vite
 > (`vite.config.js`), non pris en compte par le serveur de dev deja lance.
+
+## Lot 4c — contact et 404 dediee
+
+### 404 dediee
+
+`bootstrap/app.php` intercepte desormais les `NotFoundHttpException` : si
+l'hote est un sous-domaine de book (`*.<book_domain>`), la reponse 404
+generique de Laravel est remplacee par une page qui nomme la situation
+(« Ce book n'existe pas ou n'est plus disponible ») et renvoie vers le
+portail. Le reste des 404 — portail, points d'entree techniques — garde le
+rendu par defaut : le controle porte sur l'hote de la requete, pas sur la
+route.
+
+### Contact
+
+Le formulaire de contact (`js_core_cards.js`, `/intermediate_send`) vit dans
+la fenetre modale du portail, avec sa propre mecanique JS (captcha, envoi
+AJAX). Le dupliquer sur le sous-domaine du book n'entrait pas dans ce lot ;
+le lien « Contacter » du menu du book renvoie vers la fiche portail du
+createur, ou le formulaire fonctionne deja.

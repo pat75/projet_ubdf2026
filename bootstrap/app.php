@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -68,5 +69,25 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['intermediate_send']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        /*
+         | 404 dediee pour un book absent ou supprime.
+         |
+         | Sur un sous-domaine de book, l'erreur generique de Laravel
+         | (« The page you're looking for could not be found ») ne dit rien
+         | du contexte au visiteur. On la remplace par une page qui nomme la
+         | situation et renvoie vers le portail, uniquement quand l'hote est
+         | un sous-domaine de book — le reste des 404 (portail, points
+         | d'entree techniques) garde le rendu par defaut.
+         */
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            $bookDomain = config('ubdf.book_domain');
+
+            if (! $bookDomain || ! str_ends_with($request->getHost(), '.'.$bookDomain)) {
+                return null;
+            }
+
+            return response()->view('book.introuvable', [
+                'accueilPortail' => 'https://'.$bookDomain,
+            ], 404);
+        });
     })->create();

@@ -39,8 +39,13 @@ it('affiche l accueil du book avec ses galeries et rubriques', function () {
         ->assertSee('À propos');
 });
 
-it('rend 404 pour un login inexistant', function () {
-    $this->get(hoteBook('personne-narrive'))->assertNotFound();
+it('rend 404 pour un login inexistant, avec une page dediee', function () {
+    // La 404 generique de Laravel ne dit rien du contexte ; sur un
+    // sous-domaine de book, elle est remplacee par une page qui nomme la
+    // situation et renvoie vers le portail.
+    $this->get(hoteBook('personne-narrive'))
+        ->assertNotFound()
+        ->assertSee('Ce book n’existe pas ou n’est plus disponible.');
 });
 
 it('rend 404 pour un compte supprime', function () {
