@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\CmsPage;
+use App\Models\User;
 use App\Support\Marque;
 
 beforeEach(function () {
@@ -61,17 +62,23 @@ it('sert le portail Dustfolio sur son propre hote', function () {
 
 it('ne prend pas un sous-domaine reserve pour un book', function () {
     // Rien n'empechait, dans le legacy, qu'un compte prenne le login
-    // « www » et capte le sous-domaine correspondant.
-    $this->get(hote('www.ubdf2026.ultra-book.name'))->assertOk()->assertDontSee('BOOK · login');
-    $this->get(hote('api.ubdf2026.ultra-book.name'))->assertOk()->assertDontSee('BOOK · login');
+    // « www » et capte le sous-domaine correspondant. Si www/api etaient
+    // pris pour des logins, la page rendrait la 404 du BookController
+    // plutot que le portail : on verifie donc que c'est bien le portail
+    // qui repond.
+    $this->get(hote('www.ubdf2026.ultra-book.name'))->assertOk()->assertSee("content='Ultra-book'", false);
+    $this->get(hote('api.ubdf2026.ultra-book.name'))->assertOk()->assertSee("content='Ultra-book'", false);
 });
 
 it('sert bien un book sur un sous-domaine ordinaire', function () {
     // Le motif d'exclusion ne doit pas mordre au-dela du mot reserve :
     // « dfx » reste un login valide.
+    User::factory()->create(['login' => 'dfx'])
+        ->bookSetting()->create(['title' => 'Book de test']);
+
     $this->get(hote('dfx.ubdf2026.ultra-book.name'))
         ->assertOk()
-        ->assertSee('BOOK · login = dfx');
+        ->assertSee('dfx');
 });
 
 it('substitue le nom de la marque dans les contenus editoriaux', function () {

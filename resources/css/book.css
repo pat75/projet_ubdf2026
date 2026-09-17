@@ -1,0 +1,104 @@
+/*
+ * Gabarit unique du book public.
+ *
+ * Le legacy proposait onze habillages graphiques distincts
+ * (config/categories.php:legacy_theme_map). Reprendre chacun pixel pres
+ * n'entre pas dans ce lot : cette feuille dessine un rendu neutre et
+ * lisible, commun a tous les books, quel que soit `book_settings.theme`.
+ * La classe `book_theme_<slug>` reste posee sur le <body> pour permettre
+ * une reprise par theme sans toucher au gabarit.
+ */
+
+:root {
+    --book-marge: 24px;
+    --book-texte: #1b1b1b;
+    --book-fond: #fff;
+    --book-accent: #1b1b1b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: var(--book-texte);
+    background-color: var(--book-fond);
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.book_header {
+    padding: var(--book-marge);
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.book_bio_photo {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 12px;
+}
+
+.book_header h1 { margin: 0 0 4px; font-size: 1.4rem; }
+.book_metier { margin: 0 0 16px; color: #777; font-size: .9rem; }
+
+.book_nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+.book_nav a { font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; }
+
+.book_content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--book-marge);
+}
+
+.book_intro { max-width: 640px; margin: 0 auto 32px; text-align: center; }
+
+.book_galeries_grid,
+.book_media_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--book-marge);
+}
+
+.book_galerie_tuile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 4 / 3;
+    background: #f4f4f4;
+    font-size: 1.1rem;
+}
+
+.book_media img { width: 100%; height: auto; display: block; }
+.book_media figcaption { font-size: .85rem; color: #777; margin-top: 4px; }
+
+.book_sous_galeries,
+.book_sous_rubriques {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.book_article { margin-bottom: 40px; }
+.book_article img { max-width: 100%; height: auto; }
+
+.book_footer {
+    padding: var(--book-marge);
+    text-align: center;
+    color: #999;
+    font-size: .8rem;
+    border-top: 1px solid #eee;
+}
+
+@media (max-width: 640px) {
+    :root { --book-marge: 16px; }
+}

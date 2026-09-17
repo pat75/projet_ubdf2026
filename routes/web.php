@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
+use App\Http\Controllers\Front\BookController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
@@ -46,10 +47,13 @@ $loginPattern = '(?!(?:'.$reserves.')(?![-a-zA-Z0-9]))[-a-zA-Z0-9]+';
 Route::domain('{login}.'.$bookDomain)
     ->where(['login' => $loginPattern])
     ->group(function () {
-        Route::get('/', function (string $login) {
-            return response("BOOK · login = {$login}", 200)
-                ->header('Content-Type', 'text/plain; charset=utf-8');
-        })->name('book.home');
+        Route::get('/', [BookController::class, 'accueil'])->name('book.home');
+
+        Route::get('/portfolio/{slug}', [BookController::class, 'galerie'])
+            ->where('slug', '[-a-zA-Z0-9_]+')->name('book.galerie');
+
+        Route::get('/rubrique/{slug}', [BookController::class, 'rubrique'])
+            ->where('slug', '[-a-zA-Z0-9_]+')->name('book.rubrique');
     });
 
 /*

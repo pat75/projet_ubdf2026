@@ -97,3 +97,79 @@ developpement n'a pas Imagick, le serveur de production peut l'avoir.
 
 12 scenarios sur le generateur (`tests/Feature/Images/DeclinaisonsTest.php`),
 8 sur le point d'entree HTTP (`tests/Feature/Front/BookMediaTest.php`).
+
+## Lot 4b — le book public
+
+Remplace le placeholder texte (`BOOK · login = {$login}`) par un rendu reel :
+accueil, galeries, rubriques.
+
+### Perimetre reduit, assume
+
+Le legacy proposait onze habillages graphiques distincts
+(`config/categories.php:legacy_theme_map` — `mdl_2016_zoom`,
+`mdl_2015_grid`, `mdl_2012_slide`…). Les reprendre pixel pres, un par un,
+deborde largement ce lot. `BookController` rend **un gabarit unique**,
+neutre et lisible, commun a tous les books quel que soit
+`book_settings.theme`. Cette valeur reste importee et posee en classe CSS
+(`book_theme_<slug>`) sur le `<body>`, prete pour une reprise par theme si
+elle est demandee plus tard — mais rien n'y est accroche pour l'instant.
+
+C'est un ecart deliberement plus large que les precedents (qui portaient sur
+un comportement) : ici c'est l'apparence de centaines de books qui change.
+A signaler a Pat.
+
+### Structure
+
+Deux arbres independants, comme dans les tables d'origine :
+
+- **galeries** (`galleries`) portent les visuels — le « portfolio » —, avec
+  sous-galeries ;
+- **rubriques** (`book_sections`) portent les pages de texte (a propos,
+  contact…), avec sous-rubriques et articles.
+
+Une rubrique `is_private` reprend le mode « brouillon » du legacy : visible
+au seul proprietaire connecte, 403 pour tout autre visiteur.
+
+### Points d'entree
+
+| Route | Contenu |
+|---|---|
+| `GET /` | Accueil : presentation, galeries et rubriques de premier niveau |
+| `GET /portfolio/{slug}` | Une galerie : sous-galeries et visuels publies |
+| `GET /rubrique/{slug}` | Une rubrique : sous-rubriques et articles publies |
+
+Un compte absent ou supprime (`SoftDeletes`) rend 404 sans code
+supplementaire : la portee par defaut d'Eloquent les exclut deja.
+
+### Declinaisons d'images utilisees
+
+Les vignettes de rubrique et les visuels de galerie utilisent `ptf_medium`
+(le service ecrit en phase 4a) ; la photo de bio de l'en-tete utilise
+`adm_medium`.
+
+### Ecart connu sur la langue
+
+Les books ne portent pas de prefixe de langue — c'est un mecanisme du
+portail (`ResoudreLangue`/`ForcerLangue`), jamais applique au groupe de
+routes du sous-domaine. `ResoudreMarque`, lui, s'applique partout : mais il
+ne reconnait le book d'un createur que par son hote litteral, absent de
+`config/marques.php`, donc un `<login>.ubdf2026.…` retombe systematiquement
+sur la marque par defaut (Ultra-book, francais). Les quelques chaines
+`__()` du gabarit de book s'affichent donc toujours en francais, meme pour
+un createur Dustfolio, jusqu'a ce qu'un mecanisme de langue propre au book
+soit defini — c'est plus naturellement un reglage du createur (phase 5)
+qu'une resolution par hote.
+
+### Tests
+
+9 scenarios dans `tests/Feature/Front/BookControllerTest.php`, plus la
+correction de deux tests de `MarqueTest.php` qui s'appuyaient sur le texte
+du placeholder.
+
+Verification en HTTP reel sur `amelancholygraphiste.ubdf2026.ultra-book.name`
+(compte de l'echantillon de developpement, avec galeries) : accueil et une
+galerie rendent correctement.
+
+> A faire au prochain demarrage de `npm run dev` : la feuille
+> `resources/css/book.css` est un nouveau point d'entree Vite
+> (`vite.config.js`), non pris en compte par le serveur de dev deja lance.
