@@ -12,6 +12,7 @@ use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
+use App\Http\Controllers\Espace\PaiementController;
 use App\Http\Controllers\Espace\PdfController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\InscriptionController;
@@ -161,6 +162,10 @@ Route::group([], function () {
      | du legacy, dont le segment de controle etait derive du jeton et ne
      | verifiait donc rien (voir la migration 2026_01_02_000200).
      */
+    // Notification de paiement Payplug (serveur a serveur, sans session).
+    Route::post('/payplug/notification', [PaiementController::class, 'notification'])
+        ->name('payplug.notification');
+
     // Microbook : URL du legacy, collee telle quelle dans des sites tiers.
     Route::get('/microbook_{admin}_{pied}__{login}', MicrobookController::class)
         ->where(['admin' => '[01]', 'pied' => '[01]', 'login' => '[a-z0-9_-]+'])
@@ -241,6 +246,9 @@ $portail = function () {
         Route::view('/compte', 'espace.compte')->name('compte');
         Route::view('/messages', 'espace.messages')->name('messages');
         Route::get('/formule', [FormuleController::class, 'index'])->name('formule');
+        Route::post('/formule/payer/{option}', [PaiementController::class, 'payer'])
+            ->whereNumber('option')->middleware('throttle:10,1')->name('formule.payer');
+        Route::get('/formule/retour', [PaiementController::class, 'retour'])->name('formule.retour');
         Route::view('/exporter', 'espace.exporter')->name('exporter');
         Route::get('/exporter/pdf', PdfController::class)->middleware('throttle:10,1')->name('pdf');
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');

@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Services\Paiement;
+
+use App\Models\Invoice;
+use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * Souscription et renouvellement des formules par Payplug
+ * (user_formule::payplug_lightbox / payplug_ipn du legacy).
+ */
+class Souscription
+{
+    public function __construct(private readonly PasserellePayplug $payplug) {}
+
+    /**
+     * Options proposees a ce createur : le reabonnement remplace le 12 mois
+     * des qu'une facture a ete payee.
+     *
+     * @return array<int, array>
+     */
+    public function options(User $creatif): array
+    {
+        $dejaAbonne = $creatif->invoices()->where('status', 'paid')->exists();
+
+        return collect(config('formules.options'))
+            ->reject(fn ($o, $n) => $dejaAbonne ? $n === 2 : ! empty($o['reabonnement']))
+            ->all();
+    }
+
+    /** URL de la page de paiement Payplug. */
+    public function commencer(User $creatif, int $option): string
+    {
+        $o = $this->options($creatif)[$option] ?? abort(404);
+
+        $paiement = $this->payplug->creerPaiement([
+            'amount' => (int) round($o['ttc'] * 100),
+            'currency' => 'EUR',
+            // Format de l'API actuelle (billing + shipping) ; le legacy
+            // envoyait l'ancien objet `customer`.
+            'billing' => $client = [
+                'email' => $creatif->email,
+                'first_name' => $creatif->firstname ?: '_',
+                'last_name' => $creatif->lastname ?: '_',
+                'address1' => $creatif->address ?: '-',
+                'postcode' => $creatif->zipcode ?: '-',
+                'city' => $creatif->city ?: '-',
+                'country' => 'FR',
+                'language' => app()->getLocale() === 'en' ? 'en' : 'fr',
+            ],
+            'shipping' => $client + ['delivery_type' => 'DIGITAL_GOODS'],
+            'metadata' => [
+                'customer_id' => $creatif->id,
+                'product_id' => 1,
+                'product_option' => $option,
+            ],
+            'hosted_payment' => [
+                'return_url' => route('espace.formule.retour'),
+                'cancel_url' => route('espace.formule'),
+            ],
+            'notification_url' => route('payplug.notification'),
+        ]);
+
+        return $paiement['url'];
+    }
+
+    /**
+     * Traite une notification : prolonge la formule et emet la facture.
+     * Rejouer une meme notification ne fait rien de plus.
+     */
+    public function traiter(string $corps): ?Invoice
+    {
+        $p = $this->payplug->lireNotification($corps);
+
+        if (! $p || ! $p['paye']) {
+            return null;
+        }
+
+        $option = config('formules.options.'.($p['metadata']['product_option'] ?? 0));
+        $creatif = User::find($p['metadata']['customer_id'] ?? 0);
+
+        // Le montant fait foi, pas les metadonnees : le legacy acceptait tout
+        // paiement dont HT + TVA « tombait juste ».
+        if (! $option || ! $creatif || $p['montant'] !== (int) round($option['ttc'] * 100)) {
+            Log::warning('Payplug : paiement incoherent', ['id' => $p['id'], 'montant' => $p['montant'], 'metadata' => $p['metadata']]);
+
+            return null;
+        }
+
+        return DB::transaction(function () use ($p, $option, $creatif) {
+            $existante = Invoice::where('gateway', 'payplug')->where('gateway_payload->id', $p['id'])->lockForUpdate()->first();
+
+            if ($existante) {
+                return $existante;
+            }
+
+            $this->prolonger($creatif, $option['mois']);
+
+            $facture = $creatif->invoices()->create([
+                'brand' => $creatif->brand ?: 'ub',
+                'number' => 'tmp-'.$p['id'],
+                'label' => $creatif->brand === 'df' ? 'Dustfolio' : 'Ultra-book',
+                'designation' => $option['libelle'].' '.($creatif->brand === 'df' ? 'Dustfolio' : 'Ultra-book'),
+                'amount' => $option['ttc'],
+                'vat' => round($option['ttc'] - $option['ht'], 2),
+                'currency' => 'EUR',
+                'status' => 'paid',
+                'gateway' => 'payplug',
+                'gateway_payload' => $p['brut'],
+                'issued_at' => now(),
+                'paid_at' => now(),
+            ]);
+            $facture->update(['number' => ($creatif->brand ?: 'ub').'-'.$facture->id]);
+
+            return $facture;
+        });
+    }
+
+    /**
+     * Une formule encore active est prolongee a partir de son echeance ;
+     * sinon elle repart d'aujourd'hui. Le legacy repartait toujours
+     * d'aujourd'hui : un renouvellement anticipe perdait les mois restants.
+     */
+    private function prolonger(User $creatif, int $mois): void
+    {
+        $echeance = $creatif->plan && $creatif->plan_started_at && $creatif->plan_months
+            ? $creatif->plan_started_at->copy()->addMonths($creatif->plan_months)
+            : null;
+
+        if ($echeance && $echeance->isFuture()) {
+            $creatif->update(['plan_months' => $creatif->plan_months + $mois]);
+
+            return;
+        }
+
+        $creatif->update(['plan' => 1, 'plan_started_at' => Carbon::now(), 'plan_months' => $mois]);
+    }
+}

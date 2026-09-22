@@ -119,3 +119,22 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   ni PNG 16 bits). Mesure : 80 visuels, 18 Mo, 3,7 s.
 - Différences : police Helvetica au lieu de Titillium ; plus de courriel
   envoyé à l'administrateur à chaque PDF ; pas de vignette en couverture.
+
+## 5g — Souscription et renouvellement (Payplug)
+
+- Grille reprise de `$conf_formule[1]` : `config/formules.php`, numéros
+  d'option du legacy. Le réabonnement (29,80 €) remplace le 12 mois dès
+  qu'une facture a été payée.
+- `POST /espace/formule/payer/{option}` → page de paiement hébergée
+  Payplug ; retour sur `/espace/formule/retour`.
+- `POST /payplug/notification` (sans CSRF) : le SDK relit le paiement
+  auprès de l'API, le corps reçu n'est jamais cru. Le montant doit égaler
+  le prix de l'option (le legacy acceptait une liste de montants en dur).
+  Idempotent sur l'identifiant du paiement.
+- Une formule active est prolongée depuis son échéance (le legacy repartait
+  d'aujourd'hui et faisait perdre les mois restants).
+- À faire avant la mise en ligne : `PAYPLUG_SECRET_KEY` dans `.env`
+  (clé de test en local), essai de bout en bout en sandbox. Les clés du
+  legacy sont en clair dans `inc/inc_user_formule.php` : à régénérer.
+- Non repris : codes promo et offres ponctuelles (Black Friday, promo
+  auto 6 mois).

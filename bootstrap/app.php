@@ -66,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
          | Le fil de discussion, lui, reste sous CSRF : son formulaire est
          | rendu par Blade et porte le jeton.
          */
-        $middleware->validateCsrfTokens(except: ['intermediate_send']);
+        $middleware->validateCsrfTokens(except: ['intermediate_send', 'payplug/notification']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         /*

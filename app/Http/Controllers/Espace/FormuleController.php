@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Espace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Services\Paiement\Souscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -11,7 +12,7 @@ use Illuminate\View\View;
 /** Formule et factures (ubaction__user_pref_formule du legacy). */
 class FormuleController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, Souscription $souscription): View
     {
         $creatif = $request->user();
         $echeance = $creatif->plan && $creatif->plan_started_at && $creatif->plan_months
@@ -21,6 +22,7 @@ class FormuleController extends Controller
         return view('espace.formule', [
             'creatif' => $creatif,
             'echeance' => $echeance,
+            'options' => $souscription->options($creatif),
             'factures' => $creatif->invoices()->where('status', 'paid')->latest('issued_at')->get(),
         ]);
     }
