@@ -231,6 +231,7 @@ $portail = function () {
         Route::view('/habillage', 'espace.habillage')->name('design');
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
         Route::view('/compte', 'espace.compte')->name('compte');
+        Route::view('/messages', 'espace.messages')->name('messages');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])

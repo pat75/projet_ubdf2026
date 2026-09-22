@@ -2,10 +2,12 @@
 
 namespace App\Services\Messagerie;
 
+use App\Mail\ReponseRecue;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
@@ -123,6 +125,30 @@ class Intermediation
         $conversation->forceFill(['last_message_at' => now()])->save();
 
         return $message;
+    }
+
+    /** Previent l'autre partie d'une reponse, avec un lien renouvele vers le fil. */
+    public function notifierAutrePartie(Conversation $conversation, string $role): void
+    {
+        $destinataire = $role === self::PROPRIETAIRE
+            ? self::EMETTEUR
+            : self::PROPRIETAIRE;
+
+        $adresse = $destinataire === self::PROPRIETAIRE
+            ? $conversation->user->email
+            : $conversation->sender_email;
+
+        if (! $adresse) {
+            return;
+        }
+
+        $auteur = $role === self::PROPRIETAIRE
+            ? $conversation->user->fullName()
+            : $conversation->sender_name;
+
+        $lien = $this->renouveler($conversation, $destinataire);
+
+        Mail::to($adresse)->send(new ReponseRecue($conversation->fresh(['messages']), $lien, $auteur));
     }
 
     /**

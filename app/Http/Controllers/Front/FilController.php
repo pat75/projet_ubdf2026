@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use App\Mail\ReponseRecue;
 use App\Services\Messagerie\Intermediation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -54,7 +52,7 @@ class FilController extends Controller
 
         $this->intermediation->repondre($conversation, $role, $valide['message'], $request->ip());
 
-        $this->notifierAutrePartie($conversation, $role);
+        $this->intermediation->notifierAutrePartie($conversation, $role);
 
         return redirect()
             ->route('messagerie.fil', compact('role', 'selector', 'jeton'))
@@ -68,28 +66,6 @@ class FilController extends Controller
      * circule par courriel depuis l'ouverture du fil, parfois depuis des
      * mois. Le lien envoye est donc toujours le plus recent.
      */
-    private function notifierAutrePartie($conversation, string $role): void
-    {
-        $destinataire = $role === Intermediation::PROPRIETAIRE
-            ? Intermediation::EMETTEUR
-            : Intermediation::PROPRIETAIRE;
-
-        $adresse = $destinataire === Intermediation::PROPRIETAIRE
-            ? $conversation->user->email
-            : $conversation->sender_email;
-
-        if (! $adresse) {
-            return;
-        }
-
-        $auteur = $role === Intermediation::PROPRIETAIRE
-            ? $conversation->user->fullName()
-            : $conversation->sender_name;
-
-        $lien = $this->intermediation->renouveler($conversation, $destinataire);
-
-        Mail::to($adresse)->send(new ReponseRecue($conversation->fresh(['messages']), $lien, $auteur));
-    }
 
     /**
      * @return array{conversation: \App\Models\Conversation, role: string}
