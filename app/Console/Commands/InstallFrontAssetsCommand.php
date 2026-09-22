@@ -31,6 +31,18 @@ class InstallFrontAssetsCommand extends Command
         'img_default',
         'js_jquery',
         '_video',
+
+        // Themes des books (phase 4) : chaque habillage charge ses feuilles
+        // et scripts depuis ces dossiers, a ces chemins exacts.
+        '2012_web',
+        '2012_js',
+        '2012_css',
+        '2012_img',
+        '2011_css',
+        '2011_img',
+        '2010_js',
+        '2010_css',
+        '2010_images',
     ];
 
     /**
@@ -79,9 +91,45 @@ class InstallFrontAssetsCommand extends Command
             $this->info("Copie : {$dossier}");
         }
 
+        $this->neutraliserScripts();
         $this->retoucher();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Retire des copies tout fichier que PHP-FPM executerait.
+     *
+     * Les dossiers d'assets du site 2019 embarquent des scripts sans
+     * rapport avec l'affichage : un plugin WordPress entier
+     * (`2012_js/simple-social-bookmarks`), un `index.php` de demonstration
+     * (`zoom2016/_/js/ish-master`), un gabarit Savant. Copies dans
+     * `public/`, ils deviendraient des points d'entree executables par
+     * nginx — hors de Laravel, de ses middlewares et de sa protection
+     * CSRF. Ils sont supprimes des copies (la source, en lecture seule,
+     * n'est pas touchee).
+     */
+    private function neutraliserScripts(): void
+    {
+        $extensions = ['php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'phar'];
+
+        foreach (self::DOSSIERS as $dossier) {
+            $racine = public_path($dossier);
+
+            if (! File::isDirectory($racine)) {
+                continue;
+            }
+
+            foreach (File::allFiles($racine, hidden: true) as $fichier) {
+                $nom = strtolower($fichier->getFilename());
+                $ext = strtolower($fichier->getExtension());
+
+                if (in_array($ext, $extensions, true) || str_contains($nom, '.php.') || $nom === '.htaccess') {
+                    File::delete($fichier->getPathname());
+                    $this->line('Script retire : '.$dossier.'/'.$fichier->getRelativePathname());
+                }
+            }
+        }
     }
 
     private function retoucher(): void

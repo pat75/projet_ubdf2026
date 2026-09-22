@@ -29,6 +29,16 @@ Thumbs.db
 /public/img_default
 /public/js_jquery
 /public/_video
+# Assets des themes de book, meme regle (ubdf:install-front-assets).
+/public/2012_web
+/public/2012_js
+/public/2012_css
+/public/2012_img
+/public/2011_css
+/public/2011_img
+/public/2010_js
+/public/2010_css
+/public/2010_images
 
 # Medias de l'ancien WordPress, recopies par `ubdf:import-cms`.
 # Meme regle que html_pages_v2018 et _video : les fichiers repris du site
