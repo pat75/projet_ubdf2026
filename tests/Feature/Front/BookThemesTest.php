@@ -92,3 +92,35 @@ it('rend l accueil de Pinter en mosaique de tout le portfolio', function () {
 
     $this->get(urlBook())->assertOk()->assertSee('v1.jpg', false)->assertSee('fancybox', false);
 });
+
+dataset('agents', [
+    'iPhone' => ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148 Safari/604.1'],
+    'iPad' => ['Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) Mobile/15E148 Safari/604.1'],
+]);
+
+it('sert la version web des themes responsives a tous les terminaux', function (string $agent) {
+    // Zoom (theme du book de test) est responsive : pas de version mobile.
+    $this->withHeader('User-Agent', $agent)->get(urlBook())
+        ->assertOk()->assertSee('mdl_zoom.css', false);
+})->with('agents');
+
+it('sert la version classique mobile a un iPhone sur un theme ancien', function () {
+    $this->book->bookSetting->update(['theme' => 'mdl_classique', 'legacy_payload' => ['us_pf_version_iphone' => 'Modèle classique mobile']]);
+
+    $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')
+        ->get(urlBook())->assertOk()->assertSee('2011_iphone', false);
+});
+
+it('sert la version de bureau quand le reglage iPhone la demande', function () {
+    $this->book->bookSetting->update(['theme' => 'mdl_2012', 'legacy_payload' => ['us_pf_version_iphone' => 'Modèle portfolio 2012 (poste fixe)']]);
+
+    $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')
+        ->get(urlBook())->assertOk()->assertSee('2012_web/base', false)->assertDontSee('2011_iphone', false);
+});
+
+it('laisse Android sur la version web, comme le legacy', function () {
+    $this->book->bookSetting->update(['theme' => 'mdl_classique', 'legacy_payload' => ['us_pf_version_iphone' => 'Modèle classique mobile']]);
+
+    $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile')
+        ->get(urlBook())->assertOk()->assertDontSee('2011_iphone', false);
+});

@@ -64,6 +64,10 @@ Route::domain('{login}.'.$bookDomain)
         Route::get('/{titre}-r{rub}-c{pag}', [BookController::class, 'page'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}', 'pag' => '[0-9]{1,12}'])
             ->name('book.page');
+        // Version iPhone : galerie.
+        Route::get('/{titre}-pi{rub}', [BookController::class, 'galerieMobile'])
+            ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
+            ->name('book.galerie.mobile');
         Route::get('/{titre}-p{rub}', [BookController::class, 'galerie'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
             ->name('book.galerie');

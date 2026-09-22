@@ -43,6 +43,9 @@ class InstallFrontAssetsCommand extends Command
         '2010_js',
         '2010_css',
         '2010_images',
+
+        // Versions iPhone des books (jaipho).
+        '2011_iphone',
     ];
 
     /**

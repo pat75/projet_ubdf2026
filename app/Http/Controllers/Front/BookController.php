@@ -60,6 +60,12 @@ class BookController extends Controller
         return $this->rendre($login, 'news', $rub, $pag);
     }
 
+    /** `/<titre>-pi<id>` : une galerie de la version iPhone. */
+    public function galerieMobile(string $login, string $titre, int $rub): Response
+    {
+        return $this->rendre($login, 'iphone_galerie', $rub);
+    }
+
     public function contact(string $login): Response
     {
         return $this->rendre($login, 'contact');
@@ -128,6 +134,16 @@ class BookController extends Controller
             $type = $contexte->page_type = 'accueil';
         }
 
+        if ($mobile = $contexte->versionMobile()) {
+            if ($mobile['mode'] === 'theme') {
+                // iPad sur un autre theme ancien : on repart de ce theme.
+                $contexte->changerTheme($mobile['theme']);
+                $theme = config('book_themes.'.$mobile['theme']);
+            } else {
+                return response($this->rendreMobile($contexte, $mobile['mode'], $type, $rub));
+            }
+        }
+
         if ($theme['accueil'] === 'classique') {
             match ($type) {
                 'accueil' => $contexte->classiqueAccueil(),
@@ -157,6 +173,33 @@ class BookController extends Controller
         };
 
         return response(Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
+    }
+
+    /**
+     * Versions iPhone (classique mobile, mobile 2012) et iPad (mobile 2012).
+     * Aiguillage de action_book.php, l. 1280 a 1305.
+     */
+    private function rendreMobile(ContexteBook $contexte, string $mode, string $type, int $rub): string
+    {
+        $galerie = $type === 'iphone_galerie' || ($type === 'portfolio' && $rub > 0);
+
+        if ($mode === 'classique') {
+            $galerie
+                ? $contexte->iphoneGalerie($rub, 'iphone_portfolio')
+                : $contexte->iphoneListe('iphone_portfolio_list');
+
+            return Gabarit::rendre($galerie ? '_racine/ultrabook_iphone_portfolio' : '_racine/ultrabook_iphone_portfolio_ptf_list', $contexte);
+        }
+
+        if ($galerie) {
+            $contexte->iphoneGalerie($rub, 'iphone_portfolio_ajax_2012');
+
+            return Gabarit::rendre('_racine/ultrabook_2012_iphone_ptf_ajax', $contexte);
+        }
+
+        $contexte->iphoneListe('iphone_portfolio_list_2012');
+
+        return Gabarit::rendre($contexte->navigateur_client === 'iphone' ? '_racine/ultrabook_2012_iphone' : '_racine/ultrabook_2012_ipad', $contexte);
     }
 
     /**

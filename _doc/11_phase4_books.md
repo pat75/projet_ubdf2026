@@ -300,3 +300,43 @@ gabarits d'origine (`services.recaptcha.v2`).
 - `img_cms` (images des pages, 1 545 fichiers sur l'echantillon) copie avec
   son arborescence, sans aucun fichier executable ;
 - `mdl_default` et theme inconnu rendus en Responsive 2014, comme le legacy.
+
+## Lot 4e — versions mobiles, PDF
+
+### iPhone et iPad
+
+Les themes 2014 et suivants sont responsives : le legacy les sert en
+version web a tous les terminaux. Les themes anciens (2010, 2012, Slide,
+Pinter) passent sur iPhone et iPad par le reglage du createur pour ce
+terminal (`us_pf_version_iphone` / `_ipad`, conserves dans legacy_payload).
+Regles verifiees en production — le code local etait trompeur : il laissait
+croire que « Modele mobile 2012 » donnait une page vide.
+
+| Terminal | Reglage | Rendu |
+|---|---|---|
+| iPhone | « Modele mobile 2012 » | jQuery Mobile + PhotoSwipe (`ultrabook_2012_iphone`) |
+| iPhone | « … (poste fixe) » | ce theme, version de bureau |
+| iPhone | autre, ou vide | classique mobile (`ultrabook_iphone_portfolio*`, jaipho) |
+| iPad | « Modele mobile 2012 » | `ultrabook_2012_ipad` |
+| iPad | un theme | ce theme, **avec sa propre configuration** (`changerTheme`) |
+| Android | — | version web : le legacy l'avait retire de la detection |
+
+Galerie mobile : URL `/<titre>-pi<id>`, conservee. Ressources :
+`public/2011_iphone` (via `ubdf:install-front-assets`).
+
+Comparaison a la production : 99 a 100 % de structure sur les cinq
+combinaisons (annabelo, annabelledesprez, acg, gargouille, alainvilcocq).
+
+### PDF
+
+Dans le legacy, l'export PDF du book n'est servi qu'a son proprietaire
+(tout autre visiteur recoit la page « non diffuse »). C'est un outil de
+l'espace creatif : il est reporte a la phase 5.
+
+### Ressources externes encore chargees par les themes
+
+Comportement d'origine, conserve pour l'instant : statistiques de
+l'ancienne infrastructure (`www.extra-book.com/2012_stats`, socket
+`stats.ultraportfolio.info`), feuille d'icones sur `www.ultra-book.fr`,
+Google Maps avec une cle ecrite en dur. A remplacer avec la reprise des
+statistiques.

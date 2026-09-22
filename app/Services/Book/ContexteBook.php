@@ -60,6 +60,9 @@ class ContexteBook
 
     public bool $IsMobile = false;
 
+    /** web | iphone | ipad — detection du legacy, a l'identique. */
+    public string $navigateur_client = 'web';
+
     // Titres, metas, pied de page
     public string $cont_page_titre;
 
@@ -195,7 +198,17 @@ class ContexteBook
 
         // Detection du legacy, a l'identique : elle choisit la taille des
         // visuels servis par certains gabarits (550 au lieu de 900).
-        $this->IsMobile = (bool) preg_match('/Iphone|iemobile|htc|blackberry|android|Nokia|bb10/i', (string) request()->userAgent());
+        $agent = (string) request()->userAgent();
+        $this->IsMobile = (bool) preg_match('/Iphone|iemobile|htc|blackberry|android|Nokia|bb10/i', $agent);
+
+        // action_book.php, l. 297 : Android n'en fait pas partie (commente
+        // dans le legacy), il recoit la version web.
+        if (stripos($agent, 'iPad') !== false) {
+            $this->navigateur_client = 'ipad';
+        }
+        if (preg_match('/iPhone|blackberry|iemobile|htc/i', $agent)) {
+            $this->navigateur_client = 'iphone';
+        }
 
         /*
          | `mdl_default` — valeur par defaut de la colonne, donc celle de tout
@@ -287,6 +300,34 @@ class ContexteBook
             ? json_encode($reglages->theme_settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             : $this->confParDefaut();
 
+        $this->appliquerConf($conf);
+
+        $textes = $reglages?->theme_texts[$this->modele_book] ?? [];
+        $this->ed_dom_txt = (object) $textes;
+    }
+
+    /**
+     * Change de theme en cours de requete, comme le legacy le fait pour
+     * l'iPad (`us_pf_version_ipad`) : dossier, configuration et textes du
+     * theme cible. Chaque theme a sa propre colonne de configuration, et
+     * legacy_payload les conserve toutes.
+     */
+    public function changerTheme(string $theme): static
+    {
+        $this->modele_book = $theme;
+        $this->url_mdl = $this->tpl_dir = config("book_themes.{$theme}.dossier");
+
+        $colonne = config("book_themes.{$theme}.colonne_legacy");
+        $brut = $colonne ? ($this->book->bookSetting?->legacy_payload[$colonne] ?? null) : null;
+        $this->appliquerConf($brut ?: $this->confParDefaut());
+
+        $this->ed_dom_txt = (object) ($this->book->bookSetting?->theme_texts[$theme] ?? []);
+
+        return $this;
+    }
+
+    private function appliquerConf(string $conf): void
+    {
         $this->cont_conf2012 = $conf;
         $data = json_decode($conf)?->data ?? new \stdClass;
         $this->obj_cont_data = $data;
@@ -297,9 +338,6 @@ class ContexteBook
         $this->accueil_contenu_aff_d = $data->accueil_contenu_aff_d->accueil_contenu_aff_d ?? null;
         $vignettes = $data->ptf_vignette_aff->ptf_vignette_aff ?? '';
         $this->accueil_ptf_vignette_aff = $vignettes !== '' ? (string) $vignettes : 'true';
-
-        $textes = $reglages?->theme_texts[$this->modele_book] ?? [];
-        $this->ed_dom_txt = (object) $textes;
     }
 
     private function confParDefaut(): string
@@ -503,6 +541,112 @@ class ContexteBook
         $this->cont_page_titre .= $titre;
 
         return $this;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Versions mobiles — iPhone et iPad
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Gabarit mobile, ou null pour la version web.
+     *
+     * Les themes 2014 et suivants sont responsives : le legacy les sert en
+     * version web a tous les terminaux. Les themes anciens (2010, 2012,
+     * Slide, Pinter) passent sur iPhone et iPad par le reglage du createur
+     * pour ce terminal (`us_pf_version_iphone` / `_ipad`), verifie en
+     * production :
+     *
+     *   iPhone  « Modele mobile 2012 »  -> jQuery Mobile (ultrabook_2012_iphone)
+     *           « … (poste fixe) »      -> ce theme, version bureau
+     *           autre ou vide           -> classique mobile (ultrabook_iphone_portfolio*)
+     *   iPad    « Modele mobile 2012 »  -> ultrabook_2012_ipad
+     *           « Modele classique »    -> theme classique 2010
+     *           « Modele portfolio 2012 » -> theme 2012
+     *           vide                    -> le theme web
+     *
+     * @return array{mode: string, theme?: string}|null
+     */
+    public function versionMobile(): ?array
+    {
+        if ($this->navigateur_client === 'web'
+            || ! in_array($this->modele_book, ['mdl_classique', 'mdl_2012', 'mdl_2012_slide', 'mdl_2013_pinter'], true)) {
+            return null;
+        }
+
+        $brut = (string) ($this->book->bookSetting?->legacy_payload['us_pf_version_'.$this->navigateur_client] ?? '');
+        $posteFixe = str_contains($brut, '(poste fixe)');
+        $reglage = trim(preg_replace('# \(poste fixe\)#', '', $brut));
+
+        if (mb_strtolower($reglage) === 'modèle mobile 2012') {
+            return ['mode' => '2012'];
+        }
+
+        if ($this->navigateur_client === 'iphone' && ! $posteFixe) {
+            return ['mode' => 'classique'];
+        }
+
+        $theme = config('categories.legacy_theme_map')[mb_strtolower($reglage)] ?? null;
+
+        return $theme && $theme !== 'mdl_2014_responsive' && $reglage !== '' ? ['mode' => 'theme', 'theme' => $theme] : null;
+    }
+
+    /**
+     * mod_classique_iphone_accueil / mod_ptf_2012_iphone_accueil : toutes
+     * les galeries, chacune avec sa premiere image en tete.
+     */
+    public function iphoneListe(string $type): static
+    {
+        [$liste, $contenu] = $this->classique($this->menu['ptf']);
+
+        foreach ($liste as $rubrique) {
+            $visuels = array_values($contenu[$rubrique['rub_id']] ?? []);
+            $premiere = self::premiereImage($rubrique['rub_id'], $visuels);
+            if ($visuels !== [] || $premiere !== null) {
+                $visuels[0] = $premiere;
+            }
+            $contenu[$rubrique['rub_id']] = $visuels;
+        }
+
+        $this->gal_cont = ['gal' => $liste, 'img' => $contenu];
+        $this->page_type = $type;
+        $this->cont_page_titre .= 'Portfolio';
+
+        return $this;
+    }
+
+    /** mod_classique_iphone_galerie / mod_ptf_2012_iphone_galerie. */
+    public function iphoneGalerie(int $rubId, string $type): static
+    {
+        [$liste, $contenu] = $this->classique($this->menu['ptf']);
+        $une = array_values(array_filter($liste, fn ($r) => $r['rub_id'] == $rubId));
+
+        $this->gal_cont = ['gal' => $une, 'img' => $une ? [$rubId => $contenu[$rubId] ?? []] : []];
+        $this->rub_id = $rubId;
+        $this->page_type = $type;
+        $this->cont_page_titre .= 'Portfolio';
+
+        return $this;
+    }
+
+    /**
+     * usbook2011_img_first : l'image dont un champ vaut le premier
+     * identifiant de la liste d'ordre. Sans liste ou sans correspondance,
+     * le legacy rendait `$img[null]`, soit null.
+     */
+    private function premiereImage(int|string $rubId, array $visuels): ?array
+    {
+        $galerie = $this->book->galleries->firstWhere(fn ($g) => ($g->legacy_id ?? $g->id) == $rubId);
+        $premier = $galerie?->media_order[0] ?? null;
+
+        foreach ($visuels as $visuel) {
+            if ($premier !== null && in_array((string) $premier, array_map('strval', $visuel), true)) {
+                return $visuel;
+            }
+        }
+
+        return null;
     }
 
     /**
