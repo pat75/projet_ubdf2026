@@ -57,3 +57,21 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
 - Limite connue : Trix normalise le HTML qu'il charge. Une page reprise du
   legacy (CKEditor : tableaux, polices, styles en ligne) perd cette mise en
   forme au premier enregistrement depuis l'espace.
+
+## 5d — Habillage et diffusion
+
+- `/espace/habillage` : choix parmi les modèles de `config/book_themes.php`,
+  titre, description, pied de page, réglages du modèle.
+- Le formulaire des réglages est déduit de la configuration JSON du thème
+  (`data`) : couleur, case, nombre ou texte selon la valeur. Le format
+  enregistré reste celui du legacy, lu tel quel par `ContexteBook`.
+  Les valeurs sont contrôlées par type (couleur `#hex`, nombre, texte sans
+  balises) : elles finissent dans du CSS en ligne.
+- Chaque modèle garde ses réglages : ceux des modèles inactifs restent dans
+  `legacy_payload` sous la colonne legacy du thème (`ReglagesTheme`).
+- Libellés : dérivés des clés techniques (« Link bio », « Couleur fond »…),
+  à remplacer par des libellés rédigés si besoin.
+- `/espace/diffusion` : book en ligne, portail, newsletter, disponibilité.
+- Pas repris : la barre de réglage visuelle intégrée au book
+  (`ubdf_barrereglage`), et le choix des polices Google Fonts dans une liste
+  (champ texte libre pour l'instant).

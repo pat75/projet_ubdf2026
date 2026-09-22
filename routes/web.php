@@ -228,6 +228,8 @@ $portail = function () {
             ->can('update', 'galerie')->name('galeries.show');
         Route::get('/pages', [PageController::class, 'index'])->name('pages');
         Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
+        Route::view('/habillage', 'espace.habillage')->name('design');
+        Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
