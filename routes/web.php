@@ -47,13 +47,26 @@ $loginPattern = '(?!(?:'.$reserves.')(?![-a-zA-Z0-9]))[-a-zA-Z0-9]+';
 Route::domain('{login}.'.$bookDomain)
     ->where(['login' => $loginPattern])
     ->group(function () {
+        /*
+         | URL du legacy, conservees a l'identique : elles sont indexees.
+         | `-p<id>` designe une galerie, `-r<id>-c<id>` une page d'une
+         | rubrique ; le titre qui precede n'est pas verifie, comme dans le
+         | legacy (un titre modifie ne casse pas le lien).
+         */
         Route::get('/', [BookController::class, 'accueil'])->name('book.home');
+        Route::get('/accueil', [BookController::class, 'accueil'])->name('book.accueil');
+        Route::get('/portfolio', [BookController::class, 'portfolio'])->name('book.portfolio');
+        Route::get('/news', [BookController::class, 'actualites'])->name('book.news');
+        Route::get('/actualites', [BookController::class, 'actualites']);
+        Route::get('/contact', [BookController::class, 'contact'])->name('book.contact');
+        Route::post('/contact', [BookController::class, 'envoyer'])->name('book.contact.envoyer');
 
-        Route::get('/portfolio/{slug}', [BookController::class, 'galerie'])
-            ->where('slug', '[-a-zA-Z0-9_]+')->name('book.galerie');
-
-        Route::get('/rubrique/{slug}', [BookController::class, 'rubrique'])
-            ->where('slug', '[-a-zA-Z0-9_]+')->name('book.rubrique');
+        Route::get('/{titre}-r{rub}-c{pag}', [BookController::class, 'page'])
+            ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}', 'pag' => '[0-9]{1,12}'])
+            ->name('book.page');
+        Route::get('/{titre}-p{rub}', [BookController::class, 'galerie'])
+            ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
+            ->name('book.galerie');
     });
 
 /*
@@ -92,6 +105,10 @@ Route::group([], function () {
      |
      | Un fichier absent rend l'image par defaut, comme le .htaccess de 2019.
      */
+    Route::get('/books/{login}/cms/{chemin}', [BookMediaController::class, 'cms'])
+        ->where(['login' => '[-a-zA-Z0-9]+', 'chemin' => '.+'])
+        ->name('book.media.cms');
+
     Route::get('/books/{login}/{declinaison}/{file}', [BookMediaController::class, 'showDeclinaison'])
         ->where([
             'login' => '[-a-zA-Z0-9]+',

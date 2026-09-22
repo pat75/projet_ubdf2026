@@ -52,3 +52,75 @@ if (! function_exists('nom_route')) {
         return $nom;
     }
 }
+
+if (! function_exists('wd_remove_accents')) {
+    /**
+     * Slug d'URL du legacy (inc/inc_user.php), repris a l'identique : les
+     * gabarits de book construisent avec lui les liens `<titre>-r<id>-c<id>`
+     * deja indexes par les moteurs. Le modifier changerait ces URL.
+     */
+    function wd_remove_accents($str, $charset = 'utf-8')
+    {
+        $str = mb_strtolower((string) $str, $charset);
+        $str = htmlentities($str, ENT_NOQUOTES, $charset);
+        $str = preg_replace('#\&([A-za-z])(?:acute|cedil|circ|grave|ring|tilde|uml)\;#', '\1', $str);
+        $str = preg_replace('#\&([A-za-z]{2})(?:lig)\;#', '\1', $str);
+        $str = preg_replace('#\&[^;]+\;#', '_', $str);
+        $str = preg_replace("#[ |/|'|\"|_|-]+#", '_', $str);
+        $str = preg_replace("#[^a-z0-9\_\-]#", '_', $str);
+
+        return trim($str, '_');
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Fonctions globales du legacy appelees par les gabarits de book
+|--------------------------------------------------------------------------
+| Reprises de 2011_front/action_book.php. Les gabarits portes les appellent
+| par leur nom d'origine.
+*/
+
+if (! function_exists('book_socializer')) {
+    /** Titre et URL de la page, encodes pour les liens de partage. */
+    function book_socializer($tmp_titre)
+    {
+        return [urlencode((string) $tmp_titre), urlencode(request()->fullUrl())];
+    }
+}
+
+if (! function_exists('recursive_array_search')) {
+    function recursive_array_search($needle, $haystack)
+    {
+        foreach ((array) $haystack as $key => $value) {
+            if ($needle === $value || (is_array($value) && recursive_array_search($needle, $value) !== false)) {
+                return $key;
+            }
+        }
+
+        return false;
+    }
+}
+
+if (! function_exists('book_actu_txt')) {
+    /**
+     * HTML d'une page de book.
+     *
+     * Les images inserees dans les pages sont referencees sous
+     * `/users_2/<l>/<l>/<login>/cms_html/<fichier>` (ou cms_pref, img_).
+     * Le legacy prefixait ces chemins par l'adresse du portail ; ils
+     * designent maintenant le service d'images, qui sert l'original.
+     */
+    function book_actu_txt($tmp_txt, $abs_url = '')
+    {
+        $html = htmlspecialchars_decode((string) $tmp_txt, ENT_QUOTES);
+
+        $prefixe = '#(src|href)="(?:https?://[^/"]+)?/users_2/[^/"]/[^/"]/([^/"]+)/';
+
+        // Images de l'editeur : arborescence conservee.
+        $html = preg_replace($prefixe.'img_cms/([^"]+)"#', '$1="/books/$2/cms/$3"', $html);
+
+        // Autres dossiers du book (declinaisons, cms_pref) : l'original.
+        return preg_replace($prefixe.'[^/"]+/([^/"]+)"#', '$1="/books/$2/source/$3"', $html);
+    }
+}

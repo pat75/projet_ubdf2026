@@ -2,42 +2,21 @@
 
 use App\Models\User;
 
+/*
+| Resolution du book sur son sous-domaine. Le rendu des themes est couvert
+| par BookThemesTest.
+*/
+
 beforeEach(function () {
-    config(['marques.marques.ub.hotes' => ['ubdf2026.ultra-book.name']]);
-
-    $this->book = User::factory()->create(['login' => 'aurelie-b', 'brand' => 'ub', 'firstname' => 'Aurélie', 'lastname' => 'B.']);
-    $this->book->bookSetting()->create(['title' => 'Aurélie B.', 'footer' => 'Contact : aurelie@example.com']);
-
-    $this->galerie = $this->book->galleries()->create([
-        'name' => 'Illustrations', 'slug' => 'illustrations', 'status' => 'published', 'position' => 0,
-    ]);
-    $this->galerie->media()->create([
-        'user_id' => $this->book->id,
-        'filename' => 'v1.jpg', 'status' => 'published', 'position' => 0, 'title' => 'Affiche',
-    ]);
-
-    $this->rubrique = $this->book->sections()->create([
-        'title' => 'À propos', 'slug' => 'a-propos', 'is_published' => true, 'is_private' => false, 'position' => 0,
-    ]);
-    $this->rubrique->articles()->create([
-        'user_id' => $this->book->id,
-        'title' => 'Présentation', 'slug' => 'presentation', 'body' => '<p>Bonjour</p>', 'status' => 'published', 'position' => 0,
-    ]);
+    $this->book = User::factory()->create(['login' => 'aurelie-b']);
+    $this->book->bookSetting()->create(['title' => 'Aurélie B.', 'theme' => 'mdl_2016_zoom']);
+    $this->galerie = $this->book->galleries()->create(['name' => 'Illustrations', 'status' => 'published', 'position' => 0]);
 });
 
 function hoteBook(string $login, string $chemin = '/'): string
 {
-    return 'https://'.$login.'.ubdf2026.ultra-book.name'.$chemin;
+    return 'https://'.$login.'.'.config('ubdf.book_domain').$chemin;
 }
-
-it('affiche l accueil du book avec ses galeries et rubriques', function () {
-    $reponse = $this->get(hoteBook('aurelie-b'));
-
-    $reponse->assertOk()
-        ->assertSee('Aurélie B.')
-        ->assertSee('Illustrations')
-        ->assertSee('À propos');
-});
 
 it('rend 404 pour un login inexistant, avec une page dediee', function () {
     // La 404 generique de Laravel ne dit rien du contexte ; sur un
@@ -54,46 +33,17 @@ it('rend 404 pour un compte supprime', function () {
     $this->get(hoteBook('aurelie-b'))->assertNotFound();
 });
 
-it('affiche une galerie et ses visuels', function () {
-    $this->get(hoteBook('aurelie-b', '/portfolio/illustrations'))
-        ->assertOk()
-        ->assertSee('Illustrations')
-        ->assertSee('Affiche');
-});
-
-it('rend 404 pour une galerie inexistante ou non publiee', function () {
-    $this->get(hoteBook('aurelie-b', '/portfolio/inconnue'))->assertNotFound();
-
-    $this->galerie->update(['status' => 'draft']);
-    $this->get(hoteBook('aurelie-b', '/portfolio/illustrations'))->assertNotFound();
-});
-
-it('affiche une rubrique et ses articles', function () {
-    $this->get(hoteBook('aurelie-b', '/rubrique/a-propos'))
-        ->assertOk()
-        ->assertSee('À propos')
-        ->assertSee('Présentation')
-        ->assertSee('Bonjour', escape: false);
-});
-
-it('refuse une rubrique privee a un visiteur', function () {
-    $this->rubrique->update(['is_private' => true]);
-
-    $this->get(hoteBook('aurelie-b', '/rubrique/a-propos'))->assertForbidden();
-});
-
-it('autorise le proprietaire a voir sa rubrique privee', function () {
-    $this->rubrique->update(['is_private' => true]);
-
-    $this->actingAs($this->book)
-        ->get(hoteBook('aurelie-b', '/rubrique/a-propos'))
-        ->assertOk();
+it('ignore le titre qui precede l identifiant, comme le legacy', function () {
+    // Un titre de galerie modifie ne doit pas casser les liens indexes.
+    $this->get(hoteBook('aurelie-b', '/ancien_titre-p'.$this->galerie->id))->assertOk();
 });
 
 it('separe strictement les books entre eux', function () {
     $autre = User::factory()->create(['login' => 'autre-creatif']);
-    $autre->bookSetting()->create(['title' => 'Autre']);
+    $autre->bookSetting()->create(['theme' => 'mdl_2016_zoom']);
 
-    // La galerie d'aurelie-b n'existe pas sous le login d'un autre book.
-    $this->get(hoteBook('autre-creatif', '/portfolio/illustrations'))->assertNotFound();
+    // La galerie d'aurelie-b n'apparait pas sous le login d'un autre book.
+    $this->get(hoteBook('autre-creatif', '/illustrations-p'.$this->galerie->id))
+        ->assertOk()
+        ->assertDontSee('Illustrations');
 });

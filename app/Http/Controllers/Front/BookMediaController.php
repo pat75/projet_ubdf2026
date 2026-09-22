@@ -77,6 +77,25 @@ class BookMediaController extends Controller
         ]);
     }
 
+    /**
+     * `/books/{login}/cms/{chemin}` — images inserees dans les pages.
+     *
+     * Servies telles quelles, sans declinaison : elles sont deja a la
+     * taille choisie par le createur dans l'editeur.
+     */
+    public function cms(string $login, string $chemin): BinaryFileResponse|Response
+    {
+        $racine = realpath(Storage::disk('public')->path('books/'.$login.'/img_cms'));
+        $fichier = $racine ? realpath($racine.'/'.rawurldecode($chemin)) : false;
+
+        // realpath() resout les « .. » : le fichier doit rester sous la racine.
+        if (! $fichier || ! str_starts_with($fichier, $racine.DIRECTORY_SEPARATOR) || ! is_file($fichier)) {
+            return $this->parDefaut();
+        }
+
+        return response()->file($fichier, ['Cache-Control' => 'public, max-age=604800']);
+    }
+
     /** Trame grise du legacy, affichee a la place d'un visuel manquant. */
     private function parDefaut(): BinaryFileResponse|Response
     {

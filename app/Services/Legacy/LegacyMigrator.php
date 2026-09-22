@@ -711,9 +711,18 @@ final class LegacyMigrator
     }
 
     /** rub_ordre_img est une liste d'ids separes par des virgules. */
+    /**
+     * rub_ordre_img : identifiants separes par des tirets bas, avec un tiret
+     * en tete et en fin (`_1548552_1548542_…_`). La version precedente
+     * decoupait sur la virgule : intval() du premier segment rendait 0, et
+     * l'ordre de toutes les galeries etait perdu.
+     *
+     * La liste est conservee telle quelle, doublons compris : l'algorithme
+     * d'affichage du legacy (usbook2011_img_ordre) en depend.
+     */
     private function orderList(?string $value): ?array
     {
-        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $value))));
+        $ids = array_map('intval', preg_split('/[_,]/', (string) $value, -1, PREG_SPLIT_NO_EMPTY));
 
         return $ids ?: null;
     }

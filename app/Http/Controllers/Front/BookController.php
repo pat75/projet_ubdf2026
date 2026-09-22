@@ -3,108 +3,165 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use App\Models\BookSection;
-use App\Models\Gallery;
+use App\Http\Requests\Front\ContactBookRequest;
 use App\Models\User;
+use App\Services\Auth\Recaptcha;
+use App\Services\Book\ContexteBook;
+use App\Services\Book\Gabarit;
+use App\Services\Messagerie\DepotDemande;
 use App\Support\Marque;
-use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 /**
- * Book public, servi sur <login>.<book_domain>.
+ * Book public, servi sur <login>.<book_domain>, dans son theme d'origine.
  *
- * Le legacy proposait onze themes graphiques (`mdl_2016_zoom`,
- * `mdl_2015_grid`, `mdl_2012_slide`…), voir `config/categories.php`. Ce
- * controleur rend un gabarit unique : reprendre chaque habillage pixel
- * pres n'entre pas dans ce lot. `book_settings.theme` reste importe et
- * disponible pour une reprise ulterieure par theme.
+ * Les onze habillages du legacy sont portes tels quels (lot 4d, voir
+ * _doc/11_phase4_books.md). Ce controleur tient le role de
+ * 2011_front/action_book.php : il prepare le contexte (ContexteBook) puis
+ * rend le point d'entree du theme.
  *
- * La structure, elle, suit le legacy : les galeries portent les visuels
- * (le « portfolio » a proprement parler), les rubriques (`book_sections`)
- * portent les pages de texte (a propos, contact…). Ce sont deux arbres
- * independants, comme dans les tables d'origine.
+ * Les URL sont celles du legacy, deja indexees :
+ *
+ *   /  /accueil                      accueil
+ *   /portfolio                       portfolio, premiere galerie
+ *   /<titre>-p<id>                   une galerie
+ *   /news  /actualites               pages, premiere rubrique
+ *   /<titre>-r<id>-c<id>             une page d'une rubrique
+ *   /contact                         formulaire de contact
+ *
+ * Les identifiants sont ceux du legacy quand le contenu en vient
+ * (`legacy_id`), les notres sinon.
  */
 class BookController extends Controller
 {
-    /** Accueil du book : presentation et galeries de premier niveau. */
-    public function accueil(string $login): View
+    public function accueil(string $login): Response
     {
-        return view('book.accueil', $this->navigation($this->trouver($login)));
+        return $this->rendre($login, 'accueil');
     }
 
-    /** Une galerie : ses sous-galeries et ses visuels publies. */
-    public function galerie(string $login, string $slug): View
+    public function portfolio(string $login): Response
     {
-        $book = $this->trouver($login);
+        return $this->rendre($login, 'portfolio');
+    }
 
-        $galerie = Gallery::query()
-            ->where('user_id', $book->id)
-            ->where('slug', $slug)
-            ->published()
-            ->with([
-                'children' => fn ($query) => $query->published(),
-                'media' => fn ($query) => $query->published()->orderBy('position'),
-            ])
-            ->firstOrFail();
+    public function galerie(string $login, string $titre, int $rub): Response
+    {
+        return $this->rendre($login, 'portfolio', $rub);
+    }
 
-        return view('book.galerie', $this->navigation($book) + ['galerie' => $galerie]);
+    public function actualites(string $login): Response
+    {
+        return $this->rendre($login, 'news');
+    }
+
+    public function page(string $login, string $titre, int $rub, int $pag): Response
+    {
+        return $this->rendre($login, 'news', $rub, $pag);
+    }
+
+    public function contact(string $login): Response
+    {
+        return $this->rendre($login, 'contact');
     }
 
     /**
-     * Une rubrique : ses articles publies.
+     * Envoi du formulaire de contact du book.
      *
-     * Une rubrique privee (`is_private`) n'est visible qu'au proprietaire
-     * connecte — c'est le mode « brouillon » du legacy, repris tel quel.
+     * La demande suit le meme chemin que celle deposee depuis la fiche du
+     * portail (DepotDemande) : fil de discussion intermedie, detection du
+     * spam, notification des deux parties. Le rappel JavaScript d'origine
+     * attend `{error: bool}`.
      */
-    public function rubrique(string $login, string $slug): View
+    public function envoyer(ContactBookRequest $requete, string $login, DepotDemande $depot, Recaptcha $recaptcha): JsonResponse
     {
-        $book = $this->trouver($login);
+        $book = User::where('login', $login)->firstOrFail();
 
-        $rubrique = BookSection::query()
-            ->where('user_id', $book->id)
-            ->where('slug', $slug)
-            ->where('is_published', true)
-            ->with([
-                'children' => fn ($query) => $query->where('is_published', true),
-                'articles' => fn ($query) => $query->published()->orderBy('position'),
-            ])
-            ->firstOrFail();
-
-        if ($rubrique->is_private && auth()->id() !== $book->id) {
-            abort(403);
+        if (! $recaptcha->valideV2($requete->input('g-recaptcha-response'))) {
+            return response()->json(['errors' => [__('Cochez la case « Je ne suis pas un robot ».')]]);
         }
 
-        return view('book.rubrique', $this->navigation($book) + ['rubrique' => $rubrique]);
+        if ($depot->limiteAtteinte($requete->ip())) {
+            return response()->json(['errors' => [__('Trop de demandes envoyées. Réessayez dans une heure.')]]);
+        }
+
+        $depot->deposer($book, [
+            'action' => 'work_A_contact',
+            'us_dir' => $book->login,
+            'us_nom_prenom' => $requete->input('fm_contact_nom_prenom') ?: $requete->input('fm_contact_mail'),
+            'us_mail' => $requete->input('fm_contact_mail'),
+            'us_message' => $requete->input('fm_contact_message'),
+        ], $requete->ip());
+
+        return response()->json(['error' => false]);
+    }
+
+    private function rendre(string $login, string $type, int $rub = 0, int $pag = 0): Response
+    {
+        $book = User::with(['bookSetting', 'category'])->where('login', $login)->firstOrFail();
+
+        $contexte = new ContexteBook($book, Marque::depuisCode($book->brand));
+        $contexte->page_type = $type;
+        $contexte->chargerPortfolio()->chargerPages();
+
+        $theme = config('book_themes.'.$contexte->modele_book);
+
+        /*
+         | « patch mdl 2014 » (action_book.php, l. 440) : pour ces quatre
+         | themes, /portfolio sans galerie designee rend l'accueil.
+         */
+        if ($type === 'portfolio' && $rub === 0 && ! empty($theme['portfolio_vers_accueil'])) {
+            $type = $contexte->page_type = 'accueil';
+        }
+
+        match ($type) {
+            'accueil' => $theme['accueil'] === 'portfolio'
+                ? $contexte->pagePortfolio(0)
+                : $this->accueilDePages($contexte),
+            'portfolio' => $contexte->pagePortfolio($rub ?: $this->premiereRubrique($contexte->menu['ptf'])),
+            'news' => $contexte->pageNews($rub ?: $this->premiereRubrique($contexte->menu['act']), $pag),
+            'contact' => $this->preparerContact($contexte, $theme),
+        };
+
+        return response(Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
     }
 
     /**
-     * Retrouve le compte du sous-domaine, ou 404.
-     *
-     * `SoftDeletes` exclut deja les comptes supprimes des requetes
-     * standard ; un compte inexistant ou efface rend donc naturellement
-     * 404, sans distinction supplementaire a coder ici.
+     * Formulaire de contact : dans le gabarit contact du theme s'il en a un
+     * (Zoom, 2020, classique 2010), sinon en page de rubrique.
      */
-    private function trouver(string $login): User
+    private function preparerContact(ContexteBook $contexte, array $theme): void
     {
-        return User::with('bookSetting', 'category')
-            ->where('login', $login)
-            ->firstOrFail();
+        $formulaire = view('book.contact', ['b' => $contexte])->render();
+        $contexte->contact = $formulaire;
+
+        if (($theme['contact'] ?? 'gabarit') === 'page') {
+            $contexte->pageContact($formulaire);
+        }
     }
 
-    /** Donnees communes a toutes les pages du book : le compte et son menu. */
-    private function navigation(User $book): array
+    /**
+     * mod_ptf_2012_accueil : les pages d'accueil (categorie 1). Le suffixe
+     * du titre pour la formule gratuite est celui du legacy.
+     */
+    private function accueilDePages(ContexteBook $contexte): void
     {
-        return [
-            'book' => $book,
-            'marque' => Marque::depuisCode($book->brand),
-            'navGaleries' => $this->galeriesNav($book),
-            'navRubriques' => $book->sections()
-                ->where('is_published', true)->whereNull('parent_id')
-                ->orderBy('position')->get(),
-        ];
+        $contexte->chargerAccueil();
+
+        if ($contexte->us_formule < 1) {
+            $contexte->cont_page_titre .= ' : '.$contexte->inc_site_name;
+        }
     }
 
-    private function galeriesNav(User $book)
+    /** Identifiant de la premiere rubrique d'une liste au format legacy. */
+    private function premiereRubrique(array $rubriques): int
     {
-        return $book->galleries()->published()->whereNull('parent_id')->orderBy('position')->get();
+        foreach ($rubriques as $cle => $rubrique) {
+            if (is_int($cle)) {
+                return (int) $rubrique['rub_id'];
+            }
+        }
+
+        return 0;
     }
 }

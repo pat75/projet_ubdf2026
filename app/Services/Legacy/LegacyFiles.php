@@ -21,6 +21,14 @@ final class LegacyFiles
     /** Vignettes et visuels de presentation, stockes a part dans le legacy. */
     private const EXTRA_DIRS = ['cms_pref'];
 
+    /**
+     * Images inserees dans le texte des pages via l'editeur (CKEditor), avec
+     * leurs sous-dossiers. Copiees telles quelles dans books/<login>/img_cms/ :
+     * le HTML des pages les reference par ce chemin, que book_actu_txt()
+     * reecrit a l'affichage.
+     */
+    private const CMS_DIR = 'img_cms';
+
     private int $copiedFiles = 0;
 
     private int $copiedBytes = 0;
@@ -57,6 +65,30 @@ final class LegacyFiles
                     continue;
                 }
 
+                File::copy($file->getPathname(), $destination);
+
+                $this->copiedFiles++;
+                $this->copiedBytes += $file->getSize();
+            }
+        }
+
+        $cms = $source.'/'.self::CMS_DIR;
+
+        if (is_dir($cms)) {
+            foreach (File::allFiles($cms) as $file) {
+                // Rien d'executable, meme hors de public/ : ces dossiers ont
+                // recu des depots de scripts (voir le .htaccess du legacy).
+                if (preg_match('/\.(php\d?|phtml|phar|htaccess)$/i', $file->getFilename())) {
+                    continue;
+                }
+
+                $destination = $target.'/'.self::CMS_DIR.'/'.$file->getRelativePathname();
+
+                if (file_exists($destination)) {
+                    continue;
+                }
+
+                File::ensureDirectoryExists(dirname($destination));
                 File::copy($file->getPathname(), $destination);
 
                 $this->copiedFiles++;

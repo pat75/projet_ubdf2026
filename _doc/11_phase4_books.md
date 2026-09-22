@@ -193,3 +193,87 @@ la fenetre modale du portail, avec sa propre mecanique JS (captcha, envoi
 AJAX). Le dupliquer sur le sous-domaine du book n'entrait pas dans ce lot ;
 le lien « Contacter » du menu du book renvoie vers la fiche portail du
 createur, ou le formulaire fonctionne deja.
+
+## Lot 4d — les onze habillages d'origine
+
+Decision de Pat : les books gardent leurs gabarits du legacy, tous. Le
+gabarit unique du lot 4b est abandonne.
+
+### Methode : portage mecanique, verifie contre la production
+
+Les gabarits Savant (`2011_html_pages_v2/`, ~250 Ko sur dix dossiers) sont
+convertis en vues Blade par `_outils/porter_gabarits.py`, reproductible. Le
+HTML est conserve a l'octet ; seul le PHP est adapte :
+
+| Legacy | Portage |
+|---|---|
+| `$this->…` | `$b->…` — `App\Services\Book\ContexteBook`, adaptateur qui expose les donnees Eloquent sous les noms et structures du legacy (`menu`, `gal_cont`, `rep_img550`…) |
+| `include $this->loadTemplate(…)` | `include Gabarit::chemin(…)` : le gabarit Blade **compile**, inclus dans la meme portee — Savant partageait les variables locales, et des gabarits en dependent |
+| fonctions definies dans les gabarits | extraites dans `<dossier>/_fonctions.php`, prefixees par dossier. Les envelopper dans `function_exists` supprimait le « hoisting » de PHP dont les gabarits dependent |
+| `count(null)`, `in_array(…, null)`… | `App\Services\Book\Php7` : la valeur que rendait PHP 7, la ou PHP 8 leve une TypeError |
+| avertissements (index absents…) | toleres pendant le rendu d'un theme seulement (`Gabarit::rendre`) |
+| `$_COOKIE`, `$_GET`, `$_SERVER` | `request()` |
+| phpThumb, dimensions dans l'URL | trois declinaisons nommees (`carre_368`, `carre_335`, `carre_183`) |
+| `/users_2/…/img_cms/…` dans le HTML des pages | `/books/<login>/cms/…` (arborescence conservee) |
+| mode edition sur simple cookie `us_pr` | neutralise : n'importe quel visiteur pouvait l'activer. L'edition releve de la phase 5 |
+
+Deux outils de controle : `_outils/comparer_book.sh <login>` compare chaque
+page d'un book a la production (squelette de balises, texte visible,
+visuels).
+
+### Ce que la comparaison a revele — et corrige en amont
+
+- **Changement de theme depuis l'instantane.** `ub2020` date de 2022 : des
+  createurs ont change de theme depuis. Les books de reference sont choisis
+  parmi ceux dont la production sert encore le theme de l'instantane et
+  dont les visuels existent tous chez nous.
+- **L'ordre des visuels etait perdu a l'import** : `rub_ordre_img` est
+  separe par des tirets bas, pas des virgules. Et l'algorithme d'ordre du
+  legacy (`usbook2011_img_ordre`) est reproduit a l'identique, y compris
+  son defaut : les visuels absents de la liste s'ecrasent, un seul survit.
+- **Le titre de l'accueil** : la production n'ajoute plus le nom de la
+  premiere rubrique ; son code a diverge de la copie locale. La production
+  fait foi.
+
+### Etat au commit
+
+| Theme | Reference | Accueil | Portfolio | Pages | Contact |
+|---|---|---|---|---|---|
+| Zoom 2016 | ar-creation | 100 % | 100 % | 100 % | 100 % |
+| Grid 2015 | altcrea | 100 % | 100 % | 97 % | (1) |
+| Ultra-frais 2020 | arpsara | 100 % | 100 % | 100 % | 100 % |
+| Portfolio 2012 | annlaurs | 100 % | 100 % | 100 % | (1) |
+| Responsive 2014 | audenguyenhuu | 100 % | 100 % | 100 % | (1) |
+| Classique 2010 | alainvilcocq | 95 % | 92 % | 96 % | 100 % |
+| Classique 2015 | alexandrelagneau | 92 % | **22 %** | 91 % | (1) |
+| Slide 2012 | gabrielleka | **50 %** | **50 %** | 62 % | (1) |
+| Pinter 2013 | anneloreparot | **5 %** | **5 %** | 46 % | (1) |
+| Ultra-zen 2020 | anneletuffe | **30 %** | **30 %** | 58 % | 99 % |
+
+Pourcentages : similarite du squelette de balises avec la production.
+En gras, ce qui reste a traiter.
+
+(1) **Ecart voulu.** Ces six themes prevoient une page contact dans leur
+aiguillage, mais le gabarit n'a jamais existe : en production, /contact y
+affiche une page vide. Le formulaire du book y est presente comme une page
+de rubrique, habillee par le gabarit « page » du theme.
+
+### Formulaire de contact du book
+
+Balisage identique au formulaire de production (PFBC : champs
+`fm_contact_*`, identifiants `ajax-element-N`, rappel
+`contactForm_callback`), deux ecarts : il poste au book lui-meme et non plus
+a `www.ultra-book.com/contact_reponse_frombook__<id de session PHP>__<login>`
+— l'identifiant de session etait expose dans l'URL —, et le jeton CSRF
+remplace `fm_key` (md5 de l'identifiant de session). La demande suit le
+chemin de celle du portail (`DepotDemande`, extrait de ContactController) :
+fil intermedie, detection du spam, deux courriels. reCAPTCHA v2, celui des
+gabarits d'origine (`services.recaptcha.v2`).
+
+### Corrections d'import faites au passage
+
+- rubriques 1/3 et leurs pages de texte (voir le commit « Import : les
+  pages de texte des books etaient perdues ») ;
+- `img_cms` (images des pages, 1 545 fichiers sur l'echantillon) copie avec
+  son arborescence, sans aucun fichier executable ;
+- `mdl_default` et theme inconnu rendus en Responsive 2014, comme le legacy.

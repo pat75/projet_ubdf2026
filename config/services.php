@@ -49,6 +49,16 @@ return [
         'key' => env('RECAPTCHA_KEY', '6Lc8O5IUAAAAAJer15iYwddEROZzZnnIVzQe4P_1'),
         'secret' => env('RECAPTCHA_SECRET'),
         'score_minimum' => (float) env('RECAPTCHA_SCORE_MIN', 0.3),
+
+        /*
+         | Version 2 (case a cocher), utilisee par le formulaire de contact des
+         | books : c'est celle de leurs gabarits d'origine. Cle distincte de
+         | la v3 du portail.
+         */
+        'v2' => [
+            'key' => env('RECAPTCHA_V2_KEY', '6Lc2eRQTAAAAAL1to7OJL12n4xLQE9i8O-i9G4Pn'),
+            'secret' => env('RECAPTCHA_V2_SECRET'),
+        ],
     ],
 
 ];

@@ -48,3 +48,4 @@ Thumbs.db
 # Graphe de connaissance : artefact derive du code, reconstruit par le hook
 # git post-commit (5 Mo, dont un manifeste qui change a chaque commit).
 /graphify-out
+__pycache__/

@@ -27,9 +27,23 @@ class Recaptcha
 {
     private const URL = 'https://www.google.com/recaptcha/api/siteverify';
 
-    public function actif(): bool
+    public function actif(bool $v2 = false): bool
     {
-        return (bool) config('services.recaptcha.secret');
+        return (bool) $this->secret($v2);
+    }
+
+    private function secret(bool $v2): ?string
+    {
+        return config($v2 ? 'services.recaptcha.v2.secret' : 'services.recaptcha.secret');
+    }
+
+    /**
+     * reCAPTCHA v2 (case a cocher) : pas de score, la reussite suffit.
+     * Utilise par le formulaire de contact des books.
+     */
+    public function valideV2(?string $jeton): bool
+    {
+        return $this->verifier($jeton, v2: true);
     }
 
     /**
@@ -38,7 +52,12 @@ class Recaptcha
      */
     public function valide(?string $jeton, ?string $action = null): bool
     {
-        if (! $this->actif()) {
+        return $this->verifier($jeton, $action);
+    }
+
+    private function verifier(?string $jeton, ?string $action = null, bool $v2 = false): bool
+    {
+        if (! $this->actif($v2)) {
             Log::debug('reCAPTCHA non configure : verification ignoree.');
 
             return true;
@@ -52,7 +71,7 @@ class Recaptcha
             $reponse = Http::asForm()
                 ->timeout(5)
                 ->post(self::URL, [
-                    'secret' => config('services.recaptcha.secret'),
+                    'secret' => $this->secret($v2),
                     'response' => $jeton,
                     'remoteip' => request()->ip(),
                 ])
@@ -67,6 +86,10 @@ class Recaptcha
 
         if (! ($reponse['success'] ?? false)) {
             return false;
+        }
+
+        if ($v2) {
+            return true;
         }
 
         if ($action !== null && ($reponse['action'] ?? $action) !== $action) {

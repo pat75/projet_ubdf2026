@@ -4,23 +4,14 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\DemandeContactRequest;
-use App\Mail\DemandeRecue;
-use App\Mail\DemandeTransmise;
-use App\Services\Messagerie\DetecteurSpam;
-use App\Services\Messagerie\Intermediation;
+use App\Services\Messagerie\DepotDemande;
 use App\Support\Captcha;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\RateLimiter;
 
 class ContactController extends Controller
 {
-    public function __construct(
-        private readonly Intermediation $intermediation,
-        private readonly DetecteurSpam $spam,
-    ) {}
+    public function __construct(private readonly DepotDemande $depot) {}
 
     /**
      * Depot d'une demande : POST /intermediate_send.
@@ -39,40 +30,13 @@ class ContactController extends Controller
             return $this->echec(['us_dir' => ['Ce book n’est pas accessible.']]);
         }
 
-        $cle = 'demande:'.$request->ip();
-
-        if (RateLimiter::tooManyAttempts($cle, (int) config('messagerie.demandes_par_heure'))) {
+        if ($this->depot->limiteAtteinte($request->ip())) {
             return $this->echec([
                 'us_message' => ['Trop de demandes envoyées. Réessayez dans une heure.'],
             ]);
         }
 
-        RateLimiter::hit($cle, 3600);
-
-        $ouverture = $this->intermediation->ouvrir(
-            $destinataire,
-            $request->validated(),
-            $request->ip(),
-        );
-
-        $conversation = $ouverture['conversation'];
-
-        // La demande est enregistree dans tous les cas : un faux positif ne
-        // doit jamais faire disparaitre une commande. Seule la notification
-        // est retenue, pour ne pas relayer le spam par courriel.
-        if ($this->spam->estSuspecte($conversation->sender_email, $request->ip(), $conversation->messages->first()?->body ?? '')) {
-            $conversation->forceFill(['is_spam' => true])->save();
-
-            return $this->succes($request->validated()['action']);
-        }
-
-        Mail::to($destinataire->email)->send(
-            new DemandeRecue($conversation, $ouverture['liens'][Intermediation::PROPRIETAIRE])
-        );
-
-        Mail::to($conversation->sender_email)->send(
-            new DemandeTransmise($conversation, $ouverture['liens'][Intermediation::EMETTEUR])
-        );
+        $this->depot->deposer($destinataire, $request->validated(), $request->ip());
 
         return $this->succes($request->validated()['action']);
     }

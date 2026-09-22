@@ -41,6 +41,16 @@ return [
         // Cartes du portail.
         'front_desk' => ['largeur' => 250, 'hauteur' => 136, 'mode' => 'cover', 'legacy' => 'img_front_desk'],
         'front_mob' => ['largeur' => 140, 'hauteur' => 76, 'mode' => 'cover', 'legacy' => 'img_front_mob'],
+
+        /*
+         | Carres recadres des pages d'accueil de book. Le legacy les
+         | demandait a phpThumb avec leurs dimensions dans l'URL
+         | (`phpThumb.php?src=…&zc=1&w=368&h=368`) ; les gabarits n'en
+         | utilisent que ces trois, declarees ici par leur nom.
+         */
+        'carre_368' => ['largeur' => 368, 'hauteur' => 368, 'mode' => 'cover', 'legacy' => 'phpThumb zc=1'],
+        'carre_335' => ['largeur' => 335, 'hauteur' => 335, 'mode' => 'cover', 'legacy' => 'phpThumb zc=1'],
+        'carre_183' => ['largeur' => 183, 'hauteur' => 183, 'mode' => 'cover', 'legacy' => 'phpThumb zc=1'],
     ],
 
     /*
