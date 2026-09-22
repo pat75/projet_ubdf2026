@@ -7,16 +7,23 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Point d'arrivee apres connexion.
- *
- * L'espace creatif lui-meme est le sujet de la phase 5 ; cette page tient
- * la place pour que la connexion, l'inscription et la reinitialisation
- * aient une destination reelle des maintenant.
+ * Tableau de bord de l'espace creatif : destination de la connexion, de
+ * l'inscription et de la reinitialisation du mot de passe.
  */
 class EspaceController extends Controller
 {
     public function __invoke(Request $requete): View
     {
-        return view('front.espace', ['creatif' => $requete->user()]);
+        $creatif = $requete->user();
+
+        return view('espace.tableau', [
+            'creatif' => $creatif,
+            'chiffres' => [
+                __('Galeries') => $creatif->galleries()->count(),
+                __('Visuels') => $creatif->media()->count(),
+                __('Pages') => $creatif->articles()->count(),
+                __('Demandes reçues') => $creatif->conversations()->where('is_spam', false)->count(),
+            ],
+        ]);
     }
 }

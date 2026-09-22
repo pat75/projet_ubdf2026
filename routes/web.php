@@ -214,8 +214,8 @@ $portail = function () {
     /*
      | Comptes creatifs — les pages, celles-ci traduites.
      |
-     | `espace` est la destination de la connexion, de l'inscription et de
-     | la reinitialisation. Son contenu est le sujet de la phase 5.
+     | `espace` (tableau de bord de l'espace creatif) est la destination de
+     | la connexion, de l'inscription et de la reinitialisation.
      */
     Route::get('/espace', EspaceController::class)
         ->middleware('auth')->name('espace');
