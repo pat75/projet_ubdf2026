@@ -55,7 +55,6 @@
 							<a class="item" href="/accueil#bloc_ultrabook_href" >Derniers Ultra-book</a>
 
                             <a class="item" href="http://www.ultra-book.fr/ecoles/"><span class="fonticon-arrow-right icon"></span> Annuaire des écoles</a>
-                            <a class="item" href="https://www.ultra-book.fr/annonces/offres_locaux/"><span class="fonticon-arrow-right icon"></span>Locaux disponibles, coworking</a>
 
                             <a class="item" href="https://www.les-illustrateurs.com" title="Les Illustrateurs"><span class="fonticon-arrow-right icon"></span>Illustrateurs freelances</a>
                             <a class="item" href="/meilleurs-graphistes"><span class="fonticon-arrow-right icon"></span>Graphistes freelances</a>

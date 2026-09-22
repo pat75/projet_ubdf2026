@@ -171,6 +171,7 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
 
 ## Non repris
 
-- Offres de projets (`ubaction__offres__<id>`) : la page lisait en direct un
-  article du WordPress `www.ultra-book.fr/annonces` (site distinct). À
-  décider avec l'avenir de ce site ; rien à migrer ici.
+- WordPress `www.ultra-book.fr/annonces` (offres de projets, locaux et
+  coworking) : abandonné (décision du 22/09/2026). Ni les offres
+  (`ubaction__offres__<id>`) ni les liens du portail vers ces annonces ne
+  sont repris.

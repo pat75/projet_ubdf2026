@@ -577,16 +577,6 @@
                                 </div>
                             </a>
 
-                            <a class="item" href="https://www.ultra-book.fr/annonces/offres_locaux/">
-                                <div class="ui huge circular icon button">
-                                    <i class="icon building outline"></i>
-                                </div>
-                                <div class="middle aligned content">
-                                    <div class="header">Coworking <span class="et">&amp;</span> locaux</div>
-                                    <div class="description">Voir tous les annonces<span class="fonticon-arrow-right icon"></span></div>
-                                </div>
-                            </a>
-
 						
 
 
