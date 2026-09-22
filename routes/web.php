@@ -9,11 +9,13 @@ use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
+use App\Http\Controllers\Front\StatsBookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
 use App\Http\Controllers\Espace\PaiementController;
 use App\Http\Controllers\Espace\PdfController;
+use App\Http\Controllers\Espace\StatistiquesController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
@@ -60,6 +62,7 @@ Route::domain('{login}.'.$bookDomain)
          | legacy (un titre modifie ne casse pas le lien).
          */
         Route::get('/', [BookController::class, 'accueil'])->name('book.home');
+        Route::get('/ubstats.gif', StatsBookController::class)->name('book.stats');
         Route::get('/accueil', [BookController::class, 'accueil'])->name('book.accueil');
         Route::get('/portfolio', [BookController::class, 'portfolio'])->name('book.portfolio');
         Route::get('/news', [BookController::class, 'actualites'])->name('book.news');
@@ -245,6 +248,7 @@ $portail = function () {
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
         Route::view('/compte', 'espace.compte')->name('compte');
         Route::view('/messages', 'espace.messages')->name('messages');
+        Route::get('/statistiques', StatistiquesController::class)->name('statistiques');
         Route::get('/formule', [FormuleController::class, 'index'])->name('formule');
         Route::post('/formule/payer/{option}', [PaiementController::class, 'payer'])
             ->whereNumber('option')->middleware('throttle:10,1')->name('formule.payer');

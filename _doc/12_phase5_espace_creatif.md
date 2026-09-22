@@ -138,3 +138,18 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   legacy sont en clair dans `inc/inc_user_formule.php` : à régénérer.
 - Non repris : codes promo et offres ponctuelles (Black Friday, promo
   auto 6 mois).
+
+## 5h — Statistiques
+
+- Les gabarits des books appelaient un pixel sur `www.extra-book.com/2012_stats`
+  (serveur du legacy). Ils appellent maintenant `/ubstats.gif` sur le
+  sous-domaine du book (`StatsBookController`) : une vue par visiteur
+  (IP + navigateur) et par demi-heure, robots exclus, le propriétaire compté
+  à part (`admin_views`). Agrégat par jour dans `visit_stats`, dont
+  l'historique importé du legacy.
+- `/espace/statistiques` : aujourd'hui, 30 jours (histogramme), 12 mois,
+  total depuis l'ouverture.
+- Restent dans les gabarits : l'ancien Google Analytics (`ga.js`, UA-…,
+  service arrêté par Google) et l'adresse `stats.ultraportfolio.info` lue
+  par le JS d'administration intégré au book. Sans effet, à retirer avec
+  la reprise des scripts des thèmes.

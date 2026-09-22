@@ -273,15 +273,14 @@ $(document).ready(function(){
 </body>
 
 <?php 	
-// stats sur le serveur extra-book.com
+// stats : pixel de comptage interne (voir StatsBookController)
 //
-$stats_url =			'https://www.extra-book.com/2012_stats/st_action.php';
 $stats_action =			'add';
 $stats_st_champ =		'st_book';
 $stats_us_login =		$b->us_dir;
 $stats_st_cles = 		md5($book . 'pat75ub2012publique' );
 $stats_i = 				rand(0,9999);
-$stats_img = $stats_url.'?action='.$stats_action.'&st_champ='.$stats_st_champ.'&us_login='.$stats_us_login.'&st_cles='.$stats_st_cles.'&r='.$stats_i;
+$stats_img = '/ubstats.gif?r='.$stats_i;
 ?>								  	
 <img src="<?=$stats_img;?>" width="1" height="1" style="display:none"/>
 

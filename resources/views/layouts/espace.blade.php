@@ -24,6 +24,7 @@
             <x-espace.nav-lien route="espace.pages">{{ __('Pages') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.design">{{ __('Habillage') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.diffusion">{{ __('Diffusion') }}</x-espace.nav-lien>
+            <x-espace.nav-lien route="espace.statistiques">{{ __('Statistiques') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.messages">{{ __('Messages') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.compte">{{ __('Mon compte') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.formule">{{ __('Formule') }}</x-espace.nav-lien>
