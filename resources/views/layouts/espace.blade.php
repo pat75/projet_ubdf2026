@@ -8,7 +8,7 @@
     <script>
         try { if (localStorage.getItem('espace_dark') === '1') document.documentElement.classList.add('dark'); } catch (e) {}
     </script>
-    @vite(['resources/css/espace.css', 'resources/js/app.js'])
+    @vite(['resources/css/espace.css', 'resources/js/espace.js'])
     @livewireStyles
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">

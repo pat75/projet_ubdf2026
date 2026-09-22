@@ -80,4 +80,10 @@ return [
     */
     'pixels_max' => (int) env('IMAGES_PIXELS_MAX', 50_000_000),
 
+
+    /*
+    | Poids maximal d'un fichier envoye depuis l'espace creatif, en Ko. La
+    | source est ensuite bornee a 1980x3600 puis reencodee.
+    */
+    'envoi_ko_max' => (int) env('IMAGES_ENVOI_KO_MAX', 20480),
 ];

@@ -8,6 +8,7 @@ use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\EspaceController;
+use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
@@ -219,6 +220,12 @@ $portail = function () {
      */
     Route::get('/espace', EspaceController::class)
         ->middleware('auth')->name('espace');
+
+    Route::middleware('auth')->prefix('espace')->name('espace.')->group(function () {
+        Route::get('/galeries', [GalerieController::class, 'index'])->name('galeries');
+        Route::get('/galeries/{galerie}', [GalerieController::class, 'show'])
+            ->can('update', 'galerie')->name('galeries.show');
+    });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
         ->middleware('signed')->name('inscription.confirmer');

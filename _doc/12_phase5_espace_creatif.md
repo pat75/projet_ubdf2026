@@ -30,3 +30,17 @@ Les rubriques non livrées n'apparaissent pas dans le menu
 ## 5a — Socle
 
 Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
+
+## 5b — Galeries et visuels
+
+- `/espace/galeries` : créer, renommer (édition en place), masquer,
+  supprimer (la galerie et ses visuels), réordonner par glisser-déposer.
+- `/espace/galeries/{id}` : envoi multiple par dépôt ou sélection
+  (JPG/PNG/GIF, 20 Mo, 50 fichiers), titre et description, masquer,
+  supprimer, réordonner.
+- `DepotVisuel` borne la source à 1980x3600 (déclinaison `source`) et la
+  réencode : EXIF et contenu greffé disparaissent. Nom de fichier aléatoire.
+- L'ordre des visuels reste `galleries.media_order`, en identifiants legacy
+  pour les visuels repris : c'est ce que lit `ContexteBook::ordonner()`.
+- Accès : `GalleryPolicy` (le propriétaire seul), vérifiée par la route et
+  par chaque action Livewire.
