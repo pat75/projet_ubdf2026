@@ -12,6 +12,8 @@ use App\Models\Invoice;
 use App\Models\Media;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\PromoCode;
+use App\Models\Referral;
 use App\Models\VisitStat;
 use App\Support\LegacyPassword;
 use App\Support\LegacyText;
@@ -622,6 +624,59 @@ final class LegacyMigrator
         }
 
         $this->counts['visit_stats'] = $count;
+    }
+
+    /**
+     * Parrainages (ub2_parrainage) : `par_us_send` est le parrain,
+     * `par_us_id` le filleul. Seuls ceux dont les deux comptes sont repris.
+     */
+    public function migrateReferrals(LegacyUserResolver $resolver): void
+    {
+        $count = 0;
+
+        foreach ($this->legacyChunks('ub2_parrainage', 'par_us_send', $resolver->legacyIds()) as $row) {
+            $parrain = $resolver->fromLegacyId((int) $row->par_us_send);
+            $filleul = $resolver->fromLegacyId((int) $row->par_us_id);
+
+            if ($parrain === null || $filleul === null) {
+                continue;
+            }
+
+            Referral::updateOrCreate(['legacy_id' => $row->par_id], [
+                'sponsor_id' => $parrain,
+                'referred_id' => $filleul,
+                'status' => 'confirmed',
+                'confirmed_at' => $this->date($row->par_date),
+            ]);
+
+            $count++;
+        }
+
+        $this->counts['referrals'] = $count;
+    }
+
+    /**
+     * Codes promo (ub2_codepromo) : chacun credite un nombre de mois de
+     * formule, une seule fois. `discount` porte ce nombre de mois.
+     */
+    public function migratePromoCodes(): void
+    {
+        $count = 0;
+
+        foreach ($this->rows('ub2_codepromo') as $row) {
+            PromoCode::updateOrCreate(['legacy_id' => $row->pro_id], [
+                'code' => strtoupper(trim($row->pro_code)),
+                'discount' => (int) $row->pro_nbmois,
+                'discount_type' => PromoCode::MOIS,
+                'max_uses' => 1,
+                'uses' => $row->pro_etat === 'on' ? 0 : 1,
+                'is_active' => $row->pro_etat === 'on',
+            ]);
+
+            $count++;
+        }
+
+        $this->counts['promo_codes'] = $count;
     }
 
     // ---------------------------------------------------------------- outils

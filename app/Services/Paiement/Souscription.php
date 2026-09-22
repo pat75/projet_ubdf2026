@@ -4,7 +4,6 @@ namespace App\Services\Paiement;
 
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -97,7 +96,7 @@ class Souscription
                 return $existante;
             }
 
-            $this->prolonger($creatif, $option['mois']);
+            $creatif->prolongerFormule($option['mois']);
 
             $facture = $creatif->invoices()->create([
                 'brand' => $creatif->brand ?: 'ub',
@@ -117,25 +116,5 @@ class Souscription
 
             return $facture;
         });
-    }
-
-    /**
-     * Une formule encore active est prolongee a partir de son echeance ;
-     * sinon elle repart d'aujourd'hui. Le legacy repartait toujours
-     * d'aujourd'hui : un renouvellement anticipe perdait les mois restants.
-     */
-    private function prolonger(User $creatif, int $mois): void
-    {
-        $echeance = $creatif->plan && $creatif->plan_started_at && $creatif->plan_months
-            ? $creatif->plan_started_at->copy()->addMonths($creatif->plan_months)
-            : null;
-
-        if ($echeance && $echeance->isFuture()) {
-            $creatif->update(['plan_months' => $creatif->plan_months + $mois]);
-
-            return;
-        }
-
-        $creatif->update(['plan' => 1, 'plan_started_at' => Carbon::now(), 'plan_months' => $mois]);
     }
 }

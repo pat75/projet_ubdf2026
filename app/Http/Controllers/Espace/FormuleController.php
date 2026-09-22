@@ -15,9 +15,7 @@ class FormuleController extends Controller
     public function index(Request $request, Souscription $souscription): View
     {
         $creatif = $request->user();
-        $echeance = $creatif->plan && $creatif->plan_started_at && $creatif->plan_months
-            ? $creatif->plan_started_at->copy()->addMonths($creatif->plan_months)
-            : null;
+        $echeance = $creatif->echeanceFormule();
 
         return view('espace.formule', [
             'creatif' => $creatif,

@@ -47,6 +47,8 @@ class MigrateLegacyCommand extends Command
         $this->components->task('messagerie', fn () => $migrator->migrateMessaging($resolver));
         $this->components->task('factures', fn () => $migrator->migrateInvoices($resolver));
         $this->components->task('statistiques', fn () => $migrator->migrateStats($resolver));
+        $this->components->task('parrainages', fn () => $migrator->migrateReferrals($resolver));
+        $this->components->task('codes promo', fn () => $migrator->migratePromoCodes());
 
         $report = $migrator->counts();
 

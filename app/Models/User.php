@@ -100,6 +100,31 @@ class User extends Authenticatable
         return sha1($this->login.'|'.config('app.key'));
     }
 
+    /** Echeance de la formule payante, null en formule gratuite. */
+    public function echeanceFormule(): ?\Illuminate\Support\Carbon
+    {
+        return $this->plan && $this->plan_started_at && $this->plan_months
+            ? $this->plan_started_at->copy()->addMonths($this->plan_months)
+            : null;
+    }
+
+    /**
+     * Ajoute des mois de formule. Une formule encore active est prolongee a
+     * partir de son echeance ; sinon elle repart d'aujourd'hui. Le legacy
+     * repartait toujours d'aujourd'hui : un renouvellement anticipe perdait
+     * les mois restants.
+     */
+    public function prolongerFormule(int $mois): void
+    {
+        if ($this->echeanceFormule()?->isFuture()) {
+            $this->update(['plan_months' => $this->plan_months + $mois]);
+
+            return;
+        }
+
+        $this->update(['plan' => 1, 'plan_started_at' => now(), 'plan_months' => $mois]);
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

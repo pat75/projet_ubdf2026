@@ -153,3 +153,18 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   service arrêté par Google) et l'adresse `stats.ultraportfolio.info` lue
   par le JS d'administration intégré au book. Sans effet, à retirer avec
   la reprise des scripts des thèmes.
+
+## 5i — Parrainage et codes promo
+
+- Code de parrainage au format du legacy (« AR-46969 » : deux lettres du
+  login, identifiant legacy ; « N » devant l'identifiant pour les comptes
+  créés depuis). Parrain et filleul doivent avoir une formule payante ;
+  bonus de 1 mois (formule ≤ 6 mois) ou 3 mois, un seul parrainage par
+  filleul.
+- Codes promo du legacy (`ub2_codepromo`) : crédit de mois, usage unique.
+  Importés dans `promo_codes` (`discount_type = months`).
+- Saisie dans `/espace/formule` : 5 essais par heure.
+- `User::prolongerFormule()` est commun au paiement, au parrainage et aux
+  codes promo.
+- Import : `migrateReferrals`, `migratePromoCodes` ajoutés à
+  `ubdf:migrate-legacy`.

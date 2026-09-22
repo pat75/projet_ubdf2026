@@ -35,6 +35,8 @@
     </div>
     <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ __('Paiement sécurisé par Payplug. Une formule en cours est prolongée à partir de son échéance.') }}</p>
 
+    <livewire:espace.parrainage />
+
     <h2 class="mt-10 text-lg font-light">{{ __('Factures') }}</h2>
     <ul class="mt-3 max-w-xl divide-y divide-gray-200 rounded-lg bg-white shadow-sm dark:divide-gray-600 dark:bg-gray-800">
         @forelse ($factures as $f)
