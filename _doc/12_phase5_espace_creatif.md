@@ -168,3 +168,9 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   codes promo.
 - Import : `migrateReferrals`, `migratePromoCodes` ajoutés à
   `ubdf:migrate-legacy`.
+
+## Non repris
+
+- Offres de projets (`ubaction__offres__<id>`) : la page lisait en direct un
+  article du WordPress `www.ultra-book.fr/annonces` (site distinct). À
+  décider avec l'avenir de ce site ; rien à migrer ici.
