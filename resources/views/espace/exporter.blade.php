@@ -21,4 +21,10 @@
         </div>
         {!! $code !!}
     </div>
+
+    <h2 class="mt-12 text-lg font-light">{{ __('Book en PDF') }}</h2>
+    <p class="mt-1 max-w-xl text-sm text-gray-600 dark:text-gray-400">
+        {{ auth()->user()->plan ? __('Jusqu’à 80 pages, un visuel par page.') : __('Formule gratuite : 4 visuels. Jusqu’à 80 avec la formule.') }}
+    </p>
+    <a href="{{ route('espace.pdf') }}" target="_blank" class="mt-3 inline-block text-sm underline">{{ __('Télécharger le PDF') }}</a>
 @endsection

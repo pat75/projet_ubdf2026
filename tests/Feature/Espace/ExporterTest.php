@@ -28,3 +28,23 @@ it('donne le code d integration dans l espace', function () {
     $this->actingAs($this->creatif)->get(route('espace.exporter'))->assertOk()
         ->assertSee('microbook_0_1__microtest', false);
 });
+
+it('produit le PDF du book, limite a 4 visuels en formule gratuite', function () {
+    $dossier = storage_path('app/public/books/microtest');
+    Illuminate\Support\Facades\File::ensureDirectoryExists($dossier);
+    foreach (range(1, 12) as $i) {
+        imagepng(imagecreatetruecolor(40, 30), $dossier."/v{$i}.jpg");
+    }
+
+    $r = $this->actingAs($this->creatif)->get(route('espace.pdf'))->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf');
+
+    // Couverture + 4 visuels.
+    expect(preg_match_all('#/Type /Page\b#', $r->getContent()))->toBe(5);
+
+    Illuminate\Support\Facades\File::deleteDirectory($dossier);
+});
+
+it('refuse le PDF a un visiteur', function () {
+    $this->get(route('espace.pdf'))->assertRedirect();
+});

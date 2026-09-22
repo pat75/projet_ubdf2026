@@ -108,3 +108,14 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   ville, 10 visuels (1re galerie complétée par la 2e). 404 si le book est
   hors ligne. `frame-ancestors *` : intégrable partout.
 - `/espace/exporter` : code d'intégration à copier et aperçu.
+
+## 5f — PDF du book
+
+- `/espace/exporter/pdf` (propriétaire seul, 10 par minute) : FPDF,
+  pages carrées 210 mm, couverture puis un visuel centré par page, comme
+  `ultrabook_pdf_mdl_carre.php`. Limites du legacy : 4 galeries / 10
+  visuels / 4 pages en formule gratuite, 30 / 50 / 80 sinon.
+- Visuels réencodés en JPEG avant insertion (FPDF ne lit ni transparence
+  ni PNG 16 bits). Mesure : 80 visuels, 18 Mo, 3,7 s.
+- Différences : police Helvetica au lieu de Titillium ; plus de courriel
+  envoyé à l'administrateur à chaque PDF ; pas de vignette en couverture.

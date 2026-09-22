@@ -12,6 +12,7 @@ use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
+use App\Http\Controllers\Espace\PdfController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
@@ -241,6 +242,7 @@ $portail = function () {
         Route::view('/messages', 'espace.messages')->name('messages');
         Route::get('/formule', [FormuleController::class, 'index'])->name('formule');
         Route::view('/exporter', 'espace.exporter')->name('exporter');
+        Route::get('/exporter/pdf', PdfController::class)->middleware('throttle:10,1')->name('pdf');
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
     });
 
