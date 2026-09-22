@@ -27,6 +27,7 @@
             <x-espace.nav-lien route="espace.messages">{{ __('Messages') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.compte">{{ __('Mon compte') }}</x-espace.nav-lien>
             <x-espace.nav-lien route="espace.formule">{{ __('Formule') }}</x-espace.nav-lien>
+            <x-espace.nav-lien route="espace.exporter">{{ __('Exporter') }}</x-espace.nav-lien>
         </nav>
         <div class="flex items-center gap-3 px-4 pb-4">
             <a href="{{ auth()->user()->bookUrl() }}" class="text-sm text-gray-600 underline dark:text-gray-300" target="_blank" rel="noopener">{{ __('Voir mon book') }}</a>

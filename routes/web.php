@@ -8,6 +8,7 @@ use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\EspaceController;
+use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
@@ -159,6 +160,11 @@ Route::group([], function () {
      | du legacy, dont le segment de controle etait derive du jeton et ne
      | verifiait donc rien (voir la migration 2026_01_02_000200).
      */
+    // Microbook : URL du legacy, collee telle quelle dans des sites tiers.
+    Route::get('/microbook_{admin}_{pied}__{login}', MicrobookController::class)
+        ->where(['admin' => '[01]', 'pied' => '[01]', 'login' => '[a-z0-9_-]+'])
+        ->name('microbook');
+
     Route::post('/intermediate_send', [ContactController::class, 'envoyer'])
         ->name('contact.envoyer');
     Route::get('/captcha_img', [ContactController::class, 'captcha'])->name('captcha');
@@ -234,6 +240,7 @@ $portail = function () {
         Route::view('/compte', 'espace.compte')->name('compte');
         Route::view('/messages', 'espace.messages')->name('messages');
         Route::get('/formule', [FormuleController::class, 'index'])->name('formule');
+        Route::view('/exporter', 'espace.exporter')->name('exporter');
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
     });
 

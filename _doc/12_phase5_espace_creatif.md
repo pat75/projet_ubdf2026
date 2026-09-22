@@ -100,3 +100,11 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   (payplug, paypal, chèque, virement) déduit de la trace.
 - Non fait, décision à prendre : la souscription et le renouvellement en
   ligne (Payplug dans le legacy).
+
+## 5f — Export (microbook)
+
+- `/microbook_<admin>_<pied>__<login>` : URL du legacy conservée (collée
+  dans des sites tiers). Réécrit sans jQuery 1.7 : vignette, lien, métier,
+  ville, 10 visuels (1re galerie complétée par la 2e). 404 si le book est
+  hors ligne. `frame-ancestors *` : intégrable partout.
+- `/espace/exporter` : code d'intégration à copier et aperçu.
