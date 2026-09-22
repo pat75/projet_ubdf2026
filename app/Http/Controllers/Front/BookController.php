@@ -107,6 +107,20 @@ class BookController extends Controller
         $theme = config('book_themes.'.$contexte->modele_book);
 
         /*
+         | Book non diffuse sur le web : le legacy servait le gabarit
+         | `non_diffuse` a tout visiteur, sauf a son proprietaire connecte
+         | (action_book.php, l. 1210). Le proprietaire est ici l'utilisateur
+         | authentifie, et non plus un cookie que chacun pouvait poser.
+         */
+        if (! $book->bookSetting?->diffuse_web && auth()->id() !== $book->id) {
+            $contexte->url_mdl = $contexte->tpl_dir = 'non_diffuse';
+            $contexte->page_type = 'non_diffuse';
+            $contexte->chargerAccueil();
+
+            return response(Gabarit::rendre('non_diffuse/ultrabook_2014_type', $contexte));
+        }
+
+        /*
          | « patch mdl 2014 » (action_book.php, l. 440) : pour ces quatre
          | themes, /portfolio sans galerie designee rend l'accueil.
          */
@@ -114,12 +128,31 @@ class BookController extends Controller
             $type = $contexte->page_type = 'accueil';
         }
 
+        if ($theme['accueil'] === 'classique') {
+            match ($type) {
+                'accueil' => $contexte->classiqueAccueil(),
+                'portfolio' => $contexte->classiquePortfolio($rub),
+                'news' => $contexte->classiqueNews($rub, $pag),
+                'contact' => $this->preparerContact($contexte, $theme),
+            };
+
+            return response(Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
+        }
+
         match ($type) {
-            'accueil' => $theme['accueil'] === 'portfolio'
-                ? $contexte->pagePortfolio(0)
-                : $this->accueilDePages($contexte),
-            'portfolio' => $contexte->pagePortfolio($rub ?: $this->premiereRubrique($contexte->menu['ptf'])),
-            'news' => $contexte->pageNews($rub ?: $this->premiereRubrique($contexte->menu['act']), $pag),
+            'accueil' => match ($theme['accueil']) {
+                'portfolio' => $contexte->pagePortfolio(0),
+                // Pinter : les pages d'accueil puis tout le portfolio, en
+                // mosaique, sans nom de rubrique dans le titre.
+                'mosaique' => $this->accueilDePages($contexte)->pagePortfolio(0, titre: false),
+                default => $this->accueilDePages($contexte),
+            },
+            // Meme regle que pour les pages : rubrique 0, le gabarit choisit.
+            'portfolio' => $contexte->pagePortfolio($rub),
+            // Sans rubrique designee, le legacy passe 0 : c'est au gabarit de
+            // choisir la page (front_nav_2011 retient la premiere page de la
+            // derniere rubrique). Ne pas designer la premiere ici.
+            'news' => $contexte->pageNews($rub, $pag),
             'contact' => $this->preparerContact($contexte, $theme),
         };
 
@@ -144,13 +177,15 @@ class BookController extends Controller
      * mod_ptf_2012_accueil : les pages d'accueil (categorie 1). Le suffixe
      * du titre pour la formule gratuite est celui du legacy.
      */
-    private function accueilDePages(ContexteBook $contexte): void
+    private function accueilDePages(ContexteBook $contexte): ContexteBook
     {
         $contexte->chargerAccueil();
 
         if ($contexte->us_formule < 1) {
             $contexte->cont_page_titre .= ' : '.$contexte->inc_site_name;
         }
+
+        return $contexte;
     }
 
     /** Identifiant de la premiere rubrique d'une liste au format legacy. */

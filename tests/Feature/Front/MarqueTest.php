@@ -74,7 +74,7 @@ it('sert bien un book sur un sous-domaine ordinaire', function () {
     // Le motif d'exclusion ne doit pas mordre au-dela du mot reserve :
     // « dfx » reste un login valide.
     User::factory()->create(['login' => 'dfx'])
-        ->bookSetting()->create(['title' => 'Book de test']);
+        ->bookSetting()->create(['title' => 'Book de test', 'diffuse_web' => true]);
 
     $this->get(hote('dfx.ubdf2026.ultra-book.name'))
         ->assertOk()

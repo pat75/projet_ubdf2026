@@ -77,3 +77,18 @@ it('renvoie les erreurs dans la forme du formulaire d origine', function () {
         ->assertOk()
         ->assertJsonStructure(['errors']);
 });
+
+it('sert le gabarit non diffuse a un visiteur, le theme a son proprietaire', function () {
+    $this->book->bookSetting->update(['diffuse_web' => false]);
+
+    $this->get(urlBook())->assertOk()->assertSee('2012_web/non_diffuse', false)
+        ->assertDontSee('mdl_zoom.css', false);
+
+    $this->actingAs($this->book)->get(urlBook())->assertOk()->assertSee('mdl_zoom.css', false);
+});
+
+it('rend l accueil de Pinter en mosaique de tout le portfolio', function () {
+    $this->book->bookSetting->update(['theme' => 'mdl_2013_pinter']);
+
+    $this->get(urlBook())->assertOk()->assertSee('v1.jpg', false)->assertSee('fancybox', false);
+});

@@ -51,6 +51,9 @@ class ContexteBook
 
     public string $url_mdl;
 
+    /** Dossier des gabarits de Pinter, qui l'utilise au lieu de url_mdl. */
+    public string $tpl_dir = '';
+
     public string $page_type = 'accueil';
 
     public bool $connection_admin_book = false;
@@ -202,6 +205,7 @@ class ContexteBook
         $theme = $reglages?->theme;
         $this->modele_book = $theme && config("book_themes.{$theme}") ? $theme : 'mdl_2014_responsive';
         $this->url_mdl = config("book_themes.{$this->modele_book}.dossier", 'responsive');
+        $this->tpl_dir = $this->url_mdl;
 
         $formule = self::FORMULES[$this->us_formule];
         $this->us_formule_img_nb = $formule['img_nb'];
@@ -356,7 +360,7 @@ class ContexteBook
     }
 
     /** mod_ptf_2012_portfolio : la page portfolio, rubrique courante. */
-    public function pagePortfolio(int $rubId = 0): static
+    public function pagePortfolio(int $rubId = 0, bool $titre = true): static
     {
         $this->gal_cont['gal'] = $this->menu['ptf'];
         $this->gal_cont['img'][$rubId] = $this->menu['ptf']['img'][$rubId] ?? null;
@@ -368,11 +372,14 @@ class ContexteBook
          | a diverge depuis, et c'est elle qui fait foi (verifie sur quatre
          | books Zoom).
          */
-        $titre = $rubId === 0 ? '' : (collect($this->menu['ptf'])->filter(fn ($r, $k) => is_int($k))
+        $nom = $rubId === 0 ? '' : (collect($this->menu['ptf'])->filter(fn ($r, $k) => is_int($k))
             ->first(fn ($r) => $r['rub_id'] == $rubId)['rub_nom'] ?? '');
 
         $this->rub_id = $rubId;
-        $this->cont_page_titre .= ' Portfolio '.($titre === '' ? '' : ':'.$titre);
+
+        if ($titre) {
+            $this->cont_page_titre .= ' Portfolio '.($nom === '' ? '' : ':'.$nom);
+        }
 
         return $this;
     }
@@ -380,6 +387,7 @@ class ContexteBook
     /** mod_ptf_2012_news : une rubrique de pages, page courante. */
     public function pageNews(int $rubId = 0, int $pagId = 0): static
     {
+        $this->page_type = 'news';
         $this->gal_cont['gal'] = $this->menu['act'];
         $this->gal_cont['img'][$rubId] = $this->menu['act']['img'][$rubId] ?? null;
 
@@ -387,15 +395,109 @@ class ContexteBook
             $pagId = (int) ($this->gal_cont['img'][$rubId][0]['img_id'] ?? 0);
         }
 
-        $rubriques = collect($this->menu['act'])->filter(fn ($r, $k) => is_int($k));
-        $titre = $rubriques->first()['rub_nom'] ?? '';
-        $titre = $rubriques->first(fn ($r) => $r['rub_id'] == $rubId)['rub_nom'] ?? $titre;
-        foreach ($this->gal_cont['img'][$rubId] ?? [] as $page) {
-            if ($page['img_id'] == $pagId) {
-                $titre .= ' : '.$page['img_titre'];
+        /*
+         | Titre : rubrique puis page. Sans rubrique designee, la production
+         | n'ajoute rien (meme divergence que pour le portfolio, voir
+         | pagePortfolio).
+         */
+        $titre = '';
+        if ($rubId !== 0) {
+            $titre = collect($this->menu['act'])->filter(fn ($r, $k) => is_int($k))
+                ->first(fn ($r) => $r['rub_id'] == $rubId)['rub_nom'] ?? '';
+            foreach ($this->gal_cont['img'][$rubId] ?? [] as $page) {
+                if ($page['img_id'] == $pagId) {
+                    $titre .= ' : '.$page['img_titre'];
+                }
             }
         }
 
+        $this->rub_id = $rubId;
+        $this->pag_id = $pagId;
+        $this->cont_page_titre .= $titre;
+
+        return $this;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Theme classique 2010 — mod_classique_* (inc_user_book_modele.php)
+    |--------------------------------------------------------------------------
+    | Memes tables que les themes 2012+, autres structures : `gal_cont['gal']`
+    | est la seule liste des rubriques (sans cle `img`), `gal_cont['img']`
+    | est indexe par rubrique — ou aplati, pour l'accueil.
+    */
+
+    /** @return array{0: list<array>, 1: array<int, list<array>>} */
+    private function classique(array $rubriques): array
+    {
+        $liste = [];
+        $contenu = [];
+
+        foreach ($rubriques as $cle => $rubrique) {
+            if (is_int($cle)) {
+                $liste[] = $rubrique;
+                $contenu[$rubrique['rub_id']] = $rubriques['img'][$rubrique['rub_id']] ?? [];
+            }
+        }
+
+        return [$liste, $contenu];
+    }
+
+    public function classiqueAccueil(): static
+    {
+        [$liste, $contenu] = $this->classique($this->rubriquesDePages(BookSection::ACCUEIL));
+
+        $this->gal_cont['gal'] = $liste;
+        $this->gal_cont['img'] = isset($liste[0]) ? $contenu[$liste[0]['rub_id']] : null;
+        $this->cont_page_titre .= ' '.$this->inc_site_name;
+
+        return $this;
+    }
+
+    public function classiquePortfolio(int $rubId = 0): static
+    {
+        [$liste, $contenu] = $this->classique($this->menu['ptf']);
+
+        $this->gal_cont = ['gal' => $liste, 'img' => $contenu];
+        $titre = $liste[0]['rub_nom'] ?? '';
+        foreach ($liste as $r) {
+            if ($r['rub_id'] == $rubId) {
+                $titre = $r['rub_nom'];
+            }
+        }
+
+        $this->rub_id = $rubId;
+        $this->cont_page_titre .= ' Portfolio : '.$titre;
+
+        return $this;
+    }
+
+    public function classiqueNews(int $rubId = 0, int $pagId = 0): static
+    {
+        [$liste, $contenu] = $this->classique($this->menu['act']);
+
+        // Rubrique par defaut : la premiere, si ni rubrique ni page.
+        if ($rubId === 0 && $pagId === 0 && isset($liste[0])) {
+            $rubId = (int) $liste[0]['rub_id'];
+        }
+        if ($pagId === 0) {
+            $pagId = (int) ($contenu[$rubId][0]['img_id'] ?? 0);
+        }
+
+        $this->gal_cont = ['gal' => $liste, 'img' => $contenu];
+        $titre = $liste[0]['rub_nom'] ?? '';
+        foreach ($liste as $r) {
+            if ($r['rub_id'] == $rubId) {
+                $titre = $r['rub_nom'];
+            }
+        }
+        foreach ($contenu[$rubId] ?? [] as $p) {
+            if ($p['img_id'] == $pagId) {
+                $titre .= ' : '.$p['img_titre'];
+            }
+        }
+
+        $this->page_type = 'news';
         $this->rub_id = $rubId;
         $this->pag_id = $pagId;
         $this->cont_page_titre .= $titre;

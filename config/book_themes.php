@@ -12,7 +12,7 @@
 | - `gabarit` : point d'entree du theme (le `display()` du legacy) ;
 | - `accueil` : ce que montre la page d'accueil — `portfolio` (Zoom, 2020 :
 |   les galeries) ou `pages` (2012 a 2015 : les pages d'accueil,
-|   categorie 1). Voir inc/inc_user_book_modele.php, mdl_*_action() ;
+|   categorie 1), ou `mosaique` (Pinter : les deux). Voir inc/inc_user_book_modele.php, mdl_*_action() ;
 | - `portfolio_vers_accueil` : /portfolio sans galerie rend l'accueil ;
 | - `contact` : `page` quand le theme n'a pas de gabarit contact — le
 |   formulaire est alors presente comme une page de rubrique ;
@@ -68,7 +68,7 @@ return [
         'titre' => 'Modèle portfolio 2013-Pinter',
         'dossier' => 'pinter',
         'gabarit' => 'ultrabook_2012_type',
-        'accueil' => 'pages',
+        'accueil' => 'mosaique',
         'contact' => 'page',
         'portfolio_vers_accueil' => true,
         'assets' => 'pinter',

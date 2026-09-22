@@ -235,28 +235,51 @@ visuels).
   premiere rubrique ; son code a diverge de la copie locale. La production
   fait foi.
 
-### Etat au commit
+### Etat final du lot
 
 | Theme | Reference | Accueil | Portfolio | Pages | Contact |
 |---|---|---|---|---|---|
 | Zoom 2016 | ar-creation | 100 % | 100 % | 100 % | 100 % |
-| Grid 2015 | altcrea | 100 % | 100 % | 97 % | (1) |
-| Ultra-frais 2020 | arpsara | 100 % | 100 % | 100 % | 100 % |
-| Portfolio 2012 | annlaurs | 100 % | 100 % | 100 % | (1) |
+| Grid 2015 | altcrea | 100 % | 100 % | 100 % | (1) |
+| Classique 2015 | agenceelement | 99 % | 100 % | 100 % | (1) |
 | Responsive 2014 | audenguyenhuu | 100 % | 100 % | 100 % | (1) |
-| Classique 2010 | alainvilcocq | 95 % | 92 % | 96 % | 100 % |
-| Classique 2015 | alexandrelagneau | 92 % | **22 %** | 91 % | (1) |
-| Slide 2012 | gabrielleka | **50 %** | **50 %** | 62 % | (1) |
-| Pinter 2013 | anneloreparot | **5 %** | **5 %** | 46 % | (1) |
-| Ultra-zen 2020 | anneletuffe | **30 %** | **30 %** | 58 % | 99 % |
+| Pinter 2013 | anneloreparot | 100 % | 100 % | 83 % (2) | (1) |
+| Slide 2012 | gargouille | 100 % | 100 % | 100 % | (1) |
+| Portfolio 2012 | annlaurs | 100 % | 100 % | 100 % | (1) |
+| Ultra-frais 2020 | arpsara | 100 % | 100 % | 100 % | 100 % |
+| Ultra-zen 2020 | — (3) | | | | |
+| Classique 2010 | alainvilcocq | 100 % | 92 % (2) | 96 % (2) | 100 % |
 
 Pourcentages : similarite du squelette de balises avec la production.
 En gras, ce qui reste a traiter.
+
+(2) Ecart dû aux donnees : le createur a ajoute des visuels ou modifie
+une page depuis l'instantane `ub2020` (verifie en comptant dans
+l'instantane).
+
+(3) Le seul book Ultra-zen de l'echantillon est passe en formule payante
+depuis l'instantane : ses quotas different, la comparaison ne dit rien.
+Ultra-zen partage ses gabarits avec Ultra-frais, valide a 100 %.
 
 (1) **Ecart voulu.** Ces six themes prevoient une page contact dans leur
 aiguillage, mais le gabarit n'a jamais existe : en production, /contact y
 affiche une page vide. Le formulaire du book y est presente comme une page
 de rubrique, habillee par le gabarit « page » du theme.
+
+### Trois regles du legacy retrouvees en comparant
+
+- **Sans rubrique designee**, `/portfolio` et `/news` passent la rubrique 0
+  au gabarit, qui choisit lui-meme. `front_nav_2011` retient alors la
+  premiere page de la **derniere** rubrique (chaque rubrique ecrase la
+  precedente) : c'est ce que la production affiche.
+- **Pinter** enchaine pages d'accueil et portfolio complet en mosaique.
+- **Book non diffuse** : gabarit `non_diffuse` pour tout visiteur, sauf
+  son proprietaire connecte. Le legacy reconnaissait le proprietaire a un
+  cookie que chacun pouvait poser.
+
+Le quota de la formule gratuite (12 visuels par galerie, 3 rubriques) est
+bien applique en production : `ar-creation`, gratuit, montre 12 x 9 = 108
+visuels, a l'identique.
 
 ### Formulaire de contact du book
 
