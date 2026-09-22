@@ -75,3 +75,11 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
 - Pas repris : la barre de réglage visuelle intégrée au book
   (`ubdf_barrereglage`), et le choix des polices Google Fonts dans une liste
   (champ texte libre pour l'instant).
+
+## 5e — Compte
+
+- `/espace/compte` : métier, coordonnées, liens (http/https seulement).
+- Adresse e-mail et mot de passe : le mot de passe actuel est exigé ;
+  adresse unique ; session régénérée après changement de mot de passe.
+- Non fait : déconnexion des autres appareils (demanderait le middleware
+  `AuthenticateSession`), confirmation de la nouvelle adresse par e-mail.

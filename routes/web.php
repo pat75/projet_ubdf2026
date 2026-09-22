@@ -230,6 +230,7 @@ $portail = function () {
         Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
         Route::view('/habillage', 'espace.habillage')->name('design');
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
+        Route::view('/compte', 'espace.compte')->name('compte');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
