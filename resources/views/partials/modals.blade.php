@@ -122,6 +122,8 @@
                             </a>
                         </div>
 
+                        <x-dev.switch-marque />
+
                         <!-- bloc connexion-->
 						
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">

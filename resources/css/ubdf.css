@@ -33,3 +33,22 @@
 .video_header {
     background: #1b1b1b;
 }
+
+/* --- Elements de developpement --------------------------------------- */
+
+/*
+ * Tout interrupteur ou libelle visible uniquement en local ou en
+ * developpement porte la classe `dev_only` : un filet rouge le distingue
+ * au premier coup d'oeil de ce que verra la production.
+ */
+.dev_only {
+    outline: 2px solid #e02424 !important;
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+.dev_switch_marque a {
+    color: #e02424 !important;
+    padding: 0 6px;
+    white-space: nowrap;
+}
