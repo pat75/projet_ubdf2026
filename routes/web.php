@@ -9,6 +9,7 @@ use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Espace\GalerieController;
+use App\Http\Controllers\Espace\PageController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
@@ -225,6 +226,8 @@ $portail = function () {
         Route::get('/galeries', [GalerieController::class, 'index'])->name('galeries');
         Route::get('/galeries/{galerie}', [GalerieController::class, 'show'])
             ->can('update', 'galerie')->name('galeries.show');
+        Route::get('/pages', [PageController::class, 'index'])->name('pages');
+        Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])

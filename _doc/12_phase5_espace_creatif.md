@@ -44,3 +44,16 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   pour les visuels repris : c'est ce que lit `ContexteBook::ordonner()`.
 - Accès : `GalleryPolicy` (le propriétaire seul), vérifiée par la route et
   par chaque action Livewire.
+
+## 5c — Pages de texte
+
+- `/espace/pages` : rubriques (accueil, pages, actualités du classique 2010)
+  et leurs pages ; créer, renommer, masquer, supprimer, réordonner
+  (`page_order`, en identifiants legacy comme `media_order`).
+- `/espace/pages/{id}` : édition avec Trix. Pas de fichier joint dans
+  l'éditeur : les images passent par les galeries.
+- `NettoyeurHtml` (symfony/html-sanitizer) filtre le corps à
+  l'enregistrement : les gabarits l'affichent sans échappement.
+- Limite connue : Trix normalise le HTML qu'il charge. Une page reprise du
+  legacy (CKEditor : tableaux, polices, styles en ligne) perd cette mise en
+  forme au premier enregistrement depuis l'espace.
