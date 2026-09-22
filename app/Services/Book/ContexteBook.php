@@ -180,11 +180,11 @@ class ContexteBook
         $reglages = $book->bookSetting;
 
         $this->us_dir = $book->login;
-        $this->prenom = (string) $book->firstname;
-        $this->nom = (string) $book->lastname;
-        $this->us_type = $book->category?->name;
+        $this->prenom = self::texte($book->firstname);
+        $this->nom = self::texte($book->lastname);
+        $this->us_type = $book->category ? self::texte($book->category->name) : null;
         $this->us_formule = min(1, max(0, (int) $book->plan));
-        $this->us_ville = $book->city;
+        $this->us_ville = $book->city ? self::texte($book->city) : null;
         $this->us_http = $book->website ? preg_replace('#^https?://#', '', $book->website) : null;
         $this->us_facebook_url = $book->facebook_url;
         $this->us_twitter_url = $book->twitter_url;
@@ -259,7 +259,7 @@ class ContexteBook
     {
         $payload = $reglages?->legacy_payload ?? [];
 
-        $this->cont_book_titre = $reglages?->title;
+        $this->cont_book_titre = $reglages?->title !== null ? self::texte($reglages->title) : null;
         $this->cont_page_titre = ucfirst($this->prenom).' '.ucfirst($this->nom).' : ';
         if ($this->cont_book_titre) {
             $this->cont_page_titre = ucfirst($this->cont_book_titre);
@@ -597,7 +597,7 @@ class ContexteBook
     {
         return [
             'rub_id' => $r->legacy_id ?? $r->id,
-            'rub_nom' => $r instanceof Gallery ? $r->name : $r->title,
+            'rub_nom' => self::texte($r instanceof Gallery ? $r->name : $r->title),
             'rub_id_parent' => $r->parent?->legacy_id ?? $r->parent_id ?? 0,
             'rub_coul' => $r->color,
             'rub_link' => null,
@@ -611,10 +611,10 @@ class ContexteBook
         return self::ordonner($galerie->media->sortBy(fn ($m) => $m->legacy_id ?? $m->id)
             ->map(fn ($m) => [
                 'img_id' => $m->legacy_id ?? $m->id,
-                'img_titre' => (string) $m->title,
-                'img_titre_alt' => (string) $m->alt,
+                'img_titre' => self::texte($m->title),
+                'img_titre_alt' => self::texte($m->alt),
                 'img_fichier' => (string) $m->filename,
-                'img_desc' => (string) $m->description,
+                'img_desc' => self::texte($m->description),
                 'img_legende' => '',
                 'img_link' => (string) $m->link,
                 'img_html' => '',
@@ -626,7 +626,7 @@ class ContexteBook
         return self::ordonner($section->articles->sortBy(fn ($a) => $a->legacy_id ?? $a->id)
             ->map(fn ($a) => [
                 'img_id' => $a->legacy_id ?? $a->id,
-                'img_titre' => (string) $a->title,
+                'img_titre' => self::texte($a->title),
                 'img_titre_alt' => '',
                 'img_fichier' => (string) $a->image,
                 'img_desc' => '',
@@ -665,6 +665,24 @@ class ContexteBook
         ksort($resultat);
 
         return $resultat;
+    }
+
+    /**
+     * Texte brut destine a un gabarit qui l'affiche sans echappement.
+     *
+     * Le legacy stockait ces champs deja encodes en entites HTML (filtre()
+     * a la saisie), et ses gabarits les affichaient tels quels. Les donnees
+     * importees le sont encore : `double_encode = false` les laisse
+     * intactes, la sortie est identique. Mais un texte saisi demain dans
+     * l'espace creatif arrivera brut ; un `<` y est alors neutralise ici,
+     * plutot que dans 92 gabarits.
+     *
+     * Les champs HTML voulus (pages, blocs editables, pied de page) ne
+     * passent pas par la : ils relevent d'un filtrage a la saisie (phase 5).
+     */
+    public static function texte(?string $valeur): string
+    {
+        return htmlspecialchars((string) $valeur, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
     }
 
     /** Slug d'URL d'une rubrique ou d'une page, comme le legacy. */
