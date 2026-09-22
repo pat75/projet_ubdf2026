@@ -8,6 +8,7 @@ use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\EspaceController;
+use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
 use App\Http\Controllers\Front\FilController;
@@ -232,6 +233,8 @@ $portail = function () {
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
         Route::view('/compte', 'espace.compte')->name('compte');
         Route::view('/messages', 'espace.messages')->name('messages');
+        Route::get('/formule', [FormuleController::class, 'index'])->name('formule');
+        Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])

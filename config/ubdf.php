@@ -25,4 +25,15 @@ return [
      */
     'dev_users_sample' => (int) env('DEV_USERS_SAMPLE', 100),
 
+
+    /*
+    | Editeur, tel qu'il figure sur les factures (html_pages_v2018/tpl/
+    | ub_content_facture__*.tlp.php du legacy).
+    */
+    'editeur' => [
+        'raison_sociale' => 'POLYGUN',
+        'adresse' => "51 rue d'Hauteville\n75010 Paris",
+        'mentions' => 'SARL au capital de 1 000 EUR - SIRET 479 054 553 00017 - APE 722 C - R.C.S Paris B 479 054 553',
+        'tva_intra' => 'FR31479054553',
+    ],
 ];

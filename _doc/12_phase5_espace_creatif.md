@@ -83,3 +83,20 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   adresse unique ; session régénérée après changement de mot de passe.
 - Non fait : déconnexion des autres appareils (demanderait le middleware
   `AuthenticateSession`), confirmation de la nouvelle adresse par e-mail.
+
+## 5f — Messages, formule et factures
+
+- `/espace/messages` : demandes reçues (hors indésirables), lecture qui
+  marque lu, réponse depuis l'espace. L'émetteur est prévenu par le même
+  e-mail que depuis le lien du fil (`Intermediation::notifierAutrePartie`,
+  sorti de `FilController`).
+- `/espace/formule` : formule, échéance (`plan_started_at` + `plan_months`),
+  factures payées. `/espace/factures/{id}` : facture imprimable, reprise du
+  gabarit legacy ; l'éditeur est dans `config('ubdf.editeur')`.
+- Correction de l'import : `fac_stats` vaut 0 ou NULL sur toutes les lignes,
+  le legacy n'écrivant une facture qu'après paiement. Les factures étaient
+  toutes importées « pending » ; elles sont maintenant `paid` (sauf
+  annulation notée dans la trace), avec le vrai moyen de paiement
+  (payplug, paypal, chèque, virement) déduit de la trace.
+- Non fait, décision à prendre : la souscription et le renouvellement en
+  ligne (Payplug dans le legacy).

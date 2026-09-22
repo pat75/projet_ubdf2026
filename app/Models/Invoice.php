@@ -24,6 +24,12 @@ class Invoice extends Model
         ];
     }
 
+    /** Numero affiche, au format du legacy : UB-2020-7907. */
+    public function numero(): string
+    {
+        return strtoupper($this->brand ?: 'ub').'-'.$this->issued_at?->format('Y').'-'.($this->legacy_id ?? $this->id);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

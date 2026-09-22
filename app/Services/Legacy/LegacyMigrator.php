@@ -535,6 +535,32 @@ final class LegacyMigrator
         $this->counts['references_orphelines'] = $resolver->orphanCount();
     }
 
+    /**
+     * Le legacy n'ecrivait une facture qu'une fois le paiement recu :
+     * `fac_stats` vaut 0 ou NULL sur les 7 886 lignes et ne dit rien. Seule
+     * une annulation, notee a la main dans la trace de paiement, en fait
+     * une facture non due.
+     */
+    private function statutFacture(?string $trace): string
+    {
+        return str_starts_with(strtoupper(trim((string) $trace)), 'ANNULATI') ? 'cancelled' : 'paid';
+    }
+
+    /** Moyen de paiement, deduit de la trace brute (objet Payplug, IPN PayPal serialisee, note manuelle). */
+    private function moyenPaiement(?string $trace): ?string
+    {
+        $trace = strtolower(ltrim((string) $trace, '= '));
+
+        return match (true) {
+            $trace === '' => null,
+            str_starts_with($trace, 'payplug') => 'payplug',
+            str_starts_with($trace, 'a:'), str_starts_with($trace, 'paypal') => 'paypal',
+            str_starts_with($trace, 'cheque') => 'cheque',
+            str_starts_with($trace, 'virement') => 'virement',
+            default => 'autre',
+        };
+    }
+
     public function migrateInvoices(LegacyUserResolver $resolver): void
     {
         $count = 0;
@@ -557,11 +583,11 @@ final class LegacyMigrator
                         'designation' => LegacyText::clean($row->fac_designation),
                         'amount' => (float) $row->fac_total,
                         'vat' => (float) $row->fac_tva,
-                        'status' => (int) $row->fac_stats === 1 ? 'paid' : 'pending',
-                        'gateway' => $row->fac_paypaldata ? 'paypal' : null,
+                        'status' => $statut = $this->statutFacture($row->fac_paypaldata),
+                        'gateway' => $this->moyenPaiement($row->fac_paypaldata),
                         'gateway_payload' => $this->json($row->fac_paypaldata),
                         'issued_at' => $this->date($row->fac_date),
-                        'paid_at' => (int) $row->fac_stats === 1 ? $this->date($row->fac_date) : null,
+                        'paid_at' => $statut === 'paid' ? $this->date($row->fac_date) : null,
                     ],
                 );
 
