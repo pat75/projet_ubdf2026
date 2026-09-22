@@ -31,6 +31,9 @@ use Illuminate\Support\Str;
  */
 final class LegacyMigrator
 {
+    /** `ub2_gal_rub.rub_id_categorie` des rubriques qui portent des pages. */
+    private const KIND_RUBRIQUE = [1 => 'accueil', 3 => 'pages'];
+
     private Collection $categories;
 
     /** @var array<string, int> */
@@ -177,14 +180,49 @@ final class LegacyMigrator
         $this->counts['book_settings'] = $count;
     }
 
+    /**
+     * Rubriques des themes 2012 et suivants (`ub2_gal_rub`).
+     *
+     * `rub_id_categorie` en fait trois choses distinctes : 2 = galerie du
+     * portfolio, 1 = pages d'accueil, 3 = pages (bio, actualites). Seules
+     * les galeries portent des visuels ; les deux autres portent des pages
+     * de texte, reprises comme sections (voir migratePages).
+     */
     public function migrateGalleries(LegacyUserResolver $resolver): void
     {
         $count = 0;
+        $sections = 0;
 
         foreach ($this->legacyChunks('ub2_gal_rub', 'rub_id_us', $resolver->legacyIds()) as $row) {
             $userId = $resolver->fromLegacyId((int) $row->rub_id_us);
 
             if ($userId === null) {
+                continue;
+            }
+
+            $kind = self::KIND_RUBRIQUE[(int) $row->rub_id_categorie] ?? null;
+
+            if ($kind !== null) {
+                BookSection::updateOrCreate(
+                    ['legacy_source' => 'ub2_gal_rub', 'legacy_id' => $row->rub_id],
+                    [
+                        'user_id' => $userId,
+                        'kind' => $kind,
+                        'title' => LegacyText::clean($row->rub_nom) ?: 'Sans titre',
+                        'slug' => Str::slug(LegacyText::clean($row->rub_nom) ?? '') ?: null,
+                        'is_published' => $row->rub_publier === 'publie',
+                        'is_private' => false,
+                        'position' => max(0, (int) $row->rub_ordre_rub),
+                        'color' => $row->rub_coul ?: null,
+                        'page_order' => $this->orderList($row->rub_ordre_img),
+                    ],
+                );
+
+                // Un import anterieur l'avait prise pour une galerie.
+                Gallery::where('legacy_id', $row->rub_id)->delete();
+
+                $sections++;
+
                 continue;
             }
 
@@ -210,12 +248,15 @@ final class LegacyMigrator
         $this->linkGalleryParents($resolver);
 
         $this->counts['galleries'] = $count;
+        $this->counts['rubriques_de_pages'] = $sections;
     }
 
     public function migrateMedia(LegacyUserResolver $resolver): void
     {
         $galleries = Gallery::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        $sectionsDePages = BookSection::where('legacy_source', 'ub2_gal_rub')->pluck('id', 'legacy_id');
         $count = 0;
+        $pages = 0;
 
         $orphans = 0;
 
@@ -226,8 +267,34 @@ final class LegacyMigrator
                 continue;
             }
 
-            // 248 746 lignes de ub2_gal_img (23 %) n'ont aucun nom de fichier :
-            // enregistrements fantomes, sans visuel associe. On ne les reprend pas.
+            /*
+             | Une ligne d'une rubrique d'accueil ou de pages est une page de
+             | texte : son contenu est dans `img_html`, elle n'a pas de
+             | fichier. L'import initial la confondait avec un visuel
+             | fantome et l'ecartait.
+             */
+            if ($section = $sectionsDePages->get((int) $row->fk_rub_id)) {
+                BookArticle::updateOrCreate(
+                    ['legacy_source' => 'ub2_gal_img', 'legacy_id' => $row->img_id],
+                    [
+                        'user_id' => $userId,
+                        'book_section_id' => $section,
+                        'title' => LegacyText::clean($row->img_titre) ?: 'Sans titre',
+                        'slug' => Str::slug(LegacyText::clean($row->img_titre) ?? '') ?: null,
+                        'body' => LegacyText::clean($row->img_html),
+                        'image' => trim((string) $row->img_fichier) ?: null,
+                        'status' => $this->status($row->img_publier) === 'published' ? 'published' : 'draft',
+                        'published_at' => $this->date($row->img_date_crea),
+                    ],
+                );
+
+                $pages++;
+
+                continue;
+            }
+
+            // Les lignes restantes sans nom de fichier sont des enregistrements
+            // fantomes, sans visuel associe. On ne les reprend pas.
             if (trim((string) $row->img_fichier) === '') {
                 $orphans++;
 
@@ -255,6 +322,7 @@ final class LegacyMigrator
         }
 
         $this->counts['media'] = $count;
+        $this->counts['pages_de_texte'] = $pages;
         $this->counts['visuels_sans_fichier_ignores'] = $orphans;
     }
 
@@ -270,12 +338,18 @@ final class LegacyMigrator
             }
 
             BookSection::updateOrCreate(
-                ['legacy_id' => $row->id],
+                ['legacy_source' => 'bn_ultranews_rub', 'legacy_id' => $row->id],
                 [
                     'user_id' => $userId,
+                    'kind' => 'news',
                     'title' => LegacyText::clean($row->rub_titre) ?: 'Sans titre',
                     'slug' => Str::slug(LegacyText::clean($row->rub_titre) ?? '') ?: null,
-                    'in_home_selection' => $row->rub_pub === 'on',
+                    // `is_published` : le renommage de la phase 3
+                    // (us_affhome -> in_home_selection) avait atteint cette
+                    // ligne par erreur. BookSection n'a pas cette colonne ;
+                    // la valeur etait ignoree et toute rubrique reimportee
+                    // restait non publiee.
+                    'is_published' => $row->rub_pub === 'on',
                     'is_private' => $row->rub_type === 'prive',
                     'position' => max(0, (int) $row->rub_ord),
                     'color' => $row->rub_color ?: null,
@@ -292,7 +366,7 @@ final class LegacyMigrator
         $bodies = DB::connection('legacy')->table('bn_ultrabook_art_portefolio')
             ->pluck('art_texte', 'id_art');
 
-        $sectionIds = BookSection::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        $sectionIds = BookSection::where('legacy_source', 'bn_ultranews_rub')->pluck('id', 'legacy_id');
         $articles = 0;
 
         foreach ($this->legacyChunks('bn_ultranews_art', 'id_util', $resolver->legacyIds()) as $row) {
@@ -303,7 +377,7 @@ final class LegacyMigrator
             }
 
             BookArticle::updateOrCreate(
-                ['legacy_id' => $row->id],
+                ['legacy_source' => 'bn_ultranews_art', 'legacy_id' => $row->id],
                 [
                     'user_id' => $userId,
                     'book_section_id' => $sectionIds->get((int) $row->id_rub),
@@ -325,6 +399,45 @@ final class LegacyMigrator
 
         $this->counts['book_sections'] = $sections;
         $this->counts['book_articles'] = $articles;
+    }
+
+    /**
+     * Blocs de texte editables en place (`ub2_edit_txt`), par theme.
+     *
+     * Indexes par login et non par identifiant de compte. Le JSON est
+     * conserve tel quel : ses cles (`cont_menu_gauche2`…) sont celles que
+     * lisent les gabarits.
+     */
+    public function migrateThemeTexts(LegacyUserResolver $resolver): void
+    {
+        $logins = User::whereNotNull('legacy_id')->pluck('id', 'login')
+            ->mapWithKeys(fn ($id, $login) => [mb_strtolower($login) => $id]);
+
+        $textes = [];
+
+        DB::connection('legacy')->table('ub2_edit_txt')
+            ->whereIn('ed_us_login', $logins->keys())
+            ->orderBy('id')
+            ->each(function ($row) use (&$textes, $logins) {
+                $userId = $logins->get(mb_strtolower((string) $row->ed_us_login));
+                $blocs = json_decode((string) $row->ed_dom_txt, true);
+
+                if ($userId && is_array($blocs)) {
+                    // Les blocs sont stockes encodes en entites HTML ; le
+                    // legacy les decodait a l'affichage
+                    // (mod_ptf_2014_ed_champs_modif).
+                    $textes[$userId][$row->ed_mdl] = array_map(
+                        fn ($valeur) => is_string($valeur) ? html_entity_decode($valeur, ENT_QUOTES, 'UTF-8') : $valeur,
+                        $blocs,
+                    );
+                }
+            });
+
+        foreach ($textes as $userId => $parTheme) {
+            BookSetting::where('user_id', $userId)->update(['theme_texts' => json_encode($parTheme)]);
+        }
+
+        $this->counts['textes_de_theme'] = count($textes);
     }
 
     public function migrateMessaging(LegacyUserResolver $resolver): void
@@ -519,7 +632,7 @@ final class LegacyMigrator
 
     private function linkSectionParents(LegacyUserResolver $resolver): void
     {
-        $map = BookSection::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        $map = BookSection::where('legacy_source', 'bn_ultranews_rub')->pluck('id', 'legacy_id');
 
         DB::connection('legacy')->table('bn_ultranews_rub')
             ->whereIn('id', $map->keys())
@@ -527,7 +640,7 @@ final class LegacyMigrator
             ->orderBy('id')
             ->each(function ($row) use ($map) {
                 if ($parent = $map->get((int) $row->id_parent)) {
-                    BookSection::where('legacy_id', $row->id)->update(['parent_id' => $parent]);
+                    BookSection::where('legacy_source', 'bn_ultranews_rub')->where('legacy_id', $row->id)->update(['parent_id' => $parent]);
                 }
             });
     }

@@ -43,6 +43,7 @@ class MigrateLegacyCommand extends Command
         $this->components->task('rubriques', fn () => $migrator->migrateGalleries($resolver));
         $this->components->task('visuels', fn () => $migrator->migrateMedia($resolver));
         $this->components->task('pages et actualites', fn () => $migrator->migrateContent($resolver));
+        $this->components->task('textes de theme', fn () => $migrator->migrateThemeTexts($resolver));
         $this->components->task('messagerie', fn () => $migrator->migrateMessaging($resolver));
         $this->components->task('factures', fn () => $migrator->migrateInvoices($resolver));
         $this->components->task('statistiques', fn () => $migrator->migrateStats($resolver));

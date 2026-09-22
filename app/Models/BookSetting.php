@@ -9,7 +9,7 @@ class BookSetting extends Model
 {
     protected $fillable = [
         'legacy_id', 'user_id', 'title', 'description', 'description_mobile',
-        'experience', 'footer', 'theme', 'theme_settings', 'theme_home_image',
+        'experience', 'footer', 'theme', 'theme_settings', 'theme_texts', 'theme_home_image',
         'background_image', 'background_color', 'background_mode', 'is_centered',
         'thumbnail', 'bio_photo', 'keywords', 'custom_js', 'analytics_id',
         'diffuse_ub', 'diffuse_web', 'diffuse_newsletter', 'diffuse_availability',
@@ -20,6 +20,7 @@ class BookSetting extends Model
     {
         return [
             'theme_settings' => 'array',
+            'theme_texts' => 'array',
             'legacy_payload' => 'array',
             'is_centered' => 'boolean',
             'diffuse_ub' => 'boolean',

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BookArticle extends Model
 {
     protected $fillable = [
-        'legacy_id', 'user_id', 'book_section_id', 'title', 'slug', 'body',
+        'legacy_id', 'legacy_source', 'user_id', 'book_section_id', 'title', 'slug', 'body',
         'image', 'keywords', 'status', 'position', 'published_at',
     ];
 
