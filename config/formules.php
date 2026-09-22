@@ -20,7 +20,31 @@ return [
         3 => ['libelle' => 'Formule 12 mois, réabonnement', 'ttc' => 29.80, 'ht' => 24.83, 'mois' => 12, 'barre' => 36.80, 'reabonnement' => true],
         4 => ['libelle' => 'Pack Luxe 12 mois', 'ttc' => 118.00, 'ht' => 98.33, 'mois' => 12],
         5 => ['libelle' => 'Pack Site', 'ttc' => 428.00, 'ht' => 342.40, 'mois' => 12],
+
+        // Promotions : elles remplacent l'option indiquee quand elles
+        // s'appliquent (voir App\Services\Paiement\Promotions).
+        10 => ['libelle' => '6 mois, promotion du jour', 'ttc' => 11.90, 'ht' => 9.91, 'mois' => 6, 'barre' => 21.90,
+            'promo' => 'promo-auto-6mois', 'remplace' => [1]],
+        30 => ['libelle' => 'Formule 12 mois, Black Friday', 'ttc' => 22.00, 'ht' => 18.33, 'mois' => 12, 'barre' => 36.80,
+            'promo' => 'blackfriday', 'remplace' => [2, 3]],
     ],
+
+    /*
+    | Black Friday : debut (Europe/Paris) => duree en jours. Historique du
+    | legacy, suivi des deux annees suivantes sur le rythme de 2024 (lundi de
+    | la semaine precedente, 12 jours). A ajuster chaque annee.
+    */
+    'black_friday' => [
+        '2019-11-28' => 4, '2020-11-27' => 4, '2021-11-23' => 8, '2022-11-23' => 6,
+        '2023-11-16' => 11, '2024-11-18' => 12, '2025-11-17' => 12, '2026-11-16' => 12,
+    ],
+
+    /*
+    | Promo auto 6 mois (createurs n'ayant jamais paye) : premiere offre
+    | 2 mois apres l'inscription, puis tous les 3 mois ; chaque offre vaut
+    | 24 heures.
+    */
+    'promo_6_mois' => ['premiere_apres_mois' => 2, 'intervalle_mois' => 3, 'validite_heures' => 24],
 
     'payplug' => [
         // Cle secrete : sk_test_… en local, sk_live_… en production.

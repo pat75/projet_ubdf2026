@@ -23,6 +23,9 @@
         @foreach ($options as $numero => $o)
             <form method="post" action="{{ route('espace.formule.payer', $numero) }}" class="flex flex-col rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
                 @csrf
+                @isset($o['promo'])
+                    <span class="mb-1 w-fit rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}</span>
+                @endisset
                 <span class="font-medium">{{ __($o['libelle']) }}</span>
                 <span class="mt-2 text-2xl font-light">
                     {{ number_format($o['ttc'], 2, ',', ' ') }} €

@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Media;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\MarketingOffer;
 use App\Models\PromoCode;
 use App\Models\Referral;
 use App\Models\VisitStat;
@@ -677,6 +678,40 @@ final class LegacyMigrator
         }
 
         $this->counts['promo_codes'] = $count;
+    }
+
+    /**
+     * Derniere offre « promo auto 6 mois » de chaque createur (inc_marketing) :
+     * elle cale le rythme des offres suivantes. Les autres types (soldes,
+     * Black Friday) ne dependaient pas de l'historique.
+     */
+    public function migrateMarketingOffers(LegacyUserResolver $resolver): void
+    {
+        $count = 0;
+
+        $dernieres = DB::connection('legacy')->table('inc_marketing')
+            ->where('us_type', MarketingOffer::PROMO_6_MOIS)
+            ->whereIn('us_id', $resolver->legacyIds())
+            ->selectRaw('MAX(id) AS id, us_id, MAX(us_date) AS us_date')
+            ->groupBy('us_id')->get();
+
+        foreach ($dernieres as $row) {
+            $userId = $resolver->fromLegacyId((int) $row->us_id);
+
+            if ($userId === null || ! ($date = $this->date($row->us_date))) {
+                continue;
+            }
+
+            MarketingOffer::updateOrCreate(['legacy_id' => $row->id], [
+                'user_id' => $userId,
+                'type' => MarketingOffer::PROMO_6_MOIS,
+                'offered_at' => $date,
+            ]);
+
+            $count++;
+        }
+
+        $this->counts['marketing_offers'] = $count;
     }
 
     // ---------------------------------------------------------------- outils

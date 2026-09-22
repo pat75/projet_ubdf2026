@@ -13,21 +13,41 @@ use Illuminate\Support\Facades\Log;
  */
 class Souscription
 {
-    public function __construct(private readonly PasserellePayplug $payplug) {}
+    public function __construct(
+        private readonly PasserellePayplug $payplug,
+        private readonly Promotions $promotions,
+    ) {}
 
     /**
-     * Options proposees a ce createur : le reabonnement remplace le 12 mois
-     * des qu'une facture a ete payee.
+     * Options proposees a ce createur, dans l'ordre de la grille : le
+     * reabonnement remplace le 12 mois des qu'une facture a ete payee, et une
+     * promotion en cours remplace l'option qu'elle vise.
      *
      * @return array<int, array>
      */
     public function options(User $creatif): array
     {
+        $grille = collect(config('formules.options'));
         $dejaAbonne = $creatif->invoices()->where('status', 'paid')->exists();
 
-        return collect(config('formules.options'))
-            ->reject(fn ($o, $n) => $dejaAbonne ? $n === 2 : ! empty($o['reabonnement']))
-            ->all();
+        $actives = $grille->filter(fn ($o) => match ($o['promo'] ?? null) {
+            'blackfriday' => $this->promotions->blackFriday(),
+            'promo-auto-6mois' => $this->promotions->promo6Mois($creatif),
+            default => false,
+        });
+
+        $options = $grille
+            ->reject(fn ($o) => isset($o['promo']))
+            ->reject(fn ($o, $n) => $dejaAbonne ? $n === 2 : ! empty($o['reabonnement']));
+
+        $resultat = [];
+        foreach ($options as $n => $o) {
+            $promo = $actives->first(fn ($p) => in_array($n, $p['remplace'], true));
+            $cle = $promo ? $actives->search($promo) : $n;
+            $resultat[$cle] ??= $promo ?? $o;
+        }
+
+        return $resultat;
     }
 
     /** URL de la page de paiement Payplug. */

@@ -136,8 +136,6 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
 - À faire avant la mise en ligne : `PAYPLUG_SECRET_KEY` dans `.env`
   (clé de test en local), essai de bout en bout en sandbox. Les clés du
   legacy sont en clair dans `inc/inc_user_formule.php` : à régénérer.
-- Non repris : codes promo et offres ponctuelles (Black Friday, promo
-  auto 6 mois).
 
 ## 5h — Statistiques
 
@@ -175,3 +173,19 @@ Livewire installé, `layouts/espace`, menu, tableau de bord (`/espace`).
   coworking) : abandonné (décision du 22/09/2026). Ni les offres
   (`ubaction__offres__<id>`) ni les liens du portail vers ces annonces ne
   sont repris.
+
+## 5j — Promotions ponctuelles
+
+Reprise de `inc/inc_user_marketing.php` (`App\Services\Paiement\Promotions`) :
+
+- Black Friday (option 30, 12 mois à 22 € au lieu de 36,80 €) pour tous,
+  pendant les périodes de `formules.black_friday`. Prime sur le
+  réabonnement, comme dans le legacy. Périodes 2025 et 2026 déduites du
+  rythme de 2024 (lundi de la semaine précédente, 12 jours) : à confirmer.
+- Promo auto 6 mois (option 10, 11,90 € au lieu de 21,90 €) pour un
+  créateur qui n'a jamais payé : offre valable 24 h, 2 mois après
+  l'inscription puis tous les 3 mois, créée à l'ouverture de la page
+  formule. Historique : table `marketing_offers` ; la dernière offre de
+  chaque créateur est importée de `inc_marketing` pour garder le rythme.
+- Non repris : soldes ponctuelles (solde30/40/50, promo30), inactives dans
+  la configuration du legacy.
