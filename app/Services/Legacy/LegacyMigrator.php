@@ -16,7 +16,6 @@ use App\Models\VisitStat;
 use App\Support\LegacyPassword;
 use App\Support\LegacyText;
 use App\Support\MotsCles;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -142,8 +141,8 @@ final class LegacyMigrator
                     'experience' => LegacyText::clean($row->us_pf_experience),
                     'footer' => LegacyText::clean($row->us_pf_piedpage),
 
-                    'theme' => $themes[mb_strtolower((string) $row->us_pf_version_web)] ?? 'mdl_default',
-                    'theme_settings' => $this->themeSettings($row),
+                    'theme' => $theme = $themes[mb_strtolower(trim((string) $row->us_pf_version_web))] ?? 'mdl_2014_responsive',
+                    'theme_settings' => $this->themeSettings($row, $theme),
                     'theme_home_image' => $row->us_pf_ultra_zen_2020_visuel_accueil
                         ?: $row->us_pf_zoom2016_visuel_accueil
                         ?: $row->us_pf_grid2015_visuel_accueil
@@ -618,19 +617,19 @@ final class LegacyMigrator
     }
 
     /** Configuration du theme actif, extraite de la colonne du bon millesime. */
-    private function themeSettings(object $row): ?array
+    /**
+     * Configuration du theme **actif**.
+     *
+     * La version precedente retenait la premiere colonne non vide dans un
+     * ordre fixe : un createur passe de Zoom a Grid recuperait ses reglages
+     * Zoom, puisque le legacy conserve la configuration de chaque theme
+     * essaye. Seule compte celle du theme en cours.
+     */
+    private function themeSettings(object $row, string $theme): ?array
     {
-        foreach ([
-            'us_pf_conf2020_ultra_zen', 'us_pf_conf2016_zoom', 'us_pf_conf2015_grid',
-            'us_pf_conf2015_classique', 'us_pf_conf2014_responsive',
-            'us_pf_conf2013_pinter', 'us_pf_conf2012_slide', 'us_pf_conf2012',
-        ] as $column) {
-            if (! empty($row->{$column})) {
-                return $this->json($row->{$column});
-            }
-        }
+        $colonne = config('categories.legacy_theme_settings_column.'.$theme);
 
-        return null;
+        return $colonne && ! empty($row->{$colonne}) ? $this->json($row->{$colonne}) : null;
     }
 
     /** Toutes les configurations de themes, conservees sans perte. */
@@ -672,5 +671,4 @@ final class LegacyMigrator
 
         return trim(preg_replace('#^<strong[^>]*>.*?</strong><br/>\s*#s', '', $corps) ?? $corps);
     }
-
 }

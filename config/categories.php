@@ -23,33 +23,33 @@ return [
      */
     'list' => [
         ['slug' => 'illustrateur',          'name' => 'Illustrateur',          'name_plural' => 'illustrateurs',
-         'titre_bloc' => 'Illustration',           'freelance' => 'illustrateur',          'accueil' => 1],
+            'titre_bloc' => 'Illustration',           'freelance' => 'illustrateur',          'accueil' => 1],
         ['slug' => 'illustrateur-jeunesse', 'name' => 'Illustrateur jeunesse', 'name_plural' => 'illustrateurs jeunesse',
-         'titre_bloc' => 'Illustration jeunesse',  'freelance' => 'illustrateur jeunesse', 'accueil' => 2],
+            'titre_bloc' => 'Illustration jeunesse',  'freelance' => 'illustrateur jeunesse', 'accueil' => 2],
         ['slug' => 'graphiste',             'name' => 'Graphiste',             'name_plural' => 'graphistes',
-         'titre_bloc' => 'Graphisme',              'freelance' => 'graphiste',             'accueil' => 3],
+            'titre_bloc' => 'Graphisme',              'freelance' => 'graphiste',             'accueil' => 3],
         ['slug' => 'directeur-artistique',  'name' => 'Directeur artistique',  'name_plural' => 'directeurs artistiques',
-         'titre_bloc' => 'Direction artistique',   'freelance' => 'directeur artistique',  'accueil' => 4],
+            'titre_bloc' => 'Direction artistique',   'freelance' => 'directeur artistique',  'accueil' => 4],
         ['slug' => 'digital',               'name' => 'Webdesigner',           'name_plural' => 'webdesigners',
-         'titre_bloc' => 'Digital & développement', 'freelance' => 'digital',              'accueil' => 5],
+            'titre_bloc' => 'Digital & développement', 'freelance' => 'digital',              'accueil' => 5],
         ['slug' => 'plasticien',            'name' => 'Plasticien',            'name_plural' => 'plasticiens',
-         'titre_bloc' => 'Art',                    'freelance' => 'plasticien',            'accueil' => 6],
+            'titre_bloc' => 'Art',                    'freelance' => 'plasticien',            'accueil' => 6],
         ['slug' => 'photographe',           'name' => 'Photographe',           'name_plural' => 'photographes',
-         'titre_bloc' => 'Photographie',           'freelance' => 'photographe',           'accueil' => 7],
+            'titre_bloc' => 'Photographie',           'freelance' => 'photographe',           'accueil' => 7],
         ['slug' => 'design',                'name' => 'Designer',              'name_plural' => 'designers',
-         'titre_bloc' => 'Design objet',           'freelance' => 'designer objet',        'accueil' => 8],
+            'titre_bloc' => 'Design objet',           'freelance' => 'designer objet',        'accueil' => 8],
         ['slug' => 'architecte',            'name' => 'Architecte',            'name_plural' => 'architectes',
-         'titre_bloc' => 'Architecture',           'freelance' => 'architecte',            'accueil' => 9],
+            'titre_bloc' => 'Architecture',           'freelance' => 'architecte',            'accueil' => 9],
 
         // Presentes dans l'annuaire et par leur URL, absentes de l'accueil.
         ['slug' => 'styliste',              'name' => 'Styliste',              'name_plural' => 'stylistes',
-         'titre_bloc' => 'Stylisme',               'freelance' => 'styliste'],
+            'titre_bloc' => 'Stylisme',               'freelance' => 'styliste'],
         ['slug' => 'scenographe',           'name' => 'Scenographe',           'name_plural' => 'scenographes',
-         'titre_bloc' => 'Scenographie',           'freelance' => 'scenographe'],
+            'titre_bloc' => 'Scenographie',           'freelance' => 'scenographe'],
         ['slug' => 'modele',                'name' => 'Modele',                'name_plural' => 'modeles',
-         'titre_bloc' => 'Modele',                 'freelance' => 'modele'],
+            'titre_bloc' => 'Modele',                 'freelance' => 'modele'],
         ['slug' => 'autre',                 'name' => 'Autre',                 'name_plural' => 'autres',
-         'titre_bloc' => 'Autre',                  'freelance' => 'creatif'],
+            'titre_bloc' => 'Autre',                  'freelance' => 'creatif'],
     ],
 
     /*
@@ -107,9 +107,25 @@ return [
      * inc_user_pref.us_pf_version_web : meme principe de normalisation.
      */
     'legacy_theme_map' => [
-        '' => 'mdl_default',
-        'mdl_default' => 'mdl_default',
-        'modèle classique' => 'mdl_2015_classique',
+        /*
+         | `mdl_default` et la valeur vide ne designent pas un theme : le
+         | legacy les convertit en « Modele portfolio 2014-Responsive » au
+         | moment de l'affichage (2011_front/action_book.php, ligne 381).
+         | La conversion est faite ici, a l'import.
+         */
+        '' => 'mdl_2014_responsive',
+        'mdl_default' => 'mdl_2014_responsive',
+
+        /*
+         | « Modele classique » est le theme de 2010, rendu par
+         | `ultrabook_type.tlp.php`. Il etait mappe par erreur sur
+         | `mdl_2015_classique`, un gabarit different : 5 295 comptes
+         | actifs en production auraient change d'apparence.
+         */
+        'modèle classique' => 'mdl_classique',
+        'mdl_classique' => 'mdl_classique',
+        'modelo clásico' => 'mdl_classique',
+
         'mdl_2015_classique' => 'mdl_2015_classique',
         'mdl_2015_grid' => 'mdl_2015_grid',
         'mdl_2016_zoom' => 'mdl_2016_zoom',
@@ -118,14 +134,29 @@ return [
         'modèle portfolio 2012' => 'mdl_2012',
         'modèle portfolio 2012-slide' => 'mdl_2012_slide',
         'modèle portfolio 2013-pinter' => 'mdl_2013_pinter',
+        'portfolio model 2013-pinter' => 'mdl_2013_pinter',
         'mdl_2020_ultra_frais' => 'mdl_2020_ultra_frais',
         'mdl_2020_ultra_zen' => 'mdl_2020_ultra_zen',
         'mdl_2012' => 'mdl_2012',
         'mdl_2012_slide' => 'mdl_2012_slide',
         'mdl_2013_pinter' => 'mdl_2013_pinter',
-        'mdl_classique' => 'mdl_2015_classique',
-        'modelo clásico' => 'mdl_2015_classique',
-        'portfolio model 2013-pinter' => 'mdl_2013_pinter',
+    ],
+
+    /*
+     | Colonne de configuration JSON propre a chaque theme, dans
+     | `inc_user_pref` (le `pref_name_mysql` de conf/conf_mdl_book.php).
+     | Les deux themes 2020 partagent la meme.
+     */
+    'legacy_theme_settings_column' => [
+        'mdl_2020_ultra_zen' => 'us_pf_conf2020_ultra_zen',
+        'mdl_2020_ultra_frais' => 'us_pf_conf2020_ultra_zen',
+        'mdl_2016_zoom' => 'us_pf_conf2016_zoom',
+        'mdl_2015_grid' => 'us_pf_conf2015_grid',
+        'mdl_2015_classique' => 'us_pf_conf2015_classique',
+        'mdl_2014_responsive' => 'us_pf_conf2014_responsive',
+        'mdl_2013_pinter' => 'us_pf_conf2013_pinter',
+        'mdl_2012_slide' => 'us_pf_conf2012_slide',
+        'mdl_2012' => 'us_pf_conf2012',
     ],
 
 ];

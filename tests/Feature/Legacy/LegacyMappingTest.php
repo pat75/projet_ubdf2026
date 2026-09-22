@@ -54,6 +54,23 @@ it('mappe toutes les valeurs de theme vers un modele connu', function () {
     expect($unmapped)->toBeEmpty();
 });
 
+it('distingue le classique de 2010 du classique 2015', function () {
+    // Le legacy rend « Modele classique » avec ultrabook_type.tlp.php, le
+    // theme de 2010, et `mdl_2015_classique` avec classique2015/. Les
+    // confondre changeait l'apparence de 5 295 books actifs.
+    $map = config('categories.legacy_theme_map');
+
+    expect($map['modèle classique'])->toBe('mdl_classique')
+        ->and($map['mdl_classique'])->toBe('mdl_classique')
+        ->and($map['mdl_2015_classique'])->toBe('mdl_2015_classique');
+});
+
+it('convertit le theme par defaut comme le legacy a l affichage', function () {
+    // 2011_front/action_book.php : mdl_default et vide deviennent 2014-Responsive.
+    expect(config('categories.legacy_theme_map.mdl_default'))->toBe('mdl_2014_responsive')
+        ->and(config('categories.legacy_theme_map')[''])->toBe('mdl_2014_responsive');
+});
+
 it('ne referme aucun slug de legacy_map hors des categories declarees', function () {
     $slugs = collect(config('categories.list'))->pluck('slug');
 
