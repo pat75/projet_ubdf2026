@@ -102,25 +102,64 @@
         {{ $creatif->plan ? __('Prolonger ma formule') : __('Passer à la formule :marque', ['marque' => $marque->nom]) }}
     </h2>
 
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {{--
+     | Trois cartes, et trois seulement : la gratuite, le six mois et le
+     | douze mois. Le Pack Luxe et le Pack Site ne se vendent plus en
+     | ligne — ils sont ecartes dans la grille, pas ici.
+     |
+     | La carte de gauche n'est pas une offre a payer : elle rappelle ce
+     | dont dispose un compte gratuit, et sert de point de comparaison aux
+     | deux autres. Elle est donc en `div`, pas en `form`.
+    --}}
+    @php($limites = config('formules.limites'))
+
+    <div class="mt-5 grid items-stretch gap-4 md:grid-cols-3">
+
+        <div class="flex flex-col rounded-ub-carte border border-ub-bord-carte bg-white p-6">
+            <span class="text-[15px] font-semibold">{{ __('Formule gratuite') }}</span>
+
+            <span class="mt-3 text-[32px] font-light leading-none">0 €</span>
+            <span class="mt-1 text-[13px] text-ub-texte3">{{ __('sans limite de durée') }}</span>
+
+            <ul class="mt-5 space-y-1.5 text-[14px] text-ub-texte2">
+                <li>{{ __(':n visuels', ['n' => $limites['gratuite']['visuels']]) }}</li>
+                <li>{{ __(':n pages', ['n' => $limites['gratuite']['pages']]) }}</li>
+                <li>{{ __(':n Mo d’espace', ['n' => round($limites['gratuite']['poids_ko'] / 1000)]) }}</li>
+            </ul>
+
+            <span class="mt-auto pt-6 text-[14px] text-ub-texte3">
+                {{ $creatif->plan ? __('Votre formule précédente') : __('Votre formule actuelle') }}
+            </span>
+        </div>
+
         @foreach ($options as $numero => $o)
             <form method="post" action="{{ route(nom_route('espace.formule.payer'), $numero) }}"
-                  class="flex flex-col rounded-ub border border-ub-gris-clair bg-white p-5">
+                  class="flex flex-col rounded-ub-carte border-2 border-ub-accent bg-white p-6">
                 @csrf
                 @isset($o['promo'])
-                    <span class="mb-2 w-fit rounded-full bg-ub-rouge px-2 py-0.5 text-[11px] text-white">{{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}</span>
+                    <span class="mb-2 w-fit rounded-full bg-ub-rouge px-2.5 py-0.5 text-[11px] font-semibold text-white">{{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}</span>
                 @endisset
 
-                <span class="font-medium">{{ __($o['libelle']) }}</span>
+                <span class="text-[15px] font-semibold">{{ __($o['libelle']) }}</span>
 
-                <span class="mt-2 font-titre text-[26px] font-light">
-                    {{ number_format($o['ttc'], 2, ',', ' ') }} €
-                    @isset($o['barre']) <s class="text-[14px] text-ub-gris-moyen">{{ number_format($o['barre'], 2, ',', ' ') }} €</s> @endisset
+                <span class="mt-3 flex items-baseline gap-2">
+                    <span class="text-[32px] font-light leading-none text-ub-accent-texte">{{ number_format($o['ttc'], 2, ',', ' ') }} €</span>
+                    @isset($o['barre']) <s class="text-[15px] text-ub-texte4">{{ number_format($o['barre'], 2, ',', ' ') }} €</s> @endisset
                 </span>
 
-                <span class="text-[12px] text-ub-gris-fonce">{{ __(':n mois, TTC', ['n' => $o['mois']]) }}</span>
+                <span class="mt-1 text-[13px] text-ub-texte3">{{ __(':n mois, TTC', ['n' => $o['mois']]) }}</span>
 
-                <div class="mt-4"><x-espace.bouton>{{ __('Payer par carte') }}</x-espace.bouton></div>
+                <ul class="mt-5 space-y-1.5 text-[14px] text-ub-texte2">
+                    <li>{{ __(':n visuels', ['n' => $limites['payante']['visuels']]) }}</li>
+                    <li>{{ __('pages illimitées') }}</li>
+                    <li>{{ __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]) }}</li>
+                </ul>
+
+                <div class="mt-auto pt-6">
+                    <button type="submit" class="w-full rounded-ub bg-ub-accent px-4 py-2.5 text-[15px] font-semibold text-white hover:bg-ub-accent-fonce">
+                        {{ __('Payer par carte') }}
+                    </button>
+                </div>
             </form>
         @endforeach
     </div>

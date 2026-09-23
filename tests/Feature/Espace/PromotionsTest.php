@@ -17,7 +17,7 @@ it('propose le Black Friday a la place du 12 mois pendant la periode', function 
     Carbon::setTestNow('2026-11-20 10:00:00');
     $u = User::factory()->create(['created_at' => now()->subWeek()]);
 
-    expect(array_keys(options($u)))->toBe([1, 30, 4, 5])
+    expect(array_keys(options($u)))->toBe([1, 30])
         ->and(options($u)[30]['ttc'])->toBe(22.00);
 });
 
@@ -26,23 +26,23 @@ it('fait primer le Black Friday sur le reabonnement', function () {
     $u = User::factory()->create();
     $u->invoices()->create(['number' => 'x', 'brand' => 'ub', 'amount' => 1, 'vat' => 0, 'status' => 'paid', 'issued_at' => now()->subYear()]);
 
-    expect(array_keys(options($u)))->toBe([1, 30, 4, 5]);
+    expect(array_keys(options($u)))->toBe([1, 30]);
 });
 
 it('revient aux prix normaux hors periode', function () {
     Carbon::setTestNow('2026-12-15 10:00:00');
     $u = User::factory()->create(['created_at' => now()->subWeek()]);
 
-    expect(array_keys(options($u)))->toBe([1, 2, 4, 5]);
+    expect(array_keys(options($u)))->toBe([1, 2]);
 });
 
 it('offre la promo 6 mois 2 mois apres l inscription, 24 h durant, puis tous les 3 mois', function () {
     Carbon::setTestNow('2026-03-01 09:00:00');
     $u = User::factory()->create(['created_at' => '2026-01-15 00:00:00']);
-    expect(array_keys(options($u)))->toBe([1, 2, 4, 5]);
+    expect(array_keys(options($u)))->toBe([1, 2]);
 
     Carbon::setTestNow('2026-03-16 09:00:00');
-    expect(array_keys(options($u)))->toBe([10, 2, 4, 5])
+    expect(array_keys(options($u)))->toBe([10, 2])
         ->and(MarketingOffer::where('user_id', $u->id)->count())->toBe(1);
 
     Carbon::setTestNow('2026-03-17 08:00:00');
@@ -61,7 +61,7 @@ it('ne propose pas la promo 6 mois a qui a deja paye', function () {
     $u = User::factory()->create(['created_at' => '2025-01-01']);
     $u->invoices()->create(['number' => 'x', 'brand' => 'ub', 'amount' => 1, 'vat' => 0, 'status' => 'paid', 'issued_at' => '2025-02-01']);
 
-    expect(array_keys(options($u)))->toBe([1, 3, 4, 5]);
+    expect(array_keys(options($u)))->toBe([1, 3]);
 });
 
 it('encaisse la promo au prix promotionnel', function () {

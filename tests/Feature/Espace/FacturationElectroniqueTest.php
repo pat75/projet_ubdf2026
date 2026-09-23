@@ -163,3 +163,30 @@ it('affiche les informations relevees sur la fiche', function () {
         ->assertSee('FR03552081317')
         ->assertSee('Société anonyme (SA)');
 });
+
+/*
+ | Envoi automatique : il n'y a pas de bouton « Vérifier ». Le numero part
+ | des qu'il est complet et que sa cle est bonne.
+ */
+
+it('interroge l annuaire des que le SIRET saisi est valide', function () {
+    Http::fake(['recherche-entreprises.api.gouv.fr/*' => Http::response(reponseAnnuaire())]);
+
+    Livewire::actingAs($this->creatif)->test(Compte::class)
+        ->call('basculerProfessionnel')
+        ->set('siret', '552 081 317 66522')
+        ->assertSet('erreurSiret', null);
+
+    expect(BillingProfile::where('user_id', $this->creatif->id)->exists())->toBeTrue();
+});
+
+it('ne dit rien et n appelle personne tant que la saisie est incomplete', function () {
+    Http::fake();
+
+    Livewire::actingAs($this->creatif)->test(Compte::class)
+        ->call('basculerProfessionnel')
+        ->set('siret', '552 081')
+        ->assertSet('erreurSiret', null);
+
+    Http::assertNothingSent();
+});

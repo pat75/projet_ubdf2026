@@ -183,6 +183,32 @@ class Compte extends Component
         }
     }
 
+    /*
+     | Le numero part tout seul des que la saisie tient debout : quatorze
+     | chiffres et la cle de Luhn juste. Tant qu'elle ne l'est pas — une
+     | frappe en cours, une faute — on ne dit rien et on n'appelle pas
+     | l'annuaire. Le message d'erreur reste reserve a un numero complet
+     | mais faux, sinon il clignoterait a chaque caractere.
+     */
+    public function updatedSiret(string $valeur): void
+    {
+        $annuaire = app(AnnuaireEntreprises::class);
+        $normalise = $annuaire->normaliser($valeur);
+
+        $this->erreurSiret = null;
+
+        if (strlen($normalise) < 14) {
+            return;
+        }
+
+        // Deja releve : inutile de redemander a chaque retour sur le champ.
+        if (Auth::user()->billingProfile()->where('siret', $normalise)->exists()) {
+            return;
+        }
+
+        $this->verifierSiret($annuaire);
+    }
+
     public function verifierSiret(AnnuaireEntreprises $annuaire): void
     {
         $this->erreurSiret = null;

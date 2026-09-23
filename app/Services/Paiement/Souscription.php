@@ -38,6 +38,7 @@ class Souscription
 
         $options = $grille
             ->reject(fn ($o) => isset($o['promo']))
+            ->reject(fn ($o) => ($o['en_ligne'] ?? true) === false)
             ->reject(fn ($o, $n) => $dejaAbonne ? $n === 2 : ! empty($o['reabonnement']));
 
         $resultat = [];

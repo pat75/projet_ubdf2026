@@ -62,3 +62,23 @@ it('ignore un montant qui ne correspond pas a l option', function () {
 
     expect($this->creatif->fresh()->plan)->toBe(0)->and($this->creatif->invoices()->count())->toBe(0);
 });
+
+/*
+ | Le Pack Luxe et le Pack Site se traitent de gre a gre : ils restent
+ | dans la grille pour les paiements passes, mais ne se choisissent plus.
+ */
+it('ne propose plus le Pack Luxe ni le Pack Site', function () {
+    $creatif = User::factory()->create();
+
+    $options = app(App\Services\Paiement\Souscription::class)->options($creatif);
+
+    expect(array_keys($options))->not->toContain(4)->not->toContain(5)
+        // Il ne reste que le six mois et le douze mois.
+        ->and(count($options))->toBe(2);
+
+    $this->actingAs($creatif)->get(route('espace.formule'))
+        ->assertOk()
+        ->assertSee('Formule gratuite')
+        ->assertDontSee('Pack Luxe')
+        ->assertDontSee('Pack Site');
+});

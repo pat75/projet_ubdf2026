@@ -148,14 +148,14 @@
             <div class="mt-5 border-t border-ub-filet pt-5">
                 <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2 sm:max-w-md">
                     {{ __('Numéro SIRET') }}
-                    <span class="flex gap-2">
-                        <input type="text" wire:model="siret" wire:keydown.enter.prevent="verifierSiret"
-                               inputmode="numeric" placeholder="552 081 317 66522" class="champ-espace">
-                        <button type="button" wire:click="verifierSiret" wire:target="verifierSiret" wire:loading.attr="disabled"
-                                class="shrink-0 rounded-ub bg-ub-accent px-4 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce disabled:opacity-60">
-                            <span wire:loading.remove wire:target="verifierSiret">{{ __('Vérifier') }}</span>
-                            <span wire:loading wire:target="verifierSiret">{{ __('Recherche…') }}</span>
-                        </button>
+                    {{-- Pas de bouton : le numero part des qu'il est complet
+                         et que sa cle est bonne. La demi-seconde de repit
+                         evite d'appeler l'annuaire a chaque frappe. --}}
+                    <span class="relative block sm:max-w-md">
+                        <input type="text" wire:model.live.debounce.500ms="siret"
+                               inputmode="numeric" placeholder="552 081 317 66522" class="champ-espace pr-28">
+                        <span wire:loading wire:target="siret,verifierSiret"
+                              class="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-ub-texte3">{{ __('Recherche…') }}</span>
                     </span>
                 </label>
 

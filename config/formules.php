@@ -18,8 +18,14 @@ return [
         1 => ['libelle' => 'Formule 6 mois', 'ttc' => 21.90, 'ht' => 18.25, 'mois' => 6],
         2 => ['libelle' => 'Formule 12 mois', 'ttc' => 36.80, 'ht' => 30.67, 'mois' => 12, 'barre' => 43.80],
         3 => ['libelle' => 'Formule 12 mois, réabonnement', 'ttc' => 29.80, 'ht' => 24.83, 'mois' => 12, 'barre' => 36.80, 'reabonnement' => true],
-        4 => ['libelle' => 'Pack Luxe 12 mois', 'ttc' => 118.00, 'ht' => 98.33, 'mois' => 12],
-        5 => ['libelle' => 'Pack Site', 'ttc' => 428.00, 'ht' => 342.40, 'mois' => 12],
+        /*
+         | Le Pack Luxe et le Pack Site ne sont plus proposes en ligne : ils
+         | se traitent de gre a gre. Ils restent dans la grille parce que
+         | des paiements passes y renvoient par leur numero d'option —
+         | `en_ligne` les ecarte du choix sans les effacer.
+         */
+        4 => ['libelle' => 'Pack Luxe 12 mois', 'ttc' => 118.00, 'ht' => 98.33, 'mois' => 12, 'en_ligne' => false],
+        5 => ['libelle' => 'Pack Site', 'ttc' => 428.00, 'ht' => 342.40, 'mois' => 12, 'en_ligne' => false],
 
         // Promotions : elles remplacent l'option indiquee quand elles
         // s'appliquent (voir App\Services\Paiement\Promotions).
