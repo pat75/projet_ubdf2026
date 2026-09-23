@@ -11,16 +11,18 @@
      */
     .fi-sidebar,
     .fi-sidebar-header {
-        background-color: rgb(244 244 245); /* zinc-100 */
+        background-color: rgb(196 196 199); /* zinc-100 assombri de 20 % */
     }
 
     .fi-sidebar {
-        border-inline-end: 1px solid rgb(228 228 231); /* zinc-200 */
+        border-inline-end: 1px solid rgb(168 168 173);
     }
 
     .dark .fi-sidebar,
     .dark .fi-sidebar-header {
-        background-color: rgb(39 39 42); /* zinc-800 */
+        /* Assombri de 20 % lui aussi, mais toujours plus clair que le fond
+           de page, qui est presque noir : la colonne reste detachee. */
+        background-color: rgb(31 31 34);
     }
 
     .dark .fi-sidebar {

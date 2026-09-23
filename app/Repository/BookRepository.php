@@ -42,6 +42,10 @@ class BookRepository
             ->when($selection === 'ult', fn (Builder $query) => $query->where('is_selected', true))
             ->when($selection === 'lub', fn (Builder $query) => $query->where('plan', '>', 0))
             ->orderByDesc('in_home_selection')
+            // A egalite de selection, les entrees recentes d'abord : le
+            // legacy ne savait pas depuis quand un book etait selectionne
+            // et s'en remettait au seul nombre de visuels.
+            ->orderByDesc('home_selection_at')
             ->orderByDesc('is_selected')
             ->orderByDesc('media_count')
             ->skip($page * $perPage)

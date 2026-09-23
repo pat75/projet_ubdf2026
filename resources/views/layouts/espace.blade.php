@@ -12,6 +12,18 @@
     @livewireStyles
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+@if (session()->has('prise_identite'))
+    {{-- Un administrateur regarde l'espace par-dessus l'epaule du createur.
+         Bandeau rouge, en haut de chaque page : on ne doit jamais oublier
+         qu'on agit sous une autre identite. --}}
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-red-700 px-4 py-2 text-center text-sm text-white">
+        <span>{{ __('Vous êtes connecté en tant que :login.', ['login' => auth()->user()->login]) }}</span>
+        <form method="post" action="{{ route('admin.prise-identite.rendre') }}">
+            @csrf
+            <button type="submit" class="font-semibold underline">{{ __('Revenir au back-office') }}</button>
+        </form>
+    </div>
+@endif
 <div class="md:flex">
     <aside class="border-b border-gray-200 bg-white md:min-h-screen md:w-60 md:border-b-0 md:border-r dark:border-gray-600 dark:bg-gray-800">
         <div class="flex items-center justify-between px-4 py-4">

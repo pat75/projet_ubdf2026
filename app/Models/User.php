@@ -21,7 +21,7 @@ class User extends Authenticatable
         'firstname', 'lastname', 'company', 'civility', 'status',
         'address', 'zipcode', 'city', 'country', 'phone', 'mobile', 'latitude', 'longitude',
         'website', 'facebook_url', 'twitter_url', 'instagram_url', 'custom_domain',
-        'in_home_selection', 'in_directory', 'is_selected', 'is_available',
+        'in_home_selection', 'home_selection_at', 'in_directory', 'is_selected', 'is_available',
         'accepts_sms', 'shares_link',
         'plan', 'plan_started_at', 'plan_months', 'plan_expires_at',
         'storage_used', 'media_count',
@@ -38,6 +38,7 @@ class User extends Authenticatable
             'plan_started_at' => 'datetime',
             'plan_expires_at' => 'datetime',
             'in_home_selection' => 'boolean',
+            'home_selection_at' => 'datetime',
             'in_directory' => 'boolean',
             'is_selected' => 'boolean',
             'is_available' => 'boolean',
@@ -63,6 +64,24 @@ class User extends Authenticatable
             $compte->plan_expires_at = $compte->plan && $compte->plan_started_at && $compte->plan_months
                 ? $compte->plan_started_at->copy()->addMonths($compte->plan_months)
                 : null;
+        });
+
+        /*
+         | La date de selection suit l'interrupteur : le cocher date la
+         | selection de l'instant, le decocher efface la date. Une date
+         | saisie a la main (selection anterieure, ou programmee) est
+         | respectee : on ne l'ecrase jamais.
+         */
+        static::saving(function (self $compte) {
+            if (! $compte->isDirty('in_home_selection')) {
+                return;
+            }
+
+            if ($compte->in_home_selection) {
+                $compte->home_selection_at ??= now();
+            } else {
+                $compte->home_selection_at = null;
+            }
         });
     }
 

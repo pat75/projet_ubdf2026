@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PriseIdentiteController;
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookController;
@@ -290,6 +291,20 @@ $portail = function () {
         Route::get('/{facture}', [FormuleController::class, 'facture']);
         Route::get('/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('.pdf');
     });
+
+    /*
+     | Prise d'identite depuis le back-office : voir l'espace creatif tel
+     | que le createur le voit. La reddition n'est pas derriere
+     | `auth:admin` — la garde y est toujours ouverte, mais on veut
+     | pouvoir rendre la main meme si la session admin a expire entre
+     | temps ; le controleur verifie alors le temoin de session.
+     */
+    Route::get('/admin/prise-identite/{creatif}', [PriseIdentiteController::class, 'relais'])
+        ->middleware('auth:admin')->name('admin.prise-identite.relais');
+    Route::post('/admin/prise-identite/{creatif}', [PriseIdentiteController::class, 'prendre'])
+        ->middleware('auth:admin')->name('admin.prise-identite');
+    Route::post('/admin/prise-identite', [PriseIdentiteController::class, 'rendre'])
+        ->name('admin.prise-identite.rendre');
 
     // Desabonnement newsletter : lien signe present dans chaque campagne.
     Route::get('/newsletter/desabonnement/{user}', DesabonnementController::class)

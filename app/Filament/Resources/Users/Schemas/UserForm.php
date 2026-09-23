@@ -9,6 +9,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 
 class UserForm
 {
@@ -36,8 +38,22 @@ class UserForm
 
             Section::make('Portail')->columns(3)->schema([
                 Toggle::make('in_directory')->label('Dans l’annuaire'),
-                Toggle::make('in_home_selection')->label('En page d’accueil'),
                 Toggle::make('is_selected')->label('Ultra-sélection'),
+
+                Toggle::make('in_home_selection')->label('En page d’accueil')
+                    ->live()
+                    // Cocher date la selection de l'instant ; decocher
+                    // efface la date. La date reste modifiable a cote.
+                    ->afterStateUpdated(function (bool $state, Set $set, Get $get) {
+                        $set('home_selection_at', $state ? ($get('home_selection_at') ?: now()) : null);
+                    })
+                    ->helperText('Sélectionne le book immédiatement.'),
+                DatePicker::make('home_selection_at')->label('Date de la sélection')
+                    ->native(false)->displayFormat('d/m/Y')->closeOnDateSelection()
+                    ->maxDate(now()->addYear())
+                    ->visible(fn (Get $get) => (bool) $get('in_home_selection'))
+                    ->helperText('Sert à ordonner la page d’accueil : les plus récentes en tête.')
+                    ->columnSpan(2),
             ]),
 
             Section::make('Note interne')->schema([
