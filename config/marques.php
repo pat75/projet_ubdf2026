@@ -39,6 +39,9 @@ return [
             'assets' => '',
             'logo' => '/img_front/ultra-book_logo_nb.svg',
 
+            // Version claire, pour les fonds sombres (pied de page).
+            'logo_clair' => '/img_front/ultra-book_logo_nb_inverse.svg',
+
             // Domaine canonique en production : c'est lui qui sert a
             // construire les URL absolues (courriels, sitemap, og:url).
             'canonique' => env('UB_CANONIQUE', 'https://www.ultra-book.com'),
@@ -77,6 +80,7 @@ return [
             'langues' => ['en', 'fr'],
             'assets' => '_df',
             'logo' => '/img_front_df/dustfolio.svg',
+            'logo_clair' => '/img_front_df/dustfolio_b.svg',
 
             'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
 

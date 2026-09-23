@@ -38,8 +38,15 @@
     --color-ub-gris-moyen: #b7b7b7;   /* @ub_gris_moyen  */
     --color-ub-gris-fonce: #979797;   /* @ub_gris_fonce  */
 
-    /* Fond de page de l'espace : body#user. */
-    --color-ub-fond: #f8f8f8;
+    /* Fond de page de l'espace, releve sur la capture d'ecran de
+       l'original : #ebebeb, plus soutenu que le #f8f8f8 du LESS. */
+    --color-ub-fond: #ebebeb;
+
+    /* Fond du pied de page, releve lui aussi sur la capture. */
+    --color-ub-pied: #3e3e3e;
+
+    /* Le turquoise des titres d'ecran. */
+    --color-ub-turquoise: #17b7bf;
 
     /* Couleur du texte courant des menus. */
     --color-ub-texte: #444444;

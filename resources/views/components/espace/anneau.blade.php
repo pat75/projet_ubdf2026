@@ -5,7 +5,17 @@
      jeu de `stroke-dasharray`. Pas de bibliotheque pour quatre nombres. --}}
 @php
     $total = array_sum($parts);
+
+    /*
+     | L'epaisseur du trait deborde du rayon de part et d'autre : avec un
+     | rayon de 80 et un trait de 52, l'anneau va jusqu'a 106 du centre.
+     | La boite doit donc mesurer 212, sans quoi les quatre bords sont
+     | rognes — c'etait le cas de la premiere version, calee sur 200.
+     */
     $rayon = 80;
+    $trait = 52;
+    $centre = $rayon + $trait / 2;
+    $boite = $centre * 2;
     $perimetre = 2 * M_PI * $rayon;
 
     $arcs = [];
@@ -39,12 +49,12 @@
     </ul>
 
     @if ($total > 0)
-        <svg viewBox="0 0 200 200" class="mx-auto block w-full max-w-[380px]" role="img"
+        <svg viewBox="0 0 {{ $boite }} {{ $boite }}" class="mx-auto block w-full max-w-95" role="img"
              aria-label="{{ __('Répartition des visites par support') }}">
-            <g transform="rotate(-90 100 100)" fill="none" stroke-width="52">
+            <g transform="rotate(-90 {{ $centre }} {{ $centre }})" fill="none" stroke-width="{{ $trait }}">
                 @foreach ($arcs as $arc)
                     @if ($arc['longueur'] > 0)
-                        <circle cx="100" cy="100" r="{{ $rayon }}" stroke="{{ $arc['couleur'] }}"
+                        <circle cx="{{ $centre }}" cy="{{ $centre }}" r="{{ $rayon }}" stroke="{{ $arc['couleur'] }}"
                                 stroke-dasharray="{{ round($arc['longueur'], 2) }} {{ round($perimetre, 2) }}"
                                 stroke-dashoffset="{{ round($arc['decalage'], 2) }}"></circle>
                     @endif

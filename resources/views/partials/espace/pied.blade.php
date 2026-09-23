@@ -4,10 +4,12 @@
  | coexistent — celle-ci sert l'espace, partials/footer.blade.php sert le
  | portail en Semantic UI. Les liens sont identiques des deux cotes.
 --}}
-<footer class="mt-6 bg-[#4a4a4a] text-[13px] leading-6 text-white">
+<footer class="mt-6 bg-ub-pied text-[13px] leading-6 text-white">
     <div class="mx-auto max-w-[1127px] px-4 py-10">
 
-        <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mb-8 h-10 w-auto brightness-0 invert">
+        {{-- Le logo en version claire : la version courante est noire sur
+             transparent, illisible sur ce fond. --}}
+        <img src="{{ $marque->logoClair }}" alt="{{ $marque->nom }}" class="mb-8 h-10 w-auto">
 
         <div class="grid gap-8 md:grid-cols-4">
 
@@ -16,7 +18,7 @@
             </p>
 
             <div>
-                <h2 class="mb-3 font-titre text-[17px] font-light text-[#17b7bf]">{{ __('Plateforme portfolio') }}</h2>
+                <h2 class="mb-3 font-titre text-[17px] font-light text-ub-turquoise">{{ __('Plateforme portfolio') }}</h2>
                 <ul class="space-y-1.5 text-white/80">
                     <li><a class="hover:text-white" href="mailto:{{ $marque->email }}?subject={{ rawurlencode('Aide '.$marque->nom) }}">{{ __('Contact/aide') }}<br>{{ $marque->email }}</a></li>
                     <li><a class="hover:text-white" href="/doc/">{{ __('Documentation / Tuto') }}</a></li>
@@ -28,7 +30,7 @@
             </div>
 
             <div>
-                <h2 class="mb-3 font-titre text-[17px] font-light text-[#17b7bf]">{{ __('Rubriques') }}</h2>
+                <h2 class="mb-3 font-titre text-[17px] font-light text-ub-turquoise">{{ __('Rubriques') }}</h2>
                 <ul class="space-y-1.5 text-white/80">
                     <li><a class="hover:text-white" href="{{ lien('home') }}#bloc_zoom">{{ __('Zoom') }}</a></li>
                     <li><a class="hover:text-white" href="{{ lien('home') }}#bloc_actu">{{ __('Tendances, Actualités') }}</a></li>
@@ -42,9 +44,9 @@
             </div>
 
             <div>
-                <h2 class="mb-3 font-titre text-[17px] font-light text-[#17b7bf]">{{ __('Newsletter') }}</h2>
+                <h2 class="mb-3 font-titre text-[17px] font-light text-ub-turquoise">{{ __('Newsletter') }}</h2>
                 <p class="text-white/80">{{ __('Les dernières sélections du mois') }}</p>
-                <p class="text-[#17b7bf]">{{ __('Confidentialité, sécurité et absence de spam') }}</p>
+                <p class="text-ub-turquoise">{{ __('Confidentialité, sécurité et absence de spam') }}</p>
 
                 <form action="/front/action_ajax_2.php" class="mt-3 flex">
                     <input type="hidden" name="action" value="add">
@@ -52,20 +54,24 @@
                     <input id="pied_newsletter" type="email" name="mail" placeholder="{{ __('Mail...') }}"
                            class="w-full rounded-l bg-white px-3 py-1.5 text-gray-800 placeholder-gray-400">
                     <button type="submit" class="rounded-r bg-[#5f5f5f] px-3 text-white hover:bg-[#6e6e6e]" aria-label="{{ __('S’inscrire') }}">
-                        <x-espace.icone nom="lien" class="h-4 w-4" />
+                        <span class="fonticon-mail" aria-hidden="true"></span>
                     </button>
                 </form>
 
+                {{-- Les pictogrammes des reseaux viennent de la fonte
+                     d'icones du site (font_icon) : ce sont exactement
+                     ceux du pied de page d'origine. --}}
                 <div class="mt-4 flex gap-2">
                     @foreach ([
-                        'Instagram' => 'https://www.instagram.com/ultra.book/',
-                        'Facebook' => 'https://www.facebook.com/ultrabook.fr',
-                        'Twitter' => 'https://twitter.com/ultra_book',
-                        'Pinterest' => 'https://www.pinterest.com/ultrabook001/',
-                    ] as $reseau => $url)
+                        'Instagram' => ['fonticon-uniF05E', 'https://www.instagram.com/ultra.book/'],
+                        'Facebook' => ['fonticon-uniF051', 'https://www.facebook.com/ultrabook.fr'],
+                        'X / Twitter' => ['fonticon-uniF057', 'https://twitter.com/ultra_book'],
+                        'Pinterest' => ['fonticon-pinterest', 'https://www.pinterest.com/ultrabook001/'],
+                    ] as $reseau => [$icone, $url])
                         <a href="{{ $url }}" target="_blank" rel="noopener"
-                           class="flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-[11px] font-bold text-[#4a4a4a] hover:bg-white">
-                            {{ mb_substr($reseau, 0, 1) }}<span class="sr-only">{{ $reseau }}</span>
+                           class="flex h-7 w-7 items-center justify-center rounded-full bg-white/85 text-[15px] text-ub-pied hover:bg-white">
+                            <span class="{{ $icone }}" aria-hidden="true"></span>
+                            <span class="sr-only">{{ $reseau }}</span>
                         </a>
                     @endforeach
                 </div>

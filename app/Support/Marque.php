@@ -21,6 +21,8 @@ final class Marque
         public readonly array $langues,
         public readonly string $assets,
         public readonly string $logo,
+        /** Version claire du logo, pour les fonds sombres. */
+        public readonly string $logoClair,
         public readonly string $canonique,
         public readonly string $titre,
         public readonly string $description,
@@ -67,6 +69,7 @@ final class Marque
             )),
             assets: $marque['assets'],
             logo: $marque['logo'],
+            logoClair: $marque['logo_clair'] ?? $marque['logo'],
             canonique: $marque['canonique'],
             titre: $marque['titre'],
             description: $marque['description'],

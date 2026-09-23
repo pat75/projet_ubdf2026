@@ -14,7 +14,7 @@
         :titre="__('Charger')"
         :suite="__('mes images')"
         class="mb-14">
-        <x-espace.icone nom="dossier" class="h-7 w-7 text-[#17b7bf]" />
+        <span class="fonticon-plus-square text-[28px] text-ub-turquoise" aria-hidden="true"></span>
         {{ __('Dossier images') }}
     </x-espace.hero>
 
@@ -25,7 +25,7 @@
         :titre="__('Personnaliser')"
         :suite="__('mon portfolio')"
         class="mb-14">
-        <x-espace.icone nom="partage" class="h-7 w-7 text-[#17b7bf]" />
+        <span class="fonticon-share text-[28px] text-ub-turquoise" aria-hidden="true"></span>
         {{ __('Menu apparence') }}
     </x-espace.hero>
 

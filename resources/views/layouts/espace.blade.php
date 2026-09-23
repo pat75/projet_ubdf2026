@@ -12,6 +12,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap">
 
+    {{-- La fonte d'icones de l'espace d'origine (font_icon) : c'est elle
+         qui porte les pictogrammes exacts du tableau de bord et des
+         reseaux sociaux. Elle ne met en forme que les classes
+         `fonticon-*` et ne touche a rien d'autre. --}}
+    <link rel="stylesheet" href="{{ asset('html_pages_v2018/_/font_icon/style.css') }}">
+
     @vite(['resources/css/espace.css', 'resources/js/espace.js'])
     @livewireStyles
 </head>

@@ -4,14 +4,12 @@
     'suite' => '',
     'alt' => '',
     'lien' => null,
-    'suiteTurquoise' => false,
 ])
 
 {{-- L'en-tete d'ecran de l'espace : une illustration a gauche, un titre en
-     deux temps a droite — le premier mot en gras turquoise, la suite en
-     maigre. Repris de `.firstaddimg` : h2 de 35 px en graisse 300,
-     turquoise #17b7bf. --}}
-@php($classes = 'grid items-center gap-6 sm:grid-cols-[188px_1fr]')
+     deux temps a droite — le premier mot en gras, la suite en maigre, les
+     deux dans le meme turquoise (#17b7bf, releve sur l'original). --}}
+@php($classes = 'grid items-center gap-6 text-ub-turquoise sm:grid-cols-[188px_1fr]')
 
 @if ($lien)
     <a href="{{ $lien }}" {{ $attributes->merge(['class' => $classes]) }}>
@@ -23,9 +21,9 @@
 
     <div>
         <h2 class="font-titre text-[35px] font-light leading-tight">
-            <strong class="font-bold text-[#17b7bf]">{{ $titre }}</strong>
+            <strong class="font-bold">{{ $titre }}</strong>
             @if ($suite)
-                <span @class(['text-[#17b7bf]' => $suiteTurquoise, 'text-[#55636a]' => ! $suiteTurquoise])>{{ $suite }}</span>
+                <span>{{ $suite }}</span>
             @endif
         </h2>
 
