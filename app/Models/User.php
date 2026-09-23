@@ -23,7 +23,7 @@ class User extends Authenticatable
         'website', 'facebook_url', 'twitter_url', 'instagram_url', 'custom_domain',
         'in_home_selection', 'in_directory', 'is_selected', 'is_available',
         'accepts_sms', 'shares_link',
-        'plan', 'plan_started_at', 'plan_months',
+        'plan', 'plan_started_at', 'plan_months', 'plan_expires_at',
         'storage_used', 'media_count',
         'signup_ip', 'signup_referer', 'admin_note',
     ];
@@ -36,6 +36,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'plan_started_at' => 'datetime',
+            'plan_expires_at' => 'datetime',
             'in_home_selection' => 'boolean',
             'in_directory' => 'boolean',
             'is_selected' => 'boolean',
@@ -45,6 +46,24 @@ class User extends Authenticatable
             'latitude' => 'float',
             'longitude' => 'float',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        /*
+         | L'echeance suit toujours la formule : un changement de duree ou de
+         | date de depart, d'ou qu'il vienne (back-office compris), la
+         | recalcule. `prolongerFormule()` la pose deja lui-meme.
+         */
+        static::saving(function (self $compte) {
+            if (! $compte->isDirty(['plan', 'plan_started_at', 'plan_months'])) {
+                return;
+            }
+
+            $compte->plan_expires_at = $compte->plan && $compte->plan_started_at && $compte->plan_months
+                ? $compte->plan_started_at->copy()->addMonths($compte->plan_months)
+                : null;
+        });
     }
 
     public function getRouteKeyName(): string
@@ -103,9 +122,14 @@ class User extends Authenticatable
     /** Echeance de la formule payante, null en formule gratuite. */
     public function echeanceFormule(): ?\Illuminate\Support\Carbon
     {
-        return $this->plan && $this->plan_started_at && $this->plan_months
-            ? $this->plan_started_at->copy()->addMonths($this->plan_months)
-            : null;
+        if (! $this->plan) {
+            return null;
+        }
+
+        return $this->plan_expires_at
+            ?? ($this->plan_started_at && $this->plan_months
+                ? $this->plan_started_at->copy()->addMonths($this->plan_months)
+                : null);
     }
 
     /**
@@ -117,6 +141,7 @@ class User extends Authenticatable
     public function prolongerFormule(int $mois): void
     {
         if ($this->echeanceFormule()?->isFuture()) {
+            // L'echeance se recalcule toute seule a l'enregistrement.
             $this->update(['plan_months' => $this->plan_months + $mois]);
 
             return;

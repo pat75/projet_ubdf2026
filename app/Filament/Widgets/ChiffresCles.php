@@ -14,8 +14,7 @@ class ChiffresCles extends StatsOverviewWidget
     {
         $payantes = User::where('plan', '>', 0)->count();
         $caMois = Invoice::where('status', 'paid')->whereBetween('issued_at', [now()->startOfMonth(), now()])->sum('amount');
-        $echues = User::where('plan', '>', 0)
-            ->whereRaw('DATE_ADD(plan_started_at, INTERVAL plan_months MONTH) < NOW()')->count();
+        $echues = User::where('plan', '>', 0)->where('plan_expires_at', '<', now())->count();
 
         return [
             Stat::make('Créatifs', number_format(User::count(), 0, ',', ' '))

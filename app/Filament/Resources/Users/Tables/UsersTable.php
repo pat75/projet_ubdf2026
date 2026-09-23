@@ -49,8 +49,7 @@ class UsersTable
                         false: fn (Builder $q) => $q->where('plan', 0),
                     ),
                 Filter::make('echue')->label('Formule échue')
-                    ->query(fn (Builder $q) => $q->where('plan', '>', 0)
-                        ->whereRaw('DATE_ADD(plan_started_at, INTERVAL plan_months MONTH) < NOW()')),
+                    ->query(fn (Builder $q) => $q->where('plan', '>', 0)->where('plan_expires_at', '<', now())),
                 TrashedFilter::make()->label('Comptes supprimés'),
             ])
             ->recordActions([

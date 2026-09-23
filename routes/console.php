@@ -1,8 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+ | Relances d'abonnement : une fois par jour, en fin de matinee. Le legacy
+ | les lancait a la main depuis une URL d'administration, par tranches de
+ | 500 comptes. `withoutOverlapping` evite qu'une execution longue en
+ | croise une autre.
+ */
+Schedule::command('ubdf:relancer-formules')
+    ->dailyAt('11:00')
+    ->timezone('Europe/Paris')
+    ->withoutOverlapping();
