@@ -7,6 +7,7 @@ use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
+use App\Http\Controllers\Front\DesabonnementController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Front\StatsBookController;
@@ -267,6 +268,10 @@ $portail = function () {
         Route::get('/{facture}', [FormuleController::class, 'facture']);
         Route::get('/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('.pdf');
     });
+
+    // Desabonnement newsletter : lien signe present dans chaque campagne.
+    Route::get('/newsletter/desabonnement/{user}', DesabonnementController::class)
+        ->middleware('signed')->name('newsletter.desabonnement');
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
         ->middleware('signed')->name('inscription.confirmer');
