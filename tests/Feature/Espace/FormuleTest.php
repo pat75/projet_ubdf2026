@@ -61,3 +61,21 @@ it('applique les quotas de la formule gratuite', function () {
         ->assertSee('max: 12', false)
         ->assertDontSee('pour votre soutien');
 });
+
+/*
+ | La grille reprend la presentation de la page tarifs des Illustrateurs :
+ | prix ramene au mois, total facture en une fois, et le douze mois mis en
+ | avant comme meilleure offre.
+ */
+it('presente les offres au mois et met le douze mois en avant', function () {
+    $creatif = User::factory()->create(['plan' => 0]);
+
+    $this->actingAs($creatif)->get(route('espace.formule'))
+        ->assertOk()
+        // 36,80 € sur douze mois.
+        ->assertSee('3,07 €')
+        ->assertSee('Facturé 36,80 € en une seule fois')
+        ->assertSee('Meilleure offre')
+        // 21,90 € sur six mois.
+        ->assertSee('3,65 €');
+});

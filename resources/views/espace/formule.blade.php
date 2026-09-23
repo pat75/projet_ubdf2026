@@ -107,59 +107,95 @@
      | douze mois. Le Pack Luxe et le Pack Site ne se vendent plus en
      | ligne — ils sont ecartes dans la grille, pas ici.
      |
+     | Presentation reprise de la page tarifs des Illustrateurs : la
+     | gratuite en retrait a gauche, en gris, chevauchee par les deux
+     | offres payantes ; la derniere — le douze mois — est la vedette, sur
+     | fond sombre. Les couleurs sont celles de l'espace : le turquoise a
+     | la place de l'indigo, et pas de mode sombre, l'espace n'en a pas.
+     |
      | La carte de gauche n'est pas une offre a payer : elle rappelle ce
      | dont dispose un compte gratuit, et sert de point de comparaison aux
      | deux autres. Elle est donc en `div`, pas en `form`.
     --}}
-    @php($limites = config('formules.limites'))
+    @php
+        $limites = config('formules.limites');
+        $dernier = array_key_last($options);
+    @endphp
 
-    <div class="mt-5 grid items-stretch gap-4 md:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 items-center gap-y-6 sm:gap-y-0 lg:grid-cols-[4fr_5fr_5fr]">
 
-        <div class="flex flex-col rounded-ub-carte border border-ub-bord-carte bg-white p-6">
-            <span class="text-[15px] font-semibold">{{ __('Formule gratuite') }}</span>
+        {{-- La gratuite : en retrait, sans ombre, elle passe dessous. --}}
+        <div class="relative z-0 rounded-3xl bg-[#e4e4e1] px-8 py-14 ring-1 ring-black/5 sm:mx-8 sm:px-12 lg:mx-0 lg:-mr-6 lg:self-center lg:px-8 lg:py-23">
+            <h3 class="text-[22px] text-ub-texte2">{{ __('Formule gratuite') }}</h3>
+            <p class="text-[16px] font-semibold text-ub-texte3">{{ __('Sans limite de durée') }}</p>
 
-            <span class="mt-3 text-[32px] font-light leading-none">0 €</span>
-            <span class="mt-1 text-[13px] text-ub-texte3">{{ __('sans limite de durée') }}</span>
+            <p class="mt-4 flex items-baseline gap-x-2">
+                <span class="text-[44px] font-semibold leading-none tracking-tight text-ub-texte2">0 €</span>
+            </p>
 
-            <ul class="mt-5 space-y-1.5 text-[14px] text-ub-texte2">
-                <li>{{ __(':n visuels', ['n' => $limites['gratuite']['visuels']]) }}</li>
-                <li>{{ __(':n pages', ['n' => $limites['gratuite']['pages']]) }}</li>
-                <li>{{ __(':n Mo d’espace', ['n' => round($limites['gratuite']['poids_ko'] / 1000)]) }}</li>
+            <div class="my-4 h-px bg-black/10"></div>
+
+            <ul role="list" class="space-y-3 text-[15px] text-ub-texte2">
+                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n visuels', ['n' => $limites['gratuite']['visuels']]) }}</li>
+                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n pages', ['n' => $limites['gratuite']['pages']]) }}</li>
+                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n Mo d’espace', ['n' => round($limites['gratuite']['poids_ko'] / 1000)]) }}</li>
             </ul>
 
-            <span class="mt-auto pt-6 text-[14px] text-ub-texte3">
-                {{ $creatif->plan ? __('Votre formule précédente') : __('Votre formule actuelle') }}
-            </span>
+            <p class="mt-6 text-[14px] text-ub-texte3">
+                {{ $creatif->plan ? __('Votre formule précédente.') : __('Votre formule actuelle.') }}
+            </p>
         </div>
 
         @foreach ($options as $numero => $o)
+            @php
+                // La derniere offre de la grille — le douze mois — est mise
+                // en avant : fond sombre, et elle passe par-dessus.
+                $vedette = $numero === $dernier;
+                $parMois = $o['ttc'] / $o['mois'];
+            @endphp
+
             <form method="post" action="{{ route(nom_route('espace.formule.payer'), $numero) }}"
-                  class="flex flex-col rounded-ub-carte border-2 border-ub-accent bg-white p-6">
+                  class="relative rounded-3xl px-8 py-10 shadow-xl transition duration-300 ease-out hover:-translate-y-2 sm:mx-8 sm:px-12 lg:mx-0 lg:px-8
+                         {{ $vedette ? 'z-2 bg-[#22292f] text-white ring-1 ring-white/10' : 'z-1 bg-white ring-1 ring-black/10 lg:-mr-6' }}">
                 @csrf
-                @isset($o['promo'])
-                    <span class="mb-2 w-fit rounded-full bg-ub-rouge px-2.5 py-0.5 text-[11px] font-semibold text-white">{{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}</span>
-                @endisset
 
-                <span class="text-[15px] font-semibold">{{ __($o['libelle']) }}</span>
+                @if ($o['promo'] ?? false)
+                    <span class="absolute -top-3.5 right-8 rounded-full bg-ub-rouge px-4 py-1.5 text-[13px] font-semibold text-white shadow">
+                        {{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}
+                    </span>
+                @elseif ($vedette)
+                    <span class="absolute -top-3.5 right-8 rounded-full bg-ub-accent px-4 py-1.5 text-[13px] font-semibold text-white shadow">
+                        {{ __('Meilleure offre') }}
+                    </span>
+                @endif
 
-                <span class="mt-3 flex items-baseline gap-2">
-                    <span class="text-[32px] font-light leading-none text-ub-accent-texte">{{ number_format($o['ttc'], 2, ',', ' ') }} €</span>
-                    @isset($o['barre']) <s class="text-[15px] text-ub-texte4">{{ number_format($o['barre'], 2, ',', ' ') }} €</s> @endisset
-                </span>
+                <h3 class="text-[22px] font-semibold {{ $vedette ? 'text-white' : 'text-ub-texte' }}">{{ __($o['libelle']) }}</h3>
+                <p class="text-[16px] font-semibold text-ub-accent">{{ __(':n mois', ['n' => $o['mois']]) }}</p>
 
-                <span class="mt-1 text-[13px] text-ub-texte3">{{ __(':n mois, TTC', ['n' => $o['mois']]) }}</span>
+                <p class="mt-4 flex items-baseline gap-x-2">
+                    <span class="text-[44px] font-semibold leading-none tracking-tight {{ $vedette ? 'text-white' : 'text-ub-texte' }}">{{ number_format($parMois, 2, ',', ' ') }} €</span>
+                    <span class="text-[18px] text-ub-accent">{{ __('/ mois') }}</span>
+                </p>
 
-                <ul class="mt-5 space-y-1.5 text-[14px] text-ub-texte2">
-                    <li>{{ __(':n visuels', ['n' => $limites['payante']['visuels']]) }}</li>
-                    <li>{{ __('pages illimitées') }}</li>
-                    <li>{{ __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]) }}</li>
+                <p class="mt-2 text-[15px] {{ $vedette ? 'text-white/70' : 'text-ub-texte2' }}">
+                    {{ __('Facturé :montant € en une seule fois', ['montant' => number_format($o['ttc'], 2, ',', ' ')]) }}
+                    @isset($o['barre'])
+                        <span class="ml-1 font-semibold text-ub-accent">{{ __('au lieu de') }} <s>{{ number_format($o['barre'], 2, ',', ' ') }} €</s></span>
+                    @endisset
+                </p>
+
+                <ul role="list" class="mt-6 space-y-3 text-[15px] {{ $vedette ? 'text-white/85' : 'text-ub-texte2' }}">
+                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n visuels', ['n' => $limites['payante']['visuels']]) }}</li>
+                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Pages illimitées') }}</li>
+                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]) }}</li>
+                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Paiement unique, sans reconduction automatique') }}</li>
                 </ul>
 
-                <div class="mt-auto pt-6">
-                    <button type="submit" class="w-full rounded-ub bg-ub-accent px-4 py-2.5 text-[15px] font-semibold text-white hover:bg-ub-accent-fonce">
-                        {{ __('Payer par carte') }}
-                    </button>
-                </div>
+                <button type="submit"
+                        class="mt-8 block w-full cursor-pointer rounded-full px-8 py-3.5 text-center text-[17px] font-bold transition-opacity duration-150 hover:opacity-90
+                               {{ $vedette ? 'bg-ub-accent text-white' : 'bg-ub-texte text-white' }}">
+                    {{ __('Payer par carte') }}
+                </button>
             </form>
         @endforeach
     </div>
