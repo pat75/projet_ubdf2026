@@ -44,6 +44,9 @@ class Compte extends Component
 
     public string $nouveauMotDePasse_confirmation = '';
 
+    /** Identifiant recopie pour confirmer la suppression du portfolio. */
+    public string $confirmationSuppression = '';
+
     public function mount(): void
     {
         $creatif = Auth::user();
@@ -101,6 +104,35 @@ class Compte extends Component
         $this->reset('motDePasseActuel', 'nouveauMotDePasse', 'nouveauMotDePasse_confirmation');
         session()->flash('statut', __('Accès enregistrés.'));
         $this->redirectRoute('espace.compte');
+    }
+
+    /**
+     * Suppression du portfolio, a la demande du createur.
+     *
+     * C'est une suppression douce : la fiche quitte le site, le book
+     * n'est plus servi, mais les donnees restent en base le temps qu'un
+     * administrateur puisse revenir dessus — le legacy posait de meme un
+     * `us_delete` sans rien effacer. Le createur retape son identifiant :
+     * c'est le garde-fou du geste.
+     */
+    public function supprimerPortfolio(): void
+    {
+        $creatif = Auth::user();
+
+        $this->validate([
+            'motDePasseActuel' => ['required', 'current_password'],
+            'confirmationSuppression' => ['required', Rule::in([$creatif->login])],
+        ], [
+            'confirmationSuppression.in' => __('Recopiez votre identifiant pour confirmer la suppression.'),
+        ]);
+
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        $creatif->delete();
+
+        $this->redirect(lien('home'));
     }
 
     public function render(): View

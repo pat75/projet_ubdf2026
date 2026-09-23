@@ -4,6 +4,9 @@
     'suite' => '',
     'alt' => '',
     'lien' => null,
+    // La suite passe a la ligne : « Mes informations / publiques et
+    // privees » de l'ecran du compte est sur deux lignes.
+    'suiteDessous' => false,
 ])
 
 {{-- L'en-tete d'ecran de l'espace : une illustration a gauche, un titre en
@@ -23,7 +26,7 @@
         <h2 class="font-titre text-[35px] font-light leading-tight">
             <strong class="font-bold">{{ $titre }}</strong>
             @if ($suite)
-                <span>{{ $suite }}</span>
+                <span @class(['block' => $suiteDessous])>{{ $suite }}</span>
             @endif
         </h2>
 

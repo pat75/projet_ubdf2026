@@ -64,3 +64,35 @@ it('enregistre le consentement aux SMS', function () {
 
     expect($creatif->fresh()->accepts_sms)->toBeTrue();
 });
+
+it('supprime le portfolio quand le createur recopie son identifiant', function () {
+    $creatif = User::factory()->create(['login' => 'aline', 'password' => 'mot-de-passe-long']);
+
+    Livewire::actingAs($creatif)->test(Compte::class)
+        ->set('confirmationSuppression', 'aline')
+        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->call('supprimerPortfolio');
+
+    // Suppression douce : la fiche quitte le site, la ligne reste.
+    expect(User::where('login', 'aline')->exists())->toBeFalse()
+        ->and(User::withTrashed()->where('login', 'aline')->exists())->toBeTrue()
+        ->and(auth()->check())->toBeFalse();
+});
+
+it('ne supprime rien si l identifiant ou le mot de passe ne suit pas', function () {
+    $creatif = User::factory()->create(['login' => 'aline', 'password' => 'mot-de-passe-long']);
+
+    Livewire::actingAs($creatif)->test(Compte::class)
+        ->set('confirmationSuppression', 'alin')
+        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->call('supprimerPortfolio')
+        ->assertHasErrors('confirmationSuppression');
+
+    Livewire::actingAs($creatif)->test(Compte::class)
+        ->set('confirmationSuppression', 'aline')
+        ->set('motDePasseActuel', 'au-hasard')
+        ->call('supprimerPortfolio')
+        ->assertHasErrors('motDePasseActuel');
+
+    expect(User::where('login', 'aline')->exists())->toBeTrue();
+});
