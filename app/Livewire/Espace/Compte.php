@@ -32,6 +32,10 @@ class Compte extends Component
 
     public ?int $categorie = null;
 
+    public string $statut = '';
+
+    public bool $sms = false;
+
     public string $email = '';
 
     public string $motDePasseActuel = '';
@@ -47,15 +51,25 @@ class Compte extends Component
         $this->profil = collect(self::CHAMPS)->mapWithKeys(fn ($r, $c) => [$c => (string) $creatif->{$c}])->all();
         $this->categorie = $creatif->category_id;
         $this->email = (string) $creatif->email;
+        $this->sms = (bool) $creatif->accepts_sms;
+
+        // Les fiches reprises portent parfois l'indice du legacy la ou on
+        // attend un libelle : on ne propose alors rien plutot que « 6 ».
+        $this->statut = in_array($creatif->status, config('ubdf.statuts'), true) ? (string) $creatif->status : '';
     }
 
     public function enregistrerProfil(): void
     {
         $this->validate(collect(self::CHAMPS)->mapWithKeys(fn ($r, $c) => ['profil.'.$c => $r])->all() + [
             'categorie' => ['nullable', Rule::exists('categories', 'id')],
+            'statut' => ['nullable', Rule::in(config('ubdf.statuts'))],
         ]);
 
-        Auth::user()->update(array_map(fn ($v) => $v === '' ? null : trim($v), $this->profil) + ['category_id' => $this->categorie]);
+        Auth::user()->update(array_map(fn ($v) => $v === '' ? null : trim($v), $this->profil) + [
+            'category_id' => $this->categorie,
+            'status' => $this->statut ?: null,
+            'accepts_sms' => $this->sms,
+        ]);
 
         session()->flash('statut', __('Informations enregistrées.'));
         $this->redirectRoute('espace.compte');
@@ -92,14 +106,9 @@ class Compte extends Component
     public function render(): View
     {
         return view('livewire.espace.compte', [
+            'creatif' => Auth::user(),
             'categories' => Category::where('is_active', true)->orderBy('position')->pluck('name', 'id'),
-            'libelles' => [
-                'firstname' => __('Prénom'), 'lastname' => __('Nom'), 'company' => __('Société'),
-                'address' => __('Adresse'), 'zipcode' => __('Code postal'), 'city' => __('Ville'),
-                'country' => __('Pays'), 'phone' => __('Téléphone'), 'mobile' => __('Mobile'),
-                'website' => __('Site web'), 'facebook_url' => 'Facebook', 'instagram_url' => 'Instagram',
-                'twitter_url' => 'X / Twitter',
-            ],
+            'statuts' => config('ubdf.statuts'),
         ]);
     }
 }

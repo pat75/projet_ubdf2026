@@ -30,6 +30,18 @@ return [
 
 
     /*
+    | Statuts professionnels proposes sur la fiche du createur
+    | (`$conf['us_statut']` de conf/conf_site.php du legacy). La reprise a
+    | garde le libelle en clair dans `users.status`, pas l'indice : les
+    | anciennes fiches portent encore des nombres, que le formulaire
+    | remplace au premier enregistrement.
+    */
+    'statuts' => [
+        'A définir', 'Maison des artistes', 'Auto-entrepreneur', 'Salarié',
+        'Étudiant', 'Eurl', 'Sarl/Sas', 'Freelance', 'Autre',
+    ],
+
+    /*
     | Editeur, tel qu'il figure sur les factures (html_pages_v2018/tpl/
     | ub_content_facture__*.tlp.php du legacy).
     */
