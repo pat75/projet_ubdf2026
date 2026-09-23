@@ -22,6 +22,8 @@ use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
+use App\Http\Controllers\Front\RobotsController;
+use App\Http\Controllers\Front\SitemapController;
 use App\Http\Controllers\Front\StatsController;
 use App\Http\Middleware\ForcerLangue;
 use App\Http\Middleware\ResoudreLangue;
@@ -104,6 +106,17 @@ Route::domain('{login}.'.$bookDomain)
 */
 Route::group([], function () {
 
+    /*
+     | Sitemap et robots.txt : rendus, pas des fichiers statiques. Le legacy
+     | maintenait a la main deux sitemaps XML ou ne figurait aucun book.
+     */
+    Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+    Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+    Route::get('/sitemap-books-{paquet}.xml', [SitemapController::class, 'books'])
+        ->whereNumber('paquet')->name('sitemap.books');
+    Route::redirect('/sitemap', '/sitemap.xml', 301);
+    Route::get('/robots.txt', RobotsController::class)->name('robots');
+
     // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
     Route::get('/cache_js/data_stats.json', StatsController::class)->name('stats');
 
@@ -146,6 +159,15 @@ Route::group([], function () {
         ->name('accueil.ajax');
 
     /*
+     | Seconde forme de la meme URL, dans l'autre ordre
+     | (`/accueil__sel__all__2`). Le .htaccess de 2019 declarait les deux ;
+     | des pages en cache et des liens en portent encore.
+     */
+    Route::get('/accueil__{selection}__{type}__{page}', [AccueilController::class, 'ajaxInverse'])
+        ->where(['selection' => 'sel|ult|lub', 'type' => '[-a-z_]+', 'page' => '[0-9]{1,3}'])
+        ->name('accueil.ajax.inverse');
+
+    /*
      | Recherche
      |
      | `/rechercher_submit` est l'URL construite par js_core_pages.js : elle
@@ -172,7 +194,7 @@ Route::group([], function () {
 
     // Microbook : URL du legacy, collee telle quelle dans des sites tiers.
     Route::get('/microbook_{admin}_{pied}__{login}', MicrobookController::class)
-        ->where(['admin' => '[01]', 'pied' => '[01]', 'login' => '[a-z0-9_-]+'])
+        ->where(['admin' => '[0-9]', 'pied' => '[0-9]', 'login' => '[a-z0-9_-]+'])
         ->name('microbook');
 
     Route::post('/intermediate_send', [ContactController::class, 'envoyer'])
@@ -375,3 +397,10 @@ foreach (array_keys(config('langues.disponibles', [])) as $langue) {
         ->middleware(ForcerLangue::class.':'.$langue)
         ->group($portail);
 }
+
+/*
+| Anciennes URL du legacy, en dernier : elles ne doivent capter que ce que
+| les routes ci-dessus n'ont pas pris. Sans segment de langue — ce sont des
+| adresses figees, citees telles quelles ailleurs.
+*/
+require __DIR__.'/redirections.php';

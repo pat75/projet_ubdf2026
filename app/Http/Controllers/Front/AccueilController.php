@@ -100,6 +100,16 @@ class AccueilController extends Controller
      * js2019/js_core_cards.js. Elles ne doivent pas etre renommees tant que
      * ce JavaScript n'est pas reecrit (phase 9).
      */
+    /**
+     * Meme reponse, pour la forme `/accueil__sel__all__2` du legacy : les
+     * parametres scalaires arrivent dans l'ordre de l'URI, d'ou cette
+     * seconde porte plutot qu'un reordonnancement hasardeux.
+     */
+    public function ajaxInverse(Request $request, string $selection, string $type, int $page): JsonResponse
+    {
+        return $this->ajax($request, $page, $selection, $type);
+    }
+
     public function ajax(Request $request, int $page, string $selection, string $type): JsonResponse
     {
         $brand = $request->attributes->get('brand', 'ub');
