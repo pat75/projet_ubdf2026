@@ -15,7 +15,8 @@ it('affiche la formule, son echeance et les factures payees', function () {
     $this->creatif->invoices()->create(['number' => 'ub-x', 'brand' => 'ub', 'label' => 'Annulee', 'amount' => 1, 'vat' => 0, 'status' => 'cancelled', 'issued_at' => now()]);
 
     $this->get(route('espace.formule'))->assertOk()
-        ->assertSee(now()->subMonths(2)->addMonths(12)->format('d/m/Y'))
+        // L'echeance est datee comme dans l'espace d'origine : 10-03-2034.
+        ->assertSee(now()->subMonths(2)->addMonths(12)->format('d-m-Y'))
         ->assertSee('UB-2020-7907')
         ->assertDontSee('Annulee');
 });
@@ -31,4 +32,32 @@ it('affiche la facture au format du legacy', function () {
 
 it('refuse la facture d un autre creatif', function () {
     $this->actingAs(User::factory()->create())->get(route('espace.facture', $this->facture))->assertForbidden();
+});
+
+it('remercie le createur en formule payante et lui donne son code de diffusion', function () {
+    $attendu = strtoupper(substr(hash_hmac('sha256', $this->creatif->login.date('Y'), config('services.diffusion.cle')), 0, 8));
+
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSeeInOrder(['Merci', 'pour votre soutien', 'Vous êtes actuellement en formule PREMIUM'], escape: false)
+        ->assertSee('Offre couplée')
+        // Le code se recalcule des deux cotes : rien n'est stocke.
+        ->assertSee($attendu);
+});
+
+it('montre les quotas de la formule payante', function () {
+    $this->creatif->update(['media_count' => 202, 'storage_used' => 67160]);
+
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSee('202')
+        ->assertSee('max: 500', false)
+        ->assertSee('max: 120 000 Ko', false);
+});
+
+it('applique les quotas de la formule gratuite', function () {
+    $gratuit = App\Models\User::factory()->create(['plan' => 0]);
+
+    $this->actingAs($gratuit)->get(route('espace.formule'))->assertOk()
+        ->assertSee('Vous êtes en formule gratuite.')
+        ->assertSee('max: 12', false)
+        ->assertDontSee('pour votre soutien');
 });

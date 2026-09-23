@@ -15,6 +15,7 @@
         'partage' => '<path stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-8 8"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 14v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
         'vues' => '<path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
         'coeur' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/>',
+        'horloge' => '<circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/>',
         'graphe' => '<path stroke-linecap="round" d="M5 20V10M12 20V4M19 20v-7"/>',
     ];
 @endphp

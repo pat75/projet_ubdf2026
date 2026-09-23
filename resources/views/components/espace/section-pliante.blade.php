@@ -8,6 +8,8 @@
         <span class="flex items-center gap-2 font-titre text-[20px] font-light text-[#070707]">
             @if ($icone === 'alerte')
                 <span class="fonticon-alert-circle text-[18px] text-ub-rouge" aria-hidden="true"></span>
+            @elseif ($icone === 'factures')
+                <span class="fonticon-layers text-[16px] text-ub-texte" aria-hidden="true"></span>
             @elseif ($icone)
                 <x-espace.icone :nom="$icone" class="h-5 w-5 text-ub-rouge" />
             @endif

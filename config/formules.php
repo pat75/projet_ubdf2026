@@ -46,6 +46,16 @@ return [
     */
     'promo_6_mois' => ['premiere_apres_mois' => 2, 'intervalle_mois' => 3, 'validite_heures' => 24],
 
+    /*
+    | Plafonds de chaque formule, repris de $conf_formule de
+    | conf/conf_site.php : nombre de visuels, poids total en kilo-octets,
+    | nombre de pages, et visuels par rubrique.
+    */
+    'limites' => [
+        'gratuite' => ['visuels' => 12, 'poids_ko' => 22000, 'pages' => 8, 'visuels_par_rubrique' => 3],
+        'payante' => ['visuels' => 500, 'poids_ko' => 120000, 'pages' => 500, 'visuels_par_rubrique' => 24],
+    ],
+
     'payplug' => [
         // Cle secrete : sk_test_… en local, sk_live_… en production.
         'secret_key' => env('PAYPLUG_SECRET_KEY'),

@@ -70,4 +70,16 @@ return [
         'key' => env('GOOGLE_MAPS_KEY'),
     ],
 
+    /*
+    | Offre couplee avec les-illustrateurs.com : les deux sites calculent
+    | le meme code personnel a partir de l'identifiant et de l'annee, avec
+    | cette cle partagee. Elle etait ecrite en clair dans le gabarit du
+    | legacy (`$secretKey = "UBdiff"`) ; la changer invalide les codes
+    | deja communiques, et il faut alors la changer des deux cotes.
+    */
+    'diffusion' => [
+        'url' => env('DIFFUSION_URL', 'https://www.les-illustrateurs.com'),
+        'cle' => env('DIFFUSION_CLE', 'UBdiff'),
+    ],
+
 ];

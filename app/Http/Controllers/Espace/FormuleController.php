@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Espace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Models\User;
+use App\Services\Espace\CodeDiffusion;
 use App\Services\Paiement\Souscription;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -15,17 +17,42 @@ use Illuminate\View\View;
 /** Formule et factures (ubaction__user_pref_formule du legacy). */
 class FormuleController extends Controller
 {
-    public function index(Request $request, Souscription $souscription): View
+    public function index(Request $request, Souscription $souscription, CodeDiffusion $diffusion): View
     {
         $creatif = $request->user();
-        $echeance = $creatif->echeanceFormule();
 
         return view('espace.formule', [
             'creatif' => $creatif,
-            'echeance' => $echeance,
+            'echeance' => $creatif->echeanceFormule(),
             'options' => $souscription->options($creatif),
             'factures' => $creatif->invoices()->where('status', 'paid')->latest('issued_at')->get(),
+            'codeDiffusion' => $diffusion->pour($creatif),
+            'quotas' => $this->quotas($creatif),
         ]);
+    }
+
+    /**
+     * Les deux compteurs de la page : nombre de visuels et poids total,
+     * chacun rapporte au plafond de la formule.
+     *
+     * @return array<string, array{valeur: int, plafond: int, unite: string}>
+     */
+    private function quotas(User $creatif): array
+    {
+        $limites = config('formules.limites.'.($creatif->plan ? 'payante' : 'gratuite'));
+
+        return [
+            'images' => [
+                'valeur' => (int) $creatif->media_count,
+                'plafond' => (int) $limites['visuels'],
+                'unite' => '',
+            ],
+            'poids' => [
+                'valeur' => (int) $creatif->storage_used,
+                'plafond' => (int) $limites['poids_ko'],
+                'unite' => 'Ko',
+            ],
+        ];
     }
 
     public function facture(Invoice $facture): View
