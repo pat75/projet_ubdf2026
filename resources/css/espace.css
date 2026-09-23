@@ -4,11 +4,10 @@
  * Le portail charge encore Semantic UI (voir ubdf.css) : cette feuille
  * n'est incluse que par layouts/espace, son preflight ne l'atteint donc pas.
  *
- * Les valeurs ci-dessous ne sont pas choisies : elles sont relevees dans
- * la feuille de l'espace d'origine
- * (html_pages_v2018/_/less2019/core_user_admin.less) pour que le createur
- * retrouve exactement l'outil qu'il connait. Chaque jeton porte en
- * commentaire le nom qu'il avait la-bas.
+ * Les jetons viennent de la maquette de refonte (« Mon compte.dc.html »),
+ * qui remplace l'habillage de 2020 dans tout l'espace. Ceux de l'ancienne
+ * feuille qui servent encore — le rouge de la selection, la formule —
+ * gardent leur nom et leur commentaire d'origine.
  */
 
 @import "tailwindcss";
@@ -20,63 +19,111 @@
 @source "../views/livewire/**/*.blade.php";
 
 /*
- | L'espace d'origine n'a pas de mode sombre, et celui de 2026 est retire.
- | La variante reste declaree, rattachee a une classe que plus personne ne
- | pose : les `dark:` encore presents dans les vues deviennent inertes, au
- | lieu de s'activer tout seuls sur un systeme regle en sombre. Ils
- | disparaitront des vues au fil des lots suivants.
+ | L'espace n'a pas de mode sombre. La variante reste declaree, rattachee
+ | a une classe que plus personne ne pose : les `dark:` encore presents
+ | dans les vues deviennent inertes, au lieu de s'activer tout seuls sur
+ | un systeme regle en sombre. Ils disparaitront au fil des lots.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    /* @ub_rouge_claire : la couleur de la rubrique ouverte. */
-    --color-ub-rouge: #df014c;
-    --color-ub-rouge-fonce: #991534;
+    /* --- Maquette de refonte ---------------------------------------- */
 
-    /* Les trois gris : filets, survols, textes secondaires. */
+    /* L'accent, decline en quatre valeurs : le trait, le survol, le
+       texte sur fond clair, et le fond leger des etats actifs. */
+    --color-ub-accent: #16a9b5;
+    --color-ub-accent-fonce: #0f9aa6;
+    --color-ub-accent-texte: #0b7b85;
+    --color-ub-accent-fond: #e8f6f7;
+
+    /* Fond de page : le #f4f4f2 de la maquette, assombri de 15 % puis
+       eclairci de 10 %, pour que les cartes blanches se detachent sans
+       que la page paraisse grise. */
+    --color-ub-fond: #e4e4e3;
+    --color-ub-texte: #2b2b2b;
+    --color-ub-texte2: #555555;
+    --color-ub-texte3: #777777;
+    --color-ub-texte4: #999999;
+
+    /* Filets : champs, cartes, separateurs de lignes. */
+    --color-ub-bord: #d9d9d6;
+    --color-ub-bord-carte: #ebebe8;
+    --color-ub-filet: #f0f0ee;
+
+    /* Pied de page. */
+    --color-ub-pied: #2e2e2e;
+    --color-ub-pied-titre: #5fd0d9;
+
+    /* Etats : donnee privee, formule, messages, danger, deconnexion. */
+    --color-ub-prive: #b0457a;
+    --color-ub-formule: #c2185b;
+    --color-ub-formule-fond: #fce8f0;
+    --color-ub-messages: #8e3fc4;
+    --color-ub-danger: #a12a2a;
+    --color-ub-danger-bord: #f1d4d4;
+    --color-ub-danger-fond: #fffafa;
+    --color-ub-sortie: #c25a1b;
+
+    /* --- Conserves de l'habillage de 2020 --------------------------- */
+
+    --color-ub-rouge: #df014c;        /* @ub_rouge_claire */
+    --color-ub-rouge-fonce: #991534;
     --color-ub-gris-clair: #e8e8e8;   /* @ub_gris_claire */
     --color-ub-gris-moyen: #b7b7b7;   /* @ub_gris_moyen  */
     --color-ub-gris-fonce: #979797;   /* @ub_gris_fonce  */
-
-    /* Fond de page de l'espace, releve sur la capture d'ecran de
-       l'original : #ebebeb, plus soutenu que le #f8f8f8 du LESS. */
-    --color-ub-fond: #ebebeb;
-
-    /* Fond du pied de page, releve lui aussi sur la capture. */
-    --color-ub-pied: #3e3e3e;
-
-    /* Le turquoise des titres d'ecran. */
     --color-ub-turquoise: #17b7bf;
-
-    /* Couleur du texte courant des menus. */
-    --color-ub-texte: #444444;
-
-    /* Les deux liens de service, sous le bandeau de formule. */
-    --color-ub-book: dodgerblue;      /* .user_book_link */
-    --color-ub-sortie: chocolate;     /* .user_book_out  */
-
-    /* Formule payante et fanion de selection editoriale. */
+    --color-ub-book: dodgerblue;
     --color-ub-payante: crimson;
     --color-ub-selection: mediumvioletred;
 
-    /* @ub_rounded, et l'ombre portee des deux panneaux. */
-    --radius-ub: 5px;
-    --shadow-ub: 0 0 3px #959595;
+    /* Rayons : champs et boutons, bandeau, barre, cartes. */
+    --radius-ub: 8px;
+    --radius-ub-bandeau: 10px;
+    --radius-ub-barre: 12px;
+    --radius-ub-carte: 14px;
 
-    /* Lato pour les titres, Source Sans Pro pour le texte courant. */
-    --font-titre: 'Lato', sans-serif;
-    --font-courant: 'Source Sans Pro', sans-serif;
+    /* L'ombre des cartes : un voile, double d'un filet d'un pixel. */
+    --shadow-ub: 0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px #ebebe8;
+
+    /* Source Sans 3 partout ; `titre` reste declare, les vues qui s'en
+       servent encore tombent sur la meme famille. */
+    --font-courant: 'Source Sans 3', 'Source Sans Pro', system-ui, sans-serif;
+    --font-titre: 'Source Sans 3', 'Source Sans Pro', system-ui, sans-serif;
+}
+
+/* La carte blanche, brique de tous les ecrans de l'espace. */
+@utility carte-espace {
+    background-color: white;
+    border-radius: var(--radius-ub-carte);
+    box-shadow: var(--shadow-ub);
+}
+
+/* Reste des vues non encore reprises ; meme rendu que la carte. */
+@utility panneau-espace {
+    background-color: white;
+    border-radius: var(--radius-ub-carte);
+    box-shadow: var(--shadow-ub);
 }
 
 /*
- | Le panneau blanc qui porte le contenu de chaque ecran. Son ombre, son
- | arrondi et sa hauteur minimale viennent de #bloc_cms_user : sans cette
- | hauteur, les ecrans courts remontent le pied de page a mi-hauteur.
+ | Les champs de saisie. Ils sont assez nombreux, et toujours identiques,
+ | pour valoir un utilitaire plutot qu'une chaine de classes recopiee.
  */
-@utility panneau-espace {
-    background-color: white;
+@utility champ-espace {
+    height: 42px;
+    width: 100%;
+    border: 1px solid var(--color-ub-bord);
     border-radius: var(--radius-ub);
-    box-shadow: var(--shadow-ub);
+    padding: 0 12px;
+    font-size: 16px;
+    color: #222;
+    background-color: white;
+    outline: none;
+
+    &:focus {
+        border-color: var(--color-ub-accent);
+        box-shadow: 0 0 0 3px rgb(22 169 181 / 0.15);
+    }
 }
 
 .dev_only { outline: 2px solid #dc2626; outline-offset: 2px; }

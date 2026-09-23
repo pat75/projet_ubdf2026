@@ -1,10 +1,7 @@
-@props(['route', 'icone' => null, 'pastille' => 0, 'couleur' => null])
+@props(['route', 'icone' => null, 'pastille' => 0])
 
 {{-- Les rubriques pas encore livrees n'apparaissent pas : pas de lien mort.
-
-     Un element de liste separe d'un filet gris clair, sauf le dernier ;
-     la rubrique ouverte passe au rouge et prend son chevron, comme dans
-     l'espace d'origine (ul.ub_nav_user de core_user_admin.less). --}}
+     La rubrique ouverte prend le fond leger de l'accent. --}}
 @if (Route::has(nom_route($route)))
     @php
         /*
@@ -23,27 +20,23 @@
         $actif = request()->routeIs(...$motifs);
     @endphp
 
-    <li class="border-b border-ub-gris-clair last:border-b-0">
-        <a href="{{ route(nom_route($route)) }}"
-           @class([
-               'flex items-center gap-2 py-1.5 no-underline',
-               'text-ub-rouge' => $actif,
-               ($couleur ?? 'text-ub-texte hover:text-ub-gris-moyen') => ! $actif,
-           ])
-           @if ($actif) aria-current="page" @endif>
+    <a href="{{ route(nom_route($route)) }}"
+       @class([
+           'flex items-center gap-2 rounded-ub px-3 py-2 no-underline',
+           'bg-ub-accent-fond font-semibold text-ub-accent-texte' => $actif,
+           'text-[#333] hover:bg-[#f5f5f3]' => ! $actif,
+       ])
+       @if ($actif) aria-current="page" @endif>
 
-            @if ($actif)
-                <span aria-hidden="true" class="-ml-2.5 text-xs">❯</span>
-            @elseif ($icone)
-                <x-espace.icone :nom="$icone" class="h-4 w-4" />
-            @endif
+        @if ($icone)
+            <x-espace.icone :nom="$icone" class="h-4 w-4 shrink-0" />
+        @endif
 
-            <span>{{ $slot }}</span>
+        <span class="flex-1">{{ $slot }}</span>
 
-            @if ($pastille > 0)
-                {{-- Le compteur de messages non lus, en pastille violette. --}}
-                <span class="ml-1 rounded-full bg-[#9b51e0] px-2 py-px text-[11px] font-semibold text-white">{{ $pastille }}</span>
-            @endif
-        </a>
-    </li>
+        @if ($pastille > 0)
+            {{-- Le compteur de messages non lus. --}}
+            <span class="rounded-[10px] bg-ub-messages px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
+        @endif
+    </a>
 @endif

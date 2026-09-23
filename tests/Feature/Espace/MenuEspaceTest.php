@@ -28,14 +28,16 @@ it('presente les deux listes du menu, le compte puis le book', function () {
         ]);
 });
 
-it('annonce une formule gratuite ou payante', function () {
+it('ne distingue la formule payante que par sa pastille', function () {
+    // La maquette ne dit plus rien de la formule gratuite : c'est
+    // l'absence de pastille qui la signale.
     $gratuit = User::factory()->create(['plan' => 0]);
 
-    $this->actingAs($gratuit)->get(route('espace'))->assertOk()->assertSee('Formule gratuite');
+    $this->actingAs($gratuit)->get(route('espace'))->assertOk()->assertDontSee('★ Formule', escape: false);
 
     $payant = User::factory()->create(['plan' => 1, 'plan_started_at' => now(), 'plan_months' => 12]);
 
-    $this->actingAs($payant)->get(route('espace'))->assertOk()->assertDontSee('Formule gratuite');
+    $this->actingAs($payant)->get(route('espace'))->assertOk()->assertSee('★ Formule', escape: false);
 });
 
 it('montre le fanion de selection quand le book est en page d accueil', function () {

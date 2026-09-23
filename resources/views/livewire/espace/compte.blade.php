@@ -1,201 +1,276 @@
-@php
-    $champ = 'rounded border border-ub-gris-clair bg-white px-3 py-2 text-[15px] focus:border-ub-gris-moyen focus:outline-none';
-@endphp
+<div class="flex flex-col gap-5" x-data="{ locOpen: false, acces: @js($errors->hasAny(['email', 'nouveauMotDePasse', 'motDePasseActuel'])) }">
 
-<div>
-    <x-espace.titre>{{ __('Mon compte') }}</x-espace.titre>
+    <div class="flex flex-col gap-1.5 px-1 pb-2">
+        <div class="text-[13px] font-semibold uppercase tracking-[1.4px] text-ub-accent-fonce">{{ __('Mon compte') }}</div>
+        <h1 class="text-[36px] font-light leading-[1.15] tracking-[-.3px]">
+            {{ __('Mes informations') }} <span class="font-semibold">{{ __('publiques et privées') }}</span>
+        </h1>
+    </div>
 
-    <x-espace.hero
-        :illustration="asset('img_admin/int-compte.svg')"
-        :alt="__('Mes informations')"
-        :titre="__('Mes informations')"
-        :suite="__('publiques et privées')"
-        :suite-dessous="true"
-        class="mb-10" />
-
-    {{-- Rappel du mode de connexion : le legacy distinguait le compte
-         ouvert par identifiant de ceux ouverts par Facebook ou LinkedIn. --}}
-    <div class="mb-8 flex items-center gap-4 rounded bg-[#f4f4f4] px-5 py-4 text-[15px]">
-        <span class="fonticon-user text-[34px] text-[#555]" aria-hidden="true"></span>
+    <div class="flex items-center gap-3 rounded-ub-bandeau bg-ub-accent-fond px-4.5 py-3.5 text-[15px] text-[#1f5a5f]">
+        <span class="h-2 w-2 shrink-0 rounded-full bg-ub-accent"></span>
         {{ __('Votre connexion s’est faite via votre identifiant et votre mot de passe') }}
     </div>
 
-    {{-- L'ordre des lignes suit celui de l'espace d'origine. --}}
-    <x-espace.section-pliante :titre="__('Votre compte')" :ouvert="true">
+    {{-- Identifiants de connexion. --}}
+    <x-espace.carte :titre="__('Votre compte')"
+                    :sous-titre="__('Identifiants de connexion. Les champs marqués <span class=\'text-ub-prive\'>●</span> restent privés.')">
 
-        <x-espace.ligne-champ :libelle="__('Url de votre book')" :aide="__('C’est l’adresse publique de votre book. Elle suit votre identifiant et ne se change pas.')">
-            <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener" class="text-ub-texte hover:text-ub-rouge">{{ $creatif->bookUrl() }}</a>
-        </x-espace.ligne-champ>
+        <x-espace.ligne :libelle="__('Url de votre book')" :aide="__('Adresse publique de votre portfolio')">
+            <span class="break-all">{{ $creatif->bookUrl() }}</span>
+            <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener"
+               class="text-[14px] font-semibold text-ub-accent-fonce hover:underline">{{ __('Ouvrir') }} ↗</a>
+        </x-espace.ligne>
 
-        <x-espace.ligne-champ :libelle="__('Identifiant / Login')" :aide="__('Il sert à vous connecter et donne son adresse à votre book.')">
-            <span>{{ $creatif->login }}</span>
-        </x-espace.ligne-champ>
+        <x-espace.ligne :libelle="__('Identifiant / Login')" :aide="__('Utilisé pour vous connecter')">
+            {{ $creatif->login }}
+        </x-espace.ligne>
 
-        {{-- Mot de passe et adresse : ils vivent dans la meme fiche que le
-             reste, mais leur enregistrement passe par le formulaire
-             d'acces, qui redemande le mot de passe actuel. --}}
-        <div x-data="{ ouvert: @js($errors->hasAny(['email', 'nouveauMotDePasse', 'motDePasseActuel'])) }">
+        <x-espace.ligne :libelle="__('Mot de passe')" :prive="true">
+            <span class="text-[18px] tracking-[3px]" x-show="! acces">••••••••••</span>
+            <button type="button" @click="acces = ! acces"
+                    class="rounded-ub border border-ub-bord bg-white px-3.5 py-1.5 text-[14px] font-semibold text-[#333] hover:bg-[#f6f6f4]">
+                <span x-show="! acces">{{ __('Modifier') }}</span>
+                <span x-show="acces" x-cloak>{{ __('Annuler') }}</span>
+            </button>
+        </x-espace.ligne>
 
-            <x-espace.ligne-champ :libelle="__('Mot de passe')" :prive="true" :obligatoire="true">
-                <input type="password" value="motdepasse" disabled class="{{ $champ }} w-44 text-ub-gris-moyen">
-                <button type="button" @click="ouvert = true" class="text-ub-gris-fonce hover:text-ub-texte" :aria-expanded="ouvert">
-                    <span class="fonticon-edit text-[17px]" aria-hidden="true"></span>
-                    <span class="sr-only">{{ __('Changer mon mot de passe') }}</span>
-                </button>
-            </x-espace.ligne-champ>
+        <x-espace.ligne :libelle="__('Adresse mail')" :prive="true" :dernier="true">
+            <span x-show="! acces">{{ $creatif->email }}</span>
+            <span x-show="acces" x-cloak class="text-[14px] text-ub-texte3">{{ __('Modifiable ci-dessous.') }}</span>
+        </x-espace.ligne>
 
-            <x-espace.ligne-champ :libelle="__('Adresse mail')" :prive="true" :obligatoire="true">
-                <span x-show="! ouvert">{{ $creatif->email }}</span>
-                <button type="button" x-show="! ouvert" @click="ouvert = true" class="text-ub-gris-fonce hover:text-ub-texte">
-                    <span class="fonticon-edit text-[17px]" aria-hidden="true"></span>
-                    <span class="sr-only">{{ __('Changer mon adresse') }}</span>
-                </button>
-            </x-espace.ligne-champ>
+        {{-- Adresse et mot de passe changent ensemble : l'un comme l'autre
+             demande le mot de passe actuel. --}}
+        <form wire:submit="enregistrerAcces" x-show="acces" x-collapse x-cloak class="mt-3 rounded-ub bg-[#fafaf8] p-5">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Adresse mail') }}
+                    <input type="email" wire:model="email" autocomplete="email" class="champ-espace">
+                    @error('email') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                </label>
 
-            <form wire:submit="enregistrerAcces" x-show="ouvert" x-collapse x-cloak
-                  class="my-3 max-w-xl rounded bg-[#f8f8f8] px-5 py-3">
-                <x-espace.ligne-champ :libelle="__('Adresse mail')">
-                    <input type="email" wire:model="email" autocomplete="email" class="{{ $champ }} w-full">
-                    @error('email') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-                </x-espace.ligne-champ>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Mot de passe actuel') }}
+                    <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="champ-espace">
+                    @error('motDePasseActuel') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                </label>
 
-                <x-espace.ligne-champ :libelle="__('Nouveau mot de passe')">
-                    <input type="password" wire:model="nouveauMotDePasse" autocomplete="new-password" class="{{ $champ }} w-full">
-                    @error('nouveauMotDePasse') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-                </x-espace.ligne-champ>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Nouveau mot de passe') }}
+                    <input type="password" wire:model="nouveauMotDePasse" autocomplete="new-password" class="champ-espace">
+                    @error('nouveauMotDePasse') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                </label>
 
-                <x-espace.ligne-champ :libelle="__('Confirmation')">
-                    <input type="password" wire:model="nouveauMotDePasse_confirmation" autocomplete="new-password" class="{{ $champ }} w-full">
-                </x-espace.ligne-champ>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Confirmation') }}
+                    <input type="password" wire:model="nouveauMotDePasse_confirmation" autocomplete="new-password" class="champ-espace">
+                </label>
+            </div>
 
-                <x-espace.ligne-champ :libelle="__('Mot de passe actuel')" :obligatoire="true">
-                    <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="{{ $champ }} w-full">
-                    @error('motDePasseActuel') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-                </x-espace.ligne-champ>
+            <button type="submit" wire:target="enregistrerAcces" wire:loading.attr="disabled"
+                    class="mt-4 rounded-ub bg-ub-accent px-4 py-2 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce">
+                {{ __('Enregistrer') }}
+            </button>
+        </form>
+    </x-espace.carte>
 
-                <div class="mt-4 flex items-center gap-4">
-                    <x-espace.bouton wire:target="enregistrerAcces" wire:loading.attr="disabled">{{ __('Enregistrer') }}</x-espace.bouton>
-                    <button type="button" @click="ouvert = false" class="text-[13px] text-ub-gris-fonce hover:text-ub-texte">{{ __('Annuler') }}</button>
-                </div>
-            </form>
-        </div>
+    {{-- Profil public. --}}
+    <x-espace.carte :titre="__('Profil')" :sous-titre="__('Ces informations apparaissent sur votre book.')">
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-5 gap-y-4.5">
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Prénom') }} *
+                <input type="text" wire:model="profil.firstname" class="champ-espace">
+                @error('profil.firstname') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            </label>
 
-        <form wire:submit="enregistrerProfil">
-            <x-espace.ligne-champ :libelle="__('Métier')">
-                <select wire:model="categorie" class="{{ $champ }}">
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Nom') }} *
+                <input type="text" wire:model="profil.lastname" class="champ-espace">
+                @error('profil.lastname') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Métier') }}
+                <select wire:model="categorie" class="champ-espace">
                     <option value="">—</option>
                     @foreach ($categories as $id => $nom)
                         <option value="{{ $id }}">{{ $nom }}</option>
                     @endforeach
                 </select>
-            </x-espace.ligne-champ>
+            </label>
 
-            <x-espace.ligne-champ :libelle="__('Votre statut')">
-                <select wire:model="statut" class="{{ $champ }}">
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Votre statut') }}
+                <select wire:model="statut" class="champ-espace">
                     <option value="">—</option>
                     @foreach ($statuts as $valeur)
                         <option value="{{ $valeur }}">{{ $valeur }}</option>
                     @endforeach
                 </select>
-            </x-espace.ligne-champ>
+            </label>
 
-            <x-espace.ligne-champ :libelle="__('Nom')" :obligatoire="true">
-                <input type="text" wire:model="profil.lastname" class="{{ $champ }}">
-                @error('profil.lastname') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-            </x-espace.ligne-champ>
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Société') }}
+                <input type="text" wire:model="profil.company" class="champ-espace">
+            </label>
 
-            <x-espace.ligne-champ :libelle="__('Prénom')" :obligatoire="true">
-                <input type="text" wire:model="profil.firstname" class="{{ $champ }}">
-                @error('profil.firstname') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-            </x-espace.ligne-champ>
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Site web') }}
+                <input type="url" wire:model="profil.website" placeholder="www.monsite.com" class="champ-espace">
+                @error('profil.website') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            </label>
 
-            <x-espace.ligne-champ :libelle="__('Société')">
-                <input type="text" wire:model="profil.company" class="{{ $champ }}">
-            </x-espace.ligne-champ>
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">
+                <span>{{ __('Téléphone') }} <span class="text-[10px] text-ub-prive" title="{{ __('Donnée privée') }}">●</span></span>
+                <input type="tel" wire:model="profil.phone" placeholder="+33601020304" class="champ-espace">
+            </label>
+        </div>
 
-            <x-espace.ligne-champ :libelle="__('Site web')" :aide="__('Votre site personnel, s’il en existe un. Il est affiché sur votre book.')">
-                <input type="url" wire:model="profil.website" placeholder="https://www.monsite.com" class="{{ $champ }}">
-                @error('profil.website') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-            </x-espace.ligne-champ>
+        {{-- Interrupteur SMS, sous son filet. --}}
+        <div class="mt-4.5 flex items-center justify-between gap-4 border-t border-ub-filet pt-4.5">
+            <div>
+                <div class="text-[15px] font-semibold">
+                    {{ __('Contacts par SMS') }}
+                    <span class="ml-1 rounded bg-[#f1eafa] px-1.5 py-px text-[12px] font-semibold text-[#7a4fb5]">{{ __('Bêta') }}</span>
+                </div>
+                <div class="text-[14px] text-ub-texte3">{{ __('Les SMS sont envoyés entre 9h et 21h') }}</div>
+            </div>
 
-            <x-espace.ligne-champ :libelle="__('Téléphone')" :prive="true" :aide="__('Il ne paraît pas sur votre book : il sert aux contacts qui passent par la plateforme.')">
-                <input type="tel" wire:model="profil.phone" placeholder="+33601020304" class="{{ $champ }}">
-            </x-espace.ligne-champ>
+            <x-espace.interrupteur wire:click="$toggle('sms')" :actif="$sms" :libelle="__('Contacts par SMS')" />
+        </div>
+    </x-espace.carte>
 
-            <x-espace.ligne-champ :libelle="__('Contacts par SMS (Bêta)')" :aide="__('Vous recevez un SMS quand un client vous écrit.')">
-                {{-- Interrupteur : la case est masquee, c'est le rail qui
-                     la represente, et le clavier la reste atteint. --}}
-                <label class="inline-flex cursor-pointer items-center gap-3">
-                    <input type="checkbox" wire:model="sms" class="peer sr-only">
-                    <span class="relative h-6 w-11 rounded-full bg-ub-gris-clair transition peer-checked:bg-ub-turquoise peer-focus-visible:ring-2 peer-focus-visible:ring-ub-gris-moyen">
-                        <span class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"></span>
+    {{-- Facturation electronique. --}}
+    <x-espace.carte :titre="__('Facturation électronique')"
+                    :sous-titre="__('Obligatoire entre professionnels à compter de 2026. Vos informations légales sont relevées auprès de l’annuaire des entreprises de l’État.')">
+
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <div class="text-[15px] font-semibold">{{ __('Je facture en tant que professionnel') }}</div>
+                <div class="text-[14px] text-ub-texte3">{{ __('Votre SIRET et votre raison sociale figureront sur vos factures.') }}</div>
+            </div>
+
+            <x-espace.interrupteur wire:click="basculerProfessionnel" :actif="$professionnel" :libelle="__('Facturer en professionnel')" />
+        </div>
+
+        @if ($professionnel)
+            <div class="mt-5 border-t border-ub-filet pt-5">
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2 sm:max-w-md">
+                    {{ __('Numéro SIRET') }}
+                    <span class="flex gap-2">
+                        <input type="text" wire:model="siret" wire:keydown.enter.prevent="verifierSiret"
+                               inputmode="numeric" placeholder="552 081 317 66522" class="champ-espace">
+                        <button type="button" wire:click="verifierSiret" wire:target="verifierSiret" wire:loading.attr="disabled"
+                                class="shrink-0 rounded-ub bg-ub-accent px-4 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce disabled:opacity-60">
+                            <span wire:loading.remove wire:target="verifierSiret">{{ __('Vérifier') }}</span>
+                            <span wire:loading wire:target="verifierSiret">{{ __('Recherche…') }}</span>
+                        </button>
                     </span>
-                    <span class="text-[13px] text-ub-gris-fonce">{{ __('Les SMS sont envoyés entre 9h et 21h') }}</span>
                 </label>
-            </x-espace.ligne-champ>
 
-            <div class="mt-6">
-                <x-espace.bouton wire:target="enregistrerProfil" wire:loading.attr="disabled">{{ __('Enregistrer') }}</x-espace.bouton>
+                @if ($erreurSiret)
+                    <p class="mt-2 text-[14px] text-ub-danger">{{ $erreurSiret }}</p>
+                @endif
+
+                @if ($facturation)
+                    {{-- Les informations relevees, sur trois colonnes pour
+                         rester lisibles sous le numero. --}}
+                    <dl class="mt-5 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-5 gap-y-4 rounded-ub bg-[#fafaf8] p-5 text-[15px]">
+                        <x-espace.donnee :libelle="__('Raison sociale')">{{ $facturation->company_name }}</x-espace.donnee>
+                        <x-espace.donnee :libelle="__('SIRET')">{{ $facturation->siretLisible() }}</x-espace.donnee>
+                        <x-espace.donnee :libelle="__('TVA intracommunautaire')">{{ $facturation->vat_number ?: '—' }}</x-espace.donnee>
+
+                        <x-espace.donnee :libelle="__('Forme juridique')">{{ $facturation->formeJuridique() ?: '—' }}</x-espace.donnee>
+                        <x-espace.donnee :libelle="__('Code APE / NAF')">{{ $facturation->naf_code ?: '—' }}</x-espace.donnee>
+                        <x-espace.donnee :libelle="__('Immatriculation')">{{ $facturation->established_on?->format('d/m/Y') ?: '—' }}</x-espace.donnee>
+
+                        <x-espace.donnee :libelle="__('Adresse')" class="sm:col-span-2">{{ $facturation->adresseComplete() ?: '—' }}</x-espace.donnee>
+                        <x-espace.donnee :libelle="__('État')">
+                            @if ($facturation->actif())
+                                <span class="text-[#1f7a4a]">{{ __('En activité') }}</span>
+                            @else
+                                <span class="text-ub-danger">{{ __('Établissement fermé') }}</span>
+                            @endif
+                        </x-espace.donnee>
+                    </dl>
+
+                    <p class="mt-2 text-[13px] text-ub-texte3">
+                        {{ __('Relevé le :date auprès de l’annuaire des entreprises.', ['date' => $facturation->checked_at?->format('d/m/Y')]) }}
+                    </p>
+                @endif
             </div>
-        </form>
-    </x-espace.section-pliante>
+        @endif
+    </x-espace.carte>
 
-    <x-espace.section-pliante :titre="__('Localisation')">
-        <form wire:submit="enregistrerProfil" class="max-w-xl">
-            <x-espace.ligne-champ :libelle="__('Adresse')">
-                <input type="text" wire:model="profil.address" class="{{ $champ }} w-full">
-            </x-espace.ligne-champ>
-            <x-espace.ligne-champ :libelle="__('Code postal')">
-                <input type="text" wire:model="profil.zipcode" class="{{ $champ }}">
-            </x-espace.ligne-champ>
-            <x-espace.ligne-champ :libelle="__('Ville')">
-                <input type="text" wire:model="profil.city" class="{{ $champ }} w-full">
-            </x-espace.ligne-champ>
-            <x-espace.ligne-champ :libelle="__('Pays')">
-                <input type="text" wire:model="profil.country" class="{{ $champ }} w-full">
-            </x-espace.ligne-champ>
+    {{-- Localisation, repliee par defaut. --}}
+    <section class="carte-espace overflow-hidden">
+        <button type="button" @click="locOpen = ! locOpen" :aria-expanded="locOpen"
+                class="flex w-full items-center justify-between px-7 py-5.5 text-left hover:bg-[#fafaf8]">
+            <span class="text-[20px] font-semibold">{{ __('Localisation') }}</span>
+            <span class="text-[18px] text-[#888] transition-transform duration-200" :class="locOpen && 'rotate-90'">›</span>
+        </button>
 
-            <div class="mt-6">
-                <x-espace.bouton wire:target="enregistrerProfil" wire:loading.attr="disabled">{{ __('Enregistrer') }}</x-espace.bouton>
+        <div x-show="locOpen" x-collapse x-cloak class="px-7 pb-6">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-5 gap-y-4.5">
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Adresse') }}
+                    <input type="text" wire:model="profil.address" class="champ-espace">
+                </label>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Code postal') }}
+                    <input type="text" wire:model="profil.zipcode" class="champ-espace">
+                </label>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Ville') }}
+                    <input type="text" wire:model="profil.city" class="champ-espace">
+                </label>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Pays') }}
+                    <input type="text" wire:model="profil.country" class="champ-espace">
+                </label>
             </div>
-        </form>
-    </x-espace.section-pliante>
+        </div>
+    </section>
 
-    <x-espace.section-pliante :titre="__('Réseaux sociaux')">
-        <form wire:submit="enregistrerProfil" class="max-w-xl">
-            @foreach (['facebook_url' => 'Facebook', 'instagram_url' => 'Instagram', 'twitter_url' => 'X / Twitter'] as $cle => $libelle)
-                <x-espace.ligne-champ :libelle="$libelle">
-                    <input type="url" wire:model="profil.{{ $cle }}" class="{{ $champ }} w-full">
-                    @error('profil.'.$cle) <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-                </x-espace.ligne-champ>
-            @endforeach
-
-            <div class="mt-6">
-                <x-espace.bouton wire:target="enregistrerProfil" wire:loading.attr="disabled">{{ __('Enregistrer') }}</x-espace.bouton>
+    {{-- Zone dangereuse. --}}
+    <section x-data="{ ouvert: false }"
+             class="rounded-ub-carte border border-ub-danger-bord bg-ub-danger-fond px-7 py-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="text-[17px] font-semibold text-ub-danger">{{ __('Supprimer mon portfolio') }}</div>
+                <div class="mt-0.5 text-[14px] text-[#8a5a5a]">{{ __('Votre book quitte le site et vos images ne sont plus servies.') }}</div>
             </div>
-        </form>
-    </x-espace.section-pliante>
 
-    <x-espace.section-pliante :titre="__('Supprimer mon portfolio')" icone="alerte">
-        <form wire:submit="supprimerPortfolio" class="max-w-xl">
-            <p class="mb-4">
-                {{ __('Votre book cessera d’être en ligne et votre fiche quittera l’annuaire. Vos données sont conservées quelque temps : écrivez-nous si vous changez d’avis.') }}
+            <button type="button" @click="ouvert = ! ouvert"
+                    class="rounded-ub border border-[#e0a9a9] bg-white px-4 py-2 text-[14px] font-semibold text-ub-danger hover:bg-ub-danger hover:text-white">
+                {{ __('Supprimer…') }}
+            </button>
+        </div>
+
+        <form wire:submit="supprimerPortfolio" x-show="ouvert" x-collapse x-cloak class="mt-5 border-t border-ub-danger-bord pt-5">
+            <p class="mb-4 text-[14px] text-[#8a5a5a]">
+                {{ __('Vos données sont conservées quelque temps : écrivez-nous si vous changez d’avis.') }}
             </p>
 
-            <x-espace.ligne-champ :libelle="__('Recopiez votre identifiant')" :obligatoire="true">
-                <input type="text" wire:model="confirmationSuppression" autocomplete="off" placeholder="{{ $creatif->login }}" class="{{ $champ }}">
-                @error('confirmationSuppression') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-            </x-espace.ligne-champ>
+            <div class="grid gap-4 sm:max-w-lg sm:grid-cols-2">
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Recopiez votre identifiant') }}
+                    <input type="text" wire:model="confirmationSuppression" autocomplete="off" placeholder="{{ $creatif->login }}" class="champ-espace">
+                    @error('confirmationSuppression') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                </label>
 
-            <x-espace.ligne-champ :libelle="__('Mot de passe actuel')" :obligatoire="true">
-                <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="{{ $champ }}">
-                @error('motDePasseActuel') <span class="text-[13px] text-ub-rouge">{{ $message }}</span> @enderror
-            </x-espace.ligne-champ>
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Mot de passe actuel') }}
+                    <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="champ-espace">
+                    @error('motDePasseActuel') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                </label>
+            </div>
 
             <button type="submit" wire:target="supprimerPortfolio" wire:loading.attr="disabled"
-                    class="mt-6 rounded bg-ub-rouge px-5 py-2 text-white hover:bg-ub-rouge-fonce">
+                    class="mt-4 rounded-ub bg-ub-danger px-4 py-2 text-[14px] font-semibold text-white hover:opacity-90">
                 {{ __('Supprimer définitivement mon portfolio') }}
             </button>
         </form>
-    </x-espace.section-pliante>
+    </section>
+
+    {{-- Barre d'enregistrement : elle ne parait que si le formulaire a
+         bouge, et suit le defilement en bas de fenetre. --}}
+    @if ($this->modifie)
+        <div class="sticky bottom-5 flex items-center justify-between gap-3 rounded-ub-barre bg-[#2f2f2f] py-3 pl-5 pr-3.5 text-white shadow-[0_10px_30px_rgba(0,0,0,.2)]">
+            <span class="text-[15px]">{{ __('Modifications non enregistrées') }}</span>
+
+            <div class="flex gap-2">
+                <button type="button" wire:click="annuler"
+                        class="rounded-ub border border-[#555] px-3.5 py-2 text-[14px] text-[#ddd] hover:text-white">{{ __('Annuler') }}</button>
+
+                <button type="button" wire:click="enregistrerProfil" wire:target="enregistrerProfil" wire:loading.attr="disabled"
+                        class="rounded-ub bg-ub-accent px-4 py-2 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce">{{ __('Enregistrer') }}</button>
+            </div>
+        </div>
+    @endif
 </div>

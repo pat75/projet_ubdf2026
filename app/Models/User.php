@@ -209,6 +209,12 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
+    /** Identite d'entreprise, si le createur facture en professionnel. */
+    public function billingProfile(): HasOne
+    {
+        return $this->hasOne(BillingProfile::class);
+    }
+
     public function visitStats(): HasMany
     {
         return $this->hasMany(VisitStat::class);

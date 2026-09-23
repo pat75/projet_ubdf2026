@@ -2,11 +2,17 @@
 
 namespace App\Livewire\Espace;
 
+use App\Models\BillingProfile;
 use App\Models\Category;
+use App\Services\Facturation\AnnuaireEntreprises;
+use App\Services\Facturation\SiretIntrouvable;
+use App\Services\Facturation\SiretInvalide;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
+use RuntimeException;
 
 /** Informations du compte et mot de passe (user_modif_form du legacy). */
 class Compte extends Component
@@ -47,6 +53,22 @@ class Compte extends Component
     /** Identifiant recopie pour confirmer la suppression du portfolio. */
     public string $confirmationSuppression = '';
 
+    /** Facturation electronique. */
+    public bool $professionnel = false;
+
+    public string $siret = '';
+
+    public ?string $erreurSiret = null;
+
+    /**
+     * Copie des valeurs telles qu'elles sont en base : elle sert a savoir
+     * si le formulaire a bouge, pour n'afficher la barre d'enregistrement
+     * que lorsqu'il y a quelque chose a enregistrer.
+     *
+     * @var array<string, mixed>
+     */
+    public array $enregistre = [];
+
     public function mount(): void
     {
         $creatif = Auth::user();
@@ -59,6 +81,39 @@ class Compte extends Component
         // Les fiches reprises portent parfois l'indice du legacy la ou on
         // attend un libelle : on ne propose alors rien plutot que « 6 ».
         $this->statut = in_array($creatif->status, config('ubdf.statuts'), true) ? (string) $creatif->status : '';
+
+        $this->professionnel = $creatif->billingProfile()->exists();
+        $this->siret = (string) $creatif->billingProfile?->siret;
+
+        $this->enregistre = $this->valeurs();
+    }
+
+    /** @return array<string, mixed> */
+    private function valeurs(): array
+    {
+        return [
+            'profil' => $this->profil,
+            'categorie' => $this->categorie,
+            'statut' => $this->statut,
+            'sms' => $this->sms,
+        ];
+    }
+
+    /** La barre d'enregistrement n'apparait que si quelque chose a bouge. */
+    #[Computed]
+    public function modifie(): bool
+    {
+        return $this->valeurs() !== $this->enregistre;
+    }
+
+    /** Remet le formulaire dans l'etat de la base. */
+    public function annuler(): void
+    {
+        foreach ($this->enregistre as $cle => $valeur) {
+            $this->{$cle} = $valeur;
+        }
+
+        $this->resetValidation();
     }
 
     public function enregistrerProfil(): void
@@ -74,8 +129,9 @@ class Compte extends Component
             'accepts_sms' => $this->sms,
         ]);
 
-        session()->flash('statut', __('Informations enregistrées.'));
-        $this->redirectRoute('espace.compte');
+        $this->enregistre = $this->valeurs();
+
+        session()->flash('statut', __('Modifications enregistrées'));
     }
 
     /** Changer l'adresse ou le mot de passe demande le mot de passe actuel. */
@@ -104,6 +160,49 @@ class Compte extends Component
         $this->reset('motDePasseActuel', 'nouveauMotDePasse', 'nouveauMotDePasse_confirmation');
         session()->flash('statut', __('Accès enregistrés.'));
         $this->redirectRoute('espace.compte');
+    }
+
+    /*
+     | Facturation electronique
+     |
+     | Le createur se declare professionnel, donne son SIRET, et les
+     | informations legales sont relevees aupres de l'annuaire de l'Etat
+     | plutot que saisies : c'est ce qui figurera sur ses factures.
+     */
+
+    public function basculerProfessionnel(): void
+    {
+        $this->professionnel = ! $this->professionnel;
+        $this->erreurSiret = null;
+
+        if (! $this->professionnel) {
+            Auth::user()->billingProfile()->delete();
+            $this->siret = '';
+
+            session()->flash('statut', __('Facturation électronique désactivée.'));
+        }
+    }
+
+    public function verifierSiret(AnnuaireEntreprises $annuaire): void
+    {
+        $this->erreurSiret = null;
+
+        try {
+            $donnees = $annuaire->parSiret($this->siret);
+        } catch (SiretInvalide|SiretIntrouvable|RuntimeException $e) {
+            $this->erreurSiret = $e->getMessage();
+
+            return;
+        }
+
+        BillingProfile::updateOrCreate(
+            ['user_id' => Auth::id()],
+            $donnees + ['checked_at' => now()],
+        );
+
+        $this->siret = $donnees['siret'];
+
+        session()->flash('statut', __('Informations d’entreprise récupérées.'));
     }
 
     /**
@@ -137,8 +236,11 @@ class Compte extends Component
 
     public function render(): View
     {
+        $creatif = Auth::user();
+
         return view('livewire.espace.compte', [
-            'creatif' => Auth::user(),
+            'creatif' => $creatif,
+            'facturation' => $creatif->billingProfile()->first(),
             'categories' => Category::where('is_active', true)->orderBy('position')->pluck('name', 'id'),
             'statuts' => config('ubdf.statuts'),
         ]);

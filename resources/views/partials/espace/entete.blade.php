@@ -5,8 +5,8 @@
  | replie a gauche, le logo, puis les trois acces du portail et la
  | vignette du createur.
 --}}
-<header class="sticky top-0 z-20 border-b border-black/5 bg-white">
-    <div class="mx-auto flex max-w-[1127px] items-center gap-6 px-4 py-3">
+<header class="relative z-20 bg-white shadow-[0_2px_10px_rgba(0,0,0,.06)]">
+    <div class="mx-auto flex max-w-[1140px] h-21 items-center gap-6 px-5">
 
         {{-- Menu replie : il ouvre les rubriques du portail. Alpine tient
              l'etat, rien ne part au serveur. --}}
