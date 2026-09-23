@@ -256,6 +256,16 @@ $portail = function () {
         Route::view('/exporter', 'espace.exporter')->name('exporter');
         Route::get('/exporter/pdf', PdfController::class)->middleware('throttle:10,1')->name('pdf');
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
+        Route::get('/factures/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('facture.pdf');
+    });
+
+    /*
+     | Les memes factures, pour le back-office : un administrateur n'est pas
+     | le proprietaire, il lui faut donc sa propre porte d'entree.
+     */
+    Route::middleware('auth:admin')->prefix('admin/factures')->name('admin.facture')->group(function () {
+        Route::get('/{facture}', [FormuleController::class, 'facture']);
+        Route::get('/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('.pdf');
     });
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])

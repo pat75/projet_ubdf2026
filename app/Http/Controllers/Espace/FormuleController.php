@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Espace;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Services\Paiement\Souscription;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -27,12 +30,38 @@ class FormuleController extends Controller
 
     public function facture(Invoice $facture): View
     {
-        Gate::authorize('view', $facture);
+        $this->autoriser($facture);
 
-        return view('espace.facture', [
+        return view('espace.facture', $this->donneesFacture($facture));
+    }
+
+    /** Meme facture, en PDF : c'est celle-la qu'un comptable demande. */
+    public function facturePdf(Invoice $facture): Response
+    {
+        $this->autoriser($facture);
+
+        return Pdf::loadView('espace.facture', $this->donneesFacture($facture) + ['pdf' => true])
+            ->setPaper('a4')
+            ->download($facture->numero().'.pdf');
+    }
+
+    /** Le proprietaire de la facture, ou un administrateur connecte. */
+    private function autoriser(Invoice $facture): void
+    {
+        if (Auth::guard('admin')->check()) {
+            return;
+        }
+
+        Gate::authorize('view', $facture);
+    }
+
+    /** @return array<string, mixed> */
+    private function donneesFacture(Invoice $facture): array
+    {
+        return [
             'facture' => $facture,
             'client' => $facture->user,
             'editeur' => config('ubdf.editeur'),
-        ]);
+        ];
     }
 }

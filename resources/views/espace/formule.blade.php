@@ -47,6 +47,7 @@
                 <span>{{ $f->issued_at?->format('d/m/Y') }} — {{ $f->designation ?: $f->label }}</span>
                 <span class="whitespace-nowrap">{{ number_format((float) $f->amount, 2, ',', ' ') }} €</span>
                 <a href="{{ route('espace.facture', $f) }}" target="_blank" class="underline">{{ $f->numero() }}</a>
+                <a href="{{ route('espace.facture.pdf', $f) }}" class="underline">PDF</a>
             </li>
         @empty
             <li class="px-4 py-6 text-sm text-gray-500 dark:text-gray-400">{{ __('Aucune facture.') }}</li>

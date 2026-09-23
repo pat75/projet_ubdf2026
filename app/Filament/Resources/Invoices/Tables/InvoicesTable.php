@@ -64,7 +64,9 @@ class InvoicesTable
             ])
             ->recordActions([
                 Action::make('voir')->label('Facture')->icon('heroicon-o-document-text')
-                    ->url(fn (Invoice $f) => route('espace.facture', $f), shouldOpenInNewTab: true),
+                    ->url(fn (Invoice $f) => url('/admin/factures/'.$f->id), shouldOpenInNewTab: true),
+                Action::make('pdf')->label('PDF')->icon('heroicon-o-arrow-down-tray')
+                    ->url(fn (Invoice $f) => route('admin.facture.pdf', $f)),
             ]);
     }
 }

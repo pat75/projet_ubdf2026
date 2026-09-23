@@ -17,13 +17,21 @@
         .num { margin: 60px 0 20px; }
         .num h2 { font-size: 16px; margin-bottom: 4px; }
         .des div, .tot div { border-bottom: 1px solid #999; padding: 10px; }
-        .tot div { display: flex; justify-content: space-between; }
+        /* Pas de flexbox : dompdf ne le connaît pas. */
+        .tot div { overflow: hidden; }
+        .tot div span:first-child { float: left; }
+        .tot div span:last-child { float: right; }
         .conditions { margin: 60px 0 20px; font-size: 8px; }
         @media print { #fac { border: 0; } .imprimer { display: none; } }
     </style>
 </head>
 <body>
-<p class="imprimer"><button type="button" onclick="window.print()">{{ __('Imprimer') }}</button></p>
+@unless ($pdf ?? false)
+    <p class="imprimer">
+        <button type="button" onclick="window.print()">{{ __('Imprimer') }}</button>
+        <a href="{{ route('espace.facture.pdf', $facture) }}">{{ __('Télécharger en PDF') }}</a>
+    </p>
+@endunless
 <div id="fac">
     <div class="entete">
         <strong style="font-size:18px">{{ $marqueNom }}</strong>
