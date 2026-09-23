@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Models\User;
+use App\Services\Admin\ExportCsv;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
@@ -56,6 +57,29 @@ class UsersTable
                 EditAction::make(),
                 Action::make('book')->label('Voir le book')->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true),
+            ])
+            ->headerActions([
+                Action::make('exporter')->label('Exporter en CSV')->icon('heroicon-o-arrow-down-tray')
+                    // La requete du tableau : l'export suit la recherche et les filtres affiches.
+                    ->action(fn ($livewire) => app(ExportCsv::class)->reponse(
+                        $livewire->getFilteredSortedTableQuery()->with(['category', 'bookSetting']),
+                        [
+                            'Identifiant' => fn (User $u) => $u->login,
+                            'Nom' => fn (User $u) => $u->fullName(),
+                            'E-mail' => fn (User $u) => $u->email,
+                            'Métier' => fn (User $u) => $u->category?->name,
+                            'Marque' => fn (User $u) => $u->brand === 'df' ? 'Dustfolio' : 'Ultra-book',
+                            'Ville' => fn (User $u) => $u->city,
+                            'Pays' => fn (User $u) => $u->country,
+                            'Formule' => fn (User $u) => $u->plan ? 'Payante' : 'Gratuite',
+                            'Échéance' => fn (User $u) => $u->echeanceFormule()?->format('Y-m-d'),
+                            'Book en ligne' => fn (User $u) => $u->bookSetting?->diffuse_web ? 'oui' : 'non',
+                            'Newsletter' => fn (User $u) => $u->bookSetting?->diffuse_newsletter ? 'oui' : 'non',
+                            'Visuels' => fn (User $u) => $u->media_count,
+                            'Inscription' => fn (User $u) => $u->created_at?->format('Y-m-d'),
+                        ],
+                        'creatifs',
+                    )),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

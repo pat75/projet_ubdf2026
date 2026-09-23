@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Models\Invoice;
+use App\Services\Admin\ExportCsv;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -41,6 +42,25 @@ class InvoicesTable
                 SelectFilter::make('brand')->label('Marque')->options(['ub' => 'Ultra-book', 'df' => 'Dustfolio']),
                 Filter::make('annee')->label('Année en cours')
                     ->query(fn (Builder $q) => $q->whereYear('issued_at', now()->year)),
+            ])
+            ->headerActions([
+                Action::make('exporter')->label('Exporter en CSV')->icon('heroicon-o-arrow-down-tray')
+                    ->action(fn ($livewire) => app(ExportCsv::class)->reponse(
+                        $livewire->getFilteredSortedTableQuery()->with('user'),
+                        [
+                            'Numéro' => fn (Invoice $f) => $f->numero(),
+                            'Date' => fn (Invoice $f) => $f->issued_at?->format('Y-m-d'),
+                            'Créatif' => fn (Invoice $f) => $f->user?->login,
+                            'Société' => fn (Invoice $f) => $f->user?->company,
+                            'Désignation' => fn (Invoice $f) => $f->designation,
+                            'HT' => fn (Invoice $f) => number_format((float) $f->amount - (float) $f->vat, 2, ',', ''),
+                            'TVA' => fn (Invoice $f) => number_format((float) $f->vat, 2, ',', ''),
+                            'TTC' => fn (Invoice $f) => number_format((float) $f->amount, 2, ',', ''),
+                            'Paiement' => fn (Invoice $f) => $f->gateway,
+                            'État' => fn (Invoice $f) => $f->status,
+                        ],
+                        'factures',
+                    )),
             ])
             ->recordActions([
                 Action::make('voir')->label('Facture')->icon('heroicon-o-document-text')

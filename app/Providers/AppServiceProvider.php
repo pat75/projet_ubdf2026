@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Admin;
+use App\Models\Campaign;
+use App\Models\Category;
+use App\Models\PromoCode;
+use App\Models\Selection;
+use App\Models\User;
+use App\Observers\JournalAdmin;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
@@ -26,6 +33,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        /*
+         | Journal du back-office : les modeles que les administrateurs
+         | modifient. L'observateur ne retient que les ecritures faites par
+         | un administrateur connecte.
+         */
+        foreach ([User::class, PromoCode::class, Selection::class, Campaign::class, Category::class, Admin::class] as $modele) {
+            $modele::observe(JournalAdmin::class);
+        }
     }
 }
