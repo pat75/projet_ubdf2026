@@ -60,6 +60,15 @@ it('ouvre chaque ecran du back-office', function () {
     }
 });
 
+it('affiche le titre et la bascule clair sombre en haut', function () {
+    $this->actingAs($this->admin, 'admin')->get('/admin/users')->assertOk()
+        ->assertSee('Ultra-book classique')
+        ->assertSee('fi-topbar-theme-switcher', escape: false)
+        // Les retouches d'aspect (fond de la colonne de navigation)
+        // arrivent par un crochet dans le <head> du panneau.
+        ->assertSee('.dark .fi-sidebar', escape: false);
+});
+
 it('ouvre la fiche d un creatif', function () {
     $creatif = App\Models\User::factory()->create(['login' => 'ariane']);
 

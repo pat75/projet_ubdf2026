@@ -9,8 +9,12 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -30,11 +34,26 @@ class AdminPanelProvider extends PanelProvider
             // serait aussi servi sur chaque sous-domaine de book.
             ->domain(config('ubdf.portail_domain'))
             ->authGuard('admin')
-            ->brandName(config('app.name').' — administration')
+            ->brandName('Ultra-book classique')
             ->login()
             ->colors([
                 'primary' => Color::Slate,
             ])
+            // Barre laterale repliable : sur un portable de 1024 px, elle
+            // rend ses 16 rem au tableau quand on n'en a pas besoin.
+            ->sidebarCollapsibleOnDesktop()
+            ->maxContentWidth(Width::Full)
+            ->defaultThemeMode(ThemeMode::System)
+            // Le selecteur clair / sombre, remonte du menu utilisateur vers
+            // la barre du haut.
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): View => view('filament.bascule-theme'),
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): View => view('filament.styles'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
