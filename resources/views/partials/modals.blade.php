@@ -1265,7 +1265,7 @@
 <!-- ex Google Analytics -->
 
 
-	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChcd_aICKMtRG81CImIt9c6an6z9Jc8wc" type="text/javascript"></script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}" type="text/javascript"></script>
 
 
 

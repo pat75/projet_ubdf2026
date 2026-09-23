@@ -5,7 +5,7 @@
 
 // refresh extension -sep2016
 //
-$maps_googleapis = 'AIzaSyChcd_aICKMtRG81CImIt9c6an6z9Jc8wc';
+$maps_googleapis = (string) config('services.google_maps.key');
 
 if ( ! preg_match('/ub([0-9]{4})\.ddns\.net/',request()->getHost()) ) {
 	$js_ext_date = '.min.js?v='.date('d');

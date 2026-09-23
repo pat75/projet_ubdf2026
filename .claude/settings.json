@@ -2,14 +2,15 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash",
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep",
+      "Bash(*)",
+      "Read(//Users/pat/Sites_2019/_projet_ubdf_2020/**)",
+      "Read(//private/tmp/**)",
       "WebFetch",
       "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/Users/pat/Sites_2019/_projet_ubdf_2020",
+      "/private/tmp"
     ]
   },
   "hooks": {

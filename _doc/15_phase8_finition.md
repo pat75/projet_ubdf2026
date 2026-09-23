@@ -44,3 +44,27 @@ explication.
 - `/robots.txt` est rendu selon la marque et ferme `/espace` et `/admin`,
   que le legacy laissait ouverts.
 - Rendu mis en cache 6 heures.
+
+## 8c — Restes du legacy et secrets
+
+- **Google Analytics** : les gabarits chargeaient encore `ga.js` et la
+  propriété `UA-464814-11`. Google a arrêté ce service en 2024 : ces appels
+  ne mesuraient plus rien. Retirés des 15 gabarits concernés. La mesure
+  propre au créatif (`cont_analytic`) subsiste, servie en GA4 (`gtag`)
+  quand il en a déclaré une.
+- **Clé Google Maps** : elle était écrite en dur dans trois gabarits et une
+  vue du portail. Elle passe par `config('services.google_maps.key')` et
+  `GOOGLE_MAPS_KEY` dans `.env`. **La clé du legacy est à révoquer** : elle
+  a circulé en clair dans le dépôt de 2019.
+- Recherche de secrets dans le dépôt (`sk_live`, `sk_test`, clés AWS,
+  clés privées, mots de passe en dur) : rien d'autre. `.env` est ignoré.
+
+## 8d — Sauvegardes
+
+- `spatie/laravel-backup` : base de données et code, chaque nuit à 3 h,
+  nettoyage à 2 h 30, contrôle de santé à 8 h.
+- **Exclus de l'archive** : les visuels des books
+  (`storage/app/public/books`, plusieurs dizaines de Go) et le cache des
+  déclinaisons, qui se refabrique. Les visuels demandent une synchronisation
+  de fichiers à part, vers un stockage distant — à mettre en place au
+  déploiement.

@@ -16,6 +16,7 @@
         "payplug/payplug-php": "^4.2",
         "phpseclib/phpseclib": "~3.0",
         "setasign/fpdf": "^1.9",
+        "spatie/laravel-backup": "^10.3",
         "symfony/html-sanitizer": "^7.4"
     },
     "require-dev": {

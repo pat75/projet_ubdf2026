@@ -316,19 +316,17 @@ $stats_img = '/ubstats.gif?r='.$stats_i;
 
 
 
-<script type="text/javascript">
-// ga
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-464814-11']);
-  _gaq.push(['_setDomainName', 'ultra-book.com']);
-  _gaq.push(['_trackPageview']);
-<?php  if (isset($b->cont_analytic)) : ?>
-  _gaq.push(['t2._setAccount', '<?=$b->cont_analytic?>']);
-  _gaq.push(['t2._setDomainName', '<?=$b->us_dir;?>.ultra-book.com']);
-  _gaq.push(['t2._trackPageview']);
-<?php  endif; ?>
-  (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);})();  
+<?php /* Analytics : ga.js a ete arrete par Google en 2024. Seule la
+   mesure propre au createur subsiste, en GA4, quand il en a declare une. */ ?>
+<?php if (! empty($b->cont_analytic)) : ?>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?=e($b->cont_analytic)?>"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<?=e($b->cont_analytic)?>');
 </script>
+<?php endif; ?>
 
 
 

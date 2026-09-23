@@ -53,3 +53,4 @@ Thumbs.db
 # git post-commit (5 Mo, dont un manifeste qui change a chaque commit).
 /graphify-out
 __pycache__/
+.claude/settings.local.json

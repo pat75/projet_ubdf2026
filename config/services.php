@@ -61,4 +61,13 @@ return [
         ],
     ],
 
+
+    /*
+    | Google Maps, pour la carte du formulaire de contact et des themes.
+    | La cle etait ecrite en dur dans trois gabarits du legacy.
+    */
+    'google_maps' => [
+        'key' => env('GOOGLE_MAPS_KEY'),
+    ],
+
 ];
