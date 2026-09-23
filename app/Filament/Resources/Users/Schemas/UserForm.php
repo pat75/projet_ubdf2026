@@ -7,6 +7,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Placeholder;
+use App\Models\User;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Utilities\Get;
@@ -55,6 +57,29 @@ class UserForm
                     ->helperText('Sert à ordonner la page d’accueil : les plus récentes en tête.')
                     ->columnSpan(2),
             ]),
+
+            /*
+             | Identite d'entreprise, relevee aupres de l'annuaire de l'Etat
+             | depuis l'espace du createur. Elle est montree ici, mais pas
+             | modifiable : elle ne se saisit pas a la main, sinon les
+             | factures porteraient des mentions legales inventees.
+             */
+            Section::make('Facturation électronique')->columns(3)
+                ->visible(fn (?User $record) => $record?->billingProfile()->exists())
+                ->schema([
+                    Placeholder::make('siret')->label('SIRET')
+                        ->content(fn (User $record) => $record->billingProfile?->siretLisible()),
+                    Placeholder::make('raison_sociale')->label('Raison sociale')
+                        ->content(fn (User $record) => $record->billingProfile?->company_name),
+                    Placeholder::make('tva')->label('TVA intracommunautaire')
+                        ->content(fn (User $record) => $record->billingProfile?->vat_number),
+                    Placeholder::make('forme')->label('Forme juridique')
+                        ->content(fn (User $record) => $record->billingProfile?->formeJuridique()),
+                    Placeholder::make('naf')->label('Code APE / NAF')
+                        ->content(fn (User $record) => $record->billingProfile?->naf_code),
+                    Placeholder::make('adresse_pro')->label('Adresse')
+                        ->content(fn (User $record) => $record->billingProfile?->adresseComplete()),
+                ]),
 
             Section::make('Note interne')->schema([
                 Textarea::make('admin_note')->label('Note')->rows(3)

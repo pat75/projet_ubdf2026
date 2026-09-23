@@ -49,6 +49,9 @@ class UsersTable
                     ->description(fn (User $u) => $u->echeanceFormule()?->format('d/m/Y'), position: 'below'),
                 IconColumn::make('bookSetting.diffuse_web')->label('En ligne')->boolean()
                     ->alignCenter()->toggleable(),
+                IconColumn::make('billingProfile.siret')->label('Pro')->boolean()
+                    ->tooltip(fn (User $u) => $u->billingProfile?->company_name)
+                    ->alignCenter()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('media_count')->label('Visuels')->numeric()->sortable()
                     ->alignCenter()->size(TextColumnSize::Small)->toggleable(),
 
@@ -76,6 +79,11 @@ class UsersTable
                         true: fn (Builder $q) => $q->where('plan', '>', 0),
                         false: fn (Builder $q) => $q->where('plan', 0),
                     ),
+                TernaryFilter::make('facturation')->label('Facturation électronique')
+                    ->queries(
+                        true: fn (Builder $q) => $q->whereHas('billingProfile'),
+                        false: fn (Builder $q) => $q->whereDoesntHave('billingProfile'),
+                    ),
                 Filter::make('echue')->label('Formule échue')
                     ->query(fn (Builder $q) => $q->where('plan', '>', 0)->where('plan_expires_at', '<', now())),
                 TrashedFilter::make()->label('Comptes supprimés'),
@@ -97,7 +105,7 @@ class UsersTable
                 Action::make('exporter')->label('Exporter en CSV')->icon('heroicon-o-arrow-down-tray')
                     // La requete du tableau : l'export suit la recherche et les filtres affiches.
                     ->action(fn ($livewire) => app(ExportCsv::class)->reponse(
-                        $livewire->getFilteredSortedTableQuery()->with(['category', 'bookSetting']),
+                        $livewire->getFilteredSortedTableQuery()->with(['category', 'bookSetting', 'billingProfile']),
                         [
                             'Identifiant' => fn (User $u) => $u->login,
                             'Nom' => fn (User $u) => $u->fullName(),
@@ -111,6 +119,9 @@ class UsersTable
                             'Book en ligne' => fn (User $u) => $u->bookSetting?->diffuse_web ? 'oui' : 'non',
                             'Newsletter' => fn (User $u) => $u->bookSetting?->diffuse_newsletter ? 'oui' : 'non',
                             'Visuels' => fn (User $u) => $u->media_count,
+                            'SIRET' => fn (User $u) => $u->billingProfile?->siret,
+                            'Raison sociale' => fn (User $u) => $u->billingProfile?->company_name,
+                            'TVA' => fn (User $u) => $u->billingProfile?->vat_number,
                             'Inscription' => fn (User $u) => $u->created_at?->format('Y-m-d'),
                         ],
                         'creatifs',

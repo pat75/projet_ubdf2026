@@ -37,10 +37,26 @@
         <strong style="font-size:18px">{{ $marqueNom }}</strong>
         <h4><span style="color:#000">{{ $editeur['raison_sociale'] }}</span><br>{!! nl2br(e($editeur['adresse'])) !!}</h4>
         <p>{{ $facture->brand === 'df' ? 'www.dustfolio.com' : 'www.ultra-book.com' }}<br>{{ __('Application de création de book en ligne') }}</p>
+        @php($entreprise = $client->billingProfile)
+
         <p>
-            @foreach ([$client->company, $client->lastname, $client->firstname, $client->address, trim($client->zipcode.' '.$client->city), $client->country] as $ligne)
-                @if ($ligne) {{ $ligne }}<br> @endif
-            @endforeach
+            {{-- Le createur qui facture en professionnel est identifie par
+                 sa raison sociale et son SIRET : c'est ce que reclame la
+                 facturation electronique. Les autres gardent la
+                 presentation d'avant. --}}
+            @if ($entreprise)
+                <strong>{{ $entreprise->company_name }}</strong><br>
+                {{ $entreprise->address }}<br>
+                {{ trim($entreprise->postcode.' '.$entreprise->city) }}<br>
+                {{ __('SIRET') }} : {{ $entreprise->siretLisible() }}<br>
+                @if ($entreprise->vat_number)
+                    {{ __('TVA') }} : {{ $entreprise->vat_number }}<br>
+                @endif
+            @else
+                @foreach ([$client->company, $client->lastname, $client->firstname, $client->address, trim($client->zipcode.' '.$client->city), $client->country] as $ligne)
+                    @if ($ligne) {{ $ligne }}<br> @endif
+                @endforeach
+            @endif
             <br>{{ $client->email }}
         </p>
     </div>
