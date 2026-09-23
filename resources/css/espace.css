@@ -3,14 +3,73 @@
  *
  * Le portail charge encore Semantic UI (voir ubdf.css) : cette feuille
  * n'est incluse que par layouts/espace, son preflight ne l'atteint donc pas.
+ *
+ * Les valeurs ci-dessous ne sont pas choisies : elles sont relevees dans
+ * la feuille de l'espace d'origine
+ * (html_pages_v2018/_/less2019/core_user_admin.less) pour que le createur
+ * retrouve exactement l'outil qu'il connait. Chaque jeton porte en
+ * commentaire le nom qu'il avait la-bas.
  */
+
 @import "tailwindcss";
 
 @source "../views/espace/**/*.blade.php";
 @source "../views/layouts/espace.blade.php";
+@source "../views/partials/espace/**/*.blade.php";
 @source "../views/components/espace/**/*.blade.php";
 @source "../views/livewire/**/*.blade.php";
 
+/*
+ | L'espace d'origine n'a pas de mode sombre, et celui de 2026 est retire.
+ | La variante reste declaree, rattachee a une classe que plus personne ne
+ | pose : les `dark:` encore presents dans les vues deviennent inertes, au
+ | lieu de s'activer tout seuls sur un systeme regle en sombre. Ils
+ | disparaitront des vues au fil des lots suivants.
+ */
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    /* @ub_rouge_claire : la couleur de la rubrique ouverte. */
+    --color-ub-rouge: #df014c;
+    --color-ub-rouge-fonce: #991534;
+
+    /* Les trois gris : filets, survols, textes secondaires. */
+    --color-ub-gris-clair: #e8e8e8;   /* @ub_gris_claire */
+    --color-ub-gris-moyen: #b7b7b7;   /* @ub_gris_moyen  */
+    --color-ub-gris-fonce: #979797;   /* @ub_gris_fonce  */
+
+    /* Fond de page de l'espace : body#user. */
+    --color-ub-fond: #f8f8f8;
+
+    /* Couleur du texte courant des menus. */
+    --color-ub-texte: #444444;
+
+    /* Les deux liens de service, sous le bandeau de formule. */
+    --color-ub-book: dodgerblue;      /* .user_book_link */
+    --color-ub-sortie: chocolate;     /* .user_book_out  */
+
+    /* Formule payante et fanion de selection editoriale. */
+    --color-ub-payante: crimson;
+    --color-ub-selection: mediumvioletred;
+
+    /* @ub_rounded, et l'ombre portee des deux panneaux. */
+    --radius-ub: 5px;
+    --shadow-ub: 0 0 3px #959595;
+
+    /* Lato pour les titres, Source Sans Pro pour le texte courant. */
+    --font-titre: 'Lato', sans-serif;
+    --font-courant: 'Source Sans Pro', sans-serif;
+}
+
+/*
+ | Le panneau blanc qui porte le contenu de chaque ecran. Son ombre, son
+ | arrondi et sa hauteur minimale viennent de #bloc_cms_user : sans cette
+ | hauteur, les ecrans courts remontent le pied de page a mi-hauteur.
+ */
+@utility panneau-espace {
+    background-color: white;
+    border-radius: var(--radius-ub);
+    box-shadow: var(--shadow-ub);
+}
 
 .dev_only { outline: 2px solid #dc2626; outline-offset: 2px; }

@@ -1,6 +1,6 @@
 <div>
     <a href="{{ route('espace.galeries') }}" class="text-sm text-gray-600 underline dark:text-gray-300">{{ __('Toutes les galeries') }}</a>
-    <h1 class="mt-2 text-2xl font-light">{{ $galerie->name }}</h1>
+    <x-espace.titre>{{ $galerie->name }}</x-espace.titre>
 
     <label class="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-8 text-sm text-gray-600 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
            x-data="{ survol: false }" :class="survol && 'border-indigo-500'"

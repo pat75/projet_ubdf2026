@@ -5,7 +5,7 @@
 @php($code = '<iframe src="'.route('microbook', ['admin' => 0, 'pied' => 1, 'login' => auth()->user()->login]).'" scrolling="no" width="270" height="600" style="border:none" title="'.e(auth()->user()->fullName()).'"></iframe>')
 
 @section('content')
-    <h1 class="text-2xl font-light">{{ __('Exporter son book sur d’autres sites') }}</h1>
+    <x-espace.titre>{{ __('Exporter son book sur d’autres sites') }}</x-espace.titre>
     <p class="mt-2 max-w-xl text-sm text-gray-600 dark:text-gray-400">{{ __('Copiez ce code dans votre site ou votre blog : il affiche une vignette de votre book avec vos derniers visuels.') }}</p>
 
     <div class="mt-6 flex flex-col gap-6 md:flex-row" x-data="{ copie: false }">

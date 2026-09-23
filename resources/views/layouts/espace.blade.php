@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('Mon espace')) | {{ $marque->nom }}</title>
-    <script>
-        try { if (localStorage.getItem('espace_dark') === '1') document.documentElement.classList.add('dark'); } catch (e) {}
-    </script>
+
+    {{-- Les deux fontes de l'espace d'origine : Lato pour les titres,
+         Source Sans Pro pour le texte courant. --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap">
+
     @vite(['resources/css/espace.css', 'resources/js/espace.js'])
     @livewireStyles
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+<body class="min-h-screen bg-ub-fond font-courant text-[15px] text-ub-texte">
+
 @if (session()->has('prise_identite'))
     {{-- Un administrateur regarde l'espace par-dessus l'epaule du createur.
          Bandeau rouge, en haut de chaque page : on ne doit jamais oublier
@@ -24,41 +29,41 @@
         </form>
     </div>
 @endif
-<div class="md:flex">
-    <aside class="border-b border-gray-200 bg-white md:min-h-screen md:w-60 md:border-b-0 md:border-r dark:border-gray-600 dark:bg-gray-800">
-        <div class="flex items-center justify-between px-4 py-4">
-            <a href="{{ lien('home') }}" class="text-lg font-light">{{ $marque->nom }}</a>
-            <x-dev.switch-marque />
-        </div>
-        <nav class="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:overflow-visible">
-            <x-espace.nav-lien route="espace">{{ __('Tableau de bord') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.galeries">{{ __('Galeries') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.pages">{{ __('Pages') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.design">{{ __('Habillage') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.diffusion">{{ __('Diffusion') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.statistiques">{{ __('Statistiques') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.messages">{{ __('Messages') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.compte">{{ __('Mon compte') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.formule">{{ __('Formule') }}</x-espace.nav-lien>
-            <x-espace.nav-lien route="espace.exporter">{{ __('Exporter') }}</x-espace.nav-lien>
-        </nav>
-        <div class="flex items-center gap-3 px-4 pb-4">
-            <a href="{{ auth()->user()->bookUrl() }}" class="text-sm text-gray-600 underline dark:text-gray-300" target="_blank" rel="noopener">{{ __('Voir mon book') }}</a>
-            <form method="post" action="{{ route('deconnexion') }}">
-                @csrf
-                <button type="submit" class="text-sm text-gray-600 underline dark:text-gray-300">{{ __('Se déconnecter') }}</button>
-            </form>
-        </div>
-    </aside>
 
-    <main class="flex-1 px-4 py-6 md:px-10 md:py-10">
-        @if (session('statut'))
-            <div class="mb-6 rounded-md bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:bg-teal-900 dark:text-teal-100">{{ session('statut') }}</div>
-        @endif
+{{-- Bandeau de tete. L'espace d'origine reprend ici l'en-tete complet du
+     portail ; celui-ci viendra quand le portail passera lui aussi a
+     Tailwind. En attendant : la marque, et rien d'autre. --}}
+<header class="border-b border-ub-gris-clair bg-white">
+    <div class="mx-auto flex max-w-[1127px] items-center justify-between px-4 py-3">
+        <a href="{{ lien('home') }}" class="font-titre text-xl font-light text-black">{{ $marque->nom }}</a>
+        <x-dev.switch-marque />
+    </div>
+</header>
 
-        @yield('content')
-    </main>
+{{-- La grille d'origine : douze douziemes de contenu, quatre de menu.
+     En dessous de 1024 px le menu repasse au-dessus du contenu — l'espace
+     d'origine, lui, refusait purement et simplement la tablette. --}}
+<div class="mx-auto max-w-[1127px] px-4 pb-16 pt-6">
+    <div class="lg:flex lg:items-start lg:gap-8">
+
+        <main class="min-w-0 lg:w-3/4">
+            <div class="panneau-espace mb-10 min-h-[730px] px-[4%] pb-[4%] pt-4">
+                @if (session('statut'))
+                    <div class="mb-6 rounded-ub bg-teal-50 px-4 py-3 text-sm text-teal-800">{{ session('statut') }}</div>
+                @endif
+
+                @yield('content')
+            </div>
+        </main>
+
+        {{-- `sticky` remplace le `position: fixed` de l'original : le menu
+             suit le defilement sans sortir de la grille. --}}
+        <div class="order-first mb-6 lg:order-last lg:mb-0 lg:w-1/4 lg:sticky lg:top-6">
+            @include('partials.espace.menu')
+        </div>
+    </div>
 </div>
+
 @livewireScripts
 </body>
 </html>

@@ -3,7 +3,7 @@
 @section('title', __('Formule'))
 
 @section('content')
-    <h1 class="text-2xl font-light">{{ __('Formule') }}</h1>
+    <x-espace.titre>{{ __('Ma formule') }}</x-espace.titre>
 
     <div class="mt-6 max-w-xl rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
         @if ($creatif->plan)

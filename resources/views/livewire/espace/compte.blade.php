@@ -1,6 +1,6 @@
 @php($champ = 'w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200')
 <div>
-    <h1 class="text-2xl font-light">{{ __('Mon compte') }}</h1>
+    <x-espace.titre>{{ __('Mon compte') }}</x-espace.titre>
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ __('Identifiant : :login', ['login' => auth()->user()->login]) }}</p>
 
     <form wire:submit="enregistrerProfil" class="mt-6 max-w-3xl">

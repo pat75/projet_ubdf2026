@@ -9,7 +9,10 @@ connaît.
 
 Décisions prises avec Pat le 23 septembre 2026 :
 
-- on **reprend le CSS d'origine** plutôt que de l'imiter en Tailwind ;
+- **tout le projet reste sur Tailwind** : on ne recharge pas la feuille de
+  2018 dans l'espace, on reproduit son rendu avec les jetons relevés
+  dedans (décision du 23 septembre, qui remplace l'option « reprendre le
+  CSS d'origine » retenue une heure plus tôt) ;
 - je travaille **sur les sources seules** : pas de connexion au site
   d'origine (voir « Pourquoi pas de captures » plus bas) ;
 - rendu identique sur écran large, mais **l'affichage mobile de 2026 est
@@ -30,9 +33,12 @@ seul 97 Ko et ne sert qu'à l'espace créatif. Les sélecteurs y sont :
 d'icônes et les bibliothèques d'appoint (minicolors, iCheck, jGrowl,
 intro.js) sont également présentes sous `public/html_pages_v2018/_/lib/`.
 
-Autrement dit : **il n'y a pas une ligne de CSS à écrire.** Le travail
-consiste à produire, dans les vues Blade, le balisage que cette feuille
-attend.
+Cette feuille n'est pas chargée par l'espace — le projet reste sur
+Tailwind — mais elle sert de **relevé de côtes** : couleurs, corps de
+texte, marges et ombres en sont extraits et réinscrits en jetons Tailwind
+dans `resources/css/espace.css`, chacun avec le nom qu'il portait dans le
+LESS d'origine. C'est ce qui permet de retrouver l'aspect sans reprendre
+la dépendance à Semantic UI.
 
 **Le chrome est déjà reproduit.** `layouts/portail.blade.php` inclut
 `partials/head.blade.php` (20 Ko, l'en-tête 2018 avec ses feuilles) et
@@ -90,45 +96,57 @@ JavaScript compose à l'exécution devra être validé par Pat à l'écran.
 ## 2. Principe
 
 On garde **toute la logique de 2026** — les neuf composants Livewire, les
-services, les validations, les tests — et on ne change que les vues et la
-feuille de style chargée.
+services, les validations, les tests — et on ne change que les vues et
+l'habillage.
 
 | | Aujourd'hui | Après |
 |---|---|---|
-| Squelette | `layouts/espace.blade.php`, Tailwind | `layouts/espace.blade.php` refait sur `partials/head` + grille Semantic |
-| Feuille | `resources/css/espace.css` (Tailwind isolé) | `core.css` déjà servi, plus un `espace.css` réduit aux seuls correctifs |
-| Navigation | barre latérale gauche, 10 entrées | `ub_user_menu` à droite, structure d'origine + 3 entrées |
-| Vues Livewire | balisage Tailwind (376 lignes) | balisage à classes `bloc_cms_user`, `ui grid`, `ui button`… |
+| Squelette | barre latérale gauche, pleine largeur | grille 12/4 de l'original, largeur 1127 px, panneau blanc |
+| Feuille | Tailwind, palette par défaut | Tailwind, jetons relevés dans `core_user_admin.less` |
+| Navigation | 10 entrées à gauche | menu de droite : formule, liens de service, liste du compte, liste du book |
+| Fontes | pile système | Lato pour les titres, Source Sans Pro pour le texte |
+| Mode sombre | présent | retiré, l'original n'en a pas |
 | Composants PHP | inchangés | inchangés |
 
-Le risque principal est le **Preflight de Tailwind**, qui réinitialise ce
-que Semantic UI met en forme. C'est déjà la raison pour laquelle
-`resources/css/ubdf.css` n'importe pas Tailwind. L'espace doit suivre la
-même règle : sortir de Tailwind complètement, plutôt que tenter de faire
-cohabiter les deux dans la même page.
+Le piège à connaître : le **Preflight de Tailwind** réinitialise ce que
+Semantic UI met en forme. C'est la raison pour laquelle
+`resources/css/ubdf.css`, côté portail, n'importe pas Tailwind. Les deux
+feuilles ne doivent donc jamais se retrouver sur la même page tant que le
+portail n'a pas basculé à son tour : l'espace charge `espace.css` et lui
+seul, et ne réutilise aucun gabarit du portail.
 
 ---
 
 ## 3. Découpage
 
-### Lot A — Le squelette et le menu
+### Lot A — Le squelette et le menu — **fait**
 
-1. Réécrire `resources/views/layouts/espace.blade.php` : `partials/head`,
-   `body class="marque_… page_user"`, `partials/header`, la grille
-   `ui container bloc_user` → `twelve wide column` + `four wide column`,
-   `partials/footer`, `@livewireScripts`.
-2. Créer `resources/views/partials/espace/menu.blade.php`, transcription
-   de `ubdf_menu_droite.tlp.php` : titre, déconnexion, pastilles d'état,
-   bandeau de formule (avec le fanion « Sélection » quand
-   `in_home_selection`), `ub_nav_user`, `ub_nav_dossier`.
-3. Adapter `x-espace.nav-lien` pour produire un `<li>` avec la classe
-   `selected` et l'icône `fonticon-uniF006` de la page courante.
-4. Vider `resources/css/espace.css` de Tailwind ; n'y garder que les
-   correctifs (affichage mobile conservé, éditeur Trix).
-5. Retirer l'amorce de mode sombre du squelette et la bascule associée.
+1. `resources/css/espace.css` : les jetons relevés dans
+   `core_user_admin.less` — rouge `#DF014C`, les trois gris, fond de page
+   `#f8f8f8`, rayon 5 px, ombre `0 0 3px #959595`, Lato et Source Sans
+   Pro — plus l'utilitaire `panneau-espace`.
+2. `layouts/espace.blade.php` refait : grille 12/4 dans une largeur de
+   1127 px, panneau blanc de 730 px de haut minimum, padding de 4 %.
+3. `partials/espace/menu.blade.php` : bandeau de formule (gras cramoisi
+   pour une formule payante, gris pour la gratuite, fanion « Sélection »
+   quand `in_home_selection`), liens de service (book en bleu, sortie en
+   chocolat), liste du compte, liste du book.
+4. `x-espace.nav-lien` rendu sous forme de `<li>` séparé d'un filet, la
+   rubrique ouverte en rouge avec sa puce.
+5. `x-espace.titre` : le `.h1_page_titre` d'origine, 28 px maigre, adopté
+   par les onze écrans.
+6. Mode sombre retiré du squelette.
 
-Le bandeau rouge de prise d'identité, ajouté aujourd'hui, est conservé —
-il vit au-dessus de la grille.
+Le bandeau rouge de prise d'identité est conservé : il vit au-dessus de la
+grille.
+
+Deux écarts assumés, à reprendre plus tard :
+
+- **L'en-tête** reste réduit à la marque. L'espace d'origine affiche
+  l'en-tête complet du portail, qui est encore en Semantic UI ; il
+  viendra quand le portail basculera.
+- **Le menu est `sticky`** là où l'original est `fixed` : même effet au
+  défilement, sans chevaucher le pied de page.
 
 ### Lot B — Tableau de bord
 

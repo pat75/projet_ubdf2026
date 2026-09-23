@@ -1,5 +1,5 @@
 <div>
-    <h1 class="text-2xl font-light">{{ __('Diffusion') }}</h1>
+    <x-espace.titre>{{ __('Diffusion') }}</x-espace.titre>
 
     <form wire:submit="enregistrer" class="mt-6 max-w-xl space-y-3">
         @foreach ([

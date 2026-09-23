@@ -1,5 +1,5 @@
 <div>
-    <h1 class="text-2xl font-light">{{ __('Messages') }}</h1>
+    <x-espace.titre>{{ __('Mes messages') }}</x-espace.titre>
 
     <div class="mt-6 gap-6 md:grid md:grid-cols-5">
         <ul class="divide-y divide-gray-200 rounded-lg bg-white shadow-sm md:col-span-2 dark:divide-gray-600 dark:bg-gray-800">

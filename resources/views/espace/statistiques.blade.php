@@ -6,7 +6,7 @@
 @php($maxMois = max(1, $parMois->max()))
 
 @section('content')
-    <h1 class="text-2xl font-light">{{ __('Statistiques') }}</h1>
+    <x-espace.titre>{{ __('Mes statistiques') }}</x-espace.titre>
 
     <dl class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
         @foreach ([__('Aujourd’hui') => $parJour->last(), __('30 derniers jours') => $parJour->sum(), __('Depuis l’ouverture') => $total] as $libelle => $valeur)

@@ -1,5 +1,5 @@
 <div>
-    <h1 class="text-2xl font-light">{{ __('Galeries') }}</h1>
+    <x-espace.titre>{{ __('Les portfolios') }}</x-espace.titre>
 
     <form wire:submit="creer" class="mt-6 flex flex-col gap-2 sm:flex-row">
         <input type="text" wire:model="nom" placeholder="{{ __('Nom de la nouvelle galerie') }}"

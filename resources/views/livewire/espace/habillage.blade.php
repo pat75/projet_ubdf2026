@@ -1,6 +1,6 @@
 @php($champ = 'w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200')
 <div>
-    <h1 class="text-2xl font-light">{{ __('Habillage') }}</h1>
+    <x-espace.titre>{{ __('Habillage') }}</x-espace.titre>
 
     <section class="mt-6">
         <h2 class="text-sm font-medium text-gray-600 dark:text-gray-300">{{ __('Modèle du book') }}</h2>

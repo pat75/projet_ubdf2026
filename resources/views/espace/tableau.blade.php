@@ -3,7 +3,7 @@
 @section('title', __('Tableau de bord'))
 
 @section('content')
-    <h1 class="text-2xl font-light">{{ __('Bonjour :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}</h1>
+    <x-espace.titre>{{ __('Bonjour :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}</x-espace.titre>
 
     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
         {{ __('Votre book :') }}
