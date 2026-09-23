@@ -8,6 +8,9 @@ return [
      */
     'book_domain' => env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
 
+    // Hote du portail : sert a cantonner le back-office.
+    'portail_domain' => env('PORTAIL_DOMAIN', 'ubdf2026.ultra-book.name'),
+
     /*
      * Racine des fichiers books du projet 2019 (lecture seule).
      * Utilisee uniquement par les commandes de migration.

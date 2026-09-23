@@ -1,9 +1,7 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use App\Providers\LegacyDatabaseServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    LegacyDatabaseServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\Filament\AdminPanelProvider::class,
+    App\Providers\LegacyDatabaseServiceProvider::class,
 ];

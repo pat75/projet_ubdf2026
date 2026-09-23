@@ -14,6 +14,8 @@
 /auth.json
 /node_modules
 /public/build
+/public/css/filament
+/public/fonts/filament
 /public/hot
 /public/storage
 /storage/*.key
@@ -26,6 +28,7 @@ Thumbs.db
 # Assets du front repris du projet 2019 (37 Mo, non versionnes)
 /public/html_pages_v2018
 /public/img_front
+/public/js/filament
 /public/img_default
 /public/js_jquery
 /public/_video
