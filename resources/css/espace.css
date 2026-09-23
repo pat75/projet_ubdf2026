@@ -36,10 +36,10 @@
     --color-ub-accent-texte: #0b7b85;
     --color-ub-accent-fond: #e8f6f7;
 
-    /* Fond de page : le #f4f4f2 de la maquette, assombri de 15 % puis
-       eclairci de 10 %, pour que les cartes blanches se detachent sans
-       que la page paraisse grise. */
-    --color-ub-fond: #e4e4e3;
+    /* Fond de page : parti du #f4f4f2 de la maquette, assombri de 15 %
+       puis eclairci de 10 % et de 3 % — les cartes blanches se detachent
+       sans que la page paraisse grise. */
+    --color-ub-fond: #ebebea;
     --color-ub-texte: #2b2b2b;
     --color-ub-texte2: #555555;
     --color-ub-texte3: #777777;
