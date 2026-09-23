@@ -18,11 +18,13 @@ it('presente les deux listes du menu, le compte puis le book', function () {
             'Tableau de bord',
             'Ma formule',
             'Mes messages',
-            'Mon book',
-            'Les portfolios',
-            'Les pages de contenu',
-            'Habillage',
-            'Diffusion',
+            'Mon portfolio',
+            'Configurer',
+            'Modifier',
+            'Diffuser',
+            'Contenu du portfolio',
+            'Images',
+            'Pages',
         ]);
 });
 
@@ -62,7 +64,7 @@ it('donne le lien du book et la deconnexion', function () {
         ->assertOk()
         ->assertSee($creatif->bookUrl())
         ->assertSee('Voir mon book')
-        ->assertSee('Se déconnecter');
+        ->assertSee('Déconnexion');
 });
 
 it('n embarque plus de bascule sombre', function () {

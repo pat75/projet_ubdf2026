@@ -16,7 +16,10 @@ class StatsBookController extends Controller
     public function __invoke(Request $request, string $login, CompteurVisites $compteur): Response
     {
         if (($book = User::where('login', $login)->first()) && ! $this->robot($request->userAgent())) {
-            $compteur->compter($book, $request->user()?->id, (string) $request->ip(), $request->userAgent());
+            // `s` dit d'ou vient la vue : le book lui-meme, ou l'une des
+            // vitrines qui l'affichent ailleurs. Absent, c'est le book.
+            $compteur->compter($book, $request->user()?->id, (string) $request->ip(),
+                $request->userAgent(), (string) $request->query('s', 'book'));
         }
 
         return response(base64_decode(self::GIF), 200, [

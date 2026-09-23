@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\Espace\CodeQr;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -12,18 +14,51 @@ use Illuminate\View\View;
  */
 class EspaceController extends Controller
 {
-    public function __invoke(Request $requete): View
+    public function __invoke(Request $requete, CodeQr $qr): View
     {
+        /** @var User $creatif */
         $creatif = $requete->user();
+
+        $lienMinibook = rtrim(lien('accueil'), '/').'#'.$creatif->login;
 
         return view('espace.tableau', [
             'creatif' => $creatif,
-            'chiffres' => [
-                __('Galeries') => $creatif->galleries()->count(),
-                __('Visuels') => $creatif->media()->count(),
-                __('Pages') => $creatif->articles()->count(),
-                __('Demandes reçues') => $creatif->conversations()->where('is_spam', false)->count(),
-            ],
+            'lienMinibook' => $lienMinibook,
+            'qrMinibook' => $qr->svg($lienMinibook),
+            'qrBook' => $qr->svg($creatif->bookUrl()),
+            'visites' => $this->visites($creatif),
         ]);
+    }
+
+    /**
+     * Les vues du book, par surface.
+     *
+     * Le legacy allait les chercher sur un serveur de statistiques
+     * exterieur (extra-book.com), avec une cle privee dans le gabarit.
+     * Elles sont maintenant comptees ici, par `CompteurVisites`.
+     *
+     * @return array{total: int, parts: array<string, int>}
+     */
+    private function visites(User $creatif): array
+    {
+        $parSurface = $creatif->visitStats()
+            ->selectRaw('surface, SUM(public_views) as vues')
+            ->groupBy('surface')
+            ->pluck('vues', 'surface');
+
+        $libelles = [
+            'book' => __('Book'),
+            'minibook' => __('MiniBook'),
+            'memobook' => __('MémoBook'),
+            'microbook' => __('MicroBook'),
+        ];
+
+        $parts = [];
+
+        foreach ($libelles as $code => $libelle) {
+            $parts[$libelle] = (int) ($parSurface[$code] ?? 0);
+        }
+
+        return ['total' => array_sum($parts), 'parts' => $parts];
     }
 }

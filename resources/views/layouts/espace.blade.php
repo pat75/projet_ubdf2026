@@ -30,15 +30,7 @@
     </div>
 @endif
 
-{{-- Bandeau de tete. L'espace d'origine reprend ici l'en-tete complet du
-     portail ; celui-ci viendra quand le portail passera lui aussi a
-     Tailwind. En attendant : la marque, et rien d'autre. --}}
-<header class="border-b border-ub-gris-clair bg-white">
-    <div class="mx-auto flex max-w-[1127px] items-center justify-between px-4 py-3">
-        <a href="{{ lien('home') }}" class="font-titre text-xl font-light text-black">{{ $marque->nom }}</a>
-        <x-dev.switch-marque />
-    </div>
-</header>
+@include('partials.espace.entete')
 
 {{-- La grille d'origine : douze douziemes de contenu, quatre de menu.
      En dessous de 1024 px le menu repasse au-dessus du contenu — l'espace
@@ -63,6 +55,8 @@
         </div>
     </div>
 </div>
+
+@include('partials.espace.pied')
 
 @livewireScripts
 </body>
