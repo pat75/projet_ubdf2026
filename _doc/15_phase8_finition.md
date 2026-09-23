@@ -68,3 +68,20 @@ explication.
   déclinaisons, qui se refabrique. Les visuels demandent une synchronisation
   de fichiers à part, vers un stockage distant — à mettre en place au
   déploiement.
+
+## 8e — Tests : rapides d'un côté, legacy de l'autre
+
+La suite complète atteignait 14 minutes. Toute la lenteur venait des tests
+qui interrogent la vraie base `ub2020` (audit d'encodage, tables de
+correspondance) : ils balaient des millions de lignes.
+
+Trois commandes désormais :
+
+| Commande | Contenu | Durée |
+|---|---|---|
+| `composer test` | Unit + Feature, hors legacy et hors groupe `slow` | ~19 s |
+| `composer test:legacy` | Les tests sur la base `ub2020` | plusieurs minutes |
+| `composer test:tout` | Tout, y compris le groupe `slow` | ~14 min |
+
+`composer test` est ce qu'on lance en développant ; les tests legacy ne
+servent qu'avant une reprise de données.

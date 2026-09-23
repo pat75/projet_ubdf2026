@@ -87,13 +87,8 @@ Route::get('/-{login}', [RedirectionLegacyController::class, 'book'])
 Route::get('/{slug}__wpactu_{id}', [RedirectionLegacyController::class, 'actualite'])
     ->where(['slug' => '[-a-zA-Z0-9]*', 'id' => '[0-9]{1,10}']);
 
-// Pages du WordPress institutionnel : `doc/<slug>` existe toujours.
-Route::get('/dustfolio__{slug}', fn (string $slug) => redirect('/doc/'.$slug, 301))
-    ->where('slug', '[-a-zA-Z0-9_]*');
-Route::get('/ultra-book__{slug}', fn (string $slug) => redirect('/doc/'.$slug, 301))
-    ->where('slug', '[-a-zA-Z0-9_]*');
-Route::get('/page__{slug}', fn (string $slug) => redirect('/doc/'.$slug, 301))
-    ->where('slug', '[-a-zA-Z0-9_]*');
+// `page__<slug>`, `ultra-book__<slug>` et `dustfolio__<slug>` sont servies
+// telles quelles par le portail (voir routes/web.php) : rien a rediriger.
 
 /*
  | Actions du legacy (`ubaction__`, `ubactiontype__`) : celles qui servent

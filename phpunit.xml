@@ -10,6 +10,12 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <!-- Ces tests interrogent la vraie base ub2020 : ils sont lents
+                 et ne servent qu'avant une reprise de donnees. -->
+            <exclude>tests/Feature/Legacy</exclude>
+        </testsuite>
+        <testsuite name="Legacy">
+            <directory>tests/Feature/Legacy</directory>
         </testsuite>
     </testsuites>
     <source>
