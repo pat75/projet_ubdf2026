@@ -12,29 +12,39 @@
         </span>
     </div>
 
-    {{-- Note de securite, statique : les tentatives d'escroquerie par
-         trop-percu reviennent regulierement, elle rappelle la vigilance
-         de base. --}}
-    <section class="carte-espace mb-6 flex flex-wrap items-center gap-5 p-6">
-        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fff1d6] text-[#8a5a00]">
-            <span class="fonticon-alert-triangle text-[28px]" aria-hidden="true"></span>
-        </span>
+    {{-- Note de securite : les tentatives d'escroquerie par trop-percu
+         reviennent regulierement, elle rappelle la vigilance de base.
+         L'utilisateur peut la fermer, un cookie retient son choix. --}}
+    @unless ($alerteEscroquerieMasquee)
+        <section class="carte-espace relative mb-6 flex flex-wrap items-center gap-5 p-6">
+            <button type="button" wire:click="fermerAlerte" title="{{ __('Fermer') }}"
+                    class="absolute right-3.5 top-3.5 p-1.5 text-ub-texte4 hover:text-ub-texte">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/>
+                </svg>
+                <span class="sr-only">{{ __('Fermer') }}</span>
+            </button>
 
-        <div class="min-w-0 flex-1 basis-80">
-            <div class="flex flex-wrap items-center gap-2.5">
-                <span class="rounded-full bg-[#fff1d6] px-2.5 py-1 text-[11px] font-black uppercase tracking-[.06em] text-[#8a5a00]">{{ __('Attention') }}</span>
-                <span class="text-[17px] font-bold">{{ __('Tentatives d’escroquerie signalées') }}</span>
+            <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fff1d6] text-[#8a5a00]">
+                <span class="fonticon-alert-triangle text-[28px]" aria-hidden="true"></span>
+            </span>
+
+            <div class="min-w-0 flex-1 basis-80 pr-6">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="rounded-full bg-[#fff1d6] px-2.5 py-1 text-[11px] font-black uppercase tracking-[.06em] text-[#8a5a00]">{{ __('Attention') }}</span>
+                    <span class="text-[17px] font-bold">{{ __('Tentatives d’escroquerie signalées') }}</span>
+                </div>
+
+                <p class="mt-2 text-[14px] leading-relaxed text-ub-texte2 text-pretty">
+                    {{ __('Nous avons reçu des signalements concernant des tentatives d’escroquerie par trop-perçu d’acompte. Ne remboursez jamais un acompte versé en trop avant d’avoir vérifié l’encaissement.') }}
+                </p>
+
+                <a href="https://www.ultra-book.info" target="_blank" rel="noopener" class="mt-2 inline-block text-[14px] font-bold text-ub-texte hover:text-ub-accent-texte">
+                    {{ __('Voir l’article complet sur ultra-book.info →') }}
+                </a>
             </div>
-
-            <p class="mt-2 text-[14px] leading-relaxed text-ub-texte2 text-pretty">
-                {{ __('Nous avons reçu des signalements concernant des tentatives d’escroquerie par trop-perçu d’acompte. Ne remboursez jamais un acompte versé en trop avant d’avoir vérifié l’encaissement.') }}
-            </p>
-
-            <a href="https://www.ultra-book.info" target="_blank" rel="noopener" class="mt-2 inline-block text-[14px] font-bold text-ub-texte hover:text-ub-accent-texte">
-                {{ __('Voir l’article complet sur ultra-book.info →') }}
-            </a>
-        </div>
-    </section>
+        </section>
+    @endunless
 
     <div class="space-y-4">
 
@@ -81,7 +91,7 @@
                          titre et tout son contenu deplie : l'ensemble se lit
                          d'un coup, sans se confondre avec les autres lignes. --}}
                     <div wire:key="conv-{{ $c->id }}"
-                         @class(['relative', 'border border-ub-texte/50' => $deplie, 'border-b border-ub-filet last:border-b-0' => ! $deplie])>
+                         @class(['relative', 'border border-ub-texte/50' => $deplie, 'border-b border-[#a8a8a7] last:border-b-0' => ! $deplie])>
 
                         {{-- La ligne : un clic la deplie, un second la replie. --}}
                         <div wire:click="basculer({{ $c->id }})"
@@ -159,7 +169,7 @@
                                               class="w-full border border-ub-bord px-3.5 py-2.5 text-[15px] outline-none focus:border-ub-accent focus:ring-2 focus:ring-ub-accent/20"></textarea>
                                     @error('reponse') <p class="text-[13px] text-ub-danger">{{ $message }}</p> @enderror
 
-                                    <button type="submit" wire:target="repondre" wire:loading.attr="disabled" class="bouton-espace px-5 py-2.5 text-[14px]">
+                                    <button type="submit" wire:target="repondre" wire:loading.attr="disabled" class="bouton-espace bouton-espace-grand px-5">
                                         {{ __('Envoyer') }}
                                     </button>
                                 </form>
@@ -176,7 +186,7 @@
                 <div class="flex flex-wrap gap-1.5">
                     @for ($i = 1; $i <= $conversations->lastPage(); $i++)
                         <button type="button" wire:click="gotoPage({{ $i }})"
-                                @class(['h-10 min-w-10 px-1 text-[14px] font-bold',
+                                @class(['h-10 min-w-10 cursor-pointer px-1 text-[14px] font-bold',
                                     'bouton-espace' => $conversations->currentPage() === $i,
                                     'border border-ub-bord bg-white text-ub-texte hover:border-black' => $conversations->currentPage() !== $i,
                                 ])>{{ $i }}</button>

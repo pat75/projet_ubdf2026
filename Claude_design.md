@@ -12,9 +12,29 @@ couleur en dur quand un jeton existe.
 
 - Fond noir, **aucun arrondi** : utilitaire `bouton-espace`
   (noir, angles droits, survol `#333`, désactivé à 60 %).
-- Seules la taille et la marge varient : `bouton-espace px-5 py-2.5 text-[14px]`.
 - Composant Blade : `<x-espace.bouton>`.
 - Bouton secondaire (pagination, page non courante) : `border border-ub-bord bg-white`, angles droits aussi.
+
+### Deux hauteurs, selon l'importance
+
+Toujours poser `bouton-espace` avec l'un des deux modificateurs de
+hauteur ci-dessous — jamais de `py-*`/`text-[…]` improvisés au cas par
+cas, pour que toutes les hauteurs de l'espace restent alignées sur ces
+deux seules valeurs :
+
+- **`bouton-espace-grand`** (43px, référence : « Comparer les formules »
+  sur `/espace/formule`) — action principale d'une page ou d'un bloc :
+  Renouveler, Comparer les formules, Écrire à, Profiter de l'offre,
+  Activer, Sélectionner une formule, Enregistrer, Envoyer une réponse,
+  Voir mon book.
+- **`bouton-espace-petit`** (33px, référence : « Copier » dans le bloc
+  « Offre couplée » de `/espace/formule`) — action secondaire, répétée,
+  ou en ligne à côté d'un champ : Copier, Ouvrir, Annuler, Modifier,
+  Supprimer/Restaurer un message, pagination.
+
+Seul `px-*` (marge latérale) varie encore d'un bouton à l'autre ; la
+hauteur et la taille de texte sont fixées par le modificateur, donc
+stables quel que soit le texte du bouton.
 
 ## Badges en face des titres
 

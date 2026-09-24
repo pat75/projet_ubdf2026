@@ -29,7 +29,7 @@
         <x-espace.ligne :libelle="__('Mot de passe')" :prive="true">
             <span class="text-[18px] tracking-[3px]" x-show="! acces">••••••••••</span>
             <button type="button" @click="acces = ! acces"
-                    class="bouton-espace px-3.5 py-1.5 text-[14px]">
+                    class="bouton-espace bouton-espace-petit px-3.5">
                 <span x-show="! acces">{{ __('Modifier') }}</span>
                 <span x-show="acces" x-cloak>{{ __('Annuler') }}</span>
             </button>
@@ -65,7 +65,7 @@
             </div>
 
             <button type="submit" wire:target="enregistrerAcces" wire:loading.attr="disabled"
-                    class="bouton-espace mt-4 px-4 py-2 text-[14px]">
+                    class="bouton-espace bouton-espace-grand mt-4 px-4">
                 {{ __('Enregistrer') }}
             </button>
         </form>
@@ -229,7 +229,7 @@
             </div>
 
             <button type="button" @click="ouvert = ! ouvert"
-                    class="bouton-espace px-4 py-2 text-[14px]">
+                    class="bouton-espace bouton-espace-petit px-4">
                 {{ __('Supprimer…') }}
             </button>
         </div>
@@ -252,7 +252,7 @@
             </div>
 
             <button type="submit" wire:target="supprimerPortfolio" wire:loading.attr="disabled"
-                    class="bouton-espace mt-4 px-4 py-2 text-[14px]">
+                    class="bouton-espace bouton-espace-grand mt-4 px-4">
                 {{ __('Supprimer définitivement mon portfolio') }}
             </button>
         </form>
@@ -266,10 +266,10 @@
 
             <div class="flex gap-2">
                 <button type="button" wire:click="annuler"
-                        class="bouton-espace border border-white/25 px-3.5 py-2 text-[14px]">{{ __('Annuler') }}</button>
+                        class="bouton-espace bouton-espace-petit border border-white/25 px-3.5">{{ __('Annuler') }}</button>
 
                 <button type="button" wire:click="enregistrerProfil" wire:target="enregistrerProfil" wire:loading.attr="disabled"
-                        class="bouton-espace px-4 py-2 text-[14px]">{{ __('Enregistrer') }}</button>
+                        class="bouton-espace bouton-espace-grand px-4">{{ __('Enregistrer') }}</button>
             </div>
         </div>
     @endif

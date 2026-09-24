@@ -98,6 +98,26 @@ it('deplie le fil sous la ligne puis le replie au second clic', function () {
         ->assertDontSee('Volontiers, voici mon tarif.');
 });
 
+it('ferme la note d\'escroquerie et memorise le choix par cookie', function () {
+    $this->get(route('espace.messages'))->assertOk()->assertSee('Tentatives d’escroquerie signalées');
+
+    Livewire::test(Messages::class)
+        ->assertSee('Tentatives d’escroquerie signalées')
+        ->call('fermerAlerte')
+        ->assertDontSee('Tentatives d’escroquerie signalées');
+
+    expect(app('cookie')->queued('espace_messages_alerte_masquee'))->not->toBeNull();
+
+    // Un cookie normal, chiffre comme le fait EncryptCookies en vrai :
+    // c'est ce que le navigateur renverrait au prochain chargement.
+    $prefixe = \Illuminate\Cookie\CookieValuePrefix::create('espace_messages_alerte_masquee', app('encrypter')->getKey());
+    $chiffre = encrypt($prefixe.'1', false);
+
+    $this->withCookie('espace_messages_alerte_masquee', $chiffre)
+        ->get(route('espace.messages'))->assertOk()
+        ->assertDontSee('Tentatives d’escroquerie signalées');
+});
+
 it('affiche seulement Contacts et Supprimer, cote a cote', function () {
     $reponse = $this->get(route('espace.messages'))->assertOk()
         ->assertSee('Contacts')->assertSee('Supprimer')

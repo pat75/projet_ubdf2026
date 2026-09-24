@@ -53,7 +53,7 @@
                     <label for="pied_newsletter" class="sr-only">{{ __('Votre adresse e-mail') }}</label>
                     <input id="pied_newsletter" type="email" name="mail" placeholder="{{ __('Mail...') }}"
                            class="h-[42px] min-w-0 flex-1 border-none px-3 text-[15px] text-gray-800 outline-none placeholder:text-gray-400">
-                    <button type="submit" class="bouton-espace px-4">
+                    <button type="submit" class="bouton-espace bouton-espace-petit px-4">
                         {{ __('OK') }}
                     </button>
                 </form>

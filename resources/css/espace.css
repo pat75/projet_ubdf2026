@@ -18,6 +18,13 @@
 @source "../views/components/espace/**/*.blade.php";
 @source "../views/livewire/**/*.blade.php";
 
+/* Le curseur des liens sur tous les boutons de l'espace : Tailwind ne
+   pose plus cursor:pointer par defaut sur <button>, alors qu'ils font
+   tous une action au clic. */
+button:not(:disabled) {
+    cursor: pointer;
+}
+
 /*
  | L'espace n'a pas de mode sombre. La variante reste declaree, rattachee
  | a une classe que plus personne ne pose : les `dark:` encore presents
@@ -123,6 +130,26 @@
 
     &:hover { background-color: #333; color: #fff; }
     &:disabled { opacity: .6; cursor: default; }
+}
+
+/*
+ | Deux hauteurs, a poser en plus de bouton-espace, selon l'importance
+ | de l'action : grand pour une action principale de page (reference :
+ | « Comparer les formules »), petit pour une action secondaire ou
+ | repetee en ligne (reference : « Copier »). La hauteur est fixe, pas
+ | derivee du padding vertical, pour rester identique quelle que soit
+ | la taille du texte ou la largeur des marges laterales.
+ */
+@utility bouton-espace-grand {
+    height: 43px;
+    padding-inline: 18px;
+    font-size: 15px;
+}
+
+@utility bouton-espace-petit {
+    height: 33px;
+    padding-inline: 14px;
+    font-size: 13px;
 }
 
 /*

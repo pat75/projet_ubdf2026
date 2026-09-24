@@ -72,10 +72,10 @@
             {{-- Les deux boutons menent au meme endroit : la grille, plus
                  bas sur la page. Rien a charger, c'est une ancre. --}}
             <div class="flex min-w-[180px] flex-col gap-2">
-                <a href="#offres" class="bouton-espace px-4.5 py-3 text-[16px]">
+                <a href="#offres" class="bouton-espace bouton-espace-grand px-4.5">
                     {{ __('Renouveler') }}
                 </a>
-                <a href="#offres" class="bouton-espace px-4.5 py-2.5 text-[15px]">
+                <a href="#offres" class="bouton-espace bouton-espace-grand px-4.5">
                     {{ __('Comparer les formules') }}
                 </a>
             </div>
@@ -111,7 +111,7 @@
                 @endphp
 
                 <a href="{{ $mailto }}"
-                   class="bouton-espace px-4.5 py-2.5 text-[15px]">
+                   class="bouton-espace bouton-espace-grand px-4.5">
                     <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Écrire à :email', ['email' => $marque->email]) }}
                 </a>
             </div>
@@ -145,7 +145,7 @@
                         </div>
 
                         <button type="button" @click="copier('{{ $cle }}', @js($valeur))"
-                                class="bouton-espace px-3 py-1.5 text-[14px]">
+                                class="bouton-espace bouton-espace-petit px-3.5">
                             <span x-text="copie === '{{ $cle }}' ? @js(__('Copié ✓')) : @js(__('Copier'))">{{ __('Copier') }}</span>
                         </button>
                     </div>
@@ -154,7 +154,7 @@
 
             <div class="mt-5 flex flex-wrap items-center gap-5">
                 <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener"
-                   class="bouton-espace px-5 py-3 text-[15px]">
+                   class="bouton-espace bouton-espace-grand px-5">
                     {{ __('Profiter de l’offre ↗') }}
                 </a>
 
@@ -278,7 +278,7 @@
                 </ul>
 
                 <button type="submit"
-                        class="bouton-espace mt-8 w-full px-8 py-3.5 text-[17px] {{ $vedette ? 'ring-1 ring-white/40' : '' }}">
+                        class="bouton-espace bouton-espace-grand mt-8 w-full px-8 {{ $vedette ? 'ring-1 ring-white/40' : '' }}">
                     {{ __('Sélectionner') }}
                 </button>
             </form>

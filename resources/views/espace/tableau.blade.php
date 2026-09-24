@@ -13,7 +13,7 @@
         </div>
 
         <a href="{{ $creatif->portfolioUrl() }}" target="_blank" rel="noopener"
-           class="bouton-espace px-4.5 py-2.5 text-[14px]">
+           class="bouton-espace bouton-espace-grand px-4.5">
             {{ __('Voir mon book ↗') }}
         </a>
     </div>
@@ -55,11 +55,11 @@
                         <code class="min-w-0 flex-1 truncate rounded-md bg-ub-fond px-2.5 py-2 font-mono text-[12px] text-ub-texte2">{{ $lienMinibook }}</code>
 
                         <button type="button" @click="copier('mini', @js($lienMinibook))"
-                                class="bouton-espace shrink-0 px-3.5 py-2 text-[13px]">
+                                class="bouton-espace bouton-espace-petit shrink-0 px-3.5">
                             <span x-text="copie === 'mini' ? @js(__('Copié ✓')) : @js(__('Copier'))">{{ __('Copier') }}</span>
                         </button>
 
-                        <a href="{{ $lienMinibook }}" class="bouton-espace shrink-0 px-3.5 py-2 text-[13px]">
+                        <a href="{{ $lienMinibook }}" class="bouton-espace bouton-espace-petit shrink-0 px-3.5">
                             {{ __('Ouvrir ↗') }}
                         </a>
                     </div>
@@ -76,12 +76,12 @@
                         <code class="min-w-0 flex-1 truncate rounded-md bg-ub-fond px-2.5 py-2 font-mono text-[12px] text-ub-texte2">{{ $creatif->bookUrl() }}</code>
 
                         <button type="button" @click="copier('book', @js($creatif->bookUrl()))"
-                                class="bouton-espace shrink-0 px-3.5 py-2 text-[13px]">
+                                class="bouton-espace bouton-espace-petit shrink-0 px-3.5">
                             <span x-text="copie === 'book' ? @js(__('Copié ✓')) : @js(__('Copier'))">{{ __('Copier') }}</span>
                         </button>
 
                         <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener"
-                           class="bouton-espace shrink-0 px-3.5 py-2 text-[13px]">
+                           class="bouton-espace bouton-espace-petit shrink-0 px-3.5">
                             {{ __('Ouvrir ↗') }}
                         </a>
                     </div>

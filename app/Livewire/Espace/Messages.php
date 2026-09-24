@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Services\Messagerie\Intermediation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -32,6 +33,23 @@ class Messages extends Component
     public ?int $ouvert = null;
 
     public string $reponse = '';
+
+    public bool $alerteEscroquerieMasquee = false;
+
+    /** Le cookie qui retient que l'utilisateur a ferme la note de securite. */
+    private const COOKIE_ALERTE = 'espace_messages_alerte_masquee';
+
+    public function mount(): void
+    {
+        $this->alerteEscroquerieMasquee = (bool) request()->cookie(self::COOKIE_ALERTE);
+    }
+
+    /** Ferme la note de securite pour de bon : un cookie l'annee suivante aussi. */
+    public function fermerAlerte(): void
+    {
+        $this->alerteEscroquerieMasquee = true;
+        Cookie::queue(Cookie::forever(self::COOKIE_ALERTE, '1'));
+    }
 
     public function updatedDossier(): void
     {
