@@ -52,3 +52,10 @@
     padding: 0 6px;
     white-space: nowrap;
 }
+
+/* --- Createur connecte, dans la barre de tete ------------------------ */
+
+/* Le bloc porte ses styles en ligne (il sert aussi a l'espace) ; seul le
+   masquage du nom sur petit ecran demande une requete media. */
+.barre_createur_texte { display: none; }
+@media (min-width: 768px) { .barre_createur_texte { display: block; } }

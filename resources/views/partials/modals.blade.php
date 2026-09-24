@@ -125,16 +125,23 @@
                         <x-dev.switch-marque />
 
                         <!-- bloc connexion-->
-						
+                        {{-- Connecte, le createur remplace les deux boutons
+                             par sa vignette, son nom et son metier : le meme
+                             bloc que dans la barre de son espace. --}}
+                        @auth('web')
+                            <div class="item">
+                                <x-barre.createur :creatif="auth('web')->user()" />
+                            </div>
+                        @else
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">
                                 <a class="ui black basic button btn_connection">Connexion</a>
                             </div>
                             <!-- bloc creer un book-->
                             <div class="item btn_connection_signin mobile-hidden  cursor_effect">
-								                                    <a class="ui black button btn_modal_creerbook">Créer un book</a>
-								                            </div>
-
-						                        <!-- bloc connexion - end -->
+                                <a class="ui black button btn_modal_creerbook">Créer un book</a>
+                            </div>
+                        @endauth
+                        <!-- bloc connexion - end -->
 
 
                     </div>
