@@ -266,7 +266,7 @@
 
             <div class="flex gap-2">
                 <button type="button" wire:click="annuler"
-                        class="bouton-espace bouton-espace-petit border border-white/25 px-3.5">{{ __('Annuler') }}</button>
+                        class="bouton-espace bouton-espace-grand border border-white/25 px-3.5">{{ __('Annuler') }}</button>
 
                 <button type="button" wire:click="enregistrerProfil" wire:target="enregistrerProfil" wire:loading.attr="disabled"
                         class="bouton-espace bouton-espace-grand px-4">{{ __('Enregistrer') }}</button>

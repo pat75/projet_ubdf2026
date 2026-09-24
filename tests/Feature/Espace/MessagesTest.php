@@ -3,6 +3,7 @@
 use App\Livewire\Espace\Messages;
 use App\Mail\ReponseRecue;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
@@ -145,6 +146,42 @@ it('n\'affiche qu\'une fois des reponses identiques envoyees a la suite', functi
 
     expect(substr_count($composant->html(), 'Merci, je ne prends pas de commande.'))->toBe(1);
     $composant->assertSee('Autre chose, en plus.');
+});
+
+it('propose une correction IA sans toucher au texte tant qu elle n est pas acceptee', function () {
+    config(['services.openrouter.api_key' => 'test-key']);
+
+    Http::fake([
+        'openrouter.ai/*' => Http::response([
+            'choices' => [['message' => ['content' => 'Avec plaisir, voici mon tarif.']]],
+        ], 200),
+    ]);
+
+    Livewire::test(Messages::class)
+        ->call('ouvrir', $this->conversation->id)
+        ->set('reponse', 'avec plaisir voici mont tarif')
+        ->call('corrigerReponse')
+        ->assertSet('suggestionIA', 'Avec plaisir, voici mon tarif.')
+        ->assertSet('reponse', 'avec plaisir voici mont tarif')
+        ->call('utiliserSuggestionIA')
+        ->assertSet('reponse', 'Avec plaisir, voici mon tarif.')
+        ->assertSet('suggestionIA', null);
+});
+
+it('garde le texte d origine si la correction IA echoue', function () {
+    config(['services.openrouter.api_key' => 'test-key']);
+
+    Http::fake([
+        'openrouter.ai/*' => Http::response(['error' => ['message' => 'Quota depasse']], 429),
+    ]);
+
+    Livewire::test(Messages::class)
+        ->call('ouvrir', $this->conversation->id)
+        ->set('reponse', 'Mon texte original.')
+        ->call('corrigerReponse')
+        ->assertSet('suggestionIA', null)
+        ->assertSet('reponse', 'Mon texte original.')
+        ->assertSet('erreurIA', "La correction IA n'est pas disponible pour le moment.");
 });
 
 it('affiche seulement Contacts et Supprimer, cote a cote', function () {

@@ -73,6 +73,18 @@ return [
             'replace_placeholders' => true,
         ],
 
+        /*
+         | Trace des choix de modele d'App\Services\IA\OpenRouterModelSelector,
+         | separee du reste pour suivre l'usage cote cout sans bruit.
+         */
+        'modelselector' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modelselector.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

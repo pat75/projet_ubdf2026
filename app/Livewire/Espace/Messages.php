@@ -4,15 +4,18 @@ namespace App\Livewire\Espace;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Services\IA\CorrectionMessage;
 use App\Services\Messagerie\Intermediation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use RuntimeException;
 
 /**
  * Demandes recues (ubaction__user_message du legacy). Le createur repond
@@ -35,6 +38,11 @@ class Messages extends Component
     public ?int $ouvert = null;
 
     public string $reponse = '';
+
+    /** Proposition de l'IA, en attente d'acceptation : ne remplace jamais $reponse toute seule. */
+    public ?string $suggestionIA = null;
+
+    public ?string $erreurIA = null;
 
     public bool $alerteEscroquerieMasquee = false;
 
@@ -70,7 +78,7 @@ class Messages extends Component
         $conversation->messages()->where('from_owner', false)->whereNull('read_at')->update(['read_at' => now()]);
 
         $this->ouvert = $id;
-        $this->reset('reponse');
+        $this->reset('reponse', 'suggestionIA', 'erreurIA');
     }
 
     /** Un clic sur la ligne la deplie, un second la replie. */
@@ -92,7 +100,41 @@ class Messages extends Component
         $intermediation->repondre($conversation, Intermediation::PROPRIETAIRE, $this->reponse, request()->ip());
         $intermediation->notifierAutrePartie($conversation, Intermediation::PROPRIETAIRE);
 
-        $this->reset('reponse');
+        $this->reset('reponse', 'suggestionIA', 'erreurIA');
+    }
+
+    /**
+     * Propose une version corrigee de la reponse en cours de redaction.
+     * N'ecrit jamais directement dans $reponse : voir utiliserSuggestionIA().
+     */
+    public function corrigerReponse(CorrectionMessage $correction): void
+    {
+        $this->validate(['reponse' => 'required|string|min:2|max:5000']);
+
+        $this->erreurIA = null;
+
+        try {
+            $this->suggestionIA = $correction->corriger($this->reponse);
+        } catch (RuntimeException $e) {
+            $this->suggestionIA = null;
+            $this->erreurIA = __("La correction IA n'est pas disponible pour le moment.");
+
+            Log::warning('Correction IA en echec', ['message' => $e->getMessage()]);
+        }
+    }
+
+    public function utiliserSuggestionIA(): void
+    {
+        if ($this->suggestionIA !== null) {
+            $this->reponse = $this->suggestionIA;
+        }
+
+        $this->suggestionIA = null;
+    }
+
+    public function ignorerSuggestionIA(): void
+    {
+        $this->suggestionIA = null;
     }
 
     /**

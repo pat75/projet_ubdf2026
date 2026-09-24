@@ -184,9 +184,43 @@
                                               class="w-full border border-ub-bord px-3.5 py-2.5 text-[15px] outline-none focus:border-ub-accent focus:ring-2 focus:ring-ub-accent/20"></textarea>
                                     @error('reponse') <p class="text-[13px] text-ub-danger">{{ $message }}</p> @enderror
 
-                                    <button type="submit" wire:target="repondre" wire:loading.attr="disabled" class="bouton-espace bouton-espace-grand px-5">
-                                        {{ __('Envoyer') }}
-                                    </button>
+                                    {{-- La proposition de l'IA : gardee a part, jamais ecrite
+                                         dans le champ tant que le createur ne l'a pas acceptee. --}}
+                                    @if ($suggestionIA)
+                                        <div class="border border-ub-accent-texte/30 bg-ub-accent-fond px-3.5 py-3 text-[14px]">
+                                            <p class="mb-1.5 text-[12px] font-bold uppercase tracking-[.06em] text-ub-accent-texte">{{ __('Suggestion de l’IA') }}</p>
+                                            <p class="leading-relaxed text-ub-texte whitespace-pre-line">{{ $suggestionIA }}</p>
+
+                                            <div class="mt-3 flex flex-wrap gap-2">
+                                                <button type="button" wire:click="utiliserSuggestionIA" class="bouton-espace bouton-espace-petit px-3.5">
+                                                    {{ __('Utiliser ce texte') }}
+                                                </button>
+                                                <button type="button" wire:click="ignorerSuggestionIA"
+                                                        class="bouton-espace-petit border border-ub-bord bg-white px-3.5 text-ub-texte hover:border-black">
+                                                    {{ __('Garder mon texte') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if ($erreurIA)
+                                        <p class="text-[13px] text-ub-danger">{{ $erreurIA }}</p>
+                                    @endif
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="submit" wire:target="repondre" wire:loading.attr="disabled" class="bouton-espace bouton-espace-grand px-5">
+                                            {{ __('Envoyer') }}
+                                        </button>
+
+                                        <button type="button" wire:click="corrigerReponse" wire:target="corrigerReponse" wire:loading.attr="disabled"
+                                                class="bouton-espace bouton-espace-grand px-3.5">
+                                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <path d="M12 2 13.8 8.2 20 10 13.8 11.8 12 18 10.2 11.8 4 10 10.2 8.2 12 2ZM19 14.5 19.9 17.6 23 18.5 19.9 19.4 19 22.5 18.1 19.4 15 18.5 18.1 17.6 19 14.5ZM5.5 15 6.2 17.3 8.5 18 6.2 18.7 5.5 21 4.8 18.7 2.5 18 4.8 17.3 5.5 15Z"/>
+                                            </svg>
+                                            <span wire:loading.remove wire:target="corrigerReponse">{{ __('Correction IA') }}</span>
+                                            <span wire:loading wire:target="corrigerReponse">{{ __('Correction…') }}</span>
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         @endif

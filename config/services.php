@@ -36,6 +36,15 @@ return [
     ],
 
     /*
+    | OpenRouter : point d'entree unique pour toutes les operations IA du
+    | site (correction de message, et ce qui suivra), via
+    | App\Services\IA\OpenRouterModelSelector.
+    */
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+    ],
+
+    /*
     | reCAPTCHA v3 - protege la connexion, l'inscription et la demande de
     | mot de passe oublie.
     |

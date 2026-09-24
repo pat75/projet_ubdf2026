@@ -64,6 +64,16 @@ deux seules valeurs :
   ou en ligne à côté d'un champ : Copier, Ouvrir, Annuler, Modifier,
   Supprimer/Restaurer un message, pagination.
 
+### Deux boutons côte à côte : toujours la même hauteur
+
+Quand deux boutons se suivent sur une même ligne (ex. « Envoyer » et
+« Correction IA », ou « Annuler » et « Enregistrer » de la barre
+sticky), ils portent le **même** modificateur de hauteur — `-grand`
+ensemble ou `-petit` ensemble, jamais l'un à 43px et l'autre à 33px.
+C'est la ligne, pas l'action individuelle, qui fixe la hauteur : une
+action secondaire posée à cote d'une action principale grand prend
+elle aussi `bouton-espace-grand`.
+
 Seul `px-*` (marge latérale) varie encore d'un bouton à l'autre ; la
 hauteur et la taille de texte sont fixées par le modificateur, donc
 stables quel que soit le texte du bouton.
