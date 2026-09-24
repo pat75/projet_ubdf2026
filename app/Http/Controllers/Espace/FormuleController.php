@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Espace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Models\Referral;
 use App\Services\Espace\CodeDiffusion;
+use App\Services\Paiement\Parrainage;
 use App\Services\Paiement\Souscription;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Illuminate\View\View;
 /** Formule et factures (ubaction__user_pref_formule du legacy). */
 class FormuleController extends Controller
 {
-    public function index(Request $request, Souscription $souscription, CodeDiffusion $diffusion): View
+    public function index(Request $request, Souscription $souscription, CodeDiffusion $diffusion, Parrainage $parrainage): View
     {
         $creatif = $request->user();
 
@@ -28,32 +29,12 @@ class FormuleController extends Controller
             'reabonnement' => $souscription->dejaAbonne($creatif),
             'factures' => $creatif->invoices()->where('status', 'paid')->latest('issued_at')->get(),
             'codeDiffusion' => $diffusion->pour($creatif),
-            'quotas' => $this->quotas($creatif),
+            // Le parrainage est un depliant de la page, a la suite des
+            // factures ; la saisie du code, elle, reste au composant.
+            'monCodeParrain' => $parrainage->code($creatif),
+            'filleuls' => Referral::where('sponsor_id', $creatif->id)
+                ->with('referred:id,login,firstname,lastname')->latest('confirmed_at')->get(),
         ]);
-    }
-
-    /**
-     * Les deux compteurs de la page : nombre de visuels et poids total,
-     * chacun rapporte au plafond de la formule.
-     *
-     * @return array<string, array{valeur: int, plafond: int, unite: string}>
-     */
-    private function quotas(User $creatif): array
-    {
-        $limites = config('formules.limites.'.($creatif->plan ? 'payante' : 'gratuite'));
-
-        return [
-            'images' => [
-                'valeur' => (int) $creatif->media_count,
-                'plafond' => (int) $limites['visuels'],
-                'unite' => '',
-            ],
-            'poids' => [
-                'valeur' => (int) $creatif->storage_used,
-                'plafond' => (int) $limites['poids_ko'],
-                'unite' => 'Ko',
-            ],
-        ];
     }
 
     public function facture(Invoice $facture): View

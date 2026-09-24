@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Espace;
 
-use App\Models\Referral;
 use App\Services\Paiement\Parrainage as ServiceParrainage;
 use App\Support\Marque;
 use Illuminate\Support\Facades\Auth;
@@ -33,15 +32,13 @@ class Parrainage extends Component
         $this->reset('code');
     }
 
-    public function render(ServiceParrainage $service): View
+    public function render(): View
     {
         return view('livewire.espace.parrainage', [
             // La marque est partagee aux vues par ResoudreMarque, mais une
             // mise a jour Livewire ne passe pas toujours par lui : le
             // composant la resout lui-meme plutot que de s'y fier.
             'marque' => Marque::depuisHote(request()->getHost()),
-            'monCode' => $service->code(Auth::user()),
-            'filleuls' => Referral::where('sponsor_id', Auth::id())->with('referred:id,login,firstname,lastname')->latest('confirmed_at')->get(),
         ]);
     }
 }

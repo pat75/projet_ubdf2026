@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Espace\CodeQr;
+use App\Services\Espace\Quotas;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,7 +15,7 @@ use Illuminate\View\View;
  */
 class EspaceController extends Controller
 {
-    public function __invoke(Request $requete, CodeQr $qr): View
+    public function __invoke(Request $requete, CodeQr $qr, Quotas $quotas): View
     {
         /** @var User $creatif */
         $creatif = $requete->user();
@@ -27,6 +28,7 @@ class EspaceController extends Controller
             'qrMinibook' => $qr->svg($lienMinibook),
             'qrBook' => $qr->svg($creatif->bookUrl()),
             'visites' => $this->visites($creatif),
+            'quotas' => $quotas->pour($creatif),
         ]);
     }
 

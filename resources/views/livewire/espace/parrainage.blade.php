@@ -1,10 +1,10 @@
 {{--
- | Un seul composant pour deux blocs, parce qu'un seul champ sert aux
- | deux sortes de codes : le service reconnait un code de parrainage a sa
- | forme (« AR-46969 ») et traite le reste en code promo.
+ | Le bloc d'activation, repris de la page tarifs des Illustrateurs.
  |
- | Dessus, le bloc d'activation, visible, repris de la page tarifs des
- | Illustrateurs ; dessous, le parrainage, replie comme les factures.
+ | Un seul champ pour les deux sortes de codes : le service reconnait un
+ | code de parrainage a sa forme (« AR-46969 ») et traite le reste en
+ | code promo. Le parrainage lui-meme — le code du createur et ses
+ | filleuls — est plus bas dans la page, replie avec les factures.
 --}}
 <div>
 
@@ -48,25 +48,5 @@
                 </a>
             </div>
         </div>
-    </div>
-
-    {{-- Le parrainage : replie, comme les factures. --}}
-    <div class="mt-10">
-        <x-espace.section-pliante :titre="__('Parrainage')">
-            <p class="text-[15px] text-ub-texte2">
-                {{ __('Votre code de parrainage :') }}
-                <strong class="font-mono text-ub-texte">{{ $monCode }}</strong>.
-                {{ __('Quand un créatif avec une formule payante l’utilise, vous gagnez chacun 1 à 3 mois de formule.') }}
-                {{ __('Il s’active dans le champ ci-dessus.') }}
-            </p>
-
-            @if ($filleuls->isNotEmpty())
-                <ul class="mt-3 space-y-1 text-[14px] text-ub-texte2">
-                    @foreach ($filleuls as $f)
-                        <li>{{ $f->referred?->fullName() }} — {{ $f->confirmed_at?->format('d/m/Y') }}</li>
-                    @endforeach
-                </ul>
-            @endif
-        </x-espace.section-pliante>
     </div>
 </div>

@@ -44,3 +44,21 @@ it('ne montre pas les rubriques non livrees dans le menu', function () {
         ->assertOk()
         ->assertSee('Tableau de bord');
 });
+
+/*
+ | Les deux compteurs de la formule ont quitte « Ma formule » pour le
+ | tableau de bord, ou sont deja les autres chiffres du compte.
+ */
+it('montre les quotas de la formule sur le tableau de bord', function () {
+    $paye = App\Models\User::factory()->create(['plan' => 1, 'media_count' => 202, 'storage_used' => 67160]);
+
+    $this->actingAs($paye)->get(route('espace'))->assertOk()
+        ->assertSee('202')
+        ->assertSee('max: 500', false)
+        ->assertSee('max: 120 000 Ko', false);
+
+    $gratuit = App\Models\User::factory()->create(['plan' => 0]);
+
+    $this->actingAs($gratuit)->get(route('espace'))->assertOk()
+        ->assertSee('max: 12', false);
+});

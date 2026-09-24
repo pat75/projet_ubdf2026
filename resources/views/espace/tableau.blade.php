@@ -102,6 +102,19 @@
         <x-espace.anneau :parts="$visites['parts']" class="mt-10" />
     </section>
 
+    {{-- Les deux compteurs de la formule. Ils etaient sur « Ma formule »,
+         ou ils coupaient la page en deux entre le remerciement et la
+         grille des offres ; leur place est ici, avec les autres chiffres
+         du compte. --}}
+    <section class="mt-14">
+        <h2 class="font-titre text-[28px] font-light text-black">{{ __('Mes images') }}</h2>
+
+        <div class="mt-2 border-t border-ub-gris-clair">
+            <x-espace.quota :libelle="__('Nombre total d’images :')" :quota="$quotas['images']" :lien="route(nom_route('espace.galeries'))" />
+            <x-espace.quota :libelle="__('Poids total des images :')" :quota="$quotas['poids']" :lien="route(nom_route('espace.galeries'))" />
+        </div>
+    </section>
+
     {{-- Les trois lignes de bas de page que l'original affiche en tout
          petit : elles servent au support pour identifier un compte. --}}
     <div class="mt-14 border-t border-dotted border-[#aaa] pt-5 text-[11px] leading-5 text-ub-gris-fonce">

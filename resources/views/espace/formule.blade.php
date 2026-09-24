@@ -3,102 +3,176 @@
 @section('title', __('Ma formule'))
 
 @section('content')
+
+    {{-- En-tete : l'illustration, le surtitre et le remerciement nomme. --}}
+    <div class="flex items-center gap-7 pb-2">
+        <img src="{{ asset('img_admin/budget.svg') }}" alt="" class="w-[150px] shrink-0">
+
+        <div>
+            <div class="text-[13px] font-semibold uppercase tracking-[.12em] text-ub-accent-texte">{{ __('Ma formule') }}</div>
+
+            <h1 class="mt-1.5 mb-1 text-[38px] font-bold leading-[1.1] text-[#1b1b1b]">
+                @if ($creatif->plan)
+                    {{ __('Merci pour votre soutien, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}
+                @else
+                    {{ __('Votre formule, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}
+                @endif
+            </h1>
+
+            <p class="text-[17px] text-ub-texte2">{{ __('Votre formule, vos avantages et vos offres partenaires au même endroit.') }}</p>
+        </div>
+    </div>
+
     @if ($creatif->plan)
-        {{-- Formule en cours : on remercie, on rappelle l'echeance, et on
-             laisse la grille des offres pour la prolongation, plus bas. --}}
-        <x-espace.hero
-            :illustration="asset('img_admin/budget.svg')"
-            :alt="__('Ma formule')"
-            :titre="__('Merci')"
-            :suite="__('pour votre soutien')"
-            :suite-dessous="true"
-            class="mb-10" />
+        @php
+            /*
+             | La barre mesure la part ecoulee de la formule en cours : du
+             | jour ou elle a commence a son echeance. Une formule prolongee
+             | plusieurs fois peut afficher une part infime — c'est le cas
+             | des comptes dont l'echeance part loin dans le temps.
+             */
+            $debut = $creatif->plan_started_at;
+            $ecoule = 0;
 
-        <div class="mb-10 flex items-center gap-6 rounded bg-[#eceadb] px-6 py-5">
-            <img src="{{ asset('img_admin/avion.png') }}" alt="" class="h-20 w-20 shrink-0 rounded-full object-cover">
+            if ($debut && $echeance && $echeance->greaterThan($debut)) {
+                $total = $debut->diffInSeconds($echeance);
+                $ecoule = max(0, min(100, round($debut->diffInSeconds(now()) / $total * 100)));
+            }
+        @endphp
 
-            <div class="text-[#3d6d8e]">
-                <h2 class="font-titre text-[21px] font-bold">{{ __('Vous êtes actuellement en formule PREMIUM') }}</h2>
+        {{-- L'etat de la formule, et les deux boutons vers la grille. --}}
+        <section class="mt-6 grid items-center gap-6 rounded-ub-carte bg-white px-8 py-7 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div>
+                <div class="mb-2.5 flex items-center gap-2.5">
+                    <span class="rounded-full bg-[#1b1b1b] px-2.5 py-1 text-[12px] font-bold uppercase tracking-[.1em] text-white">{{ __('Premium') }}</span>
+
+                    <span class="flex items-center gap-1.5 text-[14px] font-semibold text-[#1a8a4a]">
+                        <span class="h-2 w-2 rounded-full bg-[#22a45d]"></span>{{ __('Active') }}
+                    </span>
+                </div>
+
+                <h2 class="mb-1 text-[22px] font-bold">{{ __('Vous êtes actuellement en formule Premium') }}</h2>
 
                 @if ($echeance)
-                    <p class="mt-1">{{ __('Vous pouvez la renouveler avant le :date', ['date' => $echeance->format('d-m-Y')]) }}</p>
+                    <p class="text-[16px] text-ub-texte2">
+                        {{ __('Renouvelable jusqu’au') }}
+                        <b class="text-[#1b1b1b]">{{ $echeance->translatedFormat('j F Y') }}</b>
+                    </p>
                 @endif
 
-                <p class="mt-1 text-[13px]">{{ __('Le restant des jours de votre formule actuelle s’accumulera avec la nouvelle formule.') }}</p>
+                <div class="mt-4.5 h-1.5 overflow-hidden rounded bg-[#eef0f0]">
+                    <div class="h-full bg-ub-accent" style="width: {{ $ecoule }}%"></div>
+                </div>
+
+                <p class="mt-2.5 text-[14px] text-pretty text-[#6a6a6a]">
+                    {{ __('Les jours restants de votre formule actuelle s’ajoutent à la nouvelle formule : vous ne perdez rien en renouvelant en avance.') }}
+                </p>
             </div>
-        </div>
+
+            {{-- Les deux boutons menent au meme endroit : la grille, plus
+                 bas sur la page. Rien a charger, c'est une ancre. --}}
+            <div class="flex min-w-[180px] flex-col gap-2">
+                <a href="#offres" class="rounded-ub bg-ub-accent px-4.5 py-3 text-center text-[16px] font-semibold text-white hover:bg-ub-accent-fonce">
+                    {{ __('Renouveler') }}
+                </a>
+                <a href="#offres" class="rounded-ub border border-[#d9dcdc] px-4.5 py-2.5 text-center text-[15px] text-ub-texte hover:border-ub-accent hover:text-ub-accent-texte">
+                    {{ __('Comparer les formules') }}
+                </a>
+            </div>
+        </section>
 
         {{-- Le remerciement de l'annee. --}}
-        <div class="mb-10 rounded bg-gradient-to-br from-[#25c1b4] to-[#12a5e0] px-6 py-10 text-center text-white">
-            <img src="{{ asset('img_front/thank-you.png') }}" alt="" class="mx-auto w-[200px]">
-
-            <h2 class="mt-6 font-titre text-[26px] font-bold">{{ __(':annee : Merci pour votre soutien !', ['annee' => now()->year]) }}</h2>
-
-            <p class="mx-auto mt-5 max-w-xl">
-                {{ __('Votre contribution est essentielle pour nous permettre de continuer à améliorer nos services et vous offrir la meilleure expérience possible.') }}
-            </p>
-
-            <div class="mx-auto mt-6 max-w-2xl space-y-4 rounded bg-white/15 p-6 text-[15px]">
-                <p>{!! __('Grâce à votre <strong>formule :marque</strong>, vous bénéficiez d’un espace professionnel optimisé pour mettre en valeur votre travail.', ['marque' => e($marque->nom)]) !!}</p>
-                <p>{{ __('Notre équipe reste à votre disposition pour tout accompagnement ou question concernant votre portfolio.') }}</p>
-
-                <div class="rounded bg-white/25 p-4 text-[14px] font-semibold">
-                    {{ __('N’oubliez pas : vous pouvez à tout moment nous contacter') }}<br>
-                    {{ __('via') }} <a href="mailto:{{ $marque->email }}" class="underline">{{ $marque->email }}</a> {{ __('pour obtenir de l’aide.') }}
-                </div>
+        <section class="mt-6 grid overflow-hidden rounded-ub-carte bg-gradient-to-br from-[#22c1c3] to-[#16a6d9] text-white sm:grid-cols-[180px_minmax(0,1fr)]">
+            <div class="flex items-center justify-center p-6">
+                <img src="{{ asset('img_front/thank-you.png') }}" alt="" class="w-[140px] mix-blend-multiply">
             </div>
-        </div>
+
+            <div class="p-8 sm:pl-1.5">
+                <h2 class="mb-2.5 text-[26px] font-bold">{{ __(':annee : merci pour votre soutien !', ['annee' => now()->year]) }}</h2>
+
+                <p class="mb-5 text-[16px] leading-[1.55] text-pretty">
+                    {{ __('Votre contribution est essentielle pour nous permettre de continuer à améliorer nos services et vous offrir la meilleure expérience possible.') }}
+                </p>
+
+                <div class="mb-5 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+                    <div class="rounded-ub-bandeau bg-white/15 px-4 py-3.5 text-[15px] leading-[1.45]">
+                        <b class="mb-1 block">{{ __('Un espace professionnel') }}</b>
+                        {{ __('Grâce à votre formule :marque, votre travail est mis en valeur sur un portfolio optimisé.', ['marque' => $marque->nom]) }}
+                    </div>
+                    <div class="rounded-ub-bandeau bg-white/15 px-4 py-3.5 text-[15px] leading-[1.45]">
+                        <b class="mb-1 block">{{ __('Un accompagnement') }}</b>
+                        {{ __('Notre équipe reste disponible pour toute question concernant votre portfolio.') }}
+                    </div>
+                </div>
+
+                <a href="mailto:{{ $marque->email }}"
+                   class="inline-flex items-center gap-2 rounded-ub bg-white px-4.5 py-2.5 text-[15px] font-semibold text-[#0d7f8c] hover:bg-[#f0fbfc]">
+                    <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Écrire à :email', ['email' => $marque->email]) }}
+                </a>
+            </div>
+        </section>
 
         {{-- Offre couplee avec le site de diffusion : le code se recalcule
              des deux cotes, il n'est stocke nulle part. --}}
-        <div class="mb-10 rounded-lg border border-[#dee2e6] bg-[#f8f9fa] p-7 text-[#495057]">
-            <h2 class="mb-3 flex items-center gap-2 font-titre text-[19px] font-bold">
-                <x-espace.icone nom="horloge" class="h-5 w-5 text-[#17b7bf]" />
-                {{ __('Offre couplée :marque Classique et Diffusion', ['marque' => $marque->nom]) }}
-            </h2>
+        <section class="mt-6 rounded-ub-carte bg-white px-8 py-7"
+                 x-data="{ copie: null, aide: false, copier(cle, valeur) {
+                     navigator.clipboard?.writeText(valeur);
+                     this.copie = cle;
+                     clearTimeout(this.t); this.t = setTimeout(() => this.copie = null, 1500);
+                 } }">
 
-            <p>
+            <div class="text-[13px] font-semibold uppercase tracking-[.12em] text-ub-formule">{{ __('Offre réservée') }}</div>
+
+            <h2 class="mt-1.5 mb-1.5 text-[22px] font-bold">{{ __('Offre couplée :marque Classique + Diffusion', ['marque' => $marque->nom]) }}</h2>
+
+            <p class="max-w-[520px] text-[16px] text-pretty text-ub-texte2">
                 {{ __('Donnez plus de visibilité à votre travail sur') }}
-                <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener" class="text-[#17b7bf] underline">{{ parse_url(config('services.diffusion.url'), PHP_URL_HOST) }}</a>
+                <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener" class="text-ub-accent-texte underline">{{ parse_url(config('services.diffusion.url'), PHP_URL_HOST) }}</a>
+                {!! __('et profitez d’une <b class="text-ub-formule">formule optimisée</b> avec votre code personnel.') !!}
             </p>
 
-            <p class="mt-1">{!! __('Profitez d’une <strong class="text-ub-rouge">formule optimisée</strong> avec votre code personnel') !!}</p>
+            <div class="mt-5.5 grid gap-3 sm:grid-cols-2">
+                @foreach ([['id', __('Identifiant'), $creatif->login], ['code', __('Code promo'), $codeDiffusion]] as [$cle, $libelle, $valeur])
+                    <div class="flex items-center justify-between gap-3 rounded-ub-bandeau border border-[#e3e5e5] px-4 py-3.5">
+                        <div>
+                            <div class="mb-0.5 text-[13px] text-ub-texte3">{{ $libelle }}</div>
+                            <div class="font-mono text-[18px] tracking-[.04em]">{{ $valeur }}</div>
+                        </div>
 
-            <dl class="mt-4 rounded border border-[#e3e6e8] bg-white px-6 py-4 text-[14px]">
-                <div class="flex items-center gap-6 py-1.5">
-                    <dt class="w-32">{{ __('Identifiant :') }}</dt>
-                    <dd><code class="rounded bg-[#eef0f2] px-3 py-1 font-mono">{{ $creatif->login }}</code></dd>
-                </div>
-                <div class="flex items-center gap-6 py-1.5">
-                    <dt class="w-32">{{ __('Code promo :') }}</dt>
-                    <dd><code class="rounded bg-[#eef0f2] px-3 py-1 font-mono">{{ $codeDiffusion }}</code></dd>
-                </div>
-            </dl>
+                        <button type="button" @click="copier('{{ $cle }}', @js($valeur))"
+                                class="rounded-md border border-[#d9dcdc] px-3 py-1.5 text-[14px] hover:border-ub-accent hover:text-ub-accent-texte">
+                            <span x-text="copie === '{{ $cle }}' ? @js(__('Copié ✓')) : @js(__('Copier'))">{{ __('Copier') }}</span>
+                        </button>
+                    </div>
+                @endforeach
+            </div>
 
-            <details class="mt-4 text-[14px]">
-                <summary class="cursor-pointer text-[#3d6d8e]">{{ __('Comment utiliser ce code ?') }}</summary>
-                <ol class="mt-3 list-decimal space-y-1 pl-6">
-                    <li>{{ __('Créez votre compte sur') }} <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener" class="font-semibold underline">{{ parse_url(config('services.diffusion.url'), PHP_URL_HOST) }}</a></li>
-                    <li>{!! __('Accédez à <strong>« Formules et factures »</strong>') !!}</li>
-                    <li>{{ __('Ajoutez votre identifiant et votre code') }}</li>
-                    <li>{{ __('Visualisez vos nouveaux prix réduits') }}</li>
-                </ol>
-            </details>
-        </div>
+            <div class="mt-5 flex flex-wrap items-center gap-5">
+                <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener"
+                   class="rounded-ub bg-[#1b1b1b] px-5 py-3 text-[15px] font-semibold text-white hover:bg-black">
+                    {{ __('Profiter de l’offre ↗') }}
+                </a>
+
+                <button type="button" @click="aide = ! aide" :aria-expanded="aide" class="text-[15px] text-ub-accent-texte">
+                    <span x-text="aide ? '▾' : '▸'">▸</span> {{ __('Comment utiliser ce code ?') }}
+                </button>
+            </div>
+
+            <ol x-show="aide" x-cloak x-collapse
+                class="mt-5 list-decimal rounded-ub-bandeau bg-[#f6f7f7] py-4.5 pl-10 pr-4.5 text-[15px] leading-[1.7] text-[#444]">
+                <li>{{ __('Rendez-vous sur') }}
+                    <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener" class="underline">{{ parse_url(config('services.diffusion.url'), PHP_URL_HOST) }}</a>
+                    {{ __('et choisissez la formule Diffusion.') }}</li>
+                <li>{!! __('Connectez-vous avec votre identifiant <b>:login</b>.', ['login' => e($creatif->login)]) !!}</li>
+                <li>{!! __('Saisissez le code promo <b>:code</b> au moment du paiement.', ['code' => e($codeDiffusion)]) !!}</li>
+            </ol>
+        </section>
     @else
-        <x-espace.titre>{{ __('Ma formule') }}</x-espace.titre>
-
-        <p class="mb-8 text-[17px]">{{ __('Vous êtes en formule gratuite.') }}</p>
+        <p class="mt-6 text-[17px]">{{ __('Vous êtes en formule gratuite.') }}</p>
     @endif
 
-    {{-- Les deux compteurs, rapportes au plafond de la formule. --}}
-    <div class="border-t border-ub-gris-clair">
-        <x-espace.quota :libelle="__('Nombre total d’images :')" :quota="$quotas['images']" :lien="route(nom_route('espace.galeries'))" />
-        <x-espace.quota :libelle="__('Poids total des images :')" :quota="$quotas['poids']" :lien="route(nom_route('espace.galeries'))" />
-    </div>
-
     {{-- Prolonger ou souscrire. --}}
-    <h2 class="mt-12 font-titre text-[22px] font-light">
+    <h2 id="offres" class="mt-12 scroll-mt-6 font-titre text-[22px] font-light">
         {{ $creatif->plan ? __('Prolonger ma formule') : __('Passer à la formule :marque', ['marque' => $marque->nom]) }}
     </h2>
 
@@ -225,6 +299,27 @@
             @empty
                 <p class="py-3 text-[14px] text-ub-gris-fonce">{{ __('Aucune facture.') }}</p>
             @endforelse
+        </x-espace.section-pliante>
+
+        {{-- Le parrainage, a la suite des factures et dans le meme
+             depliant : son code et ses filleuls. La saisie, elle, est
+             dans le bloc d'activation ci-dessus — un seul champ sert aux
+             deux sortes de codes. --}}
+        <x-espace.section-pliante :titre="__('Parrainage')">
+            <p class="text-[15px] text-ub-texte2">
+                {{ __('Votre code de parrainage :') }}
+                <strong class="font-mono text-ub-texte">{{ $monCodeParrain }}</strong>.
+                {{ __('Quand un créatif avec une formule payante l’utilise, vous gagnez chacun 1 à 3 mois de formule.') }}
+                {{ __('Il s’active dans le champ ci-dessus.') }}
+            </p>
+
+            @if ($filleuls->isNotEmpty())
+                <ul class="mt-3 space-y-1 text-[14px] text-ub-texte2">
+                    @foreach ($filleuls as $f)
+                        <li>{{ $f->referred?->fullName() }} — {{ $f->confirmed_at?->format('d/m/Y') }}</li>
+                    @endforeach
+                </ul>
+            @endif
         </x-espace.section-pliante>
 
         <x-espace.section-pliante :titre="__('Conditions générales de vente')">

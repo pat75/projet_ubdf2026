@@ -15,8 +15,9 @@ it('affiche la formule, son echeance et les factures payees', function () {
     $this->creatif->invoices()->create(['number' => 'ub-x', 'brand' => 'ub', 'label' => 'Annulee', 'amount' => 1, 'vat' => 0, 'status' => 'cancelled', 'issued_at' => now()]);
 
     $this->get(route('espace.formule'))->assertOk()
-        // L'echeance est datee comme dans l'espace d'origine : 10-03-2034.
-        ->assertSee(now()->subMonths(2)->addMonths(12)->format('d-m-Y'))
+        // L'echeance est datee en toutes lettres, comme sur la maquette :
+        // « Renouvelable jusqu'au 10 mars 2034 ».
+        ->assertSee(now()->subMonths(2)->addMonths(12)->translatedFormat('j F Y'))
         ->assertSee('UB-2020-7907')
         ->assertDontSee('Annulee');
 });
@@ -38,27 +39,17 @@ it('remercie le createur en formule payante et lui donne son code de diffusion',
     $attendu = strtoupper(substr(hash_hmac('sha256', $this->creatif->login.date('Y'), config('services.diffusion.cle')), 0, 8));
 
     $this->get(route('espace.formule'))->assertOk()
-        ->assertSeeInOrder(['Merci', 'pour votre soutien', 'Vous êtes actuellement en formule PREMIUM'], escape: false)
+        ->assertSeeInOrder(['Merci', 'pour votre soutien', 'Vous êtes actuellement en formule Premium'], escape: false)
         ->assertSee('Offre couplée')
         // Le code se recalcule des deux cotes : rien n'est stocke.
         ->assertSee($attendu);
 });
 
-it('montre les quotas de la formule payante', function () {
-    $this->creatif->update(['media_count' => 202, 'storage_used' => 67160]);
-
-    $this->get(route('espace.formule'))->assertOk()
-        ->assertSee('202')
-        ->assertSee('max: 500', false)
-        ->assertSee('max: 120 000 Ko', false);
-});
-
-it('applique les quotas de la formule gratuite', function () {
+it('affiche la formule gratuite sans le remerciement', function () {
     $gratuit = App\Models\User::factory()->create(['plan' => 0]);
 
     $this->actingAs($gratuit)->get(route('espace.formule'))->assertOk()
         ->assertSee('Vous êtes en formule gratuite.')
-        ->assertSee('max: 12', false)
         ->assertDontSee('pour votre soutien');
 });
 
@@ -102,4 +93,23 @@ it('intitule les boutons de la grille « Sélectionner »', function () {
     $this->get(route('espace.formule'))->assertOk()
         ->assertSee('Sélectionner', false)
         ->assertDontSee('Payer par carte');
+});
+
+/*
+ | Les deux boutons de la carte d'etat ne chargent rien : ils descendent
+ | a la grille des offres, plus bas sur la meme page.
+ */
+it('renvoie les boutons de la carte vers la grille des offres', function () {
+    $reponse = $this->get(route('espace.formule'))->assertOk()
+        ->assertSee('Renouveler')
+        ->assertSee('Comparer les formules');
+
+    expect($reponse->getContent())
+        ->toContain('href="#offres"')
+        ->toContain('id="offres"');
+});
+
+it('place le parrainage a la suite des factures', function () {
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSeeInOrder(['Activer un code formule', 'Factures', 'Parrainage', 'Conditions générales de vente'], escape: false);
 });
