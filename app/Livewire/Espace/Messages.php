@@ -16,19 +16,14 @@ use Livewire\WithPagination;
  * ici sans passer par le lien de l'e-mail ; l'emetteur est prevenu de la
  * meme facon.
  *
- * Les demandes se rangent en quatre dossiers : Contacts, Similaire et
- * Ventes suivent le sujet pose au formulaire (config('messagerie.demandes')),
- * Poubelle suit la suppression douce. Un sujet absent ou non reconnu —
- * 'autre', les demandes anciennes sans sujet — tombe dans Contacts, le
- * dossier general.
+ * Les demandes se rangent en deux dossiers : Contacts regroupe toutes
+ * les demandes actives, quel que soit leur sujet au formulaire — prise
+ * de contact, demande de travail similaire, achat d'une image —, et
+ * Poubelle suit la suppression douce.
  */
 class Messages extends Component
 {
     use WithPagination;
-
-    private const SIMILAIRE = 'work_B_similary';
-
-    private const VENTES = 'work_C_buy';
 
     #[Url(as: 'dossier')]
     public string $dossier = 'contacts';
@@ -111,7 +106,7 @@ class Messages extends Component
     }
 
     /**
-     * Les quatre dossiers, avec le nombre de demandes non lues dans
+     * Les deux dossiers, avec le nombre de demandes non lues dans
      * chacun — la poubelle n'affiche pas de pastille, comme dans la
      * maquette.
      *
@@ -123,9 +118,7 @@ class Messages extends Component
 
         return [
             ['cle' => 'contacts', 'libelle' => __('Contacts'), 'non_lus' => $nonLus($this->parDossier('contacts'))->count()],
-            ['cle' => 'similaire', 'libelle' => __('Similaire'), 'non_lus' => $nonLus($this->parDossier('similaire'))->count()],
-            ['cle' => 'ventes', 'libelle' => __('Ventes'), 'non_lus' => $nonLus($this->parDossier('ventes'))->count()],
-            ['cle' => 'poubelle', 'libelle' => __('Poubelle'), 'non_lus' => 0],
+            ['cle' => 'poubelle', 'libelle' => __('Supprimer'), 'non_lus' => 0],
         ];
     }
 
@@ -146,9 +139,7 @@ class Messages extends Component
 
         return match ($dossier) {
             'poubelle' => $base->onlyTrashed(),
-            'similaire' => $base->where('subject', self::SIMILAIRE),
-            'ventes' => $base->where('subject', self::VENTES),
-            default => $base->where(fn (Builder $q) => $q->whereNotIn('subject', [self::SIMILAIRE, self::VENTES])->orWhereNull('subject')),
+            default => $base,
         };
     }
 

@@ -36,30 +36,33 @@
         </div>
     </section>
 
-    <div class="flex flex-wrap items-start gap-5">
+    <div class="space-y-4">
 
-        {{-- Les quatre dossiers : Contacts et Similaire/Ventes suivent le
-             sujet pose au formulaire, Poubelle la suppression douce. --}}
-        <nav class="carte-espace flex flex-row flex-wrap gap-1 p-2 sm:w-58 sm:shrink-0 sm:flex-col sm:gap-0.5">
-            @foreach ($dossiers as $d)
-                <button type="button" wire:click="choisir('{{ $d['cle'] }}')"
-                        @class(['flex items-center gap-2.5 rounded-ub px-3.5 py-2.5 text-left text-[15px] transition',
-                            'bg-ub-accent-fond font-bold text-ub-accent-texte' => $dossier === $d['cle'],
-                            'font-normal text-ub-texte hover:bg-ub-fond' => $dossier !== $d['cle'],
-                        ])>
-                    <span class="flex-1 whitespace-nowrap">{{ $d['libelle'] }}</span>
-
-                    @if ($d['non_lus'] > 0 && $d['cle'] !== 'poubelle')
-                        <span class="min-w-6 shrink-0 rounded-full bg-ub-accent px-2 py-0.5 text-center text-[12px] font-bold text-white">{{ $d['non_lus'] }}</span>
-                    @endif
-                </button>
-            @endforeach
-        </nav>
-
-        <div class="min-w-0 flex-[999] basis-120 space-y-4">
-
-            {{-- La liste des demandes du dossier choisi. --}}
+            {{-- Les deux dossiers, en onglets qui rejoignent directement le
+                 panneau ci-dessous : celui qui est choisi se fond dans le
+                 blanc du panneau (pas de filet entre les deux), l'autre
+                 reste en retrait, sur le fond de la page. --}}
             <div class="carte-espace overflow-hidden">
+                <nav class="flex border-b border-ub-filet bg-ub-fond">
+                    @foreach ($dossiers as $d)
+                        <button type="button" wire:click="choisir('{{ $d['cle'] }}')"
+                                @class(['flex flex-1 items-center justify-center gap-2 px-3.5 py-3.5 text-[15px] transition',
+                                    'bg-white font-bold text-ub-accent-texte' => $dossier === $d['cle'],
+                                    'font-normal text-ub-texte3 hover:text-ub-texte' => $dossier !== $d['cle'],
+                                ])>
+                            @if ($d['cle'] === 'poubelle')
+                                <x-espace.picto nom="poubelle" class="h-4 w-4 shrink-0" />
+                            @endif
+
+                            <span class="whitespace-nowrap">{{ $d['libelle'] }}</span>
+
+                            @if ($d['non_lus'] > 0 && $d['cle'] !== 'poubelle')
+                                <span class="min-w-6 shrink-0 rounded-full bg-ub-accent px-2 py-0.5 text-center text-[12px] font-bold text-white">{{ $d['non_lus'] }}</span>
+                            @endif
+                        </button>
+                    @endforeach
+                </nav>
+
                 <div class="flex items-center justify-between gap-3 border-b border-ub-filet px-5 py-4">
                     <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ $dossierLibelle }}</h2>
 
@@ -73,7 +76,12 @@
                 @forelse ($conversations as $c)
                     @php($deplie = $ouvert === $c->id && $fil)
 
-                    <div wire:key="conv-{{ $c->id }}" class="border-b border-ub-filet last:border-b-0">
+                    {{-- Un message ouvert se detache du reste de la liste par
+                         un filet fonce qui encadre a la fois sa ligne de
+                         titre et tout son contenu deplie : l'ensemble se lit
+                         d'un coup, sans se confondre avec les autres lignes. --}}
+                    <div wire:key="conv-{{ $c->id }}"
+                         @class(['relative', 'border-2 border-ub-texte' => $deplie, 'border-b border-ub-filet last:border-b-0' => ! $deplie])>
 
                         {{-- La ligne : un clic la deplie, un second la replie. --}}
                         <div wire:click="basculer({{ $c->id }})"
@@ -122,7 +130,7 @@
                              dessinee, la queue en bas, qui alternent de cote
                              entre l'expediteur et le createur. --}}
                         @if ($deplie)
-                            <div class="bg-white px-5 pb-6 pt-1" wire:key="fil-{{ $fil->id }}">
+                            <div class="border-t border-ub-filet bg-white px-5 pb-6 pt-4" wire:key="fil-{{ $fil->id }}">
                                 <p class="mb-5 text-[13px] text-ub-texte3">
                                     <span class="font-semibold text-ub-texte2">{{ $fil->objet() }}</span>
                                     @if ($fil->sender_company) — {{ $fil->sender_company }} @endif

@@ -45,22 +45,19 @@ it('masque les indesirables et les demandes des autres', function () {
     Livewire::test(Messages::class)->call('ouvrir', $autre->id)->assertNotFound();
 });
 
-it('range les demandes par dossier selon leur sujet', function () {
+it('regroupe toutes les demandes actives dans Contacts, quel que soit leur sujet', function () {
     $this->creatif->conversations()->create([
         'channel' => 'intermediate', 'subject' => 'work_B_similary', 'sender_name' => 'Similaire Un',
         'selector' => str_repeat('d', 24), 'last_message_at' => now(),
     ]);
-    $vente = $this->creatif->conversations()->create([
+    $this->creatif->conversations()->create([
         'channel' => 'intermediate', 'subject' => 'work_C_buy', 'sender_name' => 'Acheteur Un',
         'selector' => str_repeat('e', 24), 'last_message_at' => now(),
     ]);
 
     Livewire::test(Messages::class)
-        ->assertSee('Client Dupont')->assertDontSee('Similaire Un')->assertDontSee('Acheteur Un')
-        ->call('choisir', 'similaire')->assertSee('Similaire Un')->assertDontSee('Client Dupont')
-        ->call('choisir', 'ventes')->assertSee('Acheteur Un')->assertDontSee('Similaire Un');
-
-    expect($vente->subject)->toBe('work_C_buy');
+        ->assertSee('Client Dupont')->assertSee('Similaire Un')->assertSee('Acheteur Un')
+        ->call('choisir', 'poubelle')->assertDontSee('Client Dupont')->assertDontSee('Similaire Un');
 });
 
 it('supprime une demande puis la restaure depuis la poubelle', function () {
@@ -76,15 +73,15 @@ it('supprime une demande puis la restaure depuis la poubelle', function () {
     expect($this->conversation->fresh()->trashed())->toBeFalse();
 });
 
-it('compte les non lus par dossier, sans pastille pour la poubelle', function () {
+it('compte les non lus, tous sujets confondus, sans pastille pour la poubelle', function () {
     $this->creatif->conversations()->create([
         'channel' => 'intermediate', 'subject' => 'work_C_buy', 'sender_name' => 'Acheteur Deux',
         'selector' => str_repeat('f', 24), 'last_message_at' => now(),
     ])->messages()->create(['from_owner' => false, 'body' => 'Je veux acheter cette image.']);
 
     $this->get(route('espace.messages'))->assertOk()
-        // Un non lu dans « Contacts » (la conversation du beforeEach),
-        // un dans « Ventes » : le total du bandeau en compte deux.
+        // Un non lu dans la conversation du beforeEach, un dans celle-ci :
+        // le total du bandeau en compte deux, et Supprimer n'a pas de pastille.
         ->assertSee('2 non lus');
 });
 
@@ -99,4 +96,14 @@ it('deplie le fil sous la ligne puis le replie au second clic', function () {
         ->call('basculer', $this->conversation->id)
         ->assertSet('ouvert', null)
         ->assertDontSee('Volontiers, voici mon tarif.');
+});
+
+it('affiche seulement Contacts et Supprimer, cote a cote', function () {
+    $reponse = $this->get(route('espace.messages'))->assertOk()
+        ->assertSee('Contacts')->assertSee('Supprimer')
+        ->assertDontSee('Similaire')->assertDontSee('Ventes');
+
+    // Les deux boutons sont freres dans une meme nav flex, chacun a
+    // largeur egale (flex-1) : le bloc prend toute la largeur.
+    expect($reponse->getContent())->toContain('flex-1 items-center justify-center');
 });
