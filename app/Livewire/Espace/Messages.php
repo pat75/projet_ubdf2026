@@ -108,6 +108,15 @@ class Messages extends Component
         }
     }
 
+    /** Supprime pour de bon toutes les demandes de la poubelle. */
+    public function viderCorbeille(): void
+    {
+        Auth::user()->conversations()->where('is_spam', false)->onlyTrashed()->get()
+            ->each(fn (Conversation $conversation) => $conversation->forceDelete());
+
+        $this->ouvert = null;
+    }
+
     public function render(): View
     {
         $dossiers = $this->dossiers();

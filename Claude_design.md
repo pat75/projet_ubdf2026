@@ -8,6 +8,38 @@ Couleurs, rayons et ombres : jetons de `resources/css/espace.css`
 (`ub-texte`, `ub-texte3`, `ub-filet`, `ub-fond`, `ub-accent`…). Pas de
 couleur en dur quand un jeton existe.
 
+## Titre de page
+
+Le bloc d'en-tête de chaque page de l'espace (référence : « Mes
+messages »), à décliner sur toutes les pages :
+
+```blade
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-accent-texte">{{ __('Échanger, communiquer, deviser') }}</div>
+        <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Mes messages') }}</h1>
+    </div>
+
+    <span class="inline-flex items-center gap-2 rounded-sm bg-black px-4.5 py-2.5 text-[14px] font-bold text-white">
+        {{ __(':n non lus', ['n' => 26]) }}
+    </span>
+</div>
+```
+
+- **Sous-titre** (au-dessus du titre, ex. « Échanger, communiquer,
+  deviser ») : 13px, semi-gras, majuscules, tracking `.08em`, couleur
+  **bleue** `text-ub-accent-texte` — jamais grise. C'est le repère de
+  rubrique, il donne le ton de couleur de toute la page.
+- **Titre** (h1) : `font-titre`, 34px, `font-light`, `leading-tight`,
+  `tracking-tight`, couleur `text-ub-texte`.
+- **Label à droite** (ex. « 26 non lus ») : le badge noir arrondi 4px
+  décrit plus bas — `items-end` aligne son bas sur celui du h1.
+  Optionnel : seules les pages avec un compteur pertinent le portent.
+
+Toutes les pages de l'espace reprennent ce bloc pour leur en-tête, à
+l'exception de Tableau de bord, Mon compte et Ma formule, dont l'en-tête
+n'est pas retouché pour l'instant.
+
 ## Boutons
 
 - Fond noir, **aucun arrondi** : utilitaire `bouton-espace`

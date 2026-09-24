@@ -73,6 +73,23 @@ it('supprime une demande puis la restaure depuis la poubelle', function () {
     expect($this->conversation->fresh()->trashed())->toBeFalse();
 });
 
+it('vide la corbeille, en supprimant pour de bon les demandes qui s\'y trouvent', function () {
+    $this->conversation->delete();
+    $autre = $this->creatif->conversations()->create([
+        'channel' => 'book', 'sender_name' => 'Autre Client', 'selector' => str_repeat('g', 24), 'last_message_at' => now(),
+    ]);
+    $autre->delete();
+
+    Livewire::test(Messages::class)
+        ->call('choisir', 'poubelle')
+        ->assertSee('Client Dupont')->assertSee('Autre Client')
+        ->call('viderCorbeille')
+        ->assertDontSee('Client Dupont')->assertDontSee('Autre Client');
+
+    expect(\App\Models\Conversation::withTrashed()->find($this->conversation->id))->toBeNull();
+    expect(\App\Models\Conversation::withTrashed()->find($autre->id))->toBeNull();
+});
+
 it('compte les non lus, tous sujets confondus, sans pastille pour la poubelle', function () {
     $this->creatif->conversations()->create([
         'channel' => 'intermediate', 'subject' => 'work_C_buy', 'sender_name' => 'Acheteur Deux',

@@ -3,7 +3,7 @@
          sauf la poubelle. --}}
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-            <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-texte3">{{ __('Échanger, communiquer, deviser') }}</div>
+            <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-accent-texte">{{ __('Échanger, communiquer, deviser') }}</div>
             <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Mes messages') }}</h1>
         </div>
 
@@ -76,11 +76,22 @@
                 <div class="flex items-center justify-between gap-3 border-b border-ub-filet px-5 py-4">
                     <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ $dossierLibelle }}</h2>
 
-                    @if ($conversations->total())
-                        <span class="text-[13px] text-ub-texte3">
-                            {{ __(':de–:a sur :total', ['de' => $conversations->firstItem(), 'a' => $conversations->lastItem(), 'total' => $conversations->total()]) }}
-                        </span>
-                    @endif
+                    <div class="flex items-center gap-4">
+                        @if ($conversations->total())
+                            <span class="text-[13px] text-ub-texte3">
+                                {{ __(':de–:a sur :total', ['de' => $conversations->firstItem(), 'a' => $conversations->lastItem(), 'total' => $conversations->total()]) }}
+                            </span>
+                        @endif
+
+                        @if ($dossier === 'poubelle' && $conversations->total())
+                            <button type="button" wire:click="viderCorbeille"
+                                    wire:confirm="{{ __('Supprimer définitivement toutes les demandes de la corbeille ?') }}"
+                                    class="bouton-espace bouton-espace-petit px-3.5">
+                                <x-espace.picto nom="poubelle" class="h-4 w-4 shrink-0" />
+                                {{ __('Vider la corbeille') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
 
                 @forelse ($conversations as $c)
