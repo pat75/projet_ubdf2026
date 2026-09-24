@@ -172,6 +172,24 @@ return [
         'fenetre_heures' => 48,
     ],
 
+    /*
+     | Detection IA complementaire (config('messagerie.spam_filter.active')) :
+     | interroge un modele de decision (Jev, via OpenRouter) sur le premier
+     | message d'une conversation, avec une seule question calibree —
+     | « est-ce probablement un spam ? » — et affiche un label si la
+     | probabilite depasse le seuil.
+     |
+     | Ne remplace pas la detection par regles ci-dessus (spam.*) : celle-ci
+     | masque la demande (is_spam), la detection IA se contente de la
+     | signaler (spam_ia sur la conversation), sans jamais rien masquer.
+     */
+    'spam_filter' => [
+        'active' => (bool) env('MESSAGERIE_SPAM_FILTER', false),
+        'modele' => 'typesafe/jev-latest',
+        // Probabilite calibree a partir de laquelle le label s'affiche.
+        'seuil' => 0.6,
+    ],
+
     'captcha' => [
         // Caracteres sans ambiguite visuelle : ni O/0, ni I/1/l.
         'alphabet' => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',

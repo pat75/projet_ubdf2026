@@ -2,6 +2,7 @@
 
 namespace App\Services\Messagerie;
 
+use App\Jobs\EvaluerSpamIAConversation;
 use App\Mail\DemandeRecue;
 use App\Mail\DemandeTransmise;
 use App\Models\Conversation;
@@ -56,6 +57,12 @@ class DepotDemande
             $conversation->forceFill(['is_spam' => true])->save();
 
             return $conversation;
+        }
+
+        // Deja ecartee par les regles ci-dessus : inutile d'y ajouter un
+        // appel IA, elle n'apparait plus dans Contacts pour porter le label.
+        if (config('messagerie.spam_filter.active')) {
+            EvaluerSpamIAConversation::dispatch($conversation);
         }
 
         Mail::to($destinataire->email)->send(

@@ -23,7 +23,7 @@ class Conversation extends Model
 
     protected function casts(): array
     {
-        return ['last_message_at' => 'datetime', 'is_spam' => 'boolean'];
+        return ['last_message_at' => 'datetime', 'is_spam' => 'boolean', 'spam_ia' => 'boolean', 'spam_ia_probabilite' => 'float'];
     }
 
     public function user(): BelongsTo

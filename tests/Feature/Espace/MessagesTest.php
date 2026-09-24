@@ -186,6 +186,16 @@ it('garde le texte d origine si la correction IA echoue', function () {
         ->assertSet('erreurIA', "La correction IA n'est pas disponible pour le moment.");
 });
 
+it('affiche le label probable spam quand la detection IA l a signale', function () {
+    $this->conversation->forceFill(['spam_ia' => true, 'spam_ia_probabilite' => 0.91])->save();
+
+    $this->get(route('espace.messages'))->assertOk()->assertSee('Probable spam');
+});
+
+it('n affiche pas le label quand la conversation n a pas ete signalee', function () {
+    $this->get(route('espace.messages'))->assertOk()->assertDontSee('Probable spam');
+});
+
 it('affiche seulement Contacts et Supprimer, cote a cote', function () {
     $reponse = $this->get(route('espace.messages'))->assertOk()
         ->assertSee('Contacts')->assertSee('Supprimer')

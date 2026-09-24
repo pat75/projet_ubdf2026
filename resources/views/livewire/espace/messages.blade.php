@@ -125,7 +125,16 @@
                             </span>
 
                             <span class="min-w-0 flex-1">
-                                <span @class(['block truncate text-[15px]', 'font-bold' => $c->non_lus])>{{ $c->sender_name ?: $c->sender_email ?: __('Expéditeur inconnu') }}</span>
+                                <span class="flex items-center gap-2">
+                                    <span @class(['truncate text-[15px]', 'font-bold' => $c->non_lus])>{{ $c->sender_name ?: $c->sender_email ?: __('Expéditeur inconnu') }}</span>
+
+                                    {{-- Detection IA, complementaire des regles qui masquent
+                                         deja les demandes les plus evidentes : celle-ci se
+                                         contente de signaler, jamais de masquer. --}}
+                                    @if ($c->spam_ia)
+                                        <span class="shrink-0 rounded-full bg-ub-danger-bord px-2 py-0.5 text-[11px] font-bold uppercase tracking-[.04em] text-ub-danger">{{ __('Probable spam') }}</span>
+                                    @endif
+                                </span>
                                 <span class="block text-[13px] text-ub-texte3">{{ $c->last_message_at?->translatedFormat('l j F Y à H:i') }}</span>
                             </span>
 

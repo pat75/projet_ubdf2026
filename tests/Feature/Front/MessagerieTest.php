@@ -9,8 +9,10 @@ use App\Models\Conversation;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\Messagerie\Intermediation;
+use App\Jobs\EvaluerSpamIAConversation;
 use App\Support\Captcha;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 
 beforeEach(function () {
@@ -242,4 +244,32 @@ it('sert une image de captcha', function () {
         ->assertHeader('Content-Type', 'image/svg+xml');
 
     expect(session(Captcha::SESSION))->toHaveLength(config('messagerie.captcha.longueur'));
+});
+
+it('declenche la detection IA du spam quand elle est activee', function () {
+    config(['messagerie.spam_filter.active' => true]);
+    Queue::fake();
+
+    $this->postJson(portail_url('/intermediate_send'), demande())->assertOk();
+
+    Queue::assertPushed(EvaluerSpamIAConversation::class, fn ($job) => $job->conversation->is(Conversation::first()));
+});
+
+it('ne declenche rien si la detection IA est desactivee', function () {
+    config(['messagerie.spam_filter.active' => false]);
+    Queue::fake();
+
+    $this->postJson(portail_url('/intermediate_send'), demande())->assertOk();
+
+    Queue::assertNotPushed(EvaluerSpamIAConversation::class);
+});
+
+it('ne declenche pas la detection IA pour une demande deja ecartee par les regles', function () {
+    config(['messagerie.spam_filter.active' => true, 'messagerie.spam.expressions' => ['casino en ligne']]);
+    Queue::fake();
+
+    $this->postJson(portail_url('/intermediate_send'), demande(['us_message' => 'Profitez du meilleur casino en ligne.']))->assertOk();
+
+    Queue::assertNotPushed(EvaluerSpamIAConversation::class);
+    expect(Conversation::first()->is_spam)->toBeTrue();
 });
