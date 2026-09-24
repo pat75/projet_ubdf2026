@@ -6,16 +6,18 @@
  |
  | Reproduite en Tailwind plutot que reutilisee telle quelle : l'espace
  | n'a pas Semantic UI, seulement sa feuille de police d'icones. Les
- | mesures viennent du rendu reel du portail (largeur 300 px max, rayon
- | 4 px, ombre 0 0 10px rgba(100,100,100,.1), vignette 60 px chevauchant
- | de 45 px, en-tete a 20,5 px/600).
+ | mesures viennent du rendu reel du portail (206 px de large — la
+ | grille « five doubling cards » du portail, capee a 1151 px de
+ | conteneur, rend toujours cette largeur quel que soit l'ecran —,
+ | rayon 4 px, ombre 0 0 10px rgba(100,100,100,.1), vignette 60 px
+ | chevauchant de 45 px, en-tete a 20,5 px/600).
 --}}
 @php
     $couverture = $creatif->media()->published()->whereNot('filename', '')->orderBy('position')->first();
 @endphp
 
 <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener"
-   {{ $attributes->merge(['class' => 'block w-full max-w-75 overflow-hidden rounded-[4px] bg-white shadow-[0_0_10px_rgba(100,100,100,.1)] transition hover:shadow-[0_0_10px_rgba(0,0,0,.4)]']) }}>
+   {{ $attributes->merge(['class' => 'block w-[206px] shrink-0 overflow-hidden rounded-[4px] bg-white shadow-[0_0_10px_rgba(100,100,100,.1)] transition hover:shadow-[0_0_10px_rgba(0,0,0,.4)]']) }}>
 
     <div class="h-27.5 bg-black/20">
         @if ($couverture)

@@ -18,38 +18,6 @@
         </a>
     </div>
 
-    {{-- Les deux entrees en matiere : charger des images, personnaliser le
-         portfolio. Ce sont les deux gestes que le createur vient faire. --}}
-    <div class="grid gap-5 sm:grid-cols-2">
-        <a href="{{ route(nom_route('espace.galeries')) }}"
-           class="carte-espace flex items-center gap-5 p-5.5 transition hover:shadow-[0_6px_24px_rgba(22,169,181,.14)]">
-            <img src="{{ asset('img_admin/int-tab-download.svg') }}" alt="{{ __('Charger vos images') }}" class="h-[108px] w-[108px] shrink-0 object-contain">
-
-            <div class="min-w-0">
-                <span class="text-[22px] font-light leading-[1.15] text-ub-accent-texte"><strong class="font-bold">{{ __('Charger') }}</strong> {{ __('mes images') }}</span>
-                <p class="mt-1.5 text-[14px] text-ub-texte2 text-pretty">{{ __('Ajoutez de nouveaux projets depuis votre dossier images.') }}</p>
-                <span class="mt-1.5 inline-flex items-center gap-1.5 text-[14px] font-bold text-ub-texte">
-                    <span class="fonticon-plus-square text-[16px] text-ub-accent" aria-hidden="true"></span>
-                    {{ __('Dossier images →') }}
-                </span>
-            </div>
-        </a>
-
-        <a href="{{ route(nom_route('espace.design')) }}"
-           class="carte-espace flex items-center gap-5 p-5.5 transition hover:shadow-[0_6px_24px_rgba(22,169,181,.14)]">
-            <img src="{{ asset('img_admin/int-tab-conf.svg') }}" alt="{{ __('Personnalisez votre portfolio') }}" class="h-[108px] w-[108px] shrink-0 object-contain">
-
-            <div class="min-w-0">
-                <span class="text-[22px] font-light leading-[1.15] text-ub-accent-texte"><strong class="font-bold">{{ __('Personnaliser') }}</strong> {{ __('mon portfolio') }}</span>
-                <p class="mt-1.5 text-[14px] text-ub-texte2 text-pretty">{{ __('Couleurs, typographies et mise en page de votre book.') }}</p>
-                <span class="mt-1.5 inline-flex items-center gap-1.5 text-[14px] font-bold text-ub-texte">
-                    <span class="fonticon-share text-[16px] text-ub-accent" aria-hidden="true"></span>
-                    {{ __('Menu apparence →') }}
-                </span>
-            </div>
-        </a>
-    </div>
-
     {{-- La carte du book, puis les deux liens a partager, chacun avec son
          code QR : celui du mini-book sur le portail, celui du book sur
          son sous-domaine. --}}
@@ -127,6 +95,39 @@
 
         <x-espace.anneau :parts="$visites['parts']" class="mt-7" />
     </section>
+
+    {{-- Les deux entrees en matiere : charger des images, personnaliser le
+         portfolio. Ce sont les deux gestes que le createur vient faire,
+         juste avant de voir ou ca en est sur « Mes images » en dessous. --}}
+    <div class="mt-6 grid gap-5 sm:grid-cols-2">
+        <a href="{{ route(nom_route('espace.galeries')) }}"
+           class="carte-espace flex items-center gap-4 p-5.5 transition hover:shadow-[0_6px_24px_rgba(22,169,181,.14)]">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ub-accent-fond text-ub-accent-texte">
+                <span class="fonticon-plus-square text-[22px]" aria-hidden="true"></span>
+            </span>
+
+            <div class="min-w-0">
+                <span class="text-[19px] font-light leading-[1.15] text-ub-texte"><strong class="font-bold">{{ __('Charger') }}</strong> {{ __('mes images') }}</span>
+                <p class="mt-1 text-[13px] text-ub-texte2 text-pretty">{{ __('Ajoutez de nouveaux projets depuis votre dossier images.') }}</p>
+            </div>
+
+            <span class="ml-auto shrink-0 text-[14px] font-bold text-ub-texte3">→</span>
+        </a>
+
+        <a href="{{ route(nom_route('espace.design')) }}"
+           class="carte-espace flex items-center gap-4 p-5.5 transition hover:shadow-[0_6px_24px_rgba(22,169,181,.14)]">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ub-accent-fond text-ub-accent-texte">
+                <span class="fonticon-share text-[19px]" aria-hidden="true"></span>
+            </span>
+
+            <div class="min-w-0">
+                <span class="text-[19px] font-light leading-[1.15] text-ub-texte"><strong class="font-bold">{{ __('Personnaliser') }}</strong> {{ __('mon portfolio') }}</span>
+                <p class="mt-1 text-[13px] text-ub-texte2 text-pretty">{{ __('Couleurs, typographies et mise en page de votre book.') }}</p>
+            </div>
+
+            <span class="ml-auto shrink-0 text-[14px] font-bold text-ub-texte3">→</span>
+        </a>
+    </div>
 
     {{-- Les deux compteurs de la formule. Ils etaient sur « Ma formule »,
          ou ils coupaient la page en deux entre le remerciement et la
