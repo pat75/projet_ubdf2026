@@ -35,7 +35,7 @@
         <div class="mt-1 text-[12px] uppercase leading-[28px] tracking-wide text-black/40">{{ $creatif->category?->name }}</div>
     </div>
 
-    <div class="flex items-center justify-between border-t border-black/5 px-4 py-3 text-[14px] text-black/40">
+    <div class="flex items-center justify-between border-t border-black/15 px-4 py-3 text-[14px] text-black/60">
         <span class="inline-flex items-center gap-1.5">
             <span class="fonticon-eye3" aria-hidden="true"></span>{{ number_format($visites, 0, ',', ' ') }}
         </span>

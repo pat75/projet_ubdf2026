@@ -21,11 +21,19 @@
     {{-- La carte du book, puis les deux liens a partager, chacun avec son
          code QR : celui du mini-book sur le portail, celui du book sur
          son sous-domaine. --}}
-    <div class="mt-6 flex flex-wrap items-stretch gap-5">
+    <div class="mt-6 flex flex-wrap items-start gap-5">
 
-        {{-- Exactement la carte que les visiteurs voient sur la page
-             d'accueil : voir x-espace.carte-portail. --}}
-        <x-espace.carte-portail :creatif="$creatif" :visites="$visites['total']" class="mx-auto shrink-0 sm:mx-0" />
+        {{-- La carte, alignee sur le haut du bloc « Mon mini-book » a
+             cote — pas sur le titre « Partager mes liens » : un label
+             invisible, de la meme taille que le vrai, l'y pousse sans
+             pixel code en dur. --}}
+        <div class="mx-auto flex shrink-0 flex-col gap-3.5 sm:mx-0">
+            <span class="invisible text-[13px] font-bold uppercase tracking-[.08em]" aria-hidden="true">{{ __('Partager mes liens') }}</span>
+
+            {{-- Exactement la carte que les visiteurs voient sur la page
+                 d'accueil : voir x-espace.carte-portail. --}}
+            <x-espace.carte-portail :creatif="$creatif" :visites="$visites['total']" />
+        </div>
 
         {{-- Les liens : un bouton copie, un bouton ouvre. Alpine tient
              juste lequel des deux vient d'etre copie, pour le message. --}}
