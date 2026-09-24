@@ -14,7 +14,7 @@
     $perimetre = 2 * M_PI * 8;
 @endphp
 
-<div class="flex items-center justify-between gap-4 border-b border-ub-gris-clair py-4 text-[16px]">
+<div class="flex items-center justify-between gap-4 border-b border-ub-filet py-4 text-[16px] last:border-b-0">
     <span>{{ $libelle }}</span>
 
     <span class="flex items-center gap-2 {{ $depasse ? 'text-ub-rouge' : '' }}">

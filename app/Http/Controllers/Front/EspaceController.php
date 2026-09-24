@@ -48,11 +48,14 @@ class EspaceController extends Controller
             ->groupBy('surface')
             ->pluck('vues', 'surface');
 
+        /*
+         | MemoBook et MicroBook n'ont pas de pixel qui les compte (seul
+         | le book en envoie un, voir CompteurVisites) : les montrer a
+         | zero en permanence n'apportait rien qu'un stat vide.
+         */
         $libelles = [
             'book' => __('Book'),
             'minibook' => __('MiniBook'),
-            'memobook' => __('MémoBook'),
-            'microbook' => __('MicroBook'),
         ];
 
         $parts = [];

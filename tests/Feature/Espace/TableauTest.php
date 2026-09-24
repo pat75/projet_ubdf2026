@@ -36,7 +36,11 @@ it('totalise les visites et les repartit par support', function () {
     $this->actingAs($creatif)->get(route('espace'))
         ->assertOk()
         ->assertSee('150')
-        ->assertSeeInOrder(['Book', 'MiniBook', 'MémoBook', 'MicroBook'], escape: false);
+        ->assertSeeInOrder(['Book', 'MiniBook'], escape: false)
+        // MemoBook et MicroBook n'ont pas de pixel qui les compte : ils
+        // ne figurent plus dans la repartition.
+        ->assertDontSee('MémoBook')
+        ->assertDontSee('MicroBook');
 });
 
 it('ne montre pas les rubriques non livrees dans le menu', function () {
@@ -61,4 +65,32 @@ it('montre les quotas de la formule sur le tableau de bord', function () {
 
     $this->actingAs($gratuit)->get(route('espace'))->assertOk()
         ->assertSee('max: 12', false);
+});
+
+it('salue le createur et propose de voir son book', function () {
+    $creatif = User::factory()->create(['firstname' => 'Adolie', 'login' => 'adolie']);
+
+    $reponse = $this->actingAs($creatif)->get(route('espace'))->assertOk()
+        ->assertSee('Bonjour Adolie')
+        ->assertSee('Voir mon book ↗', false);
+
+    expect($reponse->getContent())->toContain($creatif->portfolioUrl());
+});
+
+it('propose de copier ou d ouvrir les deux liens du book', function () {
+    $creatif = User::factory()->create();
+
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()
+        ->assertSeeInOrder(['Partager mes liens', 'mini-book', 'Copier', 'Ouvrir ↗', 'book'], escape: false);
+});
+
+it('reprend la carte du portail pour presenter le createur', function () {
+    $creatif = User::factory()->create(['firstname' => 'Adolie', 'lastname' => 'Day']);
+
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()
+        // Meme structure que x-book-card : cover, vignette chevauchante,
+        // nom, metier, puis les deux compteurs (fonticon-eye3/heart2).
+        ->assertSee('fonticon-eye3', false)
+        ->assertSee('fonticon-heart2', false)
+        ->assertSee($creatif->bookUrl());
 });
