@@ -105,7 +105,12 @@
                     </div>
                 </div>
 
-                <a href="mailto:{{ $marque->email }}"
+                @php
+                    $sujet = __('Question sur mon compte :book', ['book' => $creatif->login]);
+                    $mailto = 'mailto:'.$marque->email.'?subject='.rawurlencode($sujet);
+                @endphp
+
+                <a href="{{ $mailto }}"
                    class="inline-flex items-center gap-2 rounded-ub bg-white px-4.5 py-2.5 text-[15px] font-semibold text-[#0d7f8c] hover:bg-[#f0fbfc]">
                     <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Écrire à :email', ['email' => $marque->email]) }}
                 </a>

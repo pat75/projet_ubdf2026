@@ -113,3 +113,13 @@ it('place le parrainage a la suite des factures', function () {
     $this->get(route('espace.formule'))->assertOk()
         ->assertSeeInOrder(['Activer un code formule', 'Factures', 'Parrainage', 'Conditions générales de vente'], escape: false);
 });
+
+it('integre le login du book au sujet du mail de contact', function () {
+    $login = $this->creatif->login;
+    $reponse = $this->get(route('espace.formule'))->assertOk();
+
+    // Le lien mailto contient le sujet encode avec le login du createur.
+    expect($reponse->getContent())
+        ->toContain('?subject=Question')
+        ->toContain(urlencode($login));
+});
