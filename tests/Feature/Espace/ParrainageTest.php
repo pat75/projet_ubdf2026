@@ -58,3 +58,26 @@ it('freine les essais de codes', function () {
 
     $c->set('code', 'FAUX6')->call('utiliser')->assertSee('Trop d’essais');
 });
+
+/*
+ | Presentation : le bloc d'activation est visible sur la page, le
+ | parrainage est replie comme les factures. Un seul champ pour les deux
+ | sortes de codes — le service les distingue a leur forme.
+ */
+it('montre le bloc d activation et replie le parrainage', function () {
+    $creatif = User::factory()->create(['plan' => 1]);
+
+    $reponse = $this->actingAs($creatif)->get(route('espace.formule'))->assertOk()
+        ->assertSee('Activer un code formule')
+        ->assertSee('Comment obtenir un code formule ?', false)
+        ->assertSee('chat-code-formule.png')
+        ->assertSee('Parrainage');
+
+    /*
+     | Le parrainage est dans un depliant : son titre est porte par le
+     | bouton d'ouverture de x-espace.section-pliante, celui-la meme qui
+     | sert aux factures. On le reconnait a son aria-expanded.
+     */
+    expect($reponse->getContent())
+        ->toMatch('/:aria-expanded="ouvert".{0,400}Parrainage/s');
+});
