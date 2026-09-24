@@ -44,3 +44,46 @@ it('masque les indesirables et les demandes des autres', function () {
     $this->get(route('espace.messages'))->assertDontSee('Spammeur')->assertDontSee('Autre');
     Livewire::test(Messages::class)->call('ouvrir', $autre->id)->assertNotFound();
 });
+
+it('range les demandes par dossier selon leur sujet', function () {
+    $this->creatif->conversations()->create([
+        'channel' => 'intermediate', 'subject' => 'work_B_similary', 'sender_name' => 'Similaire Un',
+        'selector' => str_repeat('d', 24), 'last_message_at' => now(),
+    ]);
+    $vente = $this->creatif->conversations()->create([
+        'channel' => 'intermediate', 'subject' => 'work_C_buy', 'sender_name' => 'Acheteur Un',
+        'selector' => str_repeat('e', 24), 'last_message_at' => now(),
+    ]);
+
+    Livewire::test(Messages::class)
+        ->assertSee('Client Dupont')->assertDontSee('Similaire Un')->assertDontSee('Acheteur Un')
+        ->call('choisir', 'similaire')->assertSee('Similaire Un')->assertDontSee('Client Dupont')
+        ->call('choisir', 'ventes')->assertSee('Acheteur Un')->assertDontSee('Similaire Un');
+
+    expect($vente->subject)->toBe('work_C_buy');
+});
+
+it('supprime une demande puis la restaure depuis la poubelle', function () {
+    $composant = Livewire::test(Messages::class)
+        ->call('supprimer', $this->conversation->id)
+        ->assertDontSee('Client Dupont');
+
+    expect($this->conversation->fresh()->trashed())->toBeTrue();
+
+    $composant->call('choisir', 'poubelle')->assertSee('Client Dupont')->assertSee('Restaurer')
+        ->call('supprimer', $this->conversation->id);
+
+    expect($this->conversation->fresh()->trashed())->toBeFalse();
+});
+
+it('compte les non lus par dossier, sans pastille pour la poubelle', function () {
+    $this->creatif->conversations()->create([
+        'channel' => 'intermediate', 'subject' => 'work_C_buy', 'sender_name' => 'Acheteur Deux',
+        'selector' => str_repeat('f', 24), 'last_message_at' => now(),
+    ])->messages()->create(['from_owner' => false, 'body' => 'Je veux acheter cette image.']);
+
+    $this->get(route('espace.messages'))->assertOk()
+        // Un non lu dans « Contacts » (la conversation du beforeEach),
+        // un dans « Ventes » : le total du bandeau en compte deux.
+        ->assertSee('2 non lus');
+});
