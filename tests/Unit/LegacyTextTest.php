@@ -8,11 +8,19 @@ it('laisse intact un texte UTF-8 correct', function (string $value) {
     'Scénographe',
     'Éditions Été',
     'Illustration « jeunesse »',
-    'Projet d&#039;accessoire',
     'ÃŽle',                       // contient un marqueur mais reste valide seul
     '日本語',
     '',
 ]);
+
+it('decode les entites HTML laissees par les formulaires du legacy', function () {
+    // Cas reel : titre de galerie, tel qu'ecrit par htmlspecialchars avant
+    // stockage. L'ancien site l'affichait tel quel dans du HTML, ce qui le
+    // rendait lisible : Blade l'echappe a nouveau, donc sans decodage ici
+    // l'entite s'affiche telle quelle plutot que l'apostrophe qu'elle code.
+    expect(LegacyText::clean('Projet d&#039;accessoire'))->toBe("Projet d'accessoire")
+        ->and(LegacyText::clean('di&eacute;t&eacute;ticienne &agrave; Paris'))->toBe('diététicienne à Paris');
+});
 
 it('preserve null', function () {
     expect(LegacyText::clean(null))->toBeNull();

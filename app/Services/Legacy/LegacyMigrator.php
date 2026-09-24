@@ -456,7 +456,7 @@ final class LegacyMigrator
                 continue;
             }
 
-            $conversation = Conversation::updateOrCreate(
+            $conversation = Conversation::withTrashed()->updateOrCreate(
                 ['legacy_id' => $row->cf_id],
                 [
                     'user_id' => $userId,
@@ -492,29 +492,48 @@ final class LegacyMigrator
             }
 
             $rootId = (int) $row->mf_id_parent ?: (int) $row->mf_id;
+            $estRacine = $rootId === (int) $row->mf_id;
 
-            $conversation = Conversation::updateOrCreate(
-                ['legacy_id' => $rootId],
-                [
-                    'user_id' => $userId,
-                    'channel' => 'intermediate',
-                    'subject' => LegacyText::clean($row->mf_action),
-                    'request_detail' => LegacyText::clean($row->mf_request_detail),
-                    'sender_name' => $this->sansMarqueurSpam(LegacyText::clean($row->mf_nom)),
-                    'sender_company' => LegacyText::clean($row->mf_societe),
-                    'sender_email' => $row->mf_mail ?: null,
-                    'sender_phone' => $row->mf_tel ?: null,
-                    // Jetons conserves pour la trace seulement : le schema
-                    // de 2019 les rendait derivables l'un de l'autre, les
-                    // anciens liens ne sont plus honores.
-                    'legacy_token' => $row->mf_token ?: null,
-                    'selector' => $row->mf_selector ?: null,
-                    'is_spam' => $this->estSpamLegacy($row),
-                    'book_image' => $row->mf_book_visuel ?: null,
-                    'last_message_at' => $this->date($row->mf_update) ?? $this->date($row->mf_date),
-                    'deleted_at' => $row->mf_del === 'true' ? now() : null,
-                ],
-            );
+            /*
+             | L'identite de l'emetteur (nom, mail, societe, telephone),
+             | le sujet et le detail de la demande ne viennent que du
+             | message racine : une reponse du createur (mf_is_my_msg)
+             | n'a pas ces champs renseignes, et les ecraser a chaque
+             | reponse viderait la conversation de son expediteur.
+             */
+            $conversation = $estRacine
+                ? Conversation::withTrashed()->updateOrCreate(
+                    ['legacy_id' => $rootId],
+                    [
+                        'user_id' => $userId,
+                        'channel' => 'intermediate',
+                        'subject' => LegacyText::clean($row->mf_action),
+                        'request_detail' => LegacyText::clean($row->mf_request_detail),
+                        'sender_name' => $this->sansMarqueurSpam(LegacyText::clean($row->mf_nom)),
+                        'sender_company' => LegacyText::clean($row->mf_societe),
+                        'sender_email' => $row->mf_mail ?: null,
+                        'sender_phone' => $row->mf_tel ?: null,
+                        // Jetons conserves pour la trace seulement : le schema
+                        // de 2019 les rendait derivables l'un de l'autre, les
+                        // anciens liens ne sont plus honores.
+                        'legacy_token' => $row->mf_token ?: null,
+                        'selector' => $row->mf_selector ?: null,
+                        'is_spam' => $this->estSpamLegacy($row),
+                        'book_image' => $row->mf_book_visuel ?: null,
+                        'last_message_at' => $this->date($row->mf_update) ?? $this->date($row->mf_date),
+                        'deleted_at' => $row->mf_del === 'true' ? now() : null,
+                    ],
+                )
+                : Conversation::withTrashed()->where('legacy_id', $rootId)->first()
+                    // Racine hors echantillon : la reponse cree la conversation a minima.
+                    ?? Conversation::create(['legacy_id' => $rootId, 'user_id' => $userId, 'channel' => 'intermediate']);
+
+            if (! $estRacine) {
+                $conversation->forceFill([
+                    'last_message_at' => $this->date($row->mf_update) ?? $this->date($row->mf_date) ?? $conversation->last_message_at,
+                    'deleted_at' => $row->mf_del === 'true' ? now() : $conversation->deleted_at,
+                ])->save();
+            }
 
             Message::updateOrCreate(
                 ['legacy_id' => $row->mf_id],

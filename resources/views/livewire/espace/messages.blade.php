@@ -162,8 +162,12 @@
                                 <ol class="space-y-7">
                                     @foreach ($fil->messages as $m)
                                         <li @class(['flex flex-col', 'items-end' => $m->from_owner, 'items-start' => ! $m->from_owner])>
-                                            <div class="relative max-w-[85%] bg-[#efefed] px-4.5 py-3.5 text-[15px] leading-relaxed text-ub-texte whitespace-pre-line">{{ $m->body }}<span @class([
-                                                    'absolute -bottom-2.5 h-0 w-0 border-x-[10px] border-t-[11px] border-x-transparent border-t-[#efefed]',
+                                            <div @class(['relative max-w-[85%] px-4.5 py-3.5 text-[15px] leading-relaxed whitespace-pre-line',
+                                                    'bg-ub-accent-fond text-ub-texte' => $m->from_owner,
+                                                    'bg-[#efefed] text-ub-texte' => ! $m->from_owner,
+                                                ])>{{ $m->body }}<span @class([
+                                                    'absolute -bottom-2.5 h-0 w-0 border-x-[10px] border-t-[11px] border-x-transparent',
+                                                    'border-t-ub-accent-fond' => $m->from_owner, 'border-t-[#efefed]' => ! $m->from_owner,
                                                     'right-6' => $m->from_owner, 'left-6' => ! $m->from_owner,
                                                 ]) aria-hidden="true"></span></div>
 

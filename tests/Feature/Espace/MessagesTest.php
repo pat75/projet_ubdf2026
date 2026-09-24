@@ -135,6 +135,18 @@ it('ferme la note d\'escroquerie et memorise le choix par cookie', function () {
         ->assertDontSee('Tentatives d’escroquerie signalées');
 });
 
+it('n\'affiche qu\'une fois des reponses identiques envoyees a la suite', function () {
+    $this->conversation->messages()->create(['from_owner' => true, 'body' => 'Merci, je ne prends pas de commande.']);
+    $this->conversation->messages()->create(['from_owner' => true, 'body' => 'Merci, je ne prends pas de commande.']);
+    $this->conversation->messages()->create(['from_owner' => true, 'body' => 'Merci, je ne prends pas de commande.']);
+    $this->conversation->messages()->create(['from_owner' => true, 'body' => 'Autre chose, en plus.']);
+
+    $composant = Livewire::test(Messages::class)->call('basculer', $this->conversation->id);
+
+    expect(substr_count($composant->html(), 'Merci, je ne prends pas de commande.'))->toBe(1);
+    $composant->assertSee('Autre chose, en plus.');
+});
+
 it('affiche seulement Contacts et Supprimer, cote a cote', function () {
     $reponse = $this->get(route('espace.messages'))->assertOk()
         ->assertSee('Contacts')->assertSee('Supprimer')

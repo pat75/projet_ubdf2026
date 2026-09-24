@@ -3,8 +3,10 @@
 namespace App\Livewire\Espace;
 
 use App\Models\Conversation;
+use App\Models\Message;
 use App\Services\Messagerie\Intermediation;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\View\View;
@@ -121,6 +123,12 @@ class Messages extends Component
     {
         $dossiers = $this->dossiers();
 
+        $fil = $this->ouvert ? $this->conversation($this->ouvert)->load('messages') : null;
+
+        if ($fil) {
+            $fil->setRelation('messages', $this->sansDoublons($fil->messages));
+        }
+
         return view('livewire.espace.messages', [
             'dossiers' => $dossiers,
             'dossierLibelle' => collect($dossiers)->firstWhere('cle', $this->dossier)['libelle'] ?? '',
@@ -128,8 +136,25 @@ class Messages extends Component
             'conversations' => $this->requete()
                 ->withCount(['messages as non_lus' => fn (Builder $q) => $q->where('from_owner', false)->whereNull('read_at')])
                 ->orderByDesc('last_message_at')->orderByDesc('id')->paginate(14),
-            'fil' => $this->ouvert ? $this->conversation($this->ouvert)->load('messages') : null,
+            'fil' => $fil,
         ]);
+    }
+
+    /**
+     * Un expediteur (ou le createur) qui renvoie plusieurs fois d'affilee
+     * exactement le meme texte — un double clic sur « Envoyer », un souci
+     * de connexion — n'affiche qu'une seule fois : seule une reponse au
+     * contenu different rouvre une bulle.
+     */
+    private function sansDoublons(EloquentCollection $messages): EloquentCollection
+    {
+        $messages = $messages->values();
+
+        return $messages->filter(function (Message $message, int $i) use ($messages) {
+            $precedent = $messages->get($i - 1);
+
+            return ! $precedent || $precedent->from_owner !== $message->from_owner || $precedent->body !== $message->body;
+        })->values();
     }
 
     /**

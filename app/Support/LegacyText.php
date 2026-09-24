@@ -17,6 +17,12 @@ namespace App\Support;
  * Tout le reste est de l'UTF-8 valide. La correction du double encodage est
  * donc un filet preventif, inactif sur le corpus actuel : elle n'agit que si
  * un marqueur est present ET que le re-decodage donne de l'UTF-8 valide.
+ *
+ * Les formulaires de contact du legacy passaient le texte saisi par
+ * `htmlspecialchars`/`htmlentities` avant de l'ecrire en base (le gabarit
+ * de 2019 l'affichait tel quel dans du HTML) : un message stocke peut donc
+ * contenir des entites (`di&eacute;t&eacute;ticienne`, `&#039;`) qui, une
+ * fois echappees a nouveau par Blade, s'affichent litteralement.
  */
 final class LegacyText
 {
@@ -43,7 +49,16 @@ final class LegacyText
             $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
         }
 
-        return $value;
+        return self::decodeEntitesHtml($value);
+    }
+
+    /**
+     * Sans effet si la chaine ne contient aucune entite : un texte qui
+     * contient legitimement un « & » ressort inchange.
+     */
+    private static function decodeEntitesHtml(string $value): string
+    {
+        return html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     /**
