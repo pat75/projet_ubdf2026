@@ -52,7 +52,7 @@
     "scripts": {
         "setup": [
             "composer install",
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php -r \"file_exists('.env.dev') || copy('.env.dev.example', '.env.dev');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "npm install",
@@ -74,7 +74,7 @@
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "@php -r \"file_exists('.env.dev') || copy('.env.dev.example', '.env.dev');\""
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",

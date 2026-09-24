@@ -26,7 +26,15 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    // APP_ENV=prod|dev, pose par le serveur pour choisir .env.prod|.env.dev
+    // (bootstrap/app.php), prime sur le fichier : on le ramene aux noms que
+    // Laravel reconnait, sans quoi isProduction() et ses garde-fous (confirmation
+    // avant migrate:fresh) ne joueraient plus en production.
+    'env' => match (env('APP_ENV', 'production')) {
+        'prod' => 'production',
+        'dev' => 'local',
+        default => env('APP_ENV', 'production'),
+    },
 
     /*
     |--------------------------------------------------------------------------

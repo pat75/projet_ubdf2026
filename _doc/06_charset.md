@@ -9,7 +9,7 @@
 | Schema `2026_ubdf` (defaut) | `utf8mb4` / `utf8mb4_unicode_ci` |
 | Tables `2026_ubdf` (26) | `utf8mb4_unicode_ci`, `ROW_FORMAT Dynamic` |
 | Connexion `mysql` (`config/database.php`) | `utf8mb4` / `utf8mb4_unicode_ci` |
-| `.env` / `.env.example` | `DB_CHARSET` et `DB_COLLATION` explicites |
+| `.env.dev` / `.env.prod` (+ `.example`) | `DB_CHARSET` et `DB_COLLATION` explicites |
 | Connexion `legacy` (ub2020) | **`latin1` / `latin1_swedish_ci`** — voir ci-dessous |
 
 Le defaut du schema etait reste en `utf8 / utf8_general_ci` (heritage de la creation manuelle, meme ecart que sur `2026_tesli_site`). Corrige par `ALTER DATABASE`. Sans effet sur les tables existantes, mais toute table creee hors migration heritait du mauvais charset.

@@ -9,7 +9,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -91,3 +91,33 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 404);
         });
     })->create();
+
+/*
+ | Choix du fichier d'environnement : .env.dev (poste local) ou .env.prod.
+ |
+ | Meme principe que Tesli, apres son audit de securite (constat C4) : la
+ | selection ne depend JAMAIS de la requete. Le domaine vient de l'en-tete
+ | Host, que le client envoie a sa guise : « Host: ubdf2026.ultra-book.name »
+ | sur la production y chargerait .env.dev, donc APP_DEBUG=true et une page
+ | d'erreur affichant la configuration et les identifiants.
+ |
+ | Deux sources, toutes deux hors de portee du client, dans cet ordre :
+ |
+ |   1. APP_ENV pose par le serveur (vhost « SetEnv APP_ENV prod », panneau
+ |      de l'hebergeur). Seules « dev » et « prod » comptent : sous PHPUnit,
+ |      APP_ENV vaut « testing » et retombe sur le repli ci-dessous.
+ |   2. Le chemin d'installation : les postes de developpement sont sous
+ |      /Users (macOS). Tout autre chemin est traite comme la PRODUCTION —
+ |      dans le doute, on n'active pas le mode debug.
+ */
+$envDeclare = getenv('APP_ENV') ?: ($_SERVER['APP_ENV'] ?? null);
+
+if (in_array($envDeclare, ['dev', 'prod'], true)) {
+    $env = $envDeclare;
+} else {
+    $env = str_starts_with(dirname(__DIR__).'/', '/Users/') ? 'dev' : 'prod';
+}
+
+$app->loadEnvironmentFrom(".env.{$env}");
+
+return $app;
