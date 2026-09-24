@@ -7,7 +7,7 @@
             <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Mes messages') }}</h1>
         </div>
 
-        <span class="inline-flex items-center gap-2 bg-black px-4.5 py-2.5 text-[14px] font-bold text-white">
+        <span class="inline-flex items-center gap-2 rounded-sm bg-black px-4.5 py-2.5 text-[14px] font-bold text-white">
             {{ trans_choice(':n non lu|:n non lus', $totalNonLus, ['n' => $totalNonLus]) }}
         </span>
     </div>
@@ -81,7 +81,7 @@
                          titre et tout son contenu deplie : l'ensemble se lit
                          d'un coup, sans se confondre avec les autres lignes. --}}
                     <div wire:key="conv-{{ $c->id }}"
-                         @class(['relative', 'border-2 border-ub-texte' => $deplie, 'border-b border-ub-filet last:border-b-0' => ! $deplie])>
+                         @class(['relative', 'border border-ub-texte/50' => $deplie, 'border-b border-ub-filet last:border-b-0' => ! $deplie])>
 
                         {{-- La ligne : un clic la deplie, un second la replie. --}}
                         <div wire:click="basculer({{ $c->id }})"

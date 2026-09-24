@@ -16,10 +16,8 @@
             {{ $titre }}
         </span>
 
-        <svg class="h-5 w-5 shrink-0 text-ub-gris-fonce transition-transform" ::class="ouvert && 'rotate-90'"
-             fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"/>
-        </svg>
+        <x-espace.picto nom="angle-droite" x-show="! ouvert" class="h-5 w-5 shrink-0 text-ub-texte" />
+        <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-5 w-5 shrink-0 text-ub-texte" />
     </button>
 
     <div x-show="ouvert" x-collapse x-cloak class="pb-6">

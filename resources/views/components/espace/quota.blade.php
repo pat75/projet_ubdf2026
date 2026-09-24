@@ -25,7 +25,9 @@
             <em class="not-italic text-ub-texte3">( max: {{ number_format($quota['plafond'], 0, ',', ' ') }} {{ $quota['unite'] }} )</em>
 
             @if ($lien)
-                <a href="{{ $lien }}" class="text-ub-texte hover:text-ub-rouge" aria-label="{{ $libelle }}">❯</a>
+                <a href="{{ $lien }}" class="text-ub-texte hover:text-ub-rouge" aria-label="{{ $libelle }}">
+                    <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0" />
+                </a>
             @endif
         </span>
     </div>

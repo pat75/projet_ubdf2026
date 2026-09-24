@@ -44,3 +44,9 @@ Rules:
   donc a jour du dernier commit, pas du dernier fichier edite.
 - `graphify-out/` n'est pas versionne : c'est un artefact derive (5 Mo). Sur
   un depot fraichement clone, lancer une fois `graphify update .`.
+
+## Charte graphique
+
+Toute modification graphique d'une page de l'espace suit la charte :
+
+@Claude_design.md
