@@ -28,7 +28,7 @@ class Souscription
     public function options(User $creatif): array
     {
         $grille = collect(config('formules.options'));
-        $dejaAbonne = $creatif->invoices()->where('status', 'paid')->exists();
+        $dejaAbonne = $this->dejaAbonne($creatif);
 
         $actives = $grille->filter(fn ($o) => match ($o['promo'] ?? null) {
             'blackfriday' => $this->promotions->blackFriday(),
@@ -49,6 +49,16 @@ class Souscription
         }
 
         return $resultat;
+    }
+
+    /**
+     * Le createur a deja paye au moins une fois : ses offres sont des
+     * renouvellements, ce que la page lui dit et ce qui fait basculer le
+     * douze mois sur le tarif de reabonnement.
+     */
+    public function dejaAbonne(User $creatif): bool
+    {
+        return $creatif->invoices()->where('status', 'paid')->exists();
     }
 
     /** URL de la page de paiement Payplug. */

@@ -25,6 +25,7 @@ class FormuleController extends Controller
             'creatif' => $creatif,
             'echeance' => $creatif->echeanceFormule(),
             'options' => $souscription->options($creatif),
+            'reabonnement' => $souscription->dejaAbonne($creatif),
             'factures' => $creatif->invoices()->where('status', 'paid')->latest('issued_at')->get(),
             'codeDiffusion' => $diffusion->pour($creatif),
             'quotas' => $this->quotas($creatif),

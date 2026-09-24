@@ -102,6 +102,13 @@
         {{ $creatif->plan ? __('Prolonger ma formule') : __('Passer à la formule :marque', ['marque' => $marque->nom]) }}
     </h2>
 
+    {{-- Le createur qui a deja paye une fois ne souscrit plus : il
+         renouvelle. La page le dit, et le douze mois porte alors le tarif
+         de reabonnement. --}}
+    @if ($reabonnement)
+        <p class="mt-1 text-[15px] text-ub-texte2">{{ __('Vos tarifs de renouvellement, réservés aux créatifs déjà abonnés.') }}</p>
+    @endif
+
     {{--
      | Trois cartes, et trois seulement : la gratuite, le six mois et le
      | douze mois. Le Pack Luxe et le Pack Site ne se vendent plus en
@@ -165,7 +172,7 @@
                     </span>
                 @elseif ($vedette)
                     <span class="absolute -top-3.5 right-8 rounded-full bg-ub-accent px-4 py-1.5 text-[13px] font-semibold text-white shadow">
-                        {{ __('Meilleure offre') }}
+                        {{ $reabonnement ? __('Offre renouvellement') : __('Meilleure offre') }}
                     </span>
                 @endif
 
@@ -194,7 +201,7 @@
                 <button type="submit"
                         class="mt-8 block w-full cursor-pointer rounded-full px-8 py-3.5 text-center text-[17px] font-bold transition-opacity duration-150 hover:opacity-90
                                {{ $vedette ? 'bg-ub-accent text-white' : 'bg-ub-texte text-white' }}">
-                    {{ __('Payer par carte') }}
+                    {{ __('Sélectionner') }}
                 </button>
             </form>
         @endforeach

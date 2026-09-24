@@ -79,3 +79,27 @@ it('presente les offres au mois et met le douze mois en avant', function () {
         // 21,90 € sur six mois.
         ->assertSee('3,65 €');
 });
+
+/*
+ | Un createur qui a deja paye ne souscrit plus : il renouvelle. La page
+ | le lui dit, et le badge de la carte vedette change de libelle.
+ */
+it('annonce le renouvellement a qui a deja paye une facture', function () {
+    // Le createur du beforeEach a une facture payee.
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSee('Vos tarifs de renouvellement, réservés aux créatifs déjà abonnés.', false)
+        ->assertSee('Offre renouvellement')
+        ->assertDontSee('Meilleure offre');
+
+    // Un nouveau venu garde « Meilleure offre ».
+    $this->actingAs(User::factory()->create(['plan' => 0]))
+        ->get(route('espace.formule'))->assertOk()
+        ->assertSee('Meilleure offre')
+        ->assertDontSee('Offre renouvellement');
+});
+
+it('intitule les boutons de la grille « Sélectionner »', function () {
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSee('Sélectionner', false)
+        ->assertDontSee('Payer par carte');
+});
