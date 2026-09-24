@@ -18,7 +18,7 @@ class ReponseRecue extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Nouvelle réponse — '.$this->conversation->objet());
+        return new Envelope(subject: 'Nouvelle réponse de '.$this->auteur.' — '.$this->conversation->objet());
     }
 
     public function content(): Content

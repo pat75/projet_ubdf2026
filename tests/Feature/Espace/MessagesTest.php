@@ -35,7 +35,9 @@ it('repond et previent l emetteur', function () {
         ->assertHasNoErrors()
         ->assertSee('Avec plaisir.');
 
-    Mail::assertSent(ReponseRecue::class, fn ($m) => $m->hasTo('client@example.test'));
+    Mail::assertSent(ReponseRecue::class, fn ($m) => $m->hasTo('client@example.test')
+        // Le sujet nomme l'auteur de la reponse, pas seulement l'objet de la demande.
+        && str_contains($m->envelope()->subject, $this->creatif->fullName()));
 });
 
 it('masque les indesirables et les demandes des autres', function () {

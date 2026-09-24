@@ -20,6 +20,9 @@ class OpenRouterModelSelector
 
     private const TEXT_MODELS_BY_COST = [
         1 => [
+            // Modele employe en premier : bascule sur la suite de la
+            // fourchette si OpenRouter le retire ou change son identifiant.
+            'deepseek/deepseek-v4.1-flash',
             'openai/gpt-4o-mini',
             'google/gemini-2.0-flash-lite-001',
             'meta-llama/llama-3.3-70b-instruct:free',

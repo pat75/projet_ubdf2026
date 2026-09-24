@@ -5,6 +5,8 @@
 vous a écrit depuis votre book.
 
 **Objet :** {{ $conversation->objet() }}
+  
+**Le :** {{ $conversation->messages->first()?->created_at?->translatedFormat('j F Y à H:i') }}
 @if ($conversation->request_detail)
 **Précision :** {{ $conversation->request_detail }}
 @endif
@@ -13,7 +15,7 @@ vous a écrit depuis votre book.
 {{ $conversation->messages->first()?->body }}
 </x-mail::panel>
 
-<x-mail::button :url="$lien">
+<x-mail::button :url="$lien" align="left">
 Lire et répondre
 </x-mail::button>
 
@@ -22,6 +24,7 @@ communiquez pas vous-même.
 
 Ce lien est valable {{ config('messagerie.lien_valide_jours') }} jours après le dernier message.
 
-Merci,<br>
-{{ config('app.name') }}
+<x-slot:subcopy>
+Vous ne pouvez pas répondre directement à cet e-mail : passez par la messagerie {{ config('app.name') }} pour poursuivre l’échange.
+</x-slot:subcopy>
 </x-mail::message>
