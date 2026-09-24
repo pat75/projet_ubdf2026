@@ -9,13 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BookArticle extends Model
 {
     protected $fillable = [
-        'legacy_id', 'legacy_source', 'user_id', 'book_section_id', 'title', 'slug', 'body',
+        'legacy_id', 'legacy_source', 'user_id', 'book_section_id', 'title', 'slug', 'body', 'body_blocks',
         'image', 'keywords', 'status', 'position', 'published_at',
     ];
 
     protected function casts(): array
     {
-        return ['published_at' => 'datetime'];
+        return ['published_at' => 'datetime', 'body_blocks' => 'array'];
     }
 
     public function scopePublished(Builder $query): Builder

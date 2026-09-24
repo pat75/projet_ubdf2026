@@ -25,6 +25,12 @@ button:not(:disabled) {
     cursor: pointer;
 }
 
+/* Masque un element tant qu'Alpine ne l'a pas encore initialise (evite le
+   flash de la modale de recadrage avant qu'Alpine ne pose x-show). */
+[x-cloak] {
+    display: none !important;
+}
+
 /*
  | L'espace n'a pas de mode sombre. La variante reste declaree, rattachee
  | a une classe que plus personne ne pose : les `dark:` encore presents
@@ -57,6 +63,12 @@ button:not(:disabled) {
     --color-ub-bord-carte: #ebebe8;
     --color-ub-filet: #f0f0ee;
 
+    /* Separateur entre deux lignes d'une fiche (ex. URL, Identifiant, Mot
+       de passe, Adresse mail de /espace/compte) : ub-filet assombri de
+       5 % (#f0f0ee -> #e4e4e2), pour se distinguer un peu plus des
+       filets de carte ou d'accordeon. */
+    --color-ub-filet-ligne: #e4e4e2;
+
     /* Pied de page. */
     --color-ub-pied: #2e2e2e;
     --color-ub-pied-titre: #5fd0d9;
@@ -70,6 +82,9 @@ button:not(:disabled) {
     --color-ub-danger-bord: #f1d4d4;
     --color-ub-danger-fond: #fffafa;
     --color-ub-sortie: #c25a1b;
+
+    /* Succes : filet d'edition sur place, texte en cours d'enregistrement, coche. */
+    --color-ub-succes: #1e9e57;
 
     /* --- Conserves de l'habillage de 2020 --------------------------- */
 
@@ -173,6 +188,26 @@ button:not(:disabled) {
     }
 }
 
+/* Texte editable sur place (x-espace.champ-editable) : l'invite quand il
+   est vide. */
+.champ-editable:empty::before {
+    content: attr(data-vide);
+    color: var(--color-ub-texte4);
+    font-style: italic;
+}
+
+/* Pendant l'enregistrement : une seule vague douce, le texte glisse vers
+   le vert puis revient a sa couleur (1,2 s), sans clignotement. */
+.champ-editable-enregistre {
+    animation: champ-editable-vibre 1200ms ease-in-out 1;
+}
+
+@keyframes champ-editable-vibre {
+    0% { color: var(--color-ub-texte); }
+    45%, 60% { color: var(--color-ub-succes); }
+    100% { color: var(--color-ub-texte); }
+}
+
 .dev_only { outline: 2px solid #e02424; outline-offset: -2px; border-radius: 4px; }
 
 /*
@@ -182,3 +217,85 @@ button:not(:disabled) {
 .dev_switch_marque a { color: #e02424; padding: 0 6px; white-space: nowrap; }
 .barre_createur_texte { display: none; }
 @media (min-width: 768px) { .barre_createur_texte { display: block; } }
+
+/*
+ | Editeur Redactor des pages (App\Livewire\Espace\Pages, resources/js/espace.js) :
+ | icones un peu plus grandes et boutons mieux espaces que le theme par
+ | defaut d'Imperavi, pour rester lisibles sur la largeur d'une carte de
+ | l'espace plutot que sur une page pleine largeur du legacy.
+ */
+.redactor-toolbar { border-radius: 0; }
+.redactor-toolbar a.re-button-icon { font-size: 18px; padding: 10px 14px 8px 14px; }
+.redactor-toolbar a.redactor-button-active { background: var(--color-ub-accent); color: #fff; }
+.redactor-in { padding: 16px !important; font-size: 15px; line-height: 1.6; }
+
+/*
+ | Bibliotheque d'images du bouton image (plugin
+ | resources/js/vendor/redactor/plugins/imagemanager.custom.js) : grille de
+ | vignettes carrees, ajout en premiere case, actions (remplacer/supprimer)
+ | affichees au survol.
+ */
+.redactor-imagemanager-message { padding: 24px 4px; color: var(--color-ub-texte3); font-size: 14px; }
+
+.redactor-imagemanager-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.redactor-imagemanager-ajouter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 96px;
+    border: 1.5px dashed var(--color-ub-bord);
+    color: var(--color-ub-texte3);
+    font-size: 12px;
+    cursor: pointer;
+}
+.redactor-imagemanager-ajouter:hover { border-color: var(--color-ub-accent); color: var(--color-ub-accent-texte); }
+.redactor-imagemanager-ajouter span:first-child { font-size: 22px; line-height: 1; }
+
+.redactor-imagemanager-carte { position: relative; }
+
+.redactor-imagemanager-apercu {
+    display: block;
+    width: 100%;
+    height: 96px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--color-ub-fond);
+    border: 1px solid var(--color-ub-bord);
+    cursor: pointer;
+}
+.redactor-imagemanager-apercu:hover { border-color: var(--color-ub-accent); }
+
+.redactor-imagemanager-legende { margin-top: 4px; font-size: 11px; color: var(--color-ub-texte3); text-align: center; }
+
+.redactor-imagemanager-actions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity .15s;
+}
+.redactor-imagemanager-carte:hover .redactor-imagemanager-actions { opacity: 1; }
+
+.redactor-imagemanager-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: rgba(0, 0, 0, .65);
+    color: #fff;
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.redactor-imagemanager-action:hover { background: var(--color-ub-danger); }

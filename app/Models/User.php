@@ -199,6 +199,12 @@ class User extends Authenticatable
         return $this->hasMany(BookArticle::class);
     }
 
+    /** Images deposees dans le corps des pages (App\Livewire\Espace\Pages), hors quota de portfolio. */
+    public function pageImages(): HasMany
+    {
+        return $this->hasMany(PageImage::class);
+    }
+
     public function conversations(): HasMany
     {
         return $this->hasMany(Conversation::class);

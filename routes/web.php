@@ -15,6 +15,7 @@ use App\Http\Controllers\Front\StatsBookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
+use App\Http\Controllers\Espace\PageImageController;
 use App\Http\Controllers\Espace\PaiementController;
 use App\Http\Controllers\Espace\PdfController;
 use App\Http\Controllers\Espace\StatistiquesController;
@@ -267,6 +268,10 @@ $portail = function () {
         Route::get('/galeries/{galerie}', [GalerieController::class, 'show'])
             ->can('update', 'galerie')->name('galeries.show');
         Route::get('/pages', [PageController::class, 'index'])->name('pages');
+        Route::get('/pages/images', [PageImageController::class, 'index'])->name('pages.images.index');
+        Route::post('/pages/upload-image', [PageImageController::class, 'store'])->name('pages.upload-image');
+        Route::post('/pages/images/{image}', [PageImageController::class, 'update'])->name('pages.images.update');
+        Route::delete('/pages/images/{image}', [PageImageController::class, 'destroy'])->name('pages.images.destroy');
         Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
         Route::view('/habillage', 'espace.habillage')->name('design');
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');

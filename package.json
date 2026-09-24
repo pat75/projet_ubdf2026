@@ -18,7 +18,10 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "sortablejs": "^1.15.7",
-        "trix": "^2.1.19"
+        "@editorjs/editorjs": "^2.31.7",
+        "@editorjs/header": "^2.8.9",
+        "@editorjs/image": "^2.10.3",
+        "@editorjs/paragraph": "^2.11.7",
+        "sortablejs": "^1.15.7"
     }
 }

@@ -21,7 +21,7 @@ export default defineConfig({
         laravel({
             // ubdf.css porte les surcharges du portail ; app.css/app.js sont
             // reserves a la refonte Tailwind de la phase 9.
-            input: ['resources/css/ubdf.css', 'resources/css/espace.css', 'resources/js/app.js', 'resources/js/espace.js'],
+            input: ['resources/css/ubdf.css', 'resources/css/espace.css', 'resources/js/app.js', 'resources/js/espace.js', 'resources/js/espace-blocs.js'],
             /*
              * Recharge la page des qu'une vue, une route ou un composant
              * change. « true » ne couvre pas app/View/Components ni les

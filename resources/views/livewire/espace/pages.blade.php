@@ -1,57 +1,152 @@
 @php
     $types = ['accueil' => __('Accueil'), 'pages' => __('Pages'), 'news' => __('Actualités')];
-    $champ = 'rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200';
 @endphp
+@if ($editeurTexte === 'redactor_bloc')
+    @vite('resources/js/espace-blocs.js')
+@endif
 <div>
-    <x-espace.titre>{{ __('Les pages de contenu') }}</x-espace.titre>
-    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ __('Biographie, actualités, textes d’accueil : les rubriques de texte de votre book.') }}</p>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-accent-texte">{{ __('Écrire, publier, raconter') }}</div>
+            <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Les pages de contenu') }}</h1>
+        </div>
 
-    <form wire:submit="creerRubrique" class="mt-6 flex flex-col gap-2 sm:flex-row">
-        <input type="text" wire:model="nom" placeholder="{{ __('Nom de la nouvelle rubrique') }}" class="w-full sm:max-w-sm {{ $champ }}">
-        <x-espace.bouton>{{ __('Créer') }}</x-espace.bouton>
-    </form>
-    @error('nom') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        <a href="{{ auth()->user()->portfolioUrl() }}" target="_blank" rel="noopener"
+           class="bouton-espace bouton-espace-grand px-4.5">{{ __('Voir mon book ↗') }}</a>
+    </div>
 
-    @forelse ($rubriques as $rubrique)
-        <section wire:key="rubrique-{{ $rubrique->id }}" class="mt-8 rounded-lg bg-white shadow-sm dark:bg-gray-800">
-            <header class="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-gray-100 px-4 py-3 dark:border-gray-600 dark:bg-gray-700">
-                <div class="min-w-0 flex-1" x-data="{ avant: @js($rubrique->title), ok: false }">
-                    <span contenteditable="true" x-text="avant"
-                          class="cursor-text border-b border-transparent pb-1 font-medium transition-colors duration-500 focus:border-gray-400 focus:outline-none"
-                          :class="ok && 'text-teal-600'"
-                          x-on:keydown.enter.prevent="$el.blur()"
-                          x-on:keydown.escape.prevent="$el.innerText = avant; $el.blur()"
-                          x-on:blur="let v = $el.innerText.trim(); if (v !== avant) { $wire.renommer({{ $rubrique->id }}, v).then(() => { avant = v; ok = true; setTimeout(() => ok = false, 900) }) }"></span>
-                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">{{ $types[$rubrique->kind] ?? $rubrique->kind }}</span>
-                    @error('renommer.'.$rubrique->id) <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+    <section class="mb-7 grid gap-5 md:grid-cols-2">
+        {{-- Nouvelle rubrique : creee tout de suite, a renommer sur place. --}}
+        <form wire:submit="creerRubrique" class="carte-espace flex items-center gap-4 p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-ub-accent text-[24px] text-white">+</span>
+            <span class="min-w-0 flex-1">
+                <input type="text" wire:model="nom" placeholder="{{ __('Nom de la nouvelle rubrique') }}"
+                       class="h-8.25 w-full border border-ub-bord bg-white px-3 text-[14px] text-ub-texte outline-none focus:border-ub-accent">
+                @error('nom') <span class="mt-1 block text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            </span>
+            <button type="submit" class="bouton-espace bouton-espace-petit px-4 shrink-0">{{ __('Créer') }}</button>
+        </form>
+    </section>
+
+    {{-- Les rubriques, deplacables par leur croix ; les pages se trient a
+         l'interieur de chacune (window.espaceTri). --}}
+    <section class="flex flex-col gap-4">
+        @forelse ($rubriques as $rubrique)
+            <div wire:key="rubrique-{{ $rubrique->id }}" class="carte-espace overflow-hidden" x-data="{ ouvert: true }">
+                <div class="flex cursor-pointer items-center gap-3 px-5 py-3.5" :class="ouvert && 'border-b border-ub-filet'" x-on:click="ouvert = ! ouvert">
+                    <div class="min-w-0 flex-1" x-on:click.stop>
+                        <x-espace.champ-editable nom="rubrique-{{ $rubrique->id }}" :valeur="$rubrique->title"
+                            :vide="__('Nom de la rubrique')" typo="text-[18px] font-bold leading-snug" />
+                    </div>
+
+                    <span class="hidden shrink-0 rounded-full bg-ub-accent-fond px-2 py-0.5 text-[11px] font-bold text-ub-accent-texte sm:inline">
+                        {{ $types[$rubrique->kind] ?? $rubrique->kind }}
+                    </span>
+                    <span class="shrink-0 text-[13px] text-ub-texte3">{{ trans_choice(':n page|:n pages', $rubrique->articles->count(), ['n' => $rubrique->articles->count()]) }}</span>
+
+                    <div class="ml-auto flex shrink-0 items-center gap-3" x-on:click.stop>
+                        <span class="hidden text-[13px] text-ub-texte3 sm:inline">{{ $rubrique->is_published ? __('En ligne') : __('Masquée') }}</span>
+                        <x-espace.interrupteur wire:click="basculerRubrique({{ $rubrique->id }})" :actif="$rubrique->is_published"
+                            :libelle="__('Afficher la rubrique dans le book')" />
+                        <button type="button" class="p-1 text-ub-texte4 hover:text-ub-danger" title="{{ __('Supprimer la rubrique') }}"
+                                wire:click="supprimerRubrique({{ $rubrique->id }})"
+                                wire:confirm="{{ __('Supprimer la rubrique « :nom » et ses pages ?', ['nom' => $rubrique->title]) }}">
+                            <x-espace.picto nom="poubelle" class="h-4 w-4" />
+                        </button>
+                    </div>
+
+                    <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" x-show="! ouvert" />
+                    <x-espace.picto nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" x-show="ouvert" x-cloak />
                 </div>
-                <button type="button" wire:click="basculerRubrique({{ $rubrique->id }})" class="text-sm underline">
-                    {{ $rubrique->is_published ? __('Masquer') : __('Afficher') }}
-                </button>
-                <button type="button" class="text-sm text-red-600" wire:click="supprimerRubrique({{ $rubrique->id }})"
-                        wire:confirm="{{ __('Supprimer la rubrique « :nom » et ses pages ?', ['nom' => $rubrique->title]) }}">{{ __('Supprimer') }}</button>
-            </header>
 
-            <ul class="divide-y divide-gray-200 dark:divide-gray-600" x-data
-                x-init="window.espaceTri($el, ids => $wire.ordonnerPages({{ $rubrique->id }}, ids))">
-                @foreach ($rubrique->articles as $page)
-                    <li wire:key="page-{{ $page->id }}" data-id="{{ $page->id }}" class="flex items-center gap-3 px-4 py-2">
-                        <span class="cursor-move select-none text-gray-400" data-poignee>&#8942;&#8942;</span>
-                        <a href="{{ route('espace.pages.edit', $page) }}" class="flex-1 truncate hover:underline">{{ $page->title ?: __('(sans titre)') }}</a>
-                        @if ($page->status !== 'published')
-                            <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ __('Brouillon') }}</span>
-                        @endif
-                    </li>
-                @endforeach
-            </ul>
+                <div x-show="ouvert">
+                    <ul class="min-h-12" x-data x-init="window.espaceTri($el, ids => $wire.ordonnerPages({{ $rubrique->id }}, ids))">
+                        @foreach ($rubrique->articles as $page)
+                            <li wire:key="page-{{ $page->id }}" data-id="{{ $page->id }}"
+                                class="border-b border-ub-filet last:border-b-0">
+                                <div class="flex cursor-pointer items-center gap-3.5 px-5 py-3 hover:bg-ub-accent-fond/40"
+                                     wire:click="ouvrirPage({{ $page->id }})">
+                                    <span data-poignee class="cursor-grab text-ub-texte4 hover:text-ub-texte" title="{{ __('Déplacer') }}" x-on:click.stop>
+                                        <x-espace.picto nom="deplacer" class="h-4 w-4" />
+                                    </span>
 
-            <form wire:submit="creerPage({{ $rubrique->id }})" class="flex gap-2 px-4 py-3">
-                <input type="text" wire:model="nouvellePage.{{ $rubrique->id }}" placeholder="{{ __('Titre de la nouvelle page') }}" class="w-full text-sm {{ $champ }}">
-                <button type="submit" class="whitespace-nowrap text-sm underline">{{ __('Ajouter') }}</button>
-            </form>
-            @error('nouvellePage.'.$rubrique->id) <p class="px-4 pb-3 text-sm text-red-600">{{ $message }}</p> @enderror
-        </section>
-    @empty
-        <p class="mt-8 text-sm text-gray-500 dark:text-gray-400">{{ __('Aucune rubrique pour le moment.') }}</p>
-    @endforelse
+                                    <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                                        <span class="truncate text-[15px] font-bold text-ub-texte">{{ $page->title ?: __('(sans titre)') }}</span>
+                                        <span class="text-[12px] text-ub-texte3">{{ $page->updated_at?->format('d/m/Y') }}</span>
+                                    </span>
+
+                                    @if ($page->status !== 'published')
+                                        <span class="hidden rounded-full bg-ub-fond px-2 py-0.5 text-[11px] font-bold text-ub-texte3 sm:inline">{{ __('Brouillon') }}</span>
+                                    @endif
+
+                                    @if ($edition === $page->id)
+                                        <x-espace.picto nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
+                                    @else
+                                        <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
+                                    @endif
+                                </div>
+
+                                @if ($edition === $page->id)
+                                    <div class="flex flex-col gap-4 border-t border-ub-filet px-5 pb-6 pt-4">
+                                        <x-espace.champ-editable nom="page-{{ $page->id }}" :valeur="$page->title"
+                                            :vide="__('Titre de la page')" typo="text-[20px] font-bold leading-snug" />
+
+                                        @php
+                                            $urlsImages = [
+                                                'upload' => route('espace.pages.upload-image'),
+                                                'liste' => route('espace.pages.images.index'),
+                                                'action' => route('espace.pages.images.update', ['image' => '__ID__']),
+                                            ];
+                                        @endphp
+
+                                        @if ($editeurTexte === 'redactor_bloc')
+                                            {{-- Editeur par blocs (Editor.js) : wire:ignore, le contenu ne
+                                                 quitte le composant qu'a onChange (resources/js/espace-blocs.js). --}}
+                                            <div wire:ignore x-data
+                                                 x-init="window.espacePageEditorBlocs($refs.blocs, @js($blocs), (blocs) => $wire.blocs = blocs, @js($urlsImages))"
+                                                 class="border border-ub-bord bg-white">
+                                                <div x-ref="blocs"></div>
+                                            </div>
+                                            @error('blocs') <p class="text-[13px] text-ub-danger">{{ $message }}</p> @enderror
+                                        @else
+                                            {{-- Editeur Redactor : wire:ignore, le contenu ne quitte le
+                                                 composant qu'au callback `changed` (resources/js/espace.js). --}}
+                                            <div wire:ignore x-data
+                                                 x-init="window.espacePageEditor($refs.corps, (html) => $wire.corps = html, @js($urlsImages))"
+                                                 class="border border-ub-bord bg-white">
+                                                <div x-ref="corps">{!! $corps !!}</div>
+                                            </div>
+                                            @error('corps') <p class="text-[13px] text-ub-danger">{{ $message }}</p> @enderror
+                                        @endif
+
+                                        <div class="flex items-center gap-4">
+                                            <button type="button"
+                                                    wire:click="{{ $editeurTexte === 'redactor_bloc' ? 'enregistrerBlocs' : 'enregistrerPage' }}"
+                                                    wire:loading.attr="disabled"
+                                                    class="bouton-espace bouton-espace-petit px-4">{{ __('Enregistrer') }}</button>
+                                            <button type="button" class="text-[13px] text-ub-danger hover:underline" wire:click="supprimerPage({{ $page->id }})"
+                                                    wire:confirm="{{ __('Supprimer cette page ?') }}">{{ __('Supprimer') }}</button>
+                                        </div>
+                                    </div>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    @if ($rubrique->articles->isEmpty())
+                        <p class="px-5 pb-4 text-[14px] text-ub-texte3">{{ __('Rubrique vide : ajoutez-y une page ci-dessous.') }}</p>
+                    @endif
+
+                    <form wire:submit="creerPage({{ $rubrique->id }})" class="flex gap-2 border-t border-ub-filet px-5 py-3.5">
+                        <input type="text" wire:model="nouvellePage.{{ $rubrique->id }}" placeholder="{{ __('Titre de la nouvelle page') }}"
+                               class="h-8.25 min-w-0 flex-1 border border-ub-bord bg-white px-3 text-[14px] text-ub-texte outline-none focus:border-ub-accent">
+                        <button type="submit" class="bouton-espace bouton-espace-petit px-4 shrink-0">{{ __('Ajouter') }}</button>
+                    </form>
+                    @error('nouvellePage.'.$rubrique->id) <p class="px-5 pb-3.5 text-[13px] text-ub-danger">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        @empty
+            <p class="carte-espace p-6 text-[14px] text-ub-texte3">{{ __('Aucune rubrique pour le moment.') }}</p>
+        @endforelse
+    </section>
 </div>

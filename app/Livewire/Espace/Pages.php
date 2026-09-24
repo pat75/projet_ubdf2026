@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Espace;
 
+use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\BookArticle;
 use App\Models\BookSection;
+use App\Services\Espace\NettoyeurHtml;
+use App\Services\Espace\RenduBlocsPage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,15 +16,28 @@ use Livewire\Component;
 
 /**
  * Rubriques de pages du book (bio, actualites, pages d'accueil) et leurs
- * pages : pag_add, rub_* de categorie 1 et 3 du legacy.
+ * pages : pag_add, rub_* de categorie 1 et 3 du legacy. Chaque page
+ * s'ouvre en accordeon sous son titre (meme fonctionnement que les
+ * portfolios de App\Livewire\Espace\Galeries), pas sur un ecran a part.
  */
 class Pages extends Component
 {
+    use EnregistreChamps;
+
     #[Validate('required|string|max:100')]
     public string $nom = '';
 
     /** Titre de la nouvelle page, par rubrique. */
     public array $nouvellePage = [];
+
+    /** Page actuellement depliee, ou null. */
+    public ?int $edition = null;
+
+    /** Contenu Redactor de la page depliee (config('pages.editeur_texte') === 'redactor'). */
+    public string $corps = '';
+
+    /** Blocs Editor.js de la page depliee (config('pages.editeur_texte') === 'redactor_bloc'). */
+    public array $blocs = [];
 
     public function creerRubrique(): void
     {
@@ -36,19 +52,6 @@ class Pages extends Component
         ]);
 
         $this->reset('nom');
-    }
-
-    public function renommer(int $id, string $nom): void
-    {
-        $nom = trim($nom);
-
-        if ($nom === '' || mb_strlen($nom) > 100) {
-            $this->addError('renommer.'.$id, __('Le nom doit faire entre 1 et 100 caractères.'));
-
-            return;
-        }
-
-        $this->rubrique($id)->update(['title' => $nom]);
     }
 
     public function basculerRubrique(int $id): void
@@ -67,14 +70,14 @@ class Pages extends Component
         });
     }
 
-    public function creerPage(int $rubriqueId)
+    public function creerPage(int $rubriqueId): void
     {
         $titre = trim($this->nouvellePage[$rubriqueId] ?? '');
 
         if ($titre === '' || mb_strlen($titre) > 255) {
             $this->addError('nouvellePage.'.$rubriqueId, __('Donnez un titre à la page.'));
 
-            return null;
+            return;
         }
 
         $rubrique = $this->rubrique($rubriqueId);
@@ -90,7 +93,72 @@ class Pages extends Component
             $rubrique->update(['page_order' => [...$rubrique->page_order, (string) $page->id]]);
         }
 
-        return $this->redirectRoute('espace.pages.edit', $page, navigate: false);
+        unset($this->nouvellePage[$rubriqueId]);
+        $this->ouvrirPage($page->id);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edition d'une page, en accordeon (voir Galeries::updatedFichiers et
+    | consorts pour le meme principe applique aux visuels)
+    |--------------------------------------------------------------------------
+    */
+
+    public function ouvrirPage(int $id): void
+    {
+        if ($this->edition === $id) {
+            $this->fermerPage();
+
+            return;
+        }
+
+        $page = $this->page($id);
+        $this->edition = $id;
+        $this->corps = (string) $page->body;
+        $this->blocs = $page->body_blocks ?? [];
+        $this->resetErrorBag(['corps', 'blocs']);
+    }
+
+    public function enregistrerPage(NettoyeurHtml $nettoyeur): void
+    {
+        $this->validate(['corps' => 'nullable|string|max:200000']);
+
+        $this->page($this->edition)->update(['body' => $nettoyeur->nettoyer($this->corps)]);
+    }
+
+    /** Enregistrement pour config('pages.editeur_texte') === 'redactor_bloc' : voir resources/js/espace-blocs.js. */
+    public function enregistrerBlocs(RenduBlocsPage $rendu, NettoyeurHtml $nettoyeur): void
+    {
+        $this->validate(['blocs' => 'array']);
+
+        $this->page($this->edition)->update([
+            'body_blocks' => $this->blocs,
+            'body' => $nettoyeur->nettoyer($rendu->versHtml($this->blocs)),
+        ]);
+    }
+
+    public function supprimerPage(int $id): void
+    {
+        $this->page($id)->delete();
+
+        if ($this->edition === $id) {
+            $this->fermerPage();
+        }
+    }
+
+    private function fermerPage(): void
+    {
+        $this->edition = null;
+        $this->corps = '';
+        $this->blocs = [];
+    }
+
+    private function page(int $id): BookArticle
+    {
+        $page = BookArticle::findOrFail($id);
+        $this->authorize('update', $page->section);
+
+        return $page;
     }
 
     /** @param  list<int|string>  $ids */
@@ -116,7 +184,37 @@ class Pages extends Component
             )->values());
         }
 
-        return view('livewire.espace.pages', ['rubriques' => $rubriques]);
+        return view('livewire.espace.pages', [
+            'rubriques' => $rubriques,
+            'editeurTexte' => config('pages.editeur_texte'),
+        ]);
+    }
+
+    protected function champsAutoEnregistres(): array
+    {
+        $rubriques = Auth::user()->sections()->pluck('id');
+        $regles = [];
+
+        foreach ($rubriques as $id) {
+            $regles['rubrique-'.$id] = ['required', 'string', 'max:100'];
+        }
+
+        foreach (BookArticle::whereIn('book_section_id', $rubriques)->pluck('id') as $id) {
+            $regles['page-'.$id] = ['required', 'string', 'max:255'];
+        }
+
+        return $regles;
+    }
+
+    protected function persisterChamp(string $nom, mixed $valeur): void
+    {
+        [$champ, $id] = explode('-', $nom, 2);
+        $valeur = trim((string) $valeur);
+
+        match ($champ) {
+            'rubrique' => $this->rubrique((int) $id)->update(['title' => $valeur]),
+            'page' => $this->page((int) $id)->update(['title' => $valeur, 'slug' => Str::slug($valeur) ?: 'page']),
+        };
     }
 
     private function rubrique(int $id): BookSection
