@@ -48,12 +48,12 @@
                 <p class="text-[#ddd]">{{ __('Les dernières sélections du mois') }}</p>
                 <p class="text-ub-pied-titre">{{ __('Confidentialité, sécurité et absence de spam') }}</p>
 
-                <form action="/front/action_ajax_2.php" class="mt-3 flex overflow-hidden rounded-ub bg-white">
+                <form action="/front/action_ajax_2.php" class="mt-3 flex overflow-hidden bg-white">
                     <input type="hidden" name="action" value="add">
                     <label for="pied_newsletter" class="sr-only">{{ __('Votre adresse e-mail') }}</label>
                     <input id="pied_newsletter" type="email" name="mail" placeholder="{{ __('Mail...') }}"
                            class="h-[42px] min-w-0 flex-1 border-none px-3 text-[15px] text-gray-800 outline-none placeholder:text-gray-400">
-                    <button type="submit" class="bg-ub-accent px-4 font-semibold text-white hover:bg-ub-accent-fonce">
+                    <button type="submit" class="bouton-espace px-4">
                         {{ __('OK') }}
                     </button>
                 </form>

@@ -24,7 +24,7 @@
                            class="h-12 w-full rounded-full border border-ub-bord bg-white px-5 text-[15px] text-ub-texte outline-none placeholder:text-ub-texte4 focus:border-ub-accent">
 
                     <button type="submit" wire:target="utiliser" wire:loading.attr="disabled"
-                            class="mt-4 inline-flex items-center gap-2 rounded-full bg-black px-7 py-3 text-[16px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">
+                            class="bouton-espace mt-4 px-7 py-3 text-[16px]">
                         {{-- L'eclair de la maquette. --}}
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/>

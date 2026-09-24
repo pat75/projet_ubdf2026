@@ -72,10 +72,10 @@
             {{-- Les deux boutons menent au meme endroit : la grille, plus
                  bas sur la page. Rien a charger, c'est une ancre. --}}
             <div class="flex min-w-[180px] flex-col gap-2">
-                <a href="#offres" class="rounded-ub bg-ub-accent px-4.5 py-3 text-center text-[16px] font-semibold text-white hover:bg-ub-accent-fonce">
+                <a href="#offres" class="bouton-espace px-4.5 py-3 text-[16px]">
                     {{ __('Renouveler') }}
                 </a>
-                <a href="#offres" class="rounded-ub border border-[#d9dcdc] px-4.5 py-2.5 text-center text-[15px] text-ub-texte hover:border-ub-accent hover:text-ub-accent-texte">
+                <a href="#offres" class="bouton-espace px-4.5 py-2.5 text-[15px]">
                     {{ __('Comparer les formules') }}
                 </a>
             </div>
@@ -111,7 +111,7 @@
                 @endphp
 
                 <a href="{{ $mailto }}"
-                   class="inline-flex items-center gap-2 rounded-ub bg-white px-4.5 py-2.5 text-[15px] font-semibold text-[#0d7f8c] hover:bg-[#f0fbfc]">
+                   class="bouton-espace px-4.5 py-2.5 text-[15px]">
                     <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Écrire à :email', ['email' => $marque->email]) }}
                 </a>
             </div>
@@ -145,7 +145,7 @@
                         </div>
 
                         <button type="button" @click="copier('{{ $cle }}', @js($valeur))"
-                                class="rounded-md border border-[#d9dcdc] px-3 py-1.5 text-[14px] hover:border-ub-accent hover:text-ub-accent-texte">
+                                class="bouton-espace px-3 py-1.5 text-[14px]">
                             <span x-text="copie === '{{ $cle }}' ? @js(__('Copié ✓')) : @js(__('Copier'))">{{ __('Copier') }}</span>
                         </button>
                     </div>
@@ -154,7 +154,7 @@
 
             <div class="mt-5 flex flex-wrap items-center gap-5">
                 <a href="{{ config('services.diffusion.url') }}" target="_blank" rel="noopener"
-                   class="rounded-ub bg-[#1b1b1b] px-5 py-3 text-[15px] font-semibold text-white hover:bg-black">
+                   class="bouton-espace px-5 py-3 text-[15px]">
                     {{ __('Profiter de l’offre ↗') }}
                 </a>
 
@@ -278,8 +278,7 @@
                 </ul>
 
                 <button type="submit"
-                        class="mt-8 block w-full cursor-pointer rounded-full px-8 py-3.5 text-center text-[17px] font-bold transition-opacity duration-150 hover:opacity-90
-                               {{ $vedette ? 'bg-ub-accent text-white' : 'bg-ub-texte text-white' }}">
+                        class="bouton-espace mt-8 w-full px-8 py-3.5 text-[17px] {{ $vedette ? 'ring-1 ring-white/40' : '' }}">
                     {{ __('Sélectionner') }}
                 </button>
             </form>

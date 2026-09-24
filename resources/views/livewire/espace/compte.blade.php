@@ -29,7 +29,7 @@
         <x-espace.ligne :libelle="__('Mot de passe')" :prive="true">
             <span class="text-[18px] tracking-[3px]" x-show="! acces">••••••••••</span>
             <button type="button" @click="acces = ! acces"
-                    class="rounded-ub border border-ub-bord bg-white px-3.5 py-1.5 text-[14px] font-semibold text-[#333] hover:bg-[#f6f6f4]">
+                    class="bouton-espace px-3.5 py-1.5 text-[14px]">
                 <span x-show="! acces">{{ __('Modifier') }}</span>
                 <span x-show="acces" x-cloak>{{ __('Annuler') }}</span>
             </button>
@@ -65,7 +65,7 @@
             </div>
 
             <button type="submit" wire:target="enregistrerAcces" wire:loading.attr="disabled"
-                    class="mt-4 rounded-ub bg-ub-accent px-4 py-2 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce">
+                    class="bouton-espace mt-4 px-4 py-2 text-[14px]">
                 {{ __('Enregistrer') }}
             </button>
         </form>
@@ -229,7 +229,7 @@
             </div>
 
             <button type="button" @click="ouvert = ! ouvert"
-                    class="rounded-ub border border-[#e0a9a9] bg-white px-4 py-2 text-[14px] font-semibold text-ub-danger hover:bg-ub-danger hover:text-white">
+                    class="bouton-espace px-4 py-2 text-[14px]">
                 {{ __('Supprimer…') }}
             </button>
         </div>
@@ -252,7 +252,7 @@
             </div>
 
             <button type="submit" wire:target="supprimerPortfolio" wire:loading.attr="disabled"
-                    class="mt-4 rounded-ub bg-ub-danger px-4 py-2 text-[14px] font-semibold text-white hover:opacity-90">
+                    class="bouton-espace mt-4 px-4 py-2 text-[14px]">
                 {{ __('Supprimer définitivement mon portfolio') }}
             </button>
         </form>
@@ -266,10 +266,10 @@
 
             <div class="flex gap-2">
                 <button type="button" wire:click="annuler"
-                        class="rounded-ub border border-[#555] px-3.5 py-2 text-[14px] text-[#ddd] hover:text-white">{{ __('Annuler') }}</button>
+                        class="bouton-espace border border-white/25 px-3.5 py-2 text-[14px]">{{ __('Annuler') }}</button>
 
                 <button type="button" wire:click="enregistrerProfil" wire:target="enregistrerProfil" wire:loading.attr="disabled"
-                        class="rounded-ub bg-ub-accent px-4 py-2 text-[14px] font-semibold text-white hover:bg-ub-accent-fonce">{{ __('Enregistrer') }}</button>
+                        class="bouton-espace px-4 py-2 text-[14px]">{{ __('Enregistrer') }}</button>
             </div>
         </div>
     @endif

@@ -87,3 +87,16 @@ it('compte les non lus par dossier, sans pastille pour la poubelle', function ()
         // un dans « Ventes » : le total du bandeau en compte deux.
         ->assertSee('2 non lus');
 });
+
+it('deplie le fil sous la ligne puis le replie au second clic', function () {
+    $this->conversation->messages()->create(['from_owner' => true, 'body' => 'Volontiers, voici mon tarif.']);
+
+    Livewire::test(Messages::class)
+        ->call('basculer', $this->conversation->id)
+        ->assertSet('ouvert', $this->conversation->id)
+        // Les deux messages, dans l'ordre : l'expediteur puis le createur.
+        ->assertSeeInOrder(['Bonjour, un devis ?', 'Volontiers, voici mon tarif.'])
+        ->call('basculer', $this->conversation->id)
+        ->assertSet('ouvert', null)
+        ->assertDontSee('Volontiers, voici mon tarif.');
+});

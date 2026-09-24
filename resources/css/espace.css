@@ -106,6 +106,26 @@
 }
 
 /*
+ | Le bouton de l'espace, un seul pour toutes les pages : fond noir,
+ | angles droits. Taille et marges restent a la vue qui le pose.
+ */
+@utility bouton-espace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 0;
+    background-color: #000;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms;
+
+    &:hover { background-color: #333; color: #fff; }
+    &:disabled { opacity: .6; cursor: default; }
+}
+
+/*
  | Les champs de saisie. Ils sont assez nombreux, et toujours identiques,
  | pour valoir un utilitaire plutot qu'une chaine de classes recopiee.
  */

@@ -58,6 +58,12 @@ class Messages extends Component
         $this->reset('reponse');
     }
 
+    /** Un clic sur la ligne la deplie, un second la replie. */
+    public function basculer(int $id): void
+    {
+        $this->ouvert === $id ? $this->fermer() : $this->ouvrir($id);
+    }
+
     public function fermer(): void
     {
         $this->ouvert = null;
