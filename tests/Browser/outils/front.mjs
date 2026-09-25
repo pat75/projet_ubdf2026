@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { pages, BASE } from './pages.mjs';
+import { pages, BASE, DOMAINE_LOCAL, adresse } from './pages.mjs';
 
 const AUTORISES = [new URL(BASE).hostname, 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'code.jquery.com',
     'ajax.googleapis.com', 'www.google.com', 'www.gstatic.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
@@ -42,7 +42,7 @@ async function servirCdn(route) {
 
 const aiguiller = route => {
     const url = route.request().url();
-    if (new URL(url).hostname.endsWith(new URL(BASE).hostname)) return route.continue();
+    if (new URL(url).hostname.endsWith(DOMAINE_LOCAL)) return route.continue();
     return autorise(url) ? servirCdn(route) : route.abort();
 };
 
@@ -56,18 +56,19 @@ for (const p of liste) {
     await ctx.route('**/*', aiguiller);
     const page = await ctx.newPage();
     const erreurs = [];
-    page.on('pageerror', e => erreurs.push('JS : ' + e.message));
+    page.on('pageerror', e => erreurs.push('JS : ' + e.message + (process.env.PILE ? '\n' + e.stack : '')));
     page.on('response', r => r.status() >= 500 && erreurs.push(`HTTP ${r.status()} : ${r.url()}`));
 
     try {
         // `load` attend chaque vignette : trop lent sur un disque de dev.
-        await page.goto(BASE + p.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(adresse(p.url), { waitUntil: 'domcontentloaded', timeout: 30000 });
         await page.waitForTimeout(4000);
+        if (!(await page.evaluate(() => !!window.Alpine))) erreurs.push('Alpine absent');
         // Chaque action repart d'une page neuve : une modale restee
         // ouverte ne doit pas faire echouer la suivante.
         for (const [i, [nom, action]] of Object.entries(Object.entries(p.actions ?? {}))) {
             if (i > 0) {
-                await page.goto(BASE + p.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                await page.goto(adresse(p.url), { waitUntil: 'domcontentloaded', timeout: 30000 });
                 await page.waitForTimeout(3000);
             }
             try { await action(page); } catch (e) { erreurs.push(`action « ${nom} » : ${e.message.split('\n')[0]}`); }

@@ -4,6 +4,13 @@
  * modale qui ne s'ouvre pas...).
  */
 export const BASE = process.env.FRONT_BASE ?? 'https://ubdf2026.ultra-book.name';
+export const DUST = process.env.FRONT_DUST ?? 'https://ubdf-dust-2026.ultra-book.name';
+
+/* Hotes servis par Valet : Ultra-book, Dustfolio et les books. */
+export const DOMAINE_LOCAL = 'ultra-book.name';
+
+/* Une URL de la liste est relative au portail Ultra-book, ou absolue. */
+export const adresse = url => url.startsWith('http') ? url : BASE + url;
 
 const visible = async (page, selecteur) => {
     await page.locator(selecteur).first().waitFor({ state: 'visible', timeout: 5000 });
@@ -32,5 +39,6 @@ export const pages = [
     { url: '/actus' },
     { url: '/meilleurs-illustrateurs' },
     { url: '/formules' },
-    { url: '/en' },
+    { url: DUST + '/en', actions: entete },
+    { url: DUST + '/fr' },
 ];
