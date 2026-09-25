@@ -156,7 +156,7 @@ class VueUltra2020
 
         foreach ($gal as $k => $rub) {
             if (is_int($k) && ! empty($gal['img'][$rub['rub_id']])) {
-                $rubriques[] = ['cle' => self::cle($k, $rub['rub_nom']), 'nom' => $rub['rub_nom']];
+                $rubriques[] = ['cle' => self::cle($k, $rub['rub_nom']), 'nom' => self::brut($rub['rub_nom'])];
             }
         }
 
@@ -195,9 +195,9 @@ class VueUltra2020
 
                 $visuels[] = [
                     'rubrique' => self::cle($k, $rub['rub_nom']),
-                    'nom_rubrique' => $rub['rub_nom'],
-                    'titre' => strip_tags((string) $img['img_titre']),
-                    'description' => strip_tags((string) $img['img_desc']),
+                    'nom_rubrique' => self::brut($rub['rub_nom']),
+                    'titre' => self::brut($img['img_titre']),
+                    'description' => self::brut($img['img_desc']),
                     'grand' => $grand,
                     'moyen' => $moyen,
                     'largeur' => $img['img_largeur'] ?? null,
@@ -209,10 +209,69 @@ class VueUltra2020
         return $visuels;
     }
 
+    /**
+     * Menu des pages (Bio, actualites), ex-ultra2020__front_nav_2020 :
+     * rubriques et leurs pages, la page affichee et son contenu. Une seule
+     * rubrique : ses pages sans intitule de rubrique, comme le legacy.
+     *
+     * @return array{rubriques: list<array{nom: string, url: string, active: bool, pages: list<array{titre: string, url: string, active: bool}>}>, seule: bool, page: ?array}
+     */
+    public function menuPages(): array
+    {
+        $act = $this->b->menu['act'] ?? [];
+        $rubId = (int) $this->b->rub_id;
+        $pagId = (int) $this->b->pag_id;
+        $rubriques = [];
+        $courante = null;
+
+        foreach ($act as $k => $rub) {
+            if (! is_int($k) || empty($act['img'][$rub['rub_id']])) {
+                continue;
+            }
+
+            $pages = [];
+            foreach ($act['img'][$rub['rub_id']] as $i => $pag) {
+                $premiere = $rubriques === [] && $i === 0 && $rubId === 0 && $pagId === 0;
+                $active = (int) $pag['img_id'] === $pagId || $premiere;
+                $pages[] = [
+                    'titre' => self::brut($pag['img_titre']),
+                    'url' => wd_remove_accents($pag['img_titre']).'-r'.$rub['rub_id'].'-c'.$pag['img_id'],
+                    'active' => $active,
+                ];
+                if ($active && ! $courante) {
+                    $courante = $pag;
+                }
+            }
+
+            $rubriques[] = [
+                'nom' => self::brut($rub['rub_nom']),
+                'url' => $pages[0]['url'],
+                'active' => (int) $rub['rub_id'] === $rubId || ($rubId === 0 && $rubriques === []),
+                'pages' => $pages,
+            ];
+        }
+
+        return [
+            'rubriques' => $rubriques,
+            'seule' => count($rubriques) === 1,
+            'page' => $courante,
+        ];
+    }
+
     /** Identifiant de filtre d'une rubrique : rang + nom, comme le legacy (`0__illustrations`). */
     public static function cle(int $rang, string $nom): string
     {
         return $rang.'__'.(Str::slug($nom) ?: 'rubrique');
+    }
+
+    /**
+     * Texte a afficher tel quel : les titres sont stockes encodes par
+     * l'ancien editeur (&#039;, &quot;). Decode ici, echappe une seule
+     * fois par Blade.
+     */
+    public static function brut(mixed $texte): string
+    {
+        return html_entity_decode(strip_tags((string) $texte), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     /** ultra2020__stripslashes_ : entites laissees par l'ancien editeur. */

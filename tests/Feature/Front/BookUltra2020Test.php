@@ -69,6 +69,26 @@ it('dispose Ultra-zen en colonne', function () {
         ->assertSee('md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]', false);
 });
 
-it('laisse les autres pages sur le gabarit d origine pour l instant', function () {
-    $this->get(urlUltra('lea-frais', '/contact'))->assertOk()->assertSee('jquery', false);
+it('rend la Bio avec son menu de pages, titres decodes une seule fois', function () {
+    $bio = $this->book->sections()->create(['kind' => 'pages', 'title' => 'Parcours', 'is_published' => true, 'position' => 1]);
+    $bio->articles()->create(['user_id' => $this->book->id, 'title' => 'Expositions d&#039;originaux', 'body' => '<p>Diplômée en 2010</p>', 'status' => 'published']);
+    $bio->articles()->create(['user_id' => $this->book->id, 'title' => 'Ateliers', 'body' => '<p>Ateliers</p>', 'status' => 'published']);
+
+    $this->get(urlUltra('lea-frais', '/actualites'))
+        ->assertOk()
+        ->assertDontSee('jquery', false)
+        ->assertSee('Diplômée en 2010', false)
+        ->assertSee('Expositions d&#039;originaux', false)
+        ->assertDontSee('&amp;#039;', false);
+});
+
+it('rend le contact, envoye a la route du book', function () {
+    $this->book->bookSetting->update(['diffuse_web' => true]);
+
+    $this->get(urlUltra('lea-frais', '/contact'))
+        ->assertOk()
+        ->assertDontSee('jquery', false)
+        ->assertSee('x-data="contactBook"', false)
+        ->assertSee('name="fm_contact_message"', false)
+        ->assertSee('Et si on parlait de votre projet ?');
 });

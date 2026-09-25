@@ -10,8 +10,14 @@
 @theme {
     --font-titre: 'Montserrat', ui-sans-serif, sans-serif;
     --font-texte: 'HKGrotesk', ui-sans-serif, sans-serif;
+}
 
-    /* Couleurs du theme, redefinies par .theme_gris / .theme_black. */
+/*
+ * Couleurs du theme, redefinies par .theme_gris / .theme_black sur <body>.
+ * « inline » : les utilitaires lisent var(--book-*) la ou ils s'appliquent ;
+ * resolues sur :root, ou ces variables n'existent pas, elles seraient vides.
+ */
+@theme inline {
     --color-book-fond: var(--book-fond);
     --color-book-texte: var(--book-texte);
     --color-book-texte2: var(--book-texte2);
@@ -61,6 +67,64 @@
    navigateur chargerait tous les visuels differes d'un coup. */
 .mosaique.prete {
     grid-auto-rows: 1px;
+}
+
+/*
+ * Texte des pages (Bio, actualites), saisi dans l'editeur de l'espace :
+ * balisage libre, mis en forme ici comme article.column-page du legacy.
+ */
+.contenu-page {
+    font-family: var(--font-titre);
+    color: var(--book-texte2);
+}
+.contenu-page p {
+    margin: 0 0 1em;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.56;
+}
+.contenu-page a {
+    font-weight: 500;
+    color: var(--book-texte);
+}
+.contenu-page strong,
+.contenu-page b {
+    font-weight: 500;
+}
+.contenu-page img {
+    width: 100%;
+    max-width: 925px;
+    height: auto;
+}
+.contenu-page h1,
+.contenu-page h2,
+.contenu-page h3 {
+    font-weight: 700;
+    line-height: 1.25;
+    text-transform: uppercase;
+    color: var(--book-texte2);
+}
+.contenu-page h1 { margin: 26px 0; font-size: 38px; }
+.contenu-page h2 { margin: 26px 0; font-size: 32px; letter-spacing: 1px; }
+.contenu-page h3 { margin: 22px 0; font-size: 20px; letter-spacing: .92px; }
+.contenu-page h4 { margin: 18px 0; font-size: 17px; font-weight: 600; line-height: 1.33; }
+.contenu-page h5 { margin: 18px 0; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+.contenu-page h6 { margin: 18px 0; font-size: 12px; font-weight: 300; letter-spacing: .5px; }
+.contenu-page blockquote,
+.contenu-page cite {
+    display: block;
+    margin: 18px 0;
+    font-size: 30px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.09;
+}
+.contenu-page ul { margin: 0 0 1em 1.2em; list-style: disc; }
+.contenu-page ol { margin: 0 0 1em 1.2em; list-style: decimal; }
+@media (max-width: 767px) {
+    .contenu-page h1 { font-size: 28px; }
+    .contenu-page h2 { font-size: 24px; }
+    .contenu-page blockquote, .contenu-page cite { font-size: 22px; }
 }
 
 /* Contenu du pied de page saisi par le createur (lien du modele). */

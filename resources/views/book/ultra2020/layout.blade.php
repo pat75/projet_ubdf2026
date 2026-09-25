@@ -134,6 +134,9 @@
                            'font-texte text-[15px]' => $zen,
                            'font-semibold text-book-texte' => $lien['actif'],
                        ])>{!! $lien['libelle'] !!}</a>
+                    @if ($zen && $loop->index === 1 && View::hasSection('sous-menu'))
+                        <div class="mb-2 pl-3 max-md:hidden">@yield('sous-menu')</div>
+                    @endif
                 @endforeach
                 @unless ($zen)
                     <span class="absolute bottom-0 h-px bg-book-filet transition-all duration-300 max-md:hidden"
