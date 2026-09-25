@@ -6,6 +6,8 @@
 
 @source '../views/book/ultra2020';
 @source '../js/book';
+@source '../views/components/book';
+@source '../views/components/espace/picto.blade.php';
 
 @theme {
     --font-titre: 'Montserrat', ui-sans-serif, sans-serif;
@@ -127,14 +129,9 @@
     .contenu-page blockquote, .contenu-page cite { font-size: 22px; }
 }
 
-/* Mode edition : textes modifiables signales au survol, crayon apres le texte. */
+/* Mode edition : texte modifiable (x-book.texte-editable) ; vide, une invite. */
 .edition [data-editable] {
     cursor: text;
-    outline-offset: 4px;
-}
-.edition [data-editable]:hover,
-.edition [data-editable]:focus {
-    outline: 1px dashed currentColor;
 }
 .edition [data-editable]:empty::before {
     content: '…';
@@ -148,4 +145,20 @@
 }
 .pied-book a:hover {
     color: var(--book-texte);
+}
+
+/* Mode edition : texte enregistre (x-book.texte-editable), une vague verte
+   douce puis retour a sa couleur, comme champ-editable dans l'espace. */
+.texte-book-enregistre {
+    animation: texte-book-vibre 1200ms ease-in-out 1;
+}
+
+@keyframes texte-book-vibre {
+    45%, 60% { color: #059669; }
+}
+
+/* Mode edition, rechargement apres un reglage : aucune animation. */
+.sans-animation *, .sans-animation *::before, .sans-animation *::after {
+    transition: none !important;
+    animation: none !important;
 }

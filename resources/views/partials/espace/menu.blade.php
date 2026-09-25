@@ -45,7 +45,7 @@
 
     <x-espace.nav-groupe>{{ __('Mon portfolio') }}</x-espace.nav-groupe>
     <x-espace.nav-lien route="espace.design" icone="reglage">{{ __('Configurer') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="espace.galeries" icone="oeil">{{ __('Modifier') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="espace.edition-book" icone="oeil">{{ __('Modifier') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.diffusion" icone="diffusion">{{ __('Diffuser') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Contenu du portfolio') }}</x-espace.nav-groupe>

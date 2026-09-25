@@ -17,7 +17,9 @@
  * - Filtre « les projets » : une rubrique ou toutes, les visuels
  *   reapparaissent en fondu.
  */
-const reduit = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Mouvements reduits (systeme), ou page rechargee par un reglage du mode edition.
+const reduit = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    || document.documentElement.classList.contains('sans-animation');
 const CACHE = ['opacity-0', 'translate-y-8'];
 
 export default function mosaique(Alpine) {

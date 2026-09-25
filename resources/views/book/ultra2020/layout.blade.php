@@ -11,8 +11,6 @@
 @php
     $zen = $vue->zen();
     $edition = $vue->edition();
-    // Texte modifiable sur place en mode edition (resources/js/book/edition.js).
-    $editable = fn (string $cle) => $edition ? new \Illuminate\Support\HtmlString('x-data="texteBook(\''.$cle.'\')" data-editable') : '';
     $entete = $vue->entete();
     $taille = $vue->tailleEntete();
     $reseaux = $vue->reseaux();
@@ -74,7 +72,7 @@
         <style>{!! trim($vue->pref->expert_css) !!}</style>
     @endif
 </head>
-<body @if ($edition) x-data :class="$store.edition.actif && 'edition'" @endif class="{{ $zen ? 'theme_ultrazen' : 'theme_ultrafrais' }} {{ $vue->couleur() }} min-h-screen bg-book-fond font-texte text-book-texte2 antialiased"
+<body @if ($edition) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif class="{{ $edition ? 'lg:pl-[24rem]' : '' }} {{ $zen ? 'theme_ultrazen' : 'theme_ultrafrais' }} {{ $vue->couleur() }} min-h-screen bg-book-fond font-texte text-book-texte2 antialiased"
       id="{{ $b->page_type }}">
 
     @if ($vue->curseur())
@@ -121,15 +119,15 @@
             </a>
 
             <a href="/" class="mt-5 block" data-curseur>
-                <h1 @class([
+                <x-book.texte-editable cle="titre" tag="h1" :edition="$edition" @class([
                     'font-titre text-[26px] leading-[1.43] text-book-texte2 md:text-[32px]',
                     'font-semibold' => ! $zen,
                     'font-normal leading-[1.23]' => $zen,
-                ]) {{ $editable('titre') }}>{!! $vue->texte('titre') !!}</h1>
+                ])>{!! $vue->texte('titre') !!}</x-book.texte-editable>
             </a>
 
             @if ($vue->texte('description') !== '' || $edition)
-                <h2 class="mt-3.5 font-texte text-[18px] font-light leading-[1.17] text-book-texte2 md:text-[22px]" {{ $editable('description') }}>{!! $vue->texte('description') !!}</h2>
+                <div class="mt-3.5"><x-book.texte-editable cle="description" tag="h2" :edition="$edition" class="font-texte text-[18px] font-light leading-[1.17] text-book-texte2 md:text-[22px]">{!! $vue->texte('description') !!}</x-book.texte-editable></div>
             @endif
 
             <nav x-data="soulignement" @mouseleave="revenir()" aria-label="{{ __('Menu du book') }}" @class([
@@ -145,7 +143,7 @@
                            'font-titre text-[14px] font-light uppercase tracking-[1.46px]' => ! $zen,
                            'font-texte text-[15px]' => $zen,
                            'font-semibold text-book-texte' => $lien['actif'],
-                       ])>{!! $lien['libelle'] !!}</a>
+                       ])><x-book.texte-editable :cle="'nav_link.'.$lien['cle']" tag="span" :edition="$edition">{!! $lien['libelle'] !!}</x-book.texte-editable></a>
                     @if ($zen && $loop->index === 1 && View::hasSection('sous-menu'))
                         <div class="mb-2 pl-3 max-md:hidden">@yield('sous-menu')</div>
                     @endif

@@ -13,8 +13,8 @@
 
     <article @class(['mx-auto max-w-xl text-left', 'md:mx-0' => $vue->zen()])>
         @if ($vue->texte('contact_titre') !== '' || $vue->edition())
-            <h1 class="mb-8 font-titre text-[26px] font-semibold leading-tight text-book-texte2 md:text-[32px]"
-                @if ($vue->edition()) x-data="texteBook('contact_titre')" data-editable @endif>{!! $vue->texte('contact_titre') !!}</h1>
+            <div class="mb-8"><x-book.texte-editable cle="contact_titre" tag="h1" :edition="$vue->edition()"
+                class="font-titre text-[26px] font-semibold leading-tight text-book-texte2 md:text-[32px]">{!! $vue->texte('contact_titre') !!}</x-book.texte-editable></div>
         @endif
 
         <div x-data="contactBook"

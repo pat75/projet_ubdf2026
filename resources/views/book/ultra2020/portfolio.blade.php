@@ -19,15 +19,27 @@
                  @mouseenter="window.matchMedia('(hover: hover)').matches && (menu = true)"
                  @mouseleave="window.matchMedia('(hover: hover)').matches && (menu = false)"
                  @click.outside="menu = false">
-                <button type="button" @click="menu = ! menu" :aria-expanded="menu" data-curseur
-                        @class([
-                            'flex items-center gap-4 py-2 text-book-texte',
-                            'font-titre text-[13px] tracking-[1.3px] uppercase' => ! $zen,
-                            'font-texte text-[15px] font-semibold lowercase' => $zen,
-                        ])>
-                    <span x-ref="libelle" x-text="libelle">{{ __('les projets') }}</span>
-                    <svg class="size-6 transition-transform duration-300" :class="menu && 'rotate-45'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2v20M2 12h20"/></svg>
-                </button>
+                @php
+                    $typo = [
+                        'flex items-center gap-4 py-2 text-book-texte',
+                        'font-titre text-[13px] tracking-[1.3px] uppercase' => ! $zen,
+                        'font-texte text-[15px] font-semibold lowercase' => $zen,
+                    ];
+                    $plus = '<svg class="size-6 transition-transform duration-300" :class="menu && \'rotate-45\'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2v20M2 12h20"/></svg>';
+                @endphp
+                @if ($vue->edition())
+                    {{-- En edition : l'intitule se modifie sur place, hors du bouton
+                         (un crayon ne peut pas etre dans un bouton) ; le + ouvre le filtre. --}}
+                    <div @class($typo)>
+                        <x-book.texte-editable cle="nav_link.name_projets" tag="span" :edition="true">{{ $vue->lien('name_projets', __('les projets')) }}</x-book.texte-editable>
+                        <button type="button" @click="menu = ! menu" :aria-expanded="menu" aria-label="{{ __('Filtrer les projets') }}" data-curseur>{!! $plus !!}</button>
+                    </div>
+                @else
+                    <button type="button" @click="menu = ! menu" :aria-expanded="menu" data-curseur @class($typo)>
+                        <span x-ref="libelle" x-text="libelle">{{ $vue->lien('name_projets', __('les projets')) }}</span>
+                        {!! $plus !!}
+                    </button>
+                @endif
 
                 <div x-show="menu" x-cloak x-transition.opacity.duration.200ms
                      @class([
