@@ -29,7 +29,8 @@ export default function cartes(Alpine) {
 
         const ancre = decodeURIComponent(window.location.hash.slice(1));
         if (ancre === 'create-book') {
-            Alpine.store('modale').ouvrir('creerbook');
+            // Ancien lien vers la fenetre d'inscription, devenue une page.
+            window.location.href = window.ubdf?.inscription ?? '/creer-un-book';
         } else if (/^[a-z0-9_-]+$/.test(ancre)) {
             const carte = document.getElementById(`user_${ancre}`);
             if (carte?.dataset.slider) Alpine.store('visionneuse').ouvrir(carte);

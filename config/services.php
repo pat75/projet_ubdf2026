@@ -75,6 +75,18 @@ return [
     | Google Maps, pour la carte du formulaire de contact et des themes.
     | La cle etait ecrite en dur dans trois gabarits du legacy.
     */
+    /*
+    | Connexion et creation de book via Google (Socialite). Client OAuth
+    | propre a Ultra-book. L'adresse de retour n'est pas fixee ici : elle
+    | suit l'hote de la requete (Ultra-book ou Dustfolio), et chacune doit
+    | etre declaree dans la console Google.
+    */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => '/auth/google/callback',
+    ],
+
     'google_maps' => [
         'key' => env('GOOGLE_MAPS_KEY'),
     ],

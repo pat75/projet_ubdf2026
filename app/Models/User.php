@@ -17,7 +17,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'legacy_id', 'login', 'email', 'password', 'category_id', 'brand', 'locale',
+        'legacy_id', 'login', 'email', 'password', 'google_id', 'category_id', 'brand', 'locale',
         'firstname', 'lastname', 'company', 'civility', 'status',
         'address', 'zipcode', 'city', 'country', 'phone', 'mobile', 'latitude', 'longitude',
         'website', 'facebook_url', 'twitter_url', 'instagram_url', 'custom_domain',

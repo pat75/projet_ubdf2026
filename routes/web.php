@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PriseIdentiteController;
+use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Front\DesabonnementController;
 use App\Http\Controllers\Front\EditionBookController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
+use App\Http\Controllers\Front\NewsletterController;
 use App\Http\Controllers\Front\StatsBookController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
@@ -21,6 +23,7 @@ use App\Http\Controllers\Espace\PaiementController;
 use App\Http\Controllers\Espace\PdfController;
 use App\Http\Controllers\Espace\StatistiquesController;
 use App\Http\Controllers\Front\FilController;
+use App\Http\Controllers\Front\GoogleController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
@@ -75,6 +78,10 @@ Route::domain('{login}.'.$bookDomain)
         Route::get('/actualites', [BookController::class, 'actualites']);
         Route::get('/contact', [BookController::class, 'contact'])->name('book.contact');
         Route::post('/contact', [BookController::class, 'envoyer'])->name('book.contact.envoyer');
+
+        // Captcha du formulaire de contact : servi par le sous-domaine, dont
+        // la session garde le code.
+        Route::get('/captcha/{formulaire}', CaptchaController::class)->name('book.captcha');
 
         // Mode edition (Ultra-frais / Ultra-zen) : entree par lien signe
         // emis depuis l'espace, puis reglages enregistres un a un.
@@ -216,7 +223,14 @@ Route::group([], function () {
 
     Route::post('/intermediate_send', [ContactController::class, 'envoyer'])
         ->name('contact.envoyer');
-    Route::get('/captcha_img', [ContactController::class, 'captcha'])->name('captcha');
+    // Captcha local (App\Services\Captcha\Captcha). /captcha_img garde
+    // l'adresse du legacy pour la fenetre « Contacter ».
+    Route::get('/captcha_img', CaptchaController::class)->name('captcha');
+    Route::get('/captcha/{formulaire}', CaptchaController::class)->name('captcha.formulaire');
+
+    // Inscription a la newsletter (pied de page, menu du portail).
+    Route::post('/newsletter', NewsletterController::class)
+        ->middleware('throttle:10,1')->name('newsletter.inscription');
 
     /*
      | Comptes creatifs
@@ -247,6 +261,13 @@ Route::group([], function () {
     Route::post('/inscription', [InscriptionController::class, 'soumettre'])
         ->name('inscription.soumettre');
 
+    // Connexion et creation de book par Google (GoogleController).
+    Route::get('/auth/google', [GoogleController::class, 'redirection'])->name('google.redirection');
+    Route::get('/auth/google/callback', [GoogleController::class, 'retour'])->name('google.retour');
+    Route::post('/auth/google/inscription', [GoogleController::class, 'inscrire'])
+        ->middleware('throttle:10,1')->name('google.inscription');
+    Route::post('/auth/google/abandon', [GoogleController::class, 'abandonner'])->name('google.abandon');
+
     Route::get('/messages/{role}/{selector}/{jeton}', [FilController::class, 'show'])
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
         ->name('messagerie.fil');
@@ -262,12 +283,21 @@ Route::group([], function () {
 | Ce sont elles qui portent la langue : chacune est enregistree une fois
 | sans prefixe (Ultra-book) et une fois par langue servie (Dustfolio).
 */
-$portail = function () {
+$portail = function (?string $langue = null) {
 
     Route::get('/', [AccueilController::class, 'index'])->name('home');
     Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
 
     Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
+
+    // Page « Creer un book », segment traduit (config/slugs.php). Les
+    // segments des autres langues renvoient vers celui-ci.
+    $slugs = config('slugs.inscription');
+    $slug = $slugs[$langue ?? 'fr'] ?? $slugs['fr'];
+    Route::get('/'.$slug, [InscriptionController::class, 'page'])->name('inscription.page');
+    foreach (array_unique(array_diff($slugs, [$slug])) as $autre) {
+        Route::get('/'.$autre, fn () => redirect()->to(lien('inscription.page'), 301));
+    }
 
     /*
      | Comptes creatifs — les pages, celles-ci traduites.
@@ -413,7 +443,7 @@ $portail = function () {
 | leur equivalent prefixe : une page n'a ainsi qu'une seule adresse par
 | langue.
 */
-Route::middleware(ResoudreLangue::class)->group($portail);
+Route::middleware(ResoudreLangue::class)->group(fn () => $portail());
 
 /*
 | Dustfolio : une copie des memes routes par langue servie, prefixee et
@@ -431,7 +461,7 @@ foreach (array_keys(config('langues.disponibles', [])) as $langue) {
     Route::prefix($langue)
         ->name($langue.'.')
         ->middleware(ForcerLangue::class.':'.$langue)
-        ->group($portail);
+        ->group(fn () => $portail($langue));
 }
 
 /*

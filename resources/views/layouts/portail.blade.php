@@ -11,17 +11,22 @@
      remontee du bloc de recherche). --}}
 <body class="marque_{{ $marque->code }} @yield('body_class', 'page_accueil')">
 
-@include('partials.header')
+{{-- Pages plein ecran (creer un book) : ni menu du haut ni pied de page. --}}
+@unless (View::hasSection('plein_ecran'))
+    @include('partials.header')
+@endunless
 
 @yield('content')
 
-@include('partials.footer')
+@unless (View::hasSection('plein_ecran'))
+    @include('partials.footer')
+@endunless
 @include('partials.modals')
 @include('partials.visionneuse')
 
 {{-- Contrat passe au JS du portail (resources/js/portail/cartes.js). --}}
 <script>
-    window.ubdf = @json($ubdf ?? []);
+    window.ubdf = @json(($ubdf ?? []) + ['inscription' => lien('inscription.page')]);
 </script>
 @stack('scripts')
 </body>

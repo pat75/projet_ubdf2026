@@ -331,13 +331,10 @@
                     <h2 class="accroche_titre" x-apparition.100>{{ __('Créez gratuitement votre portfolio') }}</h2>
                     <div class="accroche_soustitre" x-apparition.200>{{ __('Diffusez-le et proposez vos services') }}</div>
 
-                    {{-- Meme declencheur que le bouton « Creez un book » plus
-                         bas dans la page : c'est le JavaScript du front 2018
-                         qui ouvre la fenetre d'inscription. --}}
-                    <button x-apparition:zoom.300 class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl" @click.prevent="$store.modale.ouvrir('creerbook')">
+                    <a x-apparition:zoom.300 class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl" href="{{ lien('inscription.page') }}">
                         <i class="right arrow icon"></i>
                         {{ __('Créer un book') }}
-                    </button>
+                    </a>
                 </div>
             @endif
         </header>
@@ -550,9 +547,9 @@
                     <h1>{{ __('Créer votre portfolio') }}</h1>
                     <h4>Chargez vos images par glisser-poser</h4>
                     <h4>Modifiez l’apparence, et diffusez</h4>
-                    <button class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" @click.prevent="$store.modale.ouvrir('creerbook')">
+                    <a class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" href="{{ lien('inscription.page') }}">
                         <i class="right arrow icon"></i>
-                        CRÉEZ UN BOOK                    </button>
+                        CRÉEZ UN BOOK                    </a>
                 </div>
                 <div class=" center aligned olive+ column col_visuel_mdl_book" x-apparition:droite.150>
                     <div class="accueil_mdl_book_visuel"></div>

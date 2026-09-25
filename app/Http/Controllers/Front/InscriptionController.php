@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Auth\Inscription;
 use App\Services\Auth\MotDePasse;
 use App\Services\Auth\Recaptcha;
+use App\Services\Captcha\Captcha;
 use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\View\View;
 
 /**
  * Inscription d'un creatif et demande de mot de passe oublie.
@@ -34,7 +36,36 @@ class InscriptionController extends Controller
         private readonly Inscription $inscription,
         private readonly MotDePasse $motDePasse,
         private readonly Recaptcha $recaptcha,
+        private readonly Captcha $captcha,
     ) {}
+
+    /**
+     * Page « Creer un book » : le formulaire de l'ancienne fenetre, en
+     * pleine page. Il poste toujours sur `/inscription`.
+     */
+    public function page(Request $requete): View
+    {
+        return view('front.creer-un-book', [
+            // Creation commencee par Google (GoogleController::retour).
+            'google' => $requete->session()->get('google.inscription'),
+            // Messages du controle cote navigateur (resources/js/portail/inscription.js).
+            'textes' => collect(self::TEXTES_NAVIGATEUR)->mapWithKeys(fn (string $phrase) => [$phrase => __($phrase)]),
+        ]);
+    }
+
+    private const TEXTES_NAVIGATEUR = [
+        'Indiquer votre nom',
+        'Votre nom de book/identifiant doit contenir plus de 3 caractères',
+        'Caractères incorrects : lettres minuscules, chiffres, - et _',
+        'Ce nom existe déjà',
+        'Sélectionner un métier ou domaine',
+        'Votre mot de passe doit contenir au moins 8 caractères',
+        'Indiquer votre mail',
+        'Il ne s’agit pas d’un mail',
+        'Vous devez accepter les conditions d’utilisation',
+        'Recopiez les 4 caractères de l’image',
+        'Enregistrement impossible pour le moment.',
+    ];
 
     /**
      * Disponibilite d'un identifiant, interrogee a la frappe.
@@ -61,7 +92,7 @@ class InscriptionController extends Controller
     public function soumettre(Request $requete): JsonResponse
     {
         return match ((string) $requete->input('form_id')) {
-            'form_adduser' => $this->garde($requete, 'inscription', 300)
+            'form_adduser' => $this->garde($requete, 'inscription', 300, captchaLocal: true)
                 ?? $this->creer(app(InscriptionRequest::class)),
             'form_mdpoublie' => $this->garde($requete, 'mdp-oublie', 900)
                 ?? $this->motDePasseOublie($requete),
@@ -79,7 +110,7 @@ class InscriptionController extends Controller
      * precede volontairement la validation : il ne sert a rien de valider
      * finement une requete automatisee.
      */
-    private function garde(Request $requete, string $portee, int $fenetre): ?JsonResponse
+    private function garde(Request $requete, string $portee, int $fenetre, bool $captchaLocal = false): ?JsonResponse
     {
         $cle = $portee.'|'.$requete->ip();
 
@@ -87,10 +118,18 @@ class InscriptionController extends Controller
             return $this->erreurs([__('Trop de demandes. Réessayez dans un instant.')]);
         }
 
-        if (! $this->recaptcha->valide($requete->input('g-recaptcha-response'), 'validate_captcha')) {
+        // Inscription : captcha local (le code recopie) ; mot de passe
+        // oublie : reCAPTCHA invisible, inchange.
+        $valide = $captchaLocal
+            ? $this->captcha->verifier('inscription', (string) $requete->input('captcha'))
+            : $this->recaptcha->valide($requete->input('g-recaptcha-response'), 'validate_captcha');
+
+        if (! $valide) {
             RateLimiter::hit($cle, $fenetre);
 
-            return $this->erreurs([__('Erreur de captcha — rechargez la page, svp.')]);
+            return $this->erreurs([$captchaLocal
+                ? __('Le code recopié ne correspond pas à l’image.')
+                : __('Erreur de captcha — rechargez la page, svp.')]);
         }
 
         return null;

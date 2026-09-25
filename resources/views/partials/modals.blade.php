@@ -1,4 +1,4 @@
-{{-- Popups et modales du portail (recherche, connexion, inscription,
+{{-- Popups et modales du portail (recherche, connexion,
      memo book, contact). Le comportement est porte par js2019. --}}
 <!-- All popup and modal !-->
 <!-- Menu -top - mobile -->
@@ -140,7 +140,7 @@
                             </div>
                             <!-- bloc creer un book-->
                             <div class="item btn_connection_signin mobile-hidden  cursor_effect">
-                                <a class="ui black button btn_modal_creerbook" x-data @click.prevent="$store.modale.ouvrir('creerbook')">Créer un book</a>
+                                <a class="ui black button btn_modal_creerbook" href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
                             </div>
                         @endauth
                         <!-- bloc connexion - end -->
@@ -418,7 +418,7 @@
                     <div class="ui huge inverted  animated list selections">
 
 
-                        <a class="item btn_modal_creerbook" x-data @click.prevent="$store.modale.ouvrir('creerbook')">
+                        <a class="item btn_modal_creerbook" href="{{ lien('inscription.page') }}">
                             <div class="middle aligned content">
                                 <div class="header">
                                     <span class="fonticon-plus2 fonticon_w22"></span>&nbsp;Créer un portfolio</div>
@@ -466,9 +466,9 @@
                         <div>Les dernières sélections du mois</div>
                         <div class="no-spam mobile-hidden">Confidentialité, sécurité et absence de spam</div>
 
-                        <form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php" @submit.prevent="envoyer($el)">
+                        <form class="ui form form_newsletter_2018" action="{{ route('newsletter.inscription') }}" @submit.prevent="envoyer($el)">
 
-                            <input type="hidden" name="action" value="add">
+                            @csrf
 
                             <div class="ui  action mini input">
                                 <input type="text" name="mail" placeholder="Mail...">
@@ -780,9 +780,9 @@
                                 <div class="ui field" :class="{ error: erreurs.captcha_answer }">
                                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                         <img id="captcha_img" :src="captcha" alt="captcha" title="Cliquez pour changer"
-                                             style="height:46px;border:1px solid #ddd;border-radius:3px;cursor:pointer;" @click="rechargerCaptcha()">
+                                             width="150" height="50" style="border:1px solid #ddd;border-radius:3px;cursor:pointer;background:#fff" @click="rechargerCaptcha()">
                                         <div class="ui input" style="width:130px;">
-                                            <input type="text" name="captcha_answer" id="captcha_answer_input" maxlength="6" placeholder="Recopiez"
+                                            <input type="text" name="captcha_answer" id="captcha_answer_input" maxlength="4" placeholder="Recopiez"
                                                    autocomplete="off" style="letter-spacing:2px;text-transform:uppercase;" @input="erreurs.captcha_answer = ''">
                                         </div>
                                         <i class="sync alternate icon" id="captcha_reload_btn" title="Nouvelle image"
@@ -804,108 +804,117 @@
 
 
 
-<!-- Modal connection 2018 !-->
-<x-portail.modale nom="connexion" class="modal_connection" :ouverte="session('connexion_ouverte', false)">
+<!-- Modal connexion -->
+{{-- Ecran de connexion plein ecran, sur le modele de la modale de Tesli :
+     illustration a gauche (masquee sur mobile), formulaire a droite.
+     Etats : resources/js/portail/connexion.js. --}}
+<x-portail.modale nom="connexion" class="connexion_plein" :ouverte="session('connexion_ouverte', false)">
+    <div class="connexion" x-data="connexion">
 
-    {{-- Etats de la fenetre : resources/js/portail/connexion.js. --}}
-    <div class="content" x-data="connexion">
-        <div class="btn_close outbox">
-            <div></div>
+        <button type="button" class="btn_close connexion_fermer" aria-label="{{ __('Fermer') }}">
+            <i class="close icon"></i>
+        </button>
+
+        <div class="connexion_visuel">
+            <img src="/img_admin/diffusion-b.svg" alt="" width="400" height="400" loading="lazy">
         </div>
 
-        <div class="ui container ">
-            <div class="ui grid three column middle center aligned stackable">
+        <div class="connexion_panneau">
+            <div class="connexion_colonne">
+                <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
+                {{-- Pas de <h1> : la fenetre est incluse dans toutes les pages. --}}
+                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Connexion') }}</p>
+                <p class="connexion_accroche">{{ __('Retrouvez votre book, vos messages et vos statistiques.') }}</p>
 
-                <div class="2-3 wide column space2 ui middle aligned">
-                    <div class="segment basic space1">
-                        <div class="logo">
-                            <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
+                <!-- connexion -->
+                <div id="segment_connect" x-show="vue === 'connexion'">
+                    {{-- Echec de connexion (ConnexionController, GoogleController) :
+                         la fenetre est rouverte avec le message. --}}
+                    @error('login')
+                        <div class="ui negative message connexion_alerte" role="alert">
+                            <div class="header">{{ __('Connexion impossible') }}</div>
+                            <p>{{ $message }}</p>
+                            <p>
+                                <a href="#" @click.prevent="vue = 'mdp'">{{ __('Réinitialiser mon mot de passe') }}</a>
+                                ·
+                                <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+                            </p>
                         </div>
-                        <h3>Une mine de créatifs</h3>
+                    @enderror
 
-                        <!-- mot de passe oublie : resultat -->
-                        <div class="ui segment basic space1" id="segment_mdp_showOk" x-show="vue === 'resultat'" x-cloak>
-                            <div class="ui left aligned basic small segment">
-                                <div class="ui info message" x-show="! resultat.erreur">
-                                    <div class="header" x-text="resultat.titre"></div>
-                                    <p x-text="resultat.texte"></p>
-                                </div>
-                                <div class="ui negative message" x-show="resultat.erreur">
-                                    <div class="header" x-text="resultat.titre"></div>
-                                </div>
-                                <button type="button" class="ui button icon btn_back_mdp" @click="vue = 'mdp'"><i class="angle left icon"></i></button>
+                    <x-portail.bouton-google />
+
+                    <div class="creer_book_ou"><span>{{ __('ou avec votre mot de passe') }}</span></div>
+
+                    <form action="/ubaction__user_open" id="login_form" method="post" class="ui form" @submit.prevent="connecter($el)" novalidate>
+                        @csrf
+                        <input type="hidden" name="g-recaptcha-response">
+                        <div class="field" :class="{ error: erreurLogin }">
+                            <label for="login">{{ __('Votre identifiant') }}</label>
+                            <input id="login" type="text" name="login" value="{{ old('login') }}"
+                                   autocomplete="username" @input="erreurLogin = ''">
+                            <div class="ui basic red pointing prompt label" :class="{ show: erreurLogin }" x-text="erreurLogin"></div>
+                        </div>
+                        <div class="field" x-data="{ visible: false }">
+                            <label for="pass">{{ __('Votre mot de passe') }}</label>
+                            <div class="ui icon input">
+                                <input id="pass" :type="visible ? 'text' : 'password'" type="password" name="pass" value=""
+                                       autocomplete="current-password">
+                                <i class="link icon" :class="visible ? 'eye slash' : 'eye'" @click="visible = ! visible"
+                                   :title="visible ? @js(__('Masquer')) : @js(__('Afficher'))"></i>
                             </div>
                         </div>
-                    </div>
+                        <div class="connexion_actions">
+                            <button class="ui black button valider_submit_login" type="submit">{{ __('Se connecter') }}</button>
+                            <a id="btn_mdp_forget" href="#" @click.prevent="vue = 'mdp'">{{ __('Mot de passe oublié ?') }}</a>
+                        </div>
+                    </form>
+
+                    <p class="connexion_inscription">
+                        {{ __('Pas encore de book ?') }}
+                        <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+                    </p>
                 </div>
 
-                <div class="one  column space2">
+                <!-- mot de passe oublie : envoi en cours -->
+                <div class="ui inverted dimmer" id="segment_loader_mdp" :class="{ active: chargement }">
+                    <div class="ui loader"></div>
+                </div>
 
-                    <!-- mot de passe oublie : envoi en cours -->
-                    <div class="ui inverted dimmer" id="segment_loader_mdp" :class="{ active: chargement }">
-                        <div class="ui loader"></div>
-                    </div>
-
-                    <!-- mot de passe oublie : formulaire -->
-                    <div class="ui segment basic space1" id="segment_mdp" x-show="vue === 'mdp'" x-cloak>
-                        <div class="ui left aligned basic small segment">
-                            <h4>Récupérer mon mot de passe</h4>
-                            <form id="mdp_form" class="ui form" @submit.prevent="demanderMotDePasse($el)" novalidate>
-                                @csrf
-                                <input type="hidden" name="form_action" value="form_valide" >
-                                <input type="hidden" name="form_id" value="form_mdpoublie">
-                                <input type="hidden" name="action" value="form">
-                                <div class="grouped fields">
-                                    <div class="ui field" :class="{ error: erreurMail }">
-                                        <div class="ui left icon input">
-                                            <input id="us_mail_mdp" type="email" name="us_mail" value=""
-                                                   placeholder="Indiquer votre mail" @input="erreurMail = ''">
-                                            <i class="mail icon"></i>
-                                        </div>
-                                        <div class="ui basic red pointing prompt label" :class="{ show: erreurMail }" x-text="erreurMail"></div>
-                                    </div>
-                                </div>
-                                <button type="button" class="ui button icon btn_back_mdptologin" @click="vue = 'connexion'"><i class="angle left icon"></i></button>
-                                <button class="ui teal button valider_submit_mdp" type="submit">Valider</button>
-                            </form>
+                <!-- mot de passe oublie : formulaire -->
+                <div id="segment_mdp" x-show="vue === 'mdp'" x-cloak>
+                    <h4>{{ __('Récupérer mon mot de passe') }}</h4>
+                    <p class="connexion_accroche">{{ __('Indiquez l’adresse mail de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.') }}</p>
+                    <form id="mdp_form" class="ui form" @submit.prevent="demanderMotDePasse($el)" novalidate>
+                        @csrf
+                        <input type="hidden" name="form_action" value="form_valide">
+                        <input type="hidden" name="form_id" value="form_mdpoublie">
+                        <input type="hidden" name="action" value="form">
+                        <div class="field" :class="{ error: erreurMail }">
+                            <div class="ui left icon input">
+                                <input id="us_mail_mdp" type="email" name="us_mail" value=""
+                                       placeholder="{{ __('Indiquer votre mail') }}" @input="erreurMail = ''">
+                                <i class="mail icon"></i>
+                            </div>
+                            <div class="ui basic red pointing prompt label" :class="{ show: erreurMail }" x-text="erreurMail"></div>
                         </div>
-                    </div>
-
-                    <!-- connexion -->
-                    <div class="ui segment basic space1" id="segment_connect" x-show="vue === 'connexion'">
-                        <div class="ui horizontal divider">
-                            Déja un compte
+                        <div class="connexion_actions">
+                            <button class="ui black button valider_submit_mdp" type="submit">{{ __('Valider') }}</button>
+                            <a href="#" class="btn_back_mdptologin" @click.prevent="vue = 'connexion'">{{ __('Retour à la connexion') }}</a>
                         </div>
-                        <div class="ui left aligned basic small segment">
-                            <form action="/ubaction__user_open" id="login_form" method="post" class="ui form" @submit.prevent="connecter($el)" novalidate>
-                                @csrf
-                                <input type="hidden" name="g-recaptcha-response">
-                                <div class="grouped fields">
-                                    <div class="ui small input field" :class="{ error: erreurLogin }">
-                                        <input id="login" type="text" name="login" value="{{ old('login') }}"
-                                               autocomplete="username" placeholder="Identifiant" @input="erreurLogin = ''">
-                                    </div>
-                                    {{-- hors du .input (flex) : sinon l'etiquette y est ecrasee --}}
-                                    <div class="ui basic red pointing prompt label" :class="{ show: erreurLogin }" x-text="erreurLogin"></div>
-                                </div>
-                                <div class="grouped fields">
-                                    <div class="ui field">
-                                        <input id="pass" type="password" name="pass" value=""
-                                               autocomplete="current-password" placeholder="Mot de passe">
-                                    </div>
-                                </div>
-                                {{-- Echec de connexion : ConnexionController renvoie ici,
-                                     fenetre rouverte, avec le message. --}}
-                                @error('login')
-                                    <div class="ui negative message" style="display: block;">{{ $message }}</div>
-                                @enderror
-                                <input class="ui small button valider_submit_login" type="submit" value="Connexion">
-                            </form>
-                            <br>
-                            <a id="btn_mdp_forget" href="#" @click.prevent="vue = 'mdp'">Mot de passe ou pseudo oublié ?</a>
-                        </div>
-                    </div>
+                    </form>
+                </div>
 
+                <!-- mot de passe oublie : resultat -->
+                <div id="segment_mdp_showOk" x-show="vue === 'resultat'" x-cloak>
+                    <div class="ui info message" x-show="! resultat.erreur">
+                        <div class="header" x-text="resultat.titre"></div>
+                        <p x-text="resultat.texte"></p>
+                    </div>
+                    <div class="ui negative message" x-show="resultat.erreur">
+                        <div class="header" x-text="resultat.titre"></div>
+                    </div>
+                    <a href="#" class="btn_back_mdp" @click.prevent="vue = 'connexion'">{{ __('Retour à la connexion') }}</a>
                 </div>
             </div>
         </div>
@@ -916,200 +925,6 @@
 
 
 
-<!-- Modal creer un book 2019 ! -->
-
-<!-- reCAPTCHA v3 -->
-<x-portail.modale nom="creerbook" class="modal_creerbook">
-
-    {{-- Etats de la fenetre : resources/js/portail/inscription.js. --}}
-    <div class="content" x-data="inscription">
-        <div class="btn_close outbox">
-            <div></div>
-        </div>
-
-        <div class="ui container ">
-            <div class="ui grid middle center aligned stackable">
-
-                <div class="column space2 ui middle aligned" :class="vue === 'validation' ? 'sixteen wide' : 'ten wide'">
-                    <div class="segment basic space1" id="inscription_segment_gauche">
-                        <img class="ui centered medium image  cursor_effect" src="/img_admin/diffusion-b.svg" alt="Créez un book">
-
-                        <!-- presentation -->
-                        <div id="inscription_segment_presentation" x-show="vue !== 'validation'">
-                            <h2>Créez un book</h2>
-                            <h4>Rejoignez les 50.000 créatifs.<br/>Créez, diffusez et proposez vos services</h4>
-                            <div class="logo">
-                                <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
-                            </div>
-                            <h3>Une mine de créatifs</h3>
-                        </div>
-
-                        <!-- validation : progression puis acces a l'espace -->
-                        <div id="inscription_segment_validation" x-show="vue === 'validation'" :class="{ active: vue === 'validation' }" x-cloak>
-                            <canvas id="make_progress_canvas" x-ref="progression" x-show="! bravo"></canvas>
-                            <div class="inscription_segment_bravo" x-show="bravo" x-cloak
-                                 x-transition.opacity.duration.400ms @click="allerEspace()">
-                                <h2 class="btn_acceder_espace">Bravo, maintenant vous avez votre portfolio !</h2>
-                                <h4 class="btn_acceder_espace">Pour rejoindre la sélection placez au minimum une douzaine d’images</h4>
-                                <h3 class="btn_acceder_espace">Accédez à votre espace<i class="ui arrow right teal icon"></i></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="six wide column space2" x-show="vue !== 'validation'">
-                    <div class="ui segment basic space1" id="inscription_segment_">
-
-                        <!-- envoi en cours -->
-                        <div class="ui inverted dimmer" id="inscription_segment_loader" :class="{ active: chargement }">
-                            <div class="ui loader"></div>
-                        </div>
-
-                        <!-- erreurs renvoyees par le serveur -->
-                        <div id="display_error_segment" x-show="vue === 'erreur'" x-cloak x-transition.opacity>
-                            <div class="ui error message" style="display: block;">
-                                <div class="header"><i class="cogs icon"></i> Erreurs lors de l’enregistrement.</div>
-                                <template x-for="message in messagesErreur"><p x-text="message"></p></template>
-                            </div>
-                            <button type="button" class="ui button icon return_first" @click="recommencer()"><i class="angle left icon"></i></button>
-                        </div>
-
-                        <!-- formulaire -->
-                        <div id="inscription_segment" x-show="vue === 'formulaire'">
-                            <div id="inscription_segment_social_connect" x-show="volet === 1">
-                                <h4 style="margin-top:50px;text-align:left;color:#5f5f5f;margin-bottom: 8px;margin-left: 6px;">
-                                    Inscrivez-vous gratuitement
-                                </h4>
-                            </div>
-
-                            <div class="ui left aligned basic small segment">
-                                <form class="ui form" id="inscription_classic" novalidate
-                                      @submit.prevent="volet === 1 ? suivant($el) : envoyer($el)">
-                                    @csrf
-                                    <input type="hidden" name="action" value="form">
-                                    <input type="hidden" name="form_id" value="form_adduser">
-                                    <input type="hidden" name="form_action" value="form_valide">
-
-                                    <!-- volet 1 : identifiant et metier -->
-                                    <div class="volet_1" x-show="volet === 1" x-transition.opacity.duration.400ms>
-                                        <div class="grouped fields">
-                                            <div class="ui field" :class="{ error: erreurs.us_login }">
-                                                <div class="ui right labeled small input us_login_">
-                                                    <div class="ui label us_login_affhttp"> https://</div>
-                                                    <input name="us_login" type="text" autocomplete="username"
-                                                           placeholder="Identifiant" id="us_login"
-                                                           x-model="login" @input.debounce.400ms="erreurs.us_login = ''; verifierLogin()">
-                                                    <div class="ui label us_login_affub">.{{ config('ubdf.book_domain') }}</div>
-                                                </div>
-                                            </div>
-                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_login }" x-text="erreurs.us_login"></div>
-                                        </div>
-                                        <div class="grouped fields">
-                                            <div class="field" :class="{ error: erreurs.us_type }">
-                                                <div class="ui selection dropdown dropdown_nav_metiers_"
-                                                     x-data="listeDeroulante" x-bind="racine" @choix="erreurs.us_type = ''">
-                                                    <input type="hidden" name="us_type">
-                                                    <i class="dropdown icon"></i>
-                                                    <div class="default text">Métier ou domaine</div>
-                                                    <div class="menu dropdown_nav_metiers">
-                                                        <div class="item" data-value="illustrateur">
-                                                            <div class="nuancier coul_illustrateur"></div>
-                                                            Illustration
-                                                        </div>
-                                                        <div class="item" data-value="illustrateur-jeunesse">
-                                                            <div class="nuancier coul_illustrateur_jeunesse"></div>
-                                                            Illustration jeunesse
-                                                        </div>
-                                                        <div class="item" data-value="graphiste">
-                                                            <div class="nuancier coul_graphiste"></div>
-                                                            Graphisme
-                                                        </div>
-                                                        <div class="item" data-value="directeur-artistique">
-                                                            <div class="nuancier coul_directeur_artistique"></div>
-                                                            Direction artistique
-                                                        </div>
-                                                        <div class="item" data-value="digital">
-                                                            <div class="nuancier coul_digital"></div>
-                                                            Digital & développement
-                                                        </div>
-                                                        <div class="item" data-value="plasticien">
-                                                            <div class="nuancier coul_plasticien"></div>
-                                                            Art
-                                                        </div>
-                                                        <div class="item" data-value="photographe">
-                                                            <div class="nuancier coul_photographe"></div>
-                                                            Photographie
-                                                        </div>
-                                                        <div class="item" data-value="design">
-                                                            <div class="nuancier coul_design"></div>
-                                                            Design objet
-                                                        </div>
-                                                        <div class="item" data-value="architecte">
-                                                            <div class="nuancier coul_architecte"></div>
-                                                            Architecture
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_type }" x-text="erreurs.us_type"></div>
-                                            </div>
-                                        </div>
-                                        <button class="ui icon teal button valider_volet_1" type="submit"><i class="angle right icon"></i></button>
-                                    </div>
-
-                                    <!-- volet 2 : compte -->
-                                    <div class="volet_2" x-show="volet === 2" x-cloak x-transition.opacity.duration.400ms>
-                                        <div class="ui Large label id_connection" title="Utilisez cet identifiant pour vous connecter et administrer votre book">
-                                            <i class="user icon"></i>
-                                            <span id="show_id_connection" x-text="login.trim().toLowerCase()"></span>
-                                        </div>
-                                        <div class="grouped fields">
-                                            <div class="ui small input field" :class="{ error: erreurs.us_pass }">
-                                                <input id="mdp-desac" type="password" name="us_pass" value="" autocomplete="new-password"
-                                                       placeholder="Mot de passe" @input="erreurs.us_pass = ''">
-                                            </div>
-                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_pass }" x-text="erreurs.us_pass"></div>
-                                        </div>
-                                        <div class="grouped fields">
-                                            <div class="ui small input field" :class="{ error: erreurs.us_nom }">
-                                                <input type="text" name="us_nom" value="" autocomplete="name"
-                                                       placeholder="Nom / Prénom" @input="erreurs.us_nom = ''">
-                                            </div>
-                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_nom }" x-text="erreurs.us_nom"></div>
-                                        </div>
-                                        <div class="grouped fields">
-                                            <div class="ui small input field" :class="{ error: erreurs.us_mail }">
-                                                <input id="mail" type="email" name="us_mail" value="" autocomplete="email"
-                                                       placeholder="Mail" @input="erreurs.us_mail = ''">
-                                            </div>
-                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_mail }" x-text="erreurs.us_mail"></div>
-                                        </div>
-                                        <div class="grouped fields">
-                                            <div class="field" :class="{ error: erreurs.us_licence }">
-                                                <div class="ui toggle checkbox us_licence" x-data="caseACocher" x-bind="racine" @change="erreurs.us_licence = ''">
-                                                    <input name="us_licence" type="checkbox" tabindex="0" class="hidden">
-                                                    <label>
-                                                        J’accepte les <a href="/doc/conditions-dutilisations" target="_blank">conditions d’utilisation</a>
-                                                        {{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}
-                                                    </label>
-                                                </div>
-                                                <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_licence }" x-text="erreurs.us_licence"></div>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="ui button icon valider_volet_2" @click="volet = 1"><i class="angle left icon"></i></button>
-                                        <button class="ui teal button valider_submit" type="submit">Valider</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</x-portail.modale>
-<!-- Modal #end !-->
 
 
 

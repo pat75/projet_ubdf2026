@@ -1,7 +1,6 @@
-import { jetonRecaptcha } from './recaptcha';
 
 /*
- * Fenetre « Creer un book » (partials/modals), ex-inscription de
+ * Page « Creer un book » (front/creer-un-book), ex-fenetre d'inscription de
  * js_core_inscription.js. Deux volets : identifiant et metier, puis
  * mot de passe, nom, mail et conditions. L'envoi part en fetch sur
  * /inscription (InscriptionController), qui repond
@@ -10,12 +9,17 @@ import { jetonRecaptcha } from './recaptcha';
  * Les regles reprennent celles d'InscriptionRequest : le serveur reste
  * juge, le navigateur evite seulement un aller-retour. Le JavaScript de
  * 2019 acceptait un mot de passe de 2 caracteres, que le serveur refusait.
+ *
+ * `textes` : traductions des messages, indexees par la phrase francaise
+ * comme les catalogues lang/*.json (`x-data="inscription(@js(...))"`).
+ * Un message absent reste en francais.
  */
 const MOTIF_LOGIN = /^[a-z0-9_-]+$/;
 const DUREE_PROGRESSION = 5000;
 
 export default function inscription(Alpine) {
-    Alpine.data('inscription', () => ({
+    Alpine.data('inscription', (textes = {}) => ({
+        t: (phrase) => textes[phrase] ?? phrase,
         vue: 'formulaire', // formulaire | erreur | validation
         volet: 1,
         erreurs: {},
@@ -26,14 +30,8 @@ export default function inscription(Alpine) {
         progression: 0,
         bravo: false,
         urlEspace: null,
-
-        init() {
-            // Fermer la fenetre apres l'inscription mene a l'espace, comme
-            // le lien « Accedez a votre espace ».
-            Alpine.store('modale').reglages('creerbook', {
-                apresFermeture: () => this.allerEspace(),
-            });
-        },
+        // Image du captcha local (App\Services\Captcha\Captcha, formulaire « inscription »).
+        captcha: '',
 
         async verifierLogin() {
             const login = this.login.trim().toLowerCase();
@@ -56,43 +54,52 @@ export default function inscription(Alpine) {
             await this.verifierLogin();
             const login = this.login.trim().toLowerCase();
             this.erreurs = {
-                us_login: !login ? 'Indiquer votre nom'
-                    : login.length < 3 ? 'Votre nom de book/identifiant doit contenir plus de 3 caractères'
-                    : !MOTIF_LOGIN.test(login) ? 'Caractères incorrects : lettres minuscules, chiffres, - et _'
-                    : this.loginLibre === false ? 'Ce nom existe déjà'
+                us_login: !login ? this.t('Indiquer votre nom')
+                    : login.length < 3 ? this.t('Votre nom de book/identifiant doit contenir plus de 3 caractères')
+                    : !MOTIF_LOGIN.test(login) ? this.t('Caractères incorrects : lettres minuscules, chiffres, - et _')
+                    : this.loginLibre === false ? this.t('Ce nom existe déjà')
                     : '',
-                us_type: formulaire.us_type.value ? '' : 'Sélectionner un métier ou domaine',
+                us_type: formulaire.us_type.value ? '' : this.t('Sélectionner un métier ou domaine'),
             };
             if (!this.valide()) return;
 
             this.volet = 2;
+            if (!this.captcha) this.rechargerCaptcha();
+        },
+
+        // Nouvelle image, donc nouveau code : chaque code ne sert qu'une fois.
+        rechargerCaptcha() {
+            this.captcha = `/captcha/inscription?${Date.now()}`;
+            const champ = this.$root.querySelector('[name="captcha"]');
+            if (champ) champ.value = '';
         },
 
         async envoyer(formulaire) {
             const mail = formulaire.us_mail.value.trim();
             this.erreurs = {
-                us_pass: formulaire.us_pass.value.length < 8 ? 'Votre mot de passe doit contenir au moins 8 caractères' : '',
-                us_nom: formulaire.us_nom.value.trim() ? '' : 'Indiquer votre nom',
-                us_mail: !mail ? 'Indiquer votre mail' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? 'Il ne s’agit pas d’un mail' : '',
-                us_licence: formulaire.us_licence.checked ? '' : 'Vous devez accepter les conditions d’utilisation',
+                us_pass: formulaire.us_pass.value.length < 8 ? this.t('Votre mot de passe doit contenir au moins 8 caractères') : '',
+                us_nom: formulaire.us_nom.value.trim() ? '' : this.t('Indiquer votre nom'),
+                us_mail: !mail ? this.t('Indiquer votre mail') : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? this.t('Il ne s’agit pas d’un mail') : '',
+                us_licence: formulaire.us_licence.checked ? '' : this.t('Vous devez accepter les conditions d’utilisation'),
+                captcha: formulaire.captcha.value.trim().length === 4 ? '' : this.t('Recopiez les 4 caractères de l’image'),
             };
             if (!this.valide()) return;
 
             this.chargement = true;
             const donnees = new FormData(formulaire);
             donnees.set('us_login', this.login.trim().toLowerCase());
-            donnees.set('g-recaptcha-response', await jetonRecaptcha());
 
             let retour;
             try {
                 const reponse = await fetch('/inscription', { method: 'POST', body: donnees, headers: { Accept: 'application/json' } });
                 retour = await reponse.json();
             } catch {
-                retour = { error: true, error_msg: ['Enregistrement impossible pour le moment.'] };
+                retour = { error: true, error_msg: [this.t('Enregistrement impossible pour le moment.')] };
             }
             this.chargement = false;
 
             if (retour.error) {
+                this.rechargerCaptcha();
                 this.messagesErreur = [].concat(retour.error_msg ?? []);
                 this.vue = 'erreur';
                 return;
