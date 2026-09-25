@@ -16,7 +16,7 @@
 
 		<div class="ui grid left aligned stackable">
 
-			<div class="row four column space1">
+			<div class="row {{ $marque->estDefaut() ? 'five' : 'four' }} column space1">
 
 				<div class="one olive+ column space2">
 					<div class="ui segment basic space1">
@@ -63,6 +63,20 @@
             			</div>
 					</div>
 				</div>
+			@if ($marque->estDefaut())
+					{{-- Reserve a Ultra-book : les autres sites de la societe,
+						 sans equivalent chez Dustfolio. --}}
+					<div class="one column space2">
+						<div class="ui segment basic space1">
+							<h5>Nos autres sites</h5>
+							<div class="ui link list">
+								<a class="item" href="https://www.tesli.fr" target="_blank" rel="noopener">Tesli<br/>Créez votre site en un clic, par IA</a>
+								<a class="item" href="https://www.la-belle-illustration.fr" target="_blank" rel="noopener">La Belle Illustration<br/>La boutique d’illustrations à vendre</a>
+								<a class="item" href="https://www.les-illustrateurs.fr" target="_blank" rel="noopener">UB-diffusion<br/>La plateforme créative pour vendre vos créations</a>
+							</div>
+						</div>
+					</div>
+			@endif
                 				<div class="one column space2">
 					<div class="ui segment basic space1">
 						<h5>Newsletter</h5>
