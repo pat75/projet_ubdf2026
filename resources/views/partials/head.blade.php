@@ -77,7 +77,6 @@
 
 
 <!-- slides -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/css/swiper.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.css"/>
 <!-- slider -->
 <link rel="stylesheet" href="/html_pages_v2018/_/js/swipebox-master/src/css/swipebox.min.css">
@@ -413,7 +412,6 @@ var ub_gal = {
 		.wait()
 		// remplace $.fn.modal de Semantic par les modales Alpine
 		.script("js2019/pont_alpine.js")
-		.script("https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js")
 		// cookie, JSON, Handlebars, tipsy, easing, scrollTo, Magnific
 		.script("js2019/js_allplug2018.js?v=1594989160")
 		.wait()

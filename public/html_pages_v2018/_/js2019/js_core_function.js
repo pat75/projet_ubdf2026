@@ -112,45 +112,6 @@ $(document).ready(function () {
     console.log('load---> js_core_function');
 
 
-    /* MENU - 2015 - 2019
-     -------------------------------------------------------------- */
-
-    ub_menu = {
-
-        tmp: '',
-        timeout3: null,
-
-        // Seule la modale de recherche a encore une cible dans les vues :
-        // partage, formules, toggles, closebox et stats du menu n'en ont plus.
-        init: function () {
-            ub_menu.recherche_menu_top_init();
-        },
-
-        recherche_menu_top_init: function () {
-
-            $("#search-menu").on('click', function () {
-                // console.log('open');
-                $('#bloc_rechercher_top_menu_modal')
-                    .modal('show');
-
-                $('#bloc_rechercher_top_menu_modal .close').unbind().on('click', function () {
-                    $('#bloc_rechercher_top_menu_modal')
-                        .modal('hide');
-                })
-
-                // change domain to all
-                $('.bloc_titre h2').text('');
-                $('.link_rechercher_change_domain')
-                    .dropdown('set selected', 'tous')
-                ;
-
-
-            });
-
-        },
-    };
-
-
     /* function communes 2015
      -------------------------------------------------------------- */
     ub_fn = {

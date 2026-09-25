@@ -12,7 +12,7 @@
 <!-- Page contain !-->
 <div class="pusher" id="bloc_home_content">
 
-	<div class="btn_top_move cursor_effect" id="btn_top_action"></div>
+	<div class="btn_top_move cursor_effect" id="btn_top_action" x-data="retourHaut" @click="remonter()"></div>
 
 	<div class="ui vertical masthead_for_light_menu"></div>
 

@@ -75,6 +75,26 @@ const parcours = {
     },
 };
 
+/* En-tete : menu plein ecran, infobulles, retour en haut. */
+const entetePlus = {
+    'menu plein écran': async page => {
+        await page.locator('#menu-top-fixed .menu-burger').click({ timeout: 5000 });
+        await visible(page, '#overlay-menu.fs');
+        await page.locator('#menu-top-fixed .menu-burger').click();
+        await page.locator('#overlay-menu:not(.fs)').waitFor({ state: 'attached', timeout: 3000 });
+    },
+    'infobulle métiers': async page => {
+        await page.locator('#menu-top-fixed .link_menu_top_ptf.icon_domaine').hover();
+        await visible(page, '.popup_ptf.visible');
+    },
+    'retour en haut': async page => {
+        await page.mouse.wheel(0, 3000);
+        await visible(page, '.btn_top_move.show');
+        await page.locator('.btn_top_move').click();
+        await page.waitForFunction(() => window.scrollY < 50, null, { timeout: 5000 });
+    },
+};
+
 /* Pied de page et bandeau cookies, sur l'accueil. */
 const pied = {
     'bandeau cookies': async page => {
@@ -97,7 +117,7 @@ const pied = {
 };
 
 export const pages = [
-    { url: '/', actions: { ...entete, ...parcours, ...pied } },
+    { url: '/', actions: { ...entete, ...entetePlus, ...parcours, ...pied } },
     { url: '/recherche', actions: entete },
     { url: '/annuaire', actions: entete },
     { url: '/annuaire_b' },

@@ -3,23 +3,23 @@
 <!-- All popup and modal !-->
 <!-- Menu -top - mobile -->
 
-<div class="ui fixed secondary mobile only menu " id="menu-top-fixed-mobile">
+<div class="ui fixed secondary mobile only menu " id="menu-top-fixed-mobile" x-data="barreMobile">
     <div class="ui container" >
 
-        <div class="item btn_burger mode_accueil">
-            <div class="menu-burger mobile-hidden">☰</div>
+        <div class="item btn_burger mode_accueil" x-show="! recherche">
+            <div class="menu-burger mobile-hidden" @click="$store.menu.basculer()" x-text="$store.menu.ouvert ? '✕' : '☰'">☰</div>
         </div>
 
-        <div class="item logo mode_accueil  cursor_effect">
+        <div class="item logo mode_accueil  cursor_effect" x-show="! recherche">
 			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
 			        </div>
 
-        <div class="item right btn_rechercher mode_accueil">
+        <div class="item right btn_rechercher mode_accueil" x-show="! recherche" @click="recherche = true">
             <i class="search icon"></i>
         </div>
 
 
-        <div class="item recherche mode_rechercher" id="bloc_rechercher_top2_mobile">
+        <div class="item recherche mode_rechercher" id="bloc_rechercher_top2_mobile" x-show="recherche" x-cloak>
             <form action="/recherche" class="form_rechercher2018">
                 <div class="ui action input search rech2018">
                     <div class="ui menu ">
@@ -51,7 +51,7 @@
             </form>
         </div>
 
-        <div class="item right btn_rechercher_close mode_rechercher">
+        <div class="item right btn_rechercher_close mode_rechercher" x-show="recherche" x-cloak @click="recherche = false">
             <i class="close icon"></i>
         </div>
 
@@ -68,7 +68,7 @@
     <div class="ui  container ">
 
 		            <div class="item btn_burger ">
-                <div class="menu-burger cursor_effect">☰</div>
+                <div class="menu-burger cursor_effect" x-data @click="$store.menu.basculer()" x-text="$store.menu.ouvert ? '✕' : '☰'">☰</div>
             </div>
 		
         <div class="item logo">
@@ -92,7 +92,7 @@
 
 
                         <!-- bloc menu filtre -->
-                        <div class="item link_menu_top_ptf icon_domaine  cursor_effect">
+                        <div class="item link_menu_top_ptf icon_domaine show cursor_effect" x-data x-infobulle.lent="'.popup_ptf'">
                             <svg height="393pt" viewBox="-4 0 393 393.99003" width="393pt" xmlns="http://www.w3.org/2000/svg">
                                 <path d="m368.3125 0h-351.261719c-6.195312-.0117188-11.875 3.449219-14.707031 8.960938-2.871094 5.585937-2.3671875 12.3125 1.300781 17.414062l128.6875 181.28125c.042969.0625.089844.121094.132813.183594 4.675781 6.3125 7.203125 13.957031 7.21875 21.816406v147.796875c-.027344 4.378906 1.691406 8.582031 4.777344 11.6875 3.085937 3.105469 7.28125 4.847656 11.65625 4.847656 2.226562 0 4.425781-.445312 6.480468-1.296875l72.3125-27.574218c6.480469-1.976563 10.78125-8.089844 10.78125-15.453126v-120.007812c.011719-7.855469 2.542969-15.503906 7.214844-21.816406.042969-.0625.089844-.121094.132812-.183594l128.683594-181.289062c3.667969-5.097657 4.171875-11.820313 1.300782-17.40625-2.832032-5.511719-8.511719-8.9726568-14.710938-8.960938zm-131.53125 195.992188c-7.1875 9.753906-11.074219 21.546874-11.097656 33.664062v117.578125l-66 25.164063v-142.742188c-.023438-12.117188-3.910156-23.910156-11.101563-33.664062l-124.933593-175.992188h338.070312zm0 0"/>
                             </svg>
@@ -100,8 +100,8 @@
 
 
                         <!-- bloc menu seach -->
-                        <div class="item recherche_menu_top link_rechercher  cursor_effect">
-                            <div class="open" id="search-menu">
+                        <div class="item recherche_menu_top link_rechercher  cursor_effect" x-data x-infobulle="'.popup_rechercher'">
+                            <div class="open" id="search-menu" @click="$store.modale.ouvrir('recherche')">
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                                      width="620.692px" height="620.692px" viewBox="0 0 451 451" style="enable-background:new 0 0 451 451;"
                                      xml:space="preserve">
@@ -115,7 +115,7 @@
 
 
                         <!-- bloc memobook -->
-                        <div class="item memobook link_memobook  cursor_effect" id="nav_memobook">
+                        <div class="item memobook link_memobook  cursor_effect" id="nav_memobook" x-data x-infobulle="'.popup_memobook'">
                             <a href="/memobook" title="S'election de book">
                                 <span class="memo_nb hidden"></span>
                                 <span class="fonticon-heart_white fonticon_w22"></span>
@@ -147,7 +147,7 @@
                     </div>
                 </div>
                 <div class="ui right secondary menu menu_top_droite mobile-hidden">
-                    <div class="item link_menu_top_ptf  icon_domaine_secondary">METIERS</div>
+                    <div class="item link_menu_top_ptf  icon_domaine_secondary" x-data x-infobulle.lent="'.popup_ptf'">METIERS</div>
 
                     <!-- Popup domaine/metiers !-->
                     <div class="ui fluid inverted popup transition hidden popup_ptf">
@@ -306,7 +306,7 @@
     <div class="content">
 
 
-       <span class="close">
+       <span class="close" @click="$store.modale.fermer()">
            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid" viewBox="0 0 10 10">
                <path d="M10.012,9.296 L9.296,10.012 L5.000,5.716 L0.704,10.012 L-0.012,9.296 L4.284,5.000 L-0.012,0.704 L0.704,-0.012 L5.000,4.284 L9.296,-0.012 L10.012,0.704 L5.716,5.000 L10.012,9.296 Z" class="cls-1"></path>
            </svg>

@@ -1,0 +1,96 @@
+/*
+ * En-tete du portail (partials/header, partials/modals), ex-ubdf_accueil
+ * de js_core_pages.js : infobulles du menu, menu plein ecran, recherche
+ * mobile, bouton de retour en haut.
+ */
+
+/*
+ * x-infobulle="'.popup_ptf'" : au survol de l'element, affiche le popup
+ * Semantic designe (classes transition hidden -> visible), centre sous
+ * lui. Le popup reste ouvert tant que la souris est dessus (hoverable).
+ * Modificateur : x-infobulle.lent garde le popup 400 ms apres la sortie.
+ */
+function infobulle(Alpine) {
+    Alpine.directive('infobulle', (el, { expression, modifiers }, { evaluate, cleanup }) => {
+        const popup = document.querySelector(evaluate(expression));
+        if (!popup) return;
+
+        // Rattache au body : le popup des metiers est range dans un bloc du
+        // menu masque, ou il resterait invisible (Semantic le deplacait).
+        if (popup.parentElement !== document.body) {
+            document.body.appendChild(popup);
+        }
+
+        const delaiMasquage = modifiers.includes('lent') ? 400 : 100;
+        let minuterie = null;
+
+        // En `fixed` sur la fenetre, sous le declencheur.
+        const placer = () => {
+            const cible = el.getBoundingClientRect();
+            Object.assign(popup.style, {
+                position: 'fixed',
+                top: `${cible.bottom + 8}px`,
+                left: `${Math.max(8, cible.left + cible.width / 2 - popup.offsetWidth / 2)}px`,
+                right: 'auto',
+                bottom: 'auto',
+            });
+        };
+        const montrer = () => {
+            clearTimeout(minuterie);
+            popup.classList.remove('hidden');
+            popup.classList.add('visible', 'bottom', 'center');
+            placer();
+        };
+        const cacher = () => {
+            clearTimeout(minuterie);
+            minuterie = setTimeout(() => {
+                popup.classList.remove('visible');
+                popup.classList.add('hidden');
+            }, delaiMasquage);
+        };
+
+        [el, popup].forEach((zone) => {
+            zone.addEventListener('mouseenter', montrer);
+            zone.addEventListener('mouseleave', cacher);
+        });
+        cleanup(() => [el, popup].forEach((zone) => {
+            zone.removeEventListener('mouseenter', montrer);
+            zone.removeEventListener('mouseleave', cacher);
+        }));
+    });
+}
+
+export default function entete(Alpine) {
+    infobulle(Alpine);
+
+    /* Menu plein ecran (bouton ☰) : memes classes `fs` que le legacy. */
+    Alpine.store('menu', {
+        ouvert: false,
+
+        basculer() {
+            this.ouvert = !this.ouvert;
+            document.querySelectorAll('.menu-bg, .menu-burger, #overlay-menu, #menu-top-fixed, #menu-top-fixed-mobile')
+                .forEach((el) => el.classList.toggle('fs', this.ouvert));
+        },
+    });
+
+    /* Barre mobile : bascule entre le logo et le champ de recherche. */
+    Alpine.data('barreMobile', () => ({
+        recherche: false,
+    }));
+
+    /* Bouton de retour en haut, affiche une fois l'en-tete depasse. */
+    Alpine.data('retourHaut', () => ({
+        init() {
+            const repere = document.querySelector('.top_position_show');
+            if (!repere) return;
+            new IntersectionObserver(([entree]) => {
+                this.$el.classList.toggle('show', !entree.isIntersecting && entree.boundingClientRect.top < 0);
+            }).observe(repere);
+        },
+
+        remonter() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+    }));
+}

@@ -45,8 +45,6 @@ $(document).ready(function () {
     }
 
 
-    // ub_menu
-    ub_menu.init();
 
 
 
