@@ -120,36 +120,12 @@ $(document).ready(function () {
         tmp: '',
         timeout3: null,
 
+        // Seule la modale de recherche a encore une cible dans les vues :
+        // partage, formules, toggles, closebox et stats du menu n'en ont plus.
         init: function () {
-            //console.log("fn ub_menu - init");
-
-            // partage FB&TW
-            ub_menu.menu_partage_show();
-
-
-            // menu
-            ub_menu.menu_toggle();			//nov2017
-
-            ub_menu.menu_closebox();		//nov2017
-
-
-            ub_menu.menu_formules(); 		//nov2017
-
-            ub_menu.menu_aff_stats_book();
-
-
-            // nb msg
-            ub_plugin_front.nb_contact_message_menu_g();
-
-
             ub_menu.recherche_menu_top_init();
-
-            //$("#search-menu").trigger('click');
-
         },
 
-
-        // recherche_menu_top
         recherche_menu_top_init: function () {
 
             $("#search-menu").on('click', function () {
@@ -172,144 +148,6 @@ $(document).ready(function () {
             });
 
         },
-
-
-        /* =submit formules -> /ubaction__user_pref_formule
-         --------------------------------------------------------------*/
-        menu_formules: function () {
-            $('div.ub_fml_12mois, div.ub_fml_6mois').click(function (event) {
-                $(this).find('form').submit();
-            });
-        },
-
-
-        // test email
-        validateEmail: function (email) {
-            var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            return re.test(email);
-        },
-
-        /* =menu toggle #nov2017
-         open/close   menu avec class toggle
-         = voir page formules
-
-         -------------------------------------------------------------- */
-        menu_toggle: function () {
-
-            $('.toggle .toggle_title').click(function () {
-                $(this).parent().toggleClass("open");
-            });
-
-        },
-
-
-        /* =menu closebox #nov2017
-         open/close   menu avec class toggle
-         = voir page menu droite
-
-         -------------------------------------------------------------- */
-        menu_closebox: function () {
-
-            $('.closebox').addClass('load');
-
-            // memo close/open
-            if ($.cookie('closebox') == 'true') {
-                $('.closebox').addClass('close');
-            }
-
-            // action close/open
-            $('.closebox .close_btn ').click(function () {
-
-                $box = $(this).parent();
-
-                $box.toggleClass("close");
-
-                // memo close/open
-                if ($box.hasClass("close")) {
-                    $.cookie('closebox', 'true', {expires: 60});
-                } else {
-                    $.cookie('closebox', 'false', {expires: 60});
-                }
-
-            });
-
-        },
-
-
-        /* =partage FB
-         -------------------------------------------------------------- */
-        //
-        menu_partage_show: function () {
-
-            $('#ub_btn_partage_fb,   #menu_contant_partage_fb .ub_icone.close').click(function (event) {
-                event.preventDefault();
-                $('#menu_contant_partage_fb').toggleClass("show");
-                ub_menu.menu_partage_anim_icon($('div#bloc_menu_contant_partage_fb .fonticon-uniF051'));
-            });
-
-
-            $('#ub_btn_partage_tw,   #menu_contant_partage_tw .ub_icone.close').click(function (event) {
-                event.preventDefault();
-                $('#menu_contant_partage_tw').toggleClass("show");
-                ub_menu.menu_partage_anim_icon($('div#bloc_menu_contant_partage_tw .fonticon-uniF057'));
-            });
-        },
-
-        // animation icon
-        menu_partage_anim_icon: function ($ele) {
-            if ($ele.hasClass('anim_on')) return false;
-            var $anim_ele = $ele.addClass('anim_on');
-            TweenMax.to($anim_ele, 1.6, {
-                scaleX: 0.8, scaleY: 0.8, force3D: true, yoyo: true, repeat: -1, ease: Power1.easeInOut
-            });
-            return true;
-        },
-
-
-        menu_aff_stats_book: function () {
-
-            $.getJSON('/cache_js/data_stats.json', {_: new Date().getTime()})
-                .fail(function (jqxhr, textStatus, error) {
-                    var err = textStatus + ", " + error;
-                    console.log("Request Failed: " + err);
-                })
-                .done(function (data) {
-                    //console.log(data);
-
-                    // modif les stats du menu
-                    $('#ub_stats_nb_book, #ub_stats_nb_book2').text(data.menu_stats.nb_book);
-                    $('#ub_stats_nb_sel, #ub_stats_nb_sel2').text(data.menu_stats.nb_selection);
-                    $('#ub_stats_nb_img').text(data.menu_stats.nb_visuel);
-                    $('#ub_stats_nb_gal').text(data.menu_stats.nb_galerie);
-
-
-                    // modif les exemple du menu
-                    var html = '';
-                    var data_exemple = data.menu_book_exemple;
-
-                    var data_url = $('#ub_exemple_book').data('url');
-
-                    for (i = 0; i < 5; i++) {
-                        select = Math.floor(Math.random() * data_exemple.length);
-                        var choix = data_exemple[select];
-                        data_exemple.splice(select, 1); // supp l'ele select
-
-                        // ubdf
-                        // replace_var = '/'+choix.url+'/i';
-                        choix.url = choix.url.replace(/ultra-book(.com|.net|.org)/i, data_url);
-
-                        html = html + '<a class="fade ' + choix.type.toUpperCase() + ' " href="' + choix.url + '" target="_blank"><i class="ub_icone ouvrir "></i>' + choix.nom + '<span> - ' + choix.type + '</span></a>';
-                        //console.log( "---" + select + "---" + choix.nom );
-                    }
-                    ;
-
-                    $('#ub_exemple_book').html(html);
-
-
-                });
-
-        }
-
     };
 
 
@@ -485,37 +323,6 @@ $(document).ready(function () {
                 dest.css({'color': '#444'});
             }
             dest.html(chars + ' / ' + max);
-        }
-
-    };
-
-
-    /* =fn =format nombre
-     -------------------------------------------------------------- */
-
-    var ub_fn_nombre = {
-
-        init: function () {
-            //console.log('nb');
-            $('.ub_format_sep').each(function () {
-                $(this).html(
-                    ub_fn_nombre.ub_format($(this).text(), '.')
-                );
-            });
-        },
-
-
-        ub_format: function (nStr, sep) {
-            //console.log( 'nb -> ' + nStr );
-            nStr += '';
-            x = nStr.split('.');
-            x1 = x[0];
-            x2 = x.length > 1 ? '.' + x[1] : '';
-            var rgx = /(\d+)(\d{3})/;
-            while (rgx.test(x1)) {
-                x1 = x1.replace(rgx, '$1' + sep + '$2');
-            }
-            return x1 + x2;
         }
 
     };

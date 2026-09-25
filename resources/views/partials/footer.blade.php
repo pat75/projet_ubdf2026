@@ -67,11 +67,11 @@
 					<div class="ui segment basic space1">
 						<h5>Newsletter</h5>
 
-						<div class="newsletter">
+						<div class="newsletter" x-data="newsletter">
 							<div>Les dernières sélections du mois</div>
 							<div class="no-spam">Confidentialité, sécurité et absence de spam</div>
 
-							<form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php">
+							<form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php" @submit.prevent="envoyer($el)">
 
 								<input type="hidden" name="action" value="add">
 
@@ -82,7 +82,7 @@
 									</button>
 								</div>
 							</form>
-							<div class="retour"></div>
+							<div class="retour" x-show="message" x-transition.opacity.duration.300ms x-cloak><span :style="{ color: erreur ? 'red' : 'lightgreen' }" x-text="message"></span></div>
 						</div>
 
 												<!-- partage -->
@@ -114,7 +114,7 @@
 
 
 	<!-- cookies -->
-	<div id="cookie-policy">
+	<div id="cookie-policy" x-data="bandeauCookies" :class="{ show: visible }" @click="accepter">
 		<div class="btn_close close">
 			<div></div>
 		</div>

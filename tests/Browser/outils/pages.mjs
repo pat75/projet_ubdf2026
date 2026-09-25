@@ -28,8 +28,29 @@ const entete = {
     },
 };
 
+/* Pied de page et bandeau cookies, sur l'accueil. */
+const pied = {
+    'bandeau cookies': async page => {
+        await page.context().clearCookies();
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        await visible(page, '#cookie-policy.show');
+        await page.locator('#cookie-policy').click();
+        await page.locator('#cookie-policy:not(.show)').waitFor({ state: 'attached', timeout: 3000 });
+        const cookies = await page.context().cookies();
+        if (!cookies.some(c => c.name === 'ubdf_cookieconsent' && c.expires > Date.now() / 1000 + 86400 * 300)) {
+            throw new Error('cookie ubdf_cookieconsent absent ou trop court');
+        }
+    },
+    'newsletter': async page => {
+        const bloc = page.locator('footer .newsletter, .newsletter').filter({ has: page.locator('form') }).last();
+        await bloc.locator('input[name=mail]').fill('sonde@example.test');
+        await bloc.locator('input[name=mail]').press('Enter');
+        await bloc.locator('.retour span').waitFor({ state: 'visible', timeout: 5000 });
+    },
+};
+
 export const pages = [
-    { url: '/', actions: entete },
+    { url: '/', actions: { ...entete, ...pied } },
     { url: '/recherche', actions: entete },
     { url: '/annuaire', actions: entete },
     { url: '/annuaire_b' },

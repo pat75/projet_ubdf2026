@@ -458,11 +458,11 @@
 
                     <div class="title newsletter_title">
 						Newsletter                    </div>
-                    <div class="newsletter">
+                    <div class="newsletter" x-data="newsletter">
                         <div>Les dernières sélections du mois</div>
                         <div class="no-spam mobile-hidden">Confidentialité, sécurité et absence de spam</div>
 
-                        <form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php">
+                        <form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php" @submit.prevent="envoyer($el)">
 
                             <input type="hidden" name="action" value="add">
 
@@ -473,7 +473,7 @@
                                 </button>
                             </div>
                         </form>
-                        <div class="retour"></div>
+                        <div class="retour" x-show="message" x-transition.opacity.duration.300ms x-cloak><span :style="{ color: erreur ? 'red' : 'lightgreen' }" x-text="message"></span></div>
                         <!--<a href="/newsletters" class="fade mobile-hidden">Archives des sélections <span
                                     class="fonticon-arrow-right icon"></span></a>-->
                     </div>

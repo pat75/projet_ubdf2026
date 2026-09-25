@@ -12,30 +12,6 @@ $(document).ready(function () {
 
 
 
-    /* func Cookies
-     -------------------------------------------------------------- */
-    cookie_rgpd = {
-
-        init: function () {
-
-            // $.cookie("ubdf_cookieconsent",null);
-
-            if ($.cookie("ubdf_cookieconsent") == null) {
-                $('#cookie-policy').addClass('show');
-                $('#cookie-policy').bind('click touch tap', function () {
-                    $.cookie("ubdf_cookieconsent", "show", 365);
-                    $('#cookie-policy').removeClass('show');
-                });
-            }
-
-
-        },
-
-    };
-
-
-
-
     /* func de la page accueil et domaines
      -------------------------------------------------------------- */
     ubdf_accueil = {

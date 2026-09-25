@@ -413,7 +413,6 @@ var ub_gal = {
 		.script("https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js")
 		// cookie, JSON, Handlebars, tipsy, easing, scrollTo, Magnific
 		.script("js2019/js_allplug2018.js?v=1594989160")
-		.script("js2019/ub_core_function_autres.js?v=1594989160")
 		.wait()
 		.script("js2019/js_core_inscription"+ext_min+".js")
 		.script("js2019/js_core_pages"+ext_min+".js")

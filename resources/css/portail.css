@@ -8,3 +8,9 @@
 @import "tailwindcss/utilities.css" layer(utilities) source(none);
 
 @source "../js/portail.js";
+@source "../js/portail/";
+
+/* Masque les elements Alpine tant qu'Alpine n'a pas demarre. */
+[x-cloak] {
+    display: none !important;
+}

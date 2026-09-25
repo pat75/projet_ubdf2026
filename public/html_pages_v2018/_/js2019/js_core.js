@@ -24,8 +24,6 @@ $(document).ready(function () {
     // init
     ub_fn.init();
 
-    // newsletter
-    ub_newsletter.init();
 
 
     // show book - via API
@@ -105,7 +103,6 @@ $(document).ready(function () {
 
     ubdf_accueil.init();
 
-    cookie_rgpd.init();
 
 
 
@@ -189,9 +186,6 @@ $(document).ready(function () {
 
     // func autres
     //
-    ub_fn_nombre.init();
-    ub_newsletter.init();
-    ub_aide.init();
 
 
     // page memobook
