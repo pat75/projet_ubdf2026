@@ -1,0 +1,73 @@
+/*
+ * Books aux modeles Ultra-frais et Ultra-zen (resources/views/book/ultra2020),
+ * en Tailwind : remplace Semantic UI 2.4, core.css et masory.css du legacy.
+ */
+@import 'tailwindcss' source(none);
+
+@source '../views/book/ultra2020';
+@source '../js/book';
+
+@theme {
+    --font-titre: 'Montserrat', ui-sans-serif, sans-serif;
+    --font-texte: 'HKGrotesk', ui-sans-serif, sans-serif;
+
+    /* Couleurs du theme, redefinies par .theme_gris / .theme_black. */
+    --color-book-fond: var(--book-fond);
+    --color-book-texte: var(--book-texte);
+    --color-book-texte2: var(--book-texte2);
+    --color-book-texte3: var(--book-texte3);
+    --color-book-filet: var(--book-filet);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Trois fonds proposes dans l'habillage (reglage « theme »). */
+.theme_white {
+    --book-fond: #ffffff;
+    --book-texte: #000000;
+    --book-texte2: #333333;
+    --book-texte3: #666666;
+    --book-filet: #767676;
+}
+.theme_gris {
+    --book-fond: #f0eded;
+    --book-texte: #000000;
+    --book-texte2: #333333;
+    --book-texte3: #666666;
+    --book-filet: #767676;
+}
+.theme_black {
+    --book-fond: #363535;
+    --book-texte: #ffffff;
+    --book-texte2: #dddddd;
+    --book-texte3: #aaaaaa;
+    --book-filet: #bbbbbb;
+}
+
+/*
+ * Mosaique : grille a lignes de 1px, chaque visuel s'etend sur autant de
+ * lignes que sa hauteur (x-mosaique, resources/js/book/mosaique.js). Meme
+ * principe que masory.css du legacy, sans dependance.
+ */
+.mosaique {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(370px, 100%), 1fr));
+    column-gap: 1px;
+}
+/* Lignes de 1px seulement une fois les etendues calculees : avant, chaque
+   case ne mesurerait qu'un pixel, toutes seraient « a l'ecran » et le
+   navigateur chargerait tous les visuels differes d'un coup. */
+.mosaique.prete {
+    grid-auto-rows: 1px;
+}
+
+/* Contenu du pied de page saisi par le createur (lien du modele). */
+.pied-book a {
+    margin: 0 20px;
+    color: var(--book-texte3);
+}
+.pied-book a:hover {
+    color: var(--book-texte);
+}

@@ -765,6 +765,10 @@ class ContexteBook
                 'img_legende' => '',
                 'img_link' => (string) $m->link,
                 'img_html' => '',
+                // Dimensions de l'original : les vues recentes reservent la
+                // place du visuel avant son chargement.
+                'img_largeur' => $m->width,
+                'img_hauteur' => $m->height,
             ])->values()->all(), $galerie->media_order);
     }
 

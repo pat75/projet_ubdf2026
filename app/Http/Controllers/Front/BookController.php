@@ -11,6 +11,7 @@ use App\Services\Book\ContexteBook;
 use App\Services\Book\AccesPortfolios;
 use App\Services\Book\Gabarit;
 use App\Services\Book\LecteurVideos;
+use App\Services\Book\VueUltra2020;
 use App\Services\Messagerie\DepotDemande;
 use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
@@ -198,6 +199,13 @@ class BookController extends Controller
             'news' => $contexte->pageNews($rub, $pag),
             'contact' => $this->preparerContact($contexte, $theme),
         };
+
+        // Themes passes en Blade/Tailwind/Alpine : les pages deja portees.
+        if ($vue = $theme['vues'][$type] ?? null) {
+            $html = view('book.'.$theme['dossier'].'.'.$vue, ['b' => $contexte, 'vue' => new VueUltra2020($contexte)])->render();
+
+            return $this->reponse($book, $html);
+        }
 
         return $this->reponse($book, Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
     }
