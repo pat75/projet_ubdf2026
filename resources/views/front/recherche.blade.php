@@ -38,27 +38,23 @@
             </div>
         @endif
 
-        <div class="visibility infinite">
+        <div class="visibility infinite" x-data="defilementInfini">
             <div class="ui five doubling cards" id="accueil_portfolio">
                 @foreach ($books as $book)
                     <x-book-card :book="$book" />
                 @endforeach
-                <div id="position_card_last"></div>
+                <div id="position_card_last" x-ref="fin"></div>
             </div>
 
             <div class="ui basic segment">
                 <div class="ui grid result_message"></div>
             </div>
 
-            <div class="ui horizontal icon divider result_end" style="display:none">
+            <div class="ui horizontal icon divider result_end" :class="{ show: termine && page > 0 }">
                 <i class="circular large angle up icon"></i>
             </div>
 
-            <div class="ui large centered inline text loader">{{ __('Chargement...') }}</div>
+            <div class="ui large centered inline text loader" :class="{ active: enCours }">{{ __('Chargement...') }}</div>
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <script src="{{ asset('js/ubdf-infinite.js') }}?v={{ filemtime(public_path('js/ubdf-infinite.js')) }}"></script>
-@endpush

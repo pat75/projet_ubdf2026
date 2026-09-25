@@ -175,3 +175,42 @@ le plus proche, puis retirer le thème. **Décision produit à prendre avant cet
 | 3 — portail | 8 à 12 j |
 | 4 — books (4 thèmes) | 3 à 5 j par thème |
 | 5 — retrait | 0,5 j |
+
+---
+
+## 4. Avancement — portail terminé (25/09/2026, branche `jquery-alpine`)
+
+Le portail (Ultra-book, Dustfolio) ne charge plus ni jQuery, ni Semantic UI JS,
+ni LABjs, ni Handlebars, ni `js2019/`. Tout son JavaScript est
+`resources/js/portail.js` (Alpine), un module par fonction :
+
+| Module | Remplace |
+|---|---|
+| `modales.js` + `<x-portail.modale>` | Semantic modal |
+| `connexion.js`, `inscription.js`, `recaptcha.js` | `js_core_inscription.js` |
+| `controles.js` | Semantic dropdown / checkbox |
+| `entete.js` (`x-infobulle`, menu, haut de page) | `ubdf_accueil`, `ub_menu`, Semantic popup / visibility |
+| `recherche.js` + `motcles.json` | `ubdf_recherche` : aboutit a `/recherche` (rendu serveur) |
+| `cartes.js` | `book_static_show`, `ub_infinit`, `public/js/ubdf-infinite.js` |
+| `visionneuse.js` + `partials/visionneuse` | Swipebox, `tpl_book_open`, mémo book |
+| `contact.js` | contact intermédiaire (`tpl_bloc_modal_content_ajax_*`) |
+| `cookies.js`, `newsletter.js` | `cookie_rgpd`, `ub_newsletter` |
+
+Les feuilles CSS du front 2018 (Semantic UI CSS, `core.css`, swipebox) restent :
+les composants gardent les classes d'origine.
+
+Filet : `npm run test:front` (Playwright sur le site Valet, 13 pages, parcours
+connexion, inscription, recherche, visionneuse, contact, mémo book, défilement).
+
+Défauts corrigés en chemin : erreur de connexion jamais affichée, suffixe de book
+`.ubdf2020ssl.localhost:4433` en dur, mot de passe de 2 caractères accepté par le
+navigateur, jeton reCAPTCHA périmé, consentement cookies limité à la session,
+image de la visionneuse en vignette 250×136, erreurs `jQuery is not defined` et
+`ga is not defined`, appels de statistiques vers le serveur de production.
+
+Restent à traiter :
+- **Thèmes des books** (`resources/views/book/themes/*`, `public/2012_web/*`) :
+  jQuery par thème, reporté (voir §3, étape 4).
+- **Newsletter** : `/front/action_ajax_2.php` n'existe pas dans le nouveau site ;
+  le formulaire affiche une erreur. Il faut une route et un stockage des abonnés.
+- `/img_admin/diffusion-b.svg` (fenêtre « Créer un book ») est absent.

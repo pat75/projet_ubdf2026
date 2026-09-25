@@ -1,7 +1,6 @@
 {{-- Carte d'un book sur le portail.
      Structure et classes reprises telles quelles du front 2018 : les
-     attributs data-* sont consommes par js2019/js_core_cards.js (zoom,
-     slider, memo book, statistiques). --}}
+     attributs data-* sont lus par resources/js/portail/visionneuse.js. --}}
 @props(['book', 'nouvelle' => false, 'apparition' => null])
 
 @php

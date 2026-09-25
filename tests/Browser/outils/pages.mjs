@@ -113,6 +113,55 @@ const rechercheParcours = {
     },
 };
 
+/* Grilles de books : defilement infini jusqu'a la fin, visionneuse. */
+const grille = {
+    'défilement infini': async page => {
+        const avant = await page.locator('#accueil_portfolio .ui.card').count();
+        for (let i = 0; i < 8 && !(await page.locator('.result_end').isVisible()); i++) {
+            await page.mouse.wheel(0, 4000);
+            await page.waitForTimeout(700);
+        }
+        // Toutes les cartes peuvent tenir en premiere page (base de dev) :
+        // le repere de fin doit alors s'afficher apres une page vide.
+        await visible(page, '.result_end');
+        const apres = await page.locator('#accueil_portfolio .ui.card').count();
+        console.log(`      (défilement : ${avant} -> ${apres} cartes)`);
+        if (await page.locator('#accueil_portfolio .ui.card.newitem_hide').count()) throw new Error('cartes restees masquees');
+    },
+    'visionneuse': async page => {
+        await page.locator('#accueil_portfolio .ui.card a.image').first().click();
+        await visible(page, '#swipebox-overlay');
+        await visible(page, '#book_open h2.header');
+        const premiere = await page.locator('#swipebox-slider .slide.current img').getAttribute('src');
+        await page.keyboard.press('ArrowRight');
+        await page.waitForTimeout(500);
+        const seconde = await page.locator('#swipebox-slider .slide.current img').getAttribute('src');
+        if (premiere === seconde) throw new Error('la fleche droite ne change pas d\'image');
+        await page.keyboard.press('Escape');
+        await page.locator('#swipebox-overlay').waitFor({ state: 'hidden', timeout: 3000 });
+    },
+    'contact du créatif, captcha refusé': async page => {
+        await page.locator('#accueil_portfolio .ui.card a.image').first().click();
+        await page.locator('#msg_send').click({ timeout: 5000 });
+        // Le formulaire est remis a zero a l'ouverture : attendre avant de saisir.
+        await page.waitForTimeout(500);
+        const f = page.locator('#intermediate_form');
+        await f.locator('[name=us_message]').fill('Message de la sonde, assez long.');
+        await f.locator('[name=us_nom_prenom]').fill('Sonde');
+        await f.locator('[name=us_mail]').fill('sonde@example.test');
+        await f.locator('[name=captcha_answer]').fill('ZZZZZ');
+        await f.locator('.valider_submit_inter').click();
+        await visible(page, '#intermediate_form .label:has-text("Code incorrect")');
+    },
+    'mémo book': async page => {
+        await page.evaluate(() => localStorage.removeItem('books'));
+        await page.locator('#accueil_portfolio .ui.card a.image').first().click();
+        await page.locator('.memobook_add').click({ timeout: 5000 });
+        await visible(page, '#book_open .heart.red');
+        await visible(page, '#nav_memobook .memo_nb:has-text("1")');
+    },
+};
+
 /* Pied de page et bandeau cookies, sur l'accueil. */
 const pied = {
     'bandeau cookies': async page => {
@@ -137,9 +186,10 @@ const pied = {
 export const pages = [
     { url: '/', actions: { ...entete, ...entetePlus, ...parcours, ...rechercheParcours, ...pied } },
     { url: '/recherche', actions: entete },
+    { url: '/recherche?q=illustration&type_recherche=mcles', actions: grille },
     { url: '/annuaire', actions: entete },
     { url: '/annuaire_b' },
-    { url: '/illustrateur', actions: entete },
+    { url: '/illustrateur', actions: { ...entete, ...grille } },
     { url: '/les-ultra-books' },
     { url: '/les-ultra-selections' },
     { url: '/actus' },

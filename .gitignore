@@ -26,13 +26,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# Assets du front repris du projet 2019 (37 Mo, non versionnes), sauf le
-# JavaScript du portail (js2019) : il est reecrit au fil du remplacement de
-# jQuery (_doc/17), donc versionne et exclu de ubdf:install-front-assets.
-/public/html_pages_v2018/*
-!/public/html_pages_v2018/_/
-/public/html_pages_v2018/_/*
-!/public/html_pages_v2018/_/js2019/
+# Assets du front repris du projet 2019 (37 Mo, non versionnes)
+/public/html_pages_v2018
 /public/img_front
 /public/js/filament
 /public/img_default

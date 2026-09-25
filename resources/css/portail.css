@@ -15,3 +15,14 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Survol d'une carte de book : le voile « ZOOM » (ex-module dimmer de
+   Semantic UI, pose en JavaScript). */
+.ui.card > .image.dimmable > .ui.dimmer {
+    transition: opacity .3s ease;
+}
+.ui.card > .image.dimmable:hover > .ui.dimmer {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

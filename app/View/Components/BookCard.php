@@ -15,7 +15,7 @@ class BookCard extends Component
     public function __construct(public User $book, public bool $nouvelle = false) {}
 
     /**
-     * Charge utile lue par js_core_cards.js pour le panneau de zoom.
+     * Charge utile lue par resources/js/portail/visionneuse.js.
      * Les cles sont celles du front 2018 : ne pas renommer.
      *
      * Privee a dessein : Laravel expose les methodes publiques d'un composant
@@ -40,12 +40,18 @@ class BookCard extends Component
         ];
     }
 
-    /** Visuels du diaporama de la carte. Privee, meme raison que detail(). */
+    /**
+     * Visuels de la visionneuse ouverte depuis la carte. Privee, meme
+     * raison que detail(). Image entiere, et sa version telephone : le
+     * legacy montrait l'image source (/img_/), pas la vignette front_desk
+     * de la carte (250 x 136), illisible en plein ecran.
+     */
     private function slider(): array
     {
         return [
             'book_img' => $this->book->media->map(fn ($media) => [
-                'fichier' => $media->url('front_desk'),
+                'fichier' => $media->url(),
+                'fichier_mobile' => $media->url('iph_medium'),
                 'title' => $media->title ?? '',
             ])->values()->all(),
             'book_type' => '',

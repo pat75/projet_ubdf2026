@@ -5,7 +5,6 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:js": "for s in absent partiel complet; do SCENARIO=$s node tests/js/defilement.test.mjs || exit 1; done && node tests/js/enchainement.test.mjs",
         "test:front": "node tests/Browser/outils/front.mjs"
     },
     "devDependencies": {

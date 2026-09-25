@@ -129,10 +129,10 @@ it('donne a Dustfolio ses propres accroches, pas celles d Ultra-book traduites',
         ->assertSee('Portfolios freelance, illustrateur', false);
 });
 
-it('expose la langue au JavaScript repris du front 2018', function () {
-    // js_core_pages.js teste `lang == 'fr'` pour choisir le catalogue de
-    // mots-cles a charger.
-    $this->get(df('/en'))->assertOk()->assertSee("lang =              'en'", false);
+it('expose la langue au JavaScript du portail', function () {
+    // resources/js/portail/recherche.js lit <html lang> pour choisir le
+    // catalogue de mots-cles (fr ou en).
+    $this->get(df('/en'))->assertOk()->assertSee('<html class="no-js" lang="en">', false);
 });
 
 it('donne la forme POSIX a og:locale', function () {

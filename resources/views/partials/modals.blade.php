@@ -119,7 +119,7 @@
                         <!-- bloc memobook -->
                         <div class="item memobook link_memobook  cursor_effect" id="nav_memobook" x-data x-infobulle="'.popup_memobook'">
                             <a href="/memobook" title="S'election de book">
-                                <span class="memo_nb hidden"></span>
+                                <span class="memo_nb" x-show="$store.memo.books.length" x-text="$store.memo.books.length" x-cloak></span>
                                 <span class="fonticon-heart_white fonticon_w22"></span>
                             </a>
                         </div>
@@ -427,7 +427,7 @@
 
                         <a href="/memobook" class="item ">
                             <div class="header">
-                                <span class="memo_nb"></span>
+                                <span class="memo_nb" x-data x-show="$store.memo.books.length" x-text="$store.memo.books.length" x-cloak></span>
                                 <span class="fonticon-heart_white fonticon_w22"></span>&nbsp;Ma sélection                             </div>
                         </a>
 
@@ -683,7 +683,9 @@
 
 <!-- Modal ajax 2019 intermediate card !-->
 <x-portail.modale nom="intermediaire" class="large modal_content_ajax_intermediate">
-    <div class="content ">
+    {{-- Demande de contact au creatif de la visionneuse :
+         resources/js/portail/contact.js. --}}
+    <div class="content" x-data="contactCreatif">
 
         <div class="btn_close outbox">
             <div></div>
@@ -691,22 +693,111 @@
 
         <div class="ui very relaxed grid two column middle center aligned stackable">
 
+            <!-- createur -->
+            <div class="column middle aligned segment_header">
+                <h2 class="ui icon header">
+                    <img :src="book.avatar" class="ui circular image" x-show="book.avatar">
+                    <div class="content" x-text="book.fiche.book_prenom_nom"></div>
+                </h2>
+                <h6 class="ui center aligned header localisation" x-show="book.fiche.book_ville">
+                    <div>
+                        <i class="map marker alternate icon"></i>
+                        <span x-text="book.fiche.book_pays"></span>
+                        <span class="ville" x-text="book.fiche.book_ville"></span>
+                    </div>
+                </h6>
+                <p>
+                    <div class="ui left labeled mini button disponible">
+                        <a class="ui right pointing label" :class="book.fiche.book_dispo === 'true' ? 'olive' : 'orange'">
+                            <i class="icon" :class="book.fiche.book_dispo === 'true' ? 'coffee' : 'plane'"></i>
+                        </a>
+                        <div class="ui button" x-text="book.fiche.book_dispo === 'true' ? 'Disponible' : 'Indisponible'"></div>
+                    </div>
+                </p>
+            </div>
 
-            <div class="column middle aligned segment_header hidden" ></div>
-
-            <!-- content -->
-            <div class="column middle aligned loading_segment hidden">
-                <div class="ui active inverted dimmer ">
+            <!-- envoi en cours -->
+            <div class="column middle aligned loading_segment" x-show="vue === 'envoi'" x-cloak>
+                <div class="ui active inverted dimmer">
                     <div class="ui medium loader"></div>
                 </div>
             </div>
 
-            <div class="column middle aligned segment_content hidden"></div>
+            <div class="column middle aligned segment_content" x-show="vue !== 'envoi'">
 
+                <div class="ui segment basic space1" id="segment_intermediate_reponse_error" x-show="vue === 'erreur'" x-cloak>
+                    Nous avons rencontré une ou plusieurs erreurs dans le formulaire
+                    <p class="error_list"><template x-for="message in erreurs.liste ?? []"><span><span x-text="message"></span><br></span></template></p>
+                    <div class="btn_back_form" @click="retour()"><i class="angle left icon"></i>Retour</div>
+                </div>
 
+                <div class="ui segment basic space1" id="segment_intermediate_reponse" x-show="vue === 'merci'" x-cloak>
+                    <i class="check icon"></i>
+                    <div class="ui header">Merci</div>
+                    Votre demande vient d’être envoyée
+                </div>
+
+                <div class="ui segment basic space1" id="segment_intermediate_form" x-show="vue === 'formulaire'">
+                    <div class="ui left aligned basic small segment">
+                        <form id="intermediate_form" class="ui form" x-ref="formulaire" novalidate @submit.prevent="envoyer($el)">
+                            <input type="hidden" name="action" value="work_A_contact">
+                            <input type="hidden" name="mf_request_detail" value="">
+                            <input type="hidden" name="us_dir" :value="book.login">
+                            <input type="hidden" name="us_key" :value="book.fiche.book_key">
+                            <input type="hidden" name="us_book_visuel" :value="visuel">
+
+                            <div class="ui header"><i class="shopping bag icon"></i>Je souhaite vous contacter</div>
+
+                            <div class="grouped fields">
+                                <div class="ui field" :class="{ error: erreurs.us_message }">
+                                    <div class="ui input">
+                                        <textarea rows="5" name="us_message" placeholder="Mon message" @input="erreurs.us_message = ''"></textarea>
+                                    </div>
+                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_message" x-text="erreurs.us_message" x-cloak></div>
+                                </div>
+                            </div>
+
+                            <span class="sub_title">Contact</span>
+                            <div class="grouped fields">
+                                <div class="ui field" :class="{ error: erreurs.us_nom_prenom }">
+                                    <div class="ui input">
+                                        <input type="text" name="us_nom_prenom" placeholder="Prénom, nom" autocomplete="name" @input="erreurs.us_nom_prenom = ''">
+                                    </div>
+                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_nom_prenom" x-text="erreurs.us_nom_prenom" x-cloak></div>
+                                </div>
+                            </div>
+                            <div class="grouped fields">
+                                <div class="ui field" :class="{ error: erreurs.us_mail }">
+                                    <div class="ui left icon input">
+                                        <input type="email" name="us_mail" value="" placeholder="Indiquez votre mail" autocomplete="email" @input="erreurs.us_mail = ''">
+                                        <i class="mail icon"></i>
+                                    </div>
+                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_mail" x-text="erreurs.us_mail" x-cloak></div>
+                                </div>
+                            </div>
+
+                            <div class="grouped fields" style="margin-top:10px;">
+                                <div class="ui field" :class="{ error: erreurs.captcha_answer }">
+                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                        <img id="captcha_img" :src="captcha" alt="captcha" title="Cliquez pour changer"
+                                             style="height:46px;border:1px solid #ddd;border-radius:3px;cursor:pointer;" @click="rechargerCaptcha()">
+                                        <div class="ui input" style="width:130px;">
+                                            <input type="text" name="captcha_answer" id="captcha_answer_input" maxlength="6" placeholder="Recopiez"
+                                                   autocomplete="off" style="letter-spacing:2px;text-transform:uppercase;" @input="erreurs.captcha_answer = ''">
+                                        </div>
+                                        <i class="sync alternate icon" id="captcha_reload_btn" title="Nouvelle image"
+                                           style="cursor:pointer;color:#888;font-size:1.1em;" @click="rechargerCaptcha()"></i>
+                                    </div>
+                                    <div class="ui pointing red basic label" x-show="erreurs.captcha_answer" x-text="erreurs.captcha_answer" x-cloak style="margin-top:4px;"></div>
+                                </div>
+                            </div>
+                            <button class="ui teal button valider_submit_inter" type="submit">Valider</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
 </x-portail.modale>
 <!-- Modal #end !-->
 

@@ -3,9 +3,7 @@
 @include('partials.head')
 
 {{-- Charge apres les feuilles du front 2018 pour pouvoir les surcharger.
-     portail.js porte Alpine, qui remplace jQuery au fil de
-     _doc/17_remplacement_jquery.md ; les deux cohabitent le temps de la
-     conversion. --}}
+     portail.js (Alpine) porte tout le JavaScript du portail. --}}
 @vite(['resources/css/ubdf.css', 'resources/css/portail.css', 'resources/js/portail.js'])
 <meta name="recaptcha" content="{{ config('services.recaptcha.key') }}">
 {{-- La marque est portee par le body : elle sert de selecteur aux regles
@@ -19,9 +17,9 @@
 
 @include('partials.footer')
 @include('partials.modals')
-@include('partials.handlebars')
+@include('partials.visionneuse')
 
-{{-- Contrat passe au JS du front (js2019/js_core_pages.js). --}}
+{{-- Contrat passe au JS du portail (resources/js/portail/cartes.js). --}}
 <script>
     window.ubdf = @json($ubdf ?? []);
 </script>
