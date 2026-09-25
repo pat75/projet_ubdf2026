@@ -5,7 +5,8 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:js": "for s in absent partiel complet; do SCENARIO=$s node tests/js/defilement.test.mjs || exit 1; done && node tests/js/enchainement.test.mjs"
+        "test:js": "for s in absent partiel complet; do SCENARIO=$s node tests/js/defilement.test.mjs || exit 1; done && node tests/js/enchainement.test.mjs",
+        "test:front": "node tests/Browser/outils/front.mjs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
@@ -13,6 +14,7 @@
         "concurrently": "^9.0.1",
         "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^2.0.0",
+        "playwright": "^1.63.0",
         "puppeteer-core": "^24.43.1",
         "tailwindcss": "^4.0.0",
         "vite": "^7.0.7"
