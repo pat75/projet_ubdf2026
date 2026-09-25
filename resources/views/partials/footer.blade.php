@@ -72,7 +72,7 @@
 							<div class="ui link list">
 								<a class="item" href="https://www.tesli.fr" target="_blank" rel="noopener">Tesli<br/>Créez votre site en un clic, par IA</a>
 								<a class="item" href="https://www.la-belle-illustration.fr" target="_blank" rel="noopener">La Belle Illustration<br/>La boutique d’illustrations à vendre</a>
-								<a class="item" href="https://www.les-illustrateurs.fr" target="_blank" rel="noopener">UB-diffusion<br/>La plateforme créative pour vendre vos créations</a>
+								<a class="item" href="https://www.les-illustrateurs.com" target="_blank" rel="noopener">UB-diffusion<br/>La plateforme créative pour vendre vos créations</a>
 							</div>
 						</div>
 					</div>
