@@ -132,7 +132,7 @@
 		lang =              '{{ app()->getLocale() }}',
 		user_admin_lang =   '{{ app()->getLocale() }}',
 		user_connect =      true,
-		reCAPTCHA_key_public  =      '6Lc8O5IUAAAAAJer15iYwddEROZzZnnIVzQe4P_1',
+		reCAPTCHA_key_public  =      @js(config('services.recaptcha.key')),
 		user_formule =      false	;
 
 

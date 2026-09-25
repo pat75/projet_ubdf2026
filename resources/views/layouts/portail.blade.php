@@ -7,6 +7,7 @@
      _doc/17_remplacement_jquery.md ; les deux cohabitent le temps de la
      conversion. --}}
 @vite(['resources/css/ubdf.css', 'resources/css/portail.css', 'resources/js/portail.js'])
+<meta name="recaptcha" content="{{ config('services.recaptcha.key') }}">
 {{-- La marque est portee par le body : elle sert de selecteur aux regles
      qui ne valent que pour l'une des deux (l'en-tete de l'accueil, la
      remontee du bloc de recherche). --}}

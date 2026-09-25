@@ -23,8 +23,6 @@ $(document).ready(function () {
             // modal
             this.modal();
 
-            // modal - menu top - connection
-            login.init();
 
             // modal - menu top - modal_creerbook
             inscription.init();

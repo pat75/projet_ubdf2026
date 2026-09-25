@@ -39,6 +39,13 @@ const parcours = {
         await page.waitForTimeout(3000);
         await visible(page, '.modal_connection .negative.message:has-text("incorrect")');
     },
+    'mot de passe oublié': async page => {
+        await page.locator('.btn_connection:visible').first().click({ timeout: 5000 });
+        await page.locator('#btn_mdp_forget').click();
+        await page.locator('#us_mail_mdp').fill('sonde@example.test');
+        await page.locator('.valider_submit_mdp').click();
+        await visible(page, '#segment_mdp_showOk .message:visible');
+    },
     'modale recherche': async page => {
         await page.locator('#search-menu').click({ timeout: 5000 });
         await visible(page, '#bloc_rechercher_top_menu_modal');

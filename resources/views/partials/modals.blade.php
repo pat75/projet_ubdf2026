@@ -134,7 +134,7 @@
                             </div>
                         @else
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">
-                                <a class="ui black basic button btn_connection">Connexion</a>
+                                <a class="ui black basic button btn_connection" x-data @click="$store.modale.ouvrir('connexion')">Connexion</a>
                             </div>
                             <!-- bloc creer un book-->
                             <div class="item btn_connection_signin mobile-hidden  cursor_effect">
@@ -712,157 +712,108 @@
 <!-- Modal connection 2018 !-->
 <x-portail.modale nom="connexion" class="modal_connection" :ouverte="session('connexion_ouverte', false)">
 
-
-    <div class="content">
+    {{-- Etats de la fenetre : resources/js/portail/connexion.js. --}}
+    <div class="content" x-data="connexion">
         <div class="btn_close outbox">
             <div></div>
         </div>
 
-
         <div class="ui container ">
             <div class="ui grid three column middle center aligned stackable">
 
-
                 <div class="2-3 wide column space2 ui middle aligned">
                     <div class="segment basic space1">
+                        <div class="logo">
+                            <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
+                        </div>
+                        <h3>Une mine de créatifs</h3>
 
-						                            <div class="logo">
-                                <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
-                            </div>
-                            <h3>Une mine de créatifs</h3>
-						
-
-                        <!--  mdp forget form show ok+error -->
-                        <div class="ui segment basic space1 hidden" id="segment_mdp_showOk">
+                        <!-- mot de passe oublie : resultat -->
+                        <div class="ui segment basic space1" id="segment_mdp_showOk" x-show="vue === 'resultat'" x-cloak>
                             <div class="ui left aligned basic small segment">
-
-                                <div class="ui info message hidden">
-                                    <div class="header"></div>
-                                    <p></p>
-                                    <ul class="list"><ul>
+                                <div class="ui info message" x-show="! resultat.erreur">
+                                    <div class="header" x-text="resultat.titre"></div>
+                                    <p x-text="resultat.texte"></p>
                                 </div>
-
-                                <div class="ui negative message hidden">
-                                    <div class="header"></div>
-                                    <p></p>
+                                <div class="ui negative message" x-show="resultat.erreur">
+                                    <div class="header" x-text="resultat.titre"></div>
                                 </div>
-
-                                <button class="ui button icon btn_back_mdp"><i class="angle left icon"></i></button>
-
+                                <button type="button" class="ui button icon btn_back_mdp" @click="vue = 'mdp'"><i class="angle left icon"></i></button>
                             </div>
                         </div>
-
-
-
                     </div>
                 </div>
 
                 <div class="one  column space2">
 
-
-
-                    <!-- mdp loader -->
-                    <div class="ui inverted dimmer" id="segment_loader_mdp">
+                    <!-- mot de passe oublie : envoi en cours -->
+                    <div class="ui inverted dimmer" id="segment_loader_mdp" :class="{ active: chargement }">
                         <div class="ui loader"></div>
                     </div>
 
-
-                    <!--  mdp forget form -->
-                    <div class="ui segment basic space1 hidden" id="segment_mdp">
-
+                    <!-- mot de passe oublie : formulaire -->
+                    <div class="ui segment basic space1" id="segment_mdp" x-show="vue === 'mdp'" x-cloak>
                         <div class="ui left aligned basic small segment">
                             <h4>Récupérer mon mot de passe</h4>
-
-                            <form id="mdp_form" class="ui form">
-
+                            <form id="mdp_form" class="ui form" @submit.prevent="demanderMotDePasse($el)" novalidate>
                                 @csrf
-
-
                                 <input type="hidden" name="form_action" value="form_valide" >
                                 <input type="hidden" name="form_id" value="form_mdpoublie">
                                 <input type="hidden" name="action" value="form">
-                                <input type="hidden" name="g-recaptcha-response">
-
                                 <div class="grouped fields">
-                                    <div class="ui  field">
+                                    <div class="ui field" :class="{ error: erreurMail }">
                                         <div class="ui left icon input">
-                                            <input id="us_mail_mdp" type="text" name="us_mail"  value=""
-                                                   placeholder="Indiquer votre mail">
+                                            <input id="us_mail_mdp" type="email" name="us_mail" value=""
+                                                   placeholder="Indiquer votre mail" @input="erreurMail = ''">
                                             <i class="mail icon"></i>
                                         </div>
+                                        <div class="ui basic red pointing prompt label" :class="{ show: erreurMail }" x-text="erreurMail"></div>
                                     </div>
                                 </div>
-                                <button class="ui button icon btn_back_mdptologin"><i class="angle left icon"></i></button>
-
-                                <button class="ui teal button valider_submit_mdp"
-                                        type="submit">Valider</button>
+                                <button type="button" class="ui button icon btn_back_mdptologin" @click="vue = 'connexion'"><i class="angle left icon"></i></button>
+                                <button class="ui teal button valider_submit_mdp" type="submit">Valider</button>
                             </form>
-
                         </div>
                     </div>
 
-
-
-                    <!-- connect form -->
-                    <div class="ui segment basic space1" id="segment_connect">
-
-						
+                    <!-- connexion -->
+                    <div class="ui segment basic space1" id="segment_connect" x-show="vue === 'connexion'">
                         <div class="ui horizontal divider">
-							Déja un compte                        </div>
-
-
+                            Déja un compte
+                        </div>
                         <div class="ui left aligned basic small segment">
-
-                            <form action="/ubaction__user_open" id="login_form" method="post" class="ui form ">
-
+                            <form action="/ubaction__user_open" id="login_form" method="post" class="ui form" @submit.prevent="connecter($el)" novalidate>
                                 @csrf
-
-
                                 <input type="hidden" name="g-recaptcha-response">
-
                                 <div class="grouped fields">
-                                    <div class="ui small input field">
-                                        <input id="login"
-                                               type="text"
-                                               name="login"
-                                               value="{{ old('login') }}"
-                                               autocomplete="username"
-                                               placeholder="Identifiant">
+                                    <div class="ui small input field" :class="{ error: erreurLogin }">
+                                        <input id="login" type="text" name="login" value="{{ old('login') }}"
+                                               autocomplete="username" placeholder="Identifiant" @input="erreurLogin = ''">
                                     </div>
+                                    {{-- hors du .input (flex) : sinon l'etiquette y est ecrasee --}}
+                                    <div class="ui basic red pointing prompt label" :class="{ show: erreurLogin }" x-text="erreurLogin"></div>
                                 </div>
-
                                 <div class="grouped fields">
                                     <div class="ui field">
-                                        <input
-                                                id="pass"
-                                                type="password"
-                                                name="pass"
-                                                value=""
-                                                autocomplete="current-password"
-                                                placeholder="Mot de passe">
+                                        <input id="pass" type="password" name="pass" value=""
+                                               autocomplete="current-password" placeholder="Mot de passe">
                                     </div>
                                 </div>
-
                                 {{-- Echec de connexion : ConnexionController renvoie ici,
                                      fenetre rouverte, avec le message. --}}
                                 @error('login')
                                     <div class="ui negative message" style="display: block;">{{ $message }}</div>
                                 @enderror
                                 <input class="ui small button valider_submit_login" type="submit" value="Connexion">
-
                             </form>
-
                             <br>
-                            <a id="btn_mdp_forget" href="#">Mot de passe ou pseudo oublié ?</a>
+                            <a id="btn_mdp_forget" href="#" @click.prevent="vue = 'mdp'">Mot de passe ou pseudo oublié ?</a>
                         </div>
                     </div>
+
                 </div>
-
-
             </div>
         </div>
-
-
     </div>
 </x-portail.modale>
 <!-- Modal #end !-->
