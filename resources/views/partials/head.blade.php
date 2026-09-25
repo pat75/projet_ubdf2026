@@ -410,6 +410,9 @@ var ub_gal = {
 		.script("js_cdn/jquery-1.12.4.min.js")
 		.script("js_cdn/jquery-migrate-1.4.1.min.js")
 		.script("lib/Semantic-UI-CSS-master2.3.1/semantic.min.js")
+		.wait()
+		// remplace $.fn.modal de Semantic par les modales Alpine
+		.script("js2019/pont_alpine.js")
 		.script("https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js")
 		// cookie, JSON, Handlebars, tipsy, easing, scrollTo, Magnific
 		.script("js2019/js_allplug2018.js?v=1594989160")

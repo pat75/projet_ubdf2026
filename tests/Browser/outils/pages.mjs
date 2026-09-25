@@ -28,6 +28,25 @@ const entete = {
     },
 };
 
+/* Parcours complets, sur l'accueil seulement (ils postent au serveur). */
+const parcours = {
+    'connexion échouée': async page => {
+        await page.locator('.btn_connection:visible').first().click({ timeout: 5000 });
+        await page.locator('#login').fill('sonde-inconnue');
+        await page.locator('#pass').fill('mauvais');
+        await page.locator('.valider_submit_login').click();
+        await page.waitForLoadState('domcontentloaded');
+        await page.waitForTimeout(3000);
+        await visible(page, '.modal_connection .negative.message:has-text("incorrect")');
+    },
+    'modale recherche': async page => {
+        await page.locator('#search-menu').click({ timeout: 5000 });
+        await visible(page, '#bloc_rechercher_top_menu_modal');
+        await page.locator('[data-modale=recherche] .close').first().click();
+        await page.locator('#bloc_rechercher_top_menu_modal').waitFor({ state: 'hidden', timeout: 3000 });
+    },
+};
+
 /* Pied de page et bandeau cookies, sur l'accueil. */
 const pied = {
     'bandeau cookies': async page => {
@@ -50,7 +69,7 @@ const pied = {
 };
 
 export const pages = [
-    { url: '/', actions: { ...entete, ...pied } },
+    { url: '/', actions: { ...entete, ...parcours, ...pied } },
     { url: '/recherche', actions: entete },
     { url: '/annuaire', actions: entete },
     { url: '/annuaire_b' },

@@ -302,7 +302,7 @@
 
 
 <!-- Popup rechercher menu_top !-->
-<div class="ui large modal" id="bloc_rechercher_top_menu_modal">
+<x-portail.modale nom="recherche" class="large" id="bloc_rechercher_top_menu_modal">
     <div class="content">
 
 
@@ -336,7 +336,7 @@
 
 
     </div>
-</div>
+</x-portail.modale>
 
 
 
@@ -616,19 +616,19 @@
 
 
 <!-- Modal ajax 2018 !-->
-<div class="ui modal large modal_content_ajax" id="fullscreenModal">
+<x-portail.modale nom="contenu" class="large modal_content_ajax" id="fullscreenModal">
     <div class="scrolling content">
         <div class="ui active dimmer">
             <div class="ui medium loader"></div>
         </div>
         <br><br><br><br><br><br>
     </div>
-</div>
+</x-portail.modale>
 <!-- Modal #end !-->
 
 
 <!-- Modal ajax 2018 contact card !-->
-<div class="ui modal large modal_content_ajax_contact">
+<x-portail.modale nom="contact" class="large modal_content_ajax_contact">
     <div class="content">
 
         <div class="btn_close outbox">
@@ -654,7 +654,7 @@
         </div>
     </div>
 
-</div>
+</x-portail.modale>
 <!-- Modal #end !-->
 
 
@@ -678,7 +678,7 @@
 
 
 <!-- Modal ajax 2019 intermediate card !-->
-<div class="ui modal large modal_content_ajax_intermediate">
+<x-portail.modale nom="intermediaire" class="large modal_content_ajax_intermediate">
     <div class="content ">
 
         <div class="btn_close outbox">
@@ -703,14 +703,14 @@
         </div>
     </div>
 
-</div>
+</x-portail.modale>
 <!-- Modal #end !-->
 
 
 
 
 <!-- Modal connection 2018 !-->
-<div class="ui modal modal_connection">
+<x-portail.modale nom="connexion" class="modal_connection" :ouverte="session('connexion_ouverte', false)">
 
 
     <div class="content">
@@ -825,7 +825,7 @@
                                         <input id="login"
                                                type="text"
                                                name="login"
-                                               value=""
+                                               value="{{ old('login') }}"
                                                autocomplete="username"
                                                placeholder="Identifiant">
                                     </div>
@@ -843,6 +843,11 @@
                                     </div>
                                 </div>
 
+                                {{-- Echec de connexion : ConnexionController renvoie ici,
+                                     fenetre rouverte, avec le message. --}}
+                                @error('login')
+                                    <div class="ui negative message" style="display: block;">{{ $message }}</div>
+                                @enderror
                                 <input class="ui small button valider_submit_login" type="submit" value="Connexion">
 
                             </form>
@@ -859,7 +864,7 @@
 
 
     </div>
-</div>
+</x-portail.modale>
 <!-- Modal #end !-->
 
 
@@ -868,7 +873,7 @@
 <!-- Modal creer un book 2019 ! -->
 
 <!-- reCAPTCHA v3 -->
-<div class="ui modal modal_creerbook">
+<x-portail.modale nom="creerbook" class="modal_creerbook">
 
     <div class="content">
         <div class="btn_close outbox">
@@ -1208,7 +1213,7 @@
 
 
     </div>
-</div>
+</x-portail.modale>
 <!-- Modal #end !-->
 
 

@@ -9,6 +9,7 @@
 
 @source "../js/portail.js";
 @source "../js/portail/";
+@source "../views/components/portail/";
 
 /* Masque les elements Alpine tant qu'Alpine n'a pas demarre. */
 [x-cloak] {

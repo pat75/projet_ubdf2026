@@ -8,43 +8,9 @@
  *   node tests/Browser/outils/front.mjs /recherche  une seule page (URL exacte)
  */
 import { chromium } from 'playwright';
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { pages, BASE, DOMAINE_LOCAL, adresse } from './pages.mjs';
-
-const AUTORISES = [new URL(BASE).hostname, 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'code.jquery.com',
-    'ajax.googleapis.com', 'www.google.com', 'www.gstatic.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
-const autorise = url => { const h = new URL(url).hostname; return AUTORISES.some(a => h === a || h.endsWith('.' + a)); };
-
-/*
- * Chromium n'atteint pas Internet depuis ce poste : les fichiers des CDN
- * sont telecharges par Node, puis gardes dans un cache disque (.cache/),
- * ce qui rend aussi chaque passage identique au precedent.
- */
-const CACHE = new URL('./.cache/', import.meta.url).pathname;
-mkdirSync(CACHE, { recursive: true });
-
-async function servirCdn(route) {
-    const url = route.request().url();
-    const fichier = CACHE + createHash('sha1').update(url).digest('hex');
-    if (!existsSync(fichier)) {
-        try {
-            const r = await fetch(url);
-            writeFileSync(fichier + '.type', r.headers.get('content-type') ?? 'application/octet-stream');
-            writeFileSync(fichier, Buffer.from(await r.arrayBuffer()));
-        } catch {
-            return route.abort();
-        }
-    }
-    return route.fulfill({ body: readFileSync(fichier), contentType: readFileSync(fichier + '.type', 'utf8'),
-        headers: { 'access-control-allow-origin': '*' } });
-}
-
-const aiguiller = route => {
-    const url = route.request().url();
-    if (new URL(url).hostname.endsWith(DOMAINE_LOCAL)) return route.continue();
-    return autorise(url) ? servirCdn(route) : route.abort();
-};
+import { mkdirSync } from 'node:fs';
+import { aiguiller } from './navigateur.mjs';
+import { pages, adresse } from './pages.mjs';
 
 const filtre = process.argv[2];
 const liste = filtre ? pages.filter(p => p.url === filtre) : pages;
@@ -71,7 +37,15 @@ for (const p of liste) {
                 await page.goto(adresse(p.url), { waitUntil: 'domcontentloaded', timeout: 30000 });
                 await page.waitForTimeout(3000);
             }
-            try { await action(page); } catch (e) { erreurs.push(`action « ${nom} » : ${e.message.split('\n')[0]}`); }
+            try {
+                await action(page);
+                // CAPTURES=dossier : une capture apres chaque action, pour
+                // comparer le rendu avant / apres une conversion.
+                if (process.env.CAPTURES) {
+                    mkdirSync(process.env.CAPTURES, { recursive: true });
+                    await page.screenshot({ path: `${process.env.CAPTURES}/${(new URL(adresse(p.url)).host + new URL(adresse(p.url)).pathname).replace(/\W+/g, '_')}-${nom.replace(/\W+/g, '_')}.png` });
+                }
+            } catch (e) { erreurs.push(`action « ${nom} » : ${e.message.split('\n')[0]}`); }
         }
     } catch (e) {
         erreurs.push('chargement : ' + e.message.split('\n')[0]);
