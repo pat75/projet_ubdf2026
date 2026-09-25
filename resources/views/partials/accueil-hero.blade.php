@@ -384,6 +384,7 @@
     
 
 
+@if ($accueilBlocs['mots_cles'] ?? true)
 	<!-- Last recherche -->
 
 
@@ -539,6 +540,8 @@
     </div>
 
 
+@endif
+@if ($accueilBlocs['creer_portfolio'] ?? true)
     <!-- Modeles 2020 -->
     <div class="ui container bloc_slide mobile bloc_accueil_modele2020">
         <div class="ui middle aligned two column stackable grid">
@@ -563,6 +566,8 @@
 
 
 
+@endif
+@if ($accueilBlocs['selection_qualite'] ?? true)
     <!-- entreprises 2020-->
     <div class="ui container bloc_slide mobile bloc_accueil_entreprise2020_stats">
 
@@ -618,7 +623,9 @@
 
 
 
+@endif
 @if ($marque->estDefaut())
+    @if ($accueilBlocs['site_pro'] ?? true)
     {{-- Reserve a Ultra-book : ce bloc renvoie vers ultrabook.pro et
          les-illustrateurs.com, deux services de la marque Ultra-book qui
          n'ont pas d'equivalent chez Dustfolio. --}}
@@ -649,12 +656,14 @@
         </div>
     </a>
     <!-- #end -->
+    @endif
 @endif
 
 
 
 
 @if ($marque->estDefaut())
+    @if ($accueilBlocs['disponibilites'] ?? true)
     {{-- Reserve a Ultra-book : ce bloc renvoie vers ultrabook.pro et
          les-illustrateurs.com, deux services de la marque Ultra-book qui
          n'ont pas d'equivalent chez Dustfolio. --}}
@@ -750,4 +759,5 @@
         </div>
     </header>
     <!-- banniere dispo #end-->
+    @endif
 @endif

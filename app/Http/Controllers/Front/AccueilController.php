@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccueilBloc;
 use App\Repository\BookRepository;
 use App\Support\CarteLegacy;
 use App\Support\Metier;
@@ -36,6 +37,9 @@ class AccueilController extends Controller
 
         return view('front.accueil', [
             'blocs' => $blocs,
+            // Blocs d'accroche affiches ou masques depuis le back-office
+            // (App\Filament\Pages\AccueilPage), lus dans accueil-hero.
+            'accueilBlocs' => AccueilBloc::etats(),
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
                 'book_domain' => config('ubdf.book_domain'),
