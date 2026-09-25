@@ -24,8 +24,6 @@ $(document).ready(function () {
             this.modal();
 
 
-            // modal - menu top - modal_creerbook
-            inscription.init();
 
             /*
             if (        page_type !=   'cms_user'

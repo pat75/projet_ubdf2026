@@ -334,7 +334,7 @@
                     {{-- Meme declencheur que le bouton « Creez un book » plus
                          bas dans la page : c'est le JavaScript du front 2018
                          qui ouvre la fenetre d'inscription. --}}
-                    <button x-apparition:zoom.300 class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl">
+                    <button x-apparition:zoom.300 class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl" @click.prevent="$store.modale.ouvrir('creerbook')">
                         <i class="right arrow icon"></i>
                         {{ __('Créer un book') }}
                     </button>
@@ -550,7 +550,7 @@
                     <h1>{{ __('Créer votre portfolio') }}</h1>
                     <h4>Chargez vos images par glisser-poser</h4>
                     <h4>Modifiez l’apparence, et diffusez</h4>
-                    <button class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl">
+                    <button class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" @click.prevent="$store.modale.ouvrir('creerbook')">
                         <i class="right arrow icon"></i>
                         CRÉEZ UN BOOK                    </button>
                 </div>

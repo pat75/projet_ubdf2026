@@ -417,7 +417,6 @@ var ub_gal = {
 		// cookie, JSON, Handlebars, tipsy, easing, scrollTo, Magnific
 		.script("js2019/js_allplug2018.js?v=1594989160")
 		.wait()
-		.script("js2019/js_core_inscription"+ext_min+".js")
 		.script("js2019/js_core_pages"+ext_min+".js")
 		.script("js2019/js_core_cards"+ext_min+".js")
 		.script("js2019/js_core_function"+ext_min+".js")

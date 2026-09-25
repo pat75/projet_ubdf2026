@@ -46,6 +46,27 @@ const parcours = {
         await page.locator('.valider_submit_mdp').click();
         await visible(page, '#segment_mdp_showOk .message:visible');
     },
+    // Sans envoi final : la sonde ne cree pas de compte.
+    'création de book, validations': async page => {
+        await page.locator('.btn_modal_creerbook:visible').first().click({ timeout: 5000 });
+        const fenetre = page.locator('[data-modale=creerbook]');
+        await fenetre.locator('.valider_volet_1').click();
+        await visible(page, '[data-modale=creerbook] .prompt.show:has-text("Indiquer votre nom")');
+        await visible(page, '[data-modale=creerbook] .prompt.show:has-text("métier")');
+        await fenetre.locator('#us_login').fill('adolie');
+        await page.waitForTimeout(800);
+        await fenetre.locator('.valider_volet_1').click();
+        await visible(page, '[data-modale=creerbook] .prompt.show:has-text("existe")');
+        await fenetre.locator('#us_login').fill('sonde-' + Date.now());
+        await fenetre.locator('.dropdown_nav_metiers_').click();
+        await fenetre.locator('.dropdown_nav_metiers .item[data-value=graphiste]').click();
+        await fenetre.locator('.valider_volet_1').click();
+        await visible(page, '[data-modale=creerbook] .volet_2');
+        await fenetre.locator('#mdp-desac').fill('court');
+        await fenetre.locator('.valider_submit').click();
+        await visible(page, '[data-modale=creerbook] .prompt.show:has-text("8 caractères")');
+        await visible(page, '[data-modale=creerbook] .prompt.show:has-text("conditions")');
+    },
     'modale recherche': async page => {
         await page.locator('#search-menu').click({ timeout: 5000 });
         await visible(page, '#bloc_rechercher_top_menu_modal');

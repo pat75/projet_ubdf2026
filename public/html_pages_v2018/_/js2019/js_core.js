@@ -118,7 +118,7 @@ $(document).ready(function () {
 
     if ( url_hash_bookid == 'create-book' ) {
         // open create book
-        $('.btn_modal_creerbook').trigger('click');
+        Alpine.store('modale').ouvrir('creerbook');
     }
     else
         if ( url_hash_bookid ) {

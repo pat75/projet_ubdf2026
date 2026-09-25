@@ -138,7 +138,7 @@
                             </div>
                             <!-- bloc creer un book-->
                             <div class="item btn_connection_signin mobile-hidden  cursor_effect">
-                                <a class="ui black button btn_modal_creerbook">Créer un book</a>
+                                <a class="ui black button btn_modal_creerbook" x-data @click.prevent="$store.modale.ouvrir('creerbook')">Créer un book</a>
                             </div>
                         @endauth
                         <!-- bloc connexion - end -->
@@ -414,7 +414,7 @@
                     <div class="ui huge inverted  animated list selections">
 
 
-                        <a class="item btn_modal_creerbook">
+                        <a class="item btn_modal_creerbook" x-data @click.prevent="$store.modale.ouvrir('creerbook')">
                             <div class="middle aligned content">
                                 <div class="header">
                                     <span class="fonticon-plus2 fonticon_w22"></span>&nbsp;Créer un portfolio</div>
@@ -826,343 +826,192 @@
 <!-- reCAPTCHA v3 -->
 <x-portail.modale nom="creerbook" class="modal_creerbook">
 
-    <div class="content">
+    {{-- Etats de la fenetre : resources/js/portail/inscription.js. --}}
+    <div class="content" x-data="inscription">
         <div class="btn_close outbox">
             <div></div>
         </div>
 
-
         <div class="ui container ">
             <div class="ui grid middle center aligned stackable">
 
-
-                <div class="ten wide column space2 ui middle aligned">
+                <div class="column space2 ui middle aligned" :class="vue === 'validation' ? 'sixteen wide' : 'ten wide'">
                     <div class="segment basic space1" id="inscription_segment_gauche">
-
                         <img class="ui centered medium image  cursor_effect" src="/img_admin/diffusion-b.svg" alt="Créez un book">
 
                         <!-- presentation -->
-                        <div id="inscription_segment_presentation">
+                        <div id="inscription_segment_presentation" x-show="vue !== 'validation'">
                             <h2>Créez un book</h2>
                             <h4>Rejoignez les 50.000 créatifs.<br/>Créez, diffusez et proposez vos services</h4>
-                            <!--<p>La plateforme est gratuite par défaut.<br/></p>-->
-
-							                                <div class="logo">
-                                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
-                                </div>
-                                <h3>Une mine de créatifs</h3>
-							
-
+                            <div class="logo">
+                                <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" >
+                            </div>
+                            <h3>Une mine de créatifs</h3>
                         </div>
 
-
-                        <!-- validation -->
-                        <div class="hidden" id="inscription_segment_validation">
-
-                            <canvas id="make_progress_canvas"></canvas>
-
-                            <div class="inscription_segment_bravo hidden" >
+                        <!-- validation : progression puis acces a l'espace -->
+                        <div id="inscription_segment_validation" x-show="vue === 'validation'" :class="{ active: vue === 'validation' }" x-cloak>
+                            <canvas id="make_progress_canvas" x-ref="progression" x-show="! bravo"></canvas>
+                            <div class="inscription_segment_bravo" x-show="bravo" x-cloak
+                                 x-transition.opacity.duration.400ms @click="allerEspace()">
                                 <h2 class="btn_acceder_espace">Bravo, maintenant vous avez votre portfolio !</h2>
                                 <h4 class="btn_acceder_espace">Pour rejoindre la sélection placez au minimum une douzaine d’images</h4>
                                 <h3 class="btn_acceder_espace">Accédez à votre espace<i class="ui arrow right teal icon"></i></h3>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
 
-
-                <div class="six wide column space2">
-
-
-                    <!-- inscription -->
+                <div class="six wide column space2" x-show="vue !== 'validation'">
                     <div class="ui segment basic space1" id="inscription_segment_">
 
-
-                        <!-- loader -->
-                        <div class="ui inverted dimmer" id="inscription_segment_loader">
+                        <!-- envoi en cours -->
+                        <div class="ui inverted dimmer" id="inscription_segment_loader" :class="{ active: chargement }">
                             <div class="ui loader"></div>
                         </div>
 
-
-                        <!-- inscription form - error
-						<div id="user_add_error" class="hidden"></div>
-						-->
-
-                        <!-- inscription form error -->
-                        <div id="display_error_segment" class="hidden">
-                            <div class="ui error message" >
+                        <!-- erreurs renvoyees par le serveur -->
+                        <div id="display_error_segment" x-show="vue === 'erreur'" x-cloak x-transition.opacity>
+                            <div class="ui error message" style="display: block;">
                                 <div class="header"><i class="cogs icon"></i> Erreurs lors de l’enregistrement.</div>
+                                <template x-for="message in messagesErreur"><p x-text="message"></p></template>
                             </div>
-                            <button class="ui button icon return_first hidden"><i class="angle left icon"></i></button>
+                            <button type="button" class="ui button icon return_first" @click="recommencer()"><i class="angle left icon"></i></button>
                         </div>
 
-
-                        <!-- inscription form - google after -->
-                        <div id="inscription_segment_google_form_after" class="hidden">
-                            <div class="ui left aligned basic small segment ">
-
-                                <div class="ui raised segment  data_google">
-                                    <div id="type_connection">connection via  <span class="data_type_connection"></span></div>
-                                    <a class="ui teal ribbon label"><i class="icon" id="icon_to_change"></i></a>
-                                    <h2 class="ui header">
-                                        <img src="" class="ui circular image data_photo_url">
-                                        <div class="content">
-                                            <span class="data_displayName"></span>
-                                            <div class="sub header data_email"></div>
-                                        </div>
-
-                                    </h2>
-
-                                </div>
-
-                                <form class="ui form " id="inscription_google">
-
-                                @csrf
-
-
-                                    <input type="hidden" name="action" value="form">
-                                    <input type="hidden" name="form_id" value="">
-                                    <input type="hidden" value="form_valide" name="form_action">
-                                    <input type="hidden" name="g-recaptcha-response">
-
-                                    <!-- 1 volet-->
-                                    <div class="volet_1">
-
-                                        <div class="grouped fields">
-                                            <div class="ui field">
-                                                <div class="ui right labeled small input us_login_">
-                                                    <div class="ui label us_login_affhttp"> https://</div>
-                                                    <input name="us_login"
-                                                           type="text"
-                                                           autocomplete="username"
-                                                           placeholder="Identifiant"
-                                                           id="us_login">
-                                                    <div
-                                                            class="ui label us_login_affub">.ubdf2020ssl.localhost:4433</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="grouped fields">
-                                            <div class="field">
-                                                <div class="ui selection dropdown dropdown_nav_metiers_">
-                                                    <input type="hidden" name="us_type">
-                                                    <i class="dropdown icon"></i>
-                                                    <div class="default text">Métier ou domaine</div>
-
-                                                    <div class="menu dropdown_nav_metiers" >
-																													                                                                <div class="item" data-value="illustrateur">
-                                                                    <div class="nuancier coul_illustrateur"></div>
-																	Illustration                                                                </div>
-																																												                                                                <div class="item" data-value="illustrateur-jeunesse">
-                                                                    <div class="nuancier coul_illustrateur_jeunesse"></div>
-																	Illustration jeunesse                                                                </div>
-																																												                                                                <div class="item" data-value="graphiste">
-                                                                    <div class="nuancier coul_graphiste"></div>
-																	Graphisme                                                                </div>
-																																												                                                                <div class="item" data-value="directeur-artistique">
-                                                                    <div class="nuancier coul_directeur_artistique"></div>
-																	Direction artistique                                                                </div>
-																																												                                                                <div class="item" data-value="digital">
-                                                                    <div class="nuancier coul_digital"></div>
-																	Digital & développement                                                                </div>
-																																												                                                                <div class="item" data-value="plasticien">
-                                                                    <div class="nuancier coul_plasticien"></div>
-																	Art                                                                </div>
-																																												                                                                <div class="item" data-value="photographe">
-                                                                    <div class="nuancier coul_photographe"></div>
-																	Photographie                                                                </div>
-																																												                                                                <div class="item" data-value="design">
-                                                                    <div class="nuancier coul_design"></div>
-																	Design objet                                                                </div>
-																																												                                                                <div class="item" data-value="architecte">
-                                                                    <div class="nuancier coul_architecte"></div>
-																	Architecture                                                                </div>
-																																																																																																																																																	                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="grouped fields">
-                                            <div class="field">
-                                                <div class="ui toggle checkbox us_licence ">
-                                                    <input name="us_licence" type="checkbox" tabindex="0" class="hidden">
-                                                    <label>
-														J’accepte les                                                        <a href="/doc/conditions-dutilisations"
-                                                           target="_blank">conditions d’utilisation</a>
-														{{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <button class="ui button icon return_first hidden"><i class="angle left icon"></i></button>
-
-                                        <button class="ui teal button valider_submit"
-                                                type="submit">Valider</button>
-
-                                    </div>
-                                </form>
-
-                            </div>
-                        </div>
-
-                        <!-- inscription form - classic -->
-                        <div id="inscription_segment">
-
-                            <div id="inscription_segment_social_connect">
+                        <!-- formulaire -->
+                        <div id="inscription_segment" x-show="vue === 'formulaire'">
+                            <div id="inscription_segment_social_connect" x-show="volet === 1">
                                 <h4 style="margin-top:50px;text-align:left;color:#5f5f5f;margin-bottom: 8px;margin-left: 6px;">
-                                    <!--Sobre, efficace et gratuit-->
-									Inscrivez-vous gratuitement                                </h4>
-
-								
+                                    Inscrivez-vous gratuitement
+                                </h4>
                             </div>
 
-                            <!-- classic -->
                             <div class="ui left aligned basic small segment">
-
-                                <form class="ui form " id="inscription_classic">
-
-                                @csrf
-
-
+                                <form class="ui form" id="inscription_classic" novalidate
+                                      @submit.prevent="volet === 1 ? suivant($el) : envoyer($el)">
+                                    @csrf
                                     <input type="hidden" name="action" value="form">
                                     <input type="hidden" name="form_id" value="form_adduser">
-                                    <input type="hidden" value="form_valide" name="form_action">
-                                    <input type="hidden"  name="g-recaptcha-response">
+                                    <input type="hidden" name="form_action" value="form_valide">
 
-
-                                    <!-- 1 volet-->
-                                    <div class="volet_1">
-
+                                    <!-- volet 1 : identifiant et metier -->
+                                    <div class="volet_1" x-show="volet === 1" x-transition.opacity.duration.400ms>
                                         <div class="grouped fields">
-                                            <div class="ui  field ">
+                                            <div class="ui field" :class="{ error: erreurs.us_login }">
                                                 <div class="ui right labeled small input us_login_">
                                                     <div class="ui label us_login_affhttp"> https://</div>
-                                                    <input name="us_login"
-                                                           type="text"
-                                                           autocomplete="username"
-                                                           placeholder="Identifiant"
-                                                           id="us_login">
-                                                    <div
-                                                            class="ui label us_login_affub">.ubdf2020ssl.localhost:4433</div>
+                                                    <input name="us_login" type="text" autocomplete="username"
+                                                           placeholder="Identifiant" id="us_login"
+                                                           x-model="login" @input.debounce.400ms="erreurs.us_login = ''; verifierLogin()">
+                                                    <div class="ui label us_login_affub">.{{ config('ubdf.book_domain') }}</div>
                                                 </div>
                                             </div>
+                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_login }" x-text="erreurs.us_login"></div>
                                         </div>
-
                                         <div class="grouped fields">
-                                            <div class="field">
-                                                <div class="ui selection dropdown dropdown_nav_metiers_">
+                                            <div class="field" :class="{ error: erreurs.us_type }">
+                                                <div class="ui selection dropdown dropdown_nav_metiers_"
+                                                     x-data="listeDeroulante" x-bind="racine" @choix="erreurs.us_type = ''">
                                                     <input type="hidden" name="us_type">
                                                     <i class="dropdown icon"></i>
                                                     <div class="default text">Métier ou domaine</div>
-
-                                                    <div class="menu dropdown_nav_metiers" >
-																													                                                                <div class="item" data-value="illustrateur">
-                                                                    <div class="nuancier coul_illustrateur"></div>
-																	Illustration                                                                </div>
-																																												                                                                <div class="item" data-value="illustrateur-jeunesse">
-                                                                    <div class="nuancier coul_illustrateur_jeunesse"></div>
-																	Illustration jeunesse                                                                </div>
-																																												                                                                <div class="item" data-value="graphiste">
-                                                                    <div class="nuancier coul_graphiste"></div>
-																	Graphisme                                                                </div>
-																																												                                                                <div class="item" data-value="directeur-artistique">
-                                                                    <div class="nuancier coul_directeur_artistique"></div>
-																	Direction artistique                                                                </div>
-																																												                                                                <div class="item" data-value="digital">
-                                                                    <div class="nuancier coul_digital"></div>
-																	Digital & développement                                                                </div>
-																																												                                                                <div class="item" data-value="plasticien">
-                                                                    <div class="nuancier coul_plasticien"></div>
-																	Art                                                                </div>
-																																												                                                                <div class="item" data-value="photographe">
-                                                                    <div class="nuancier coul_photographe"></div>
-																	Photographie                                                                </div>
-																																												                                                                <div class="item" data-value="design">
-                                                                    <div class="nuancier coul_design"></div>
-																	Design objet                                                                </div>
-																																												                                                                <div class="item" data-value="architecte">
-                                                                    <div class="nuancier coul_architecte"></div>
-																	Architecture                                                                </div>
-																																																																																																																																																	                                                    </div>
+                                                    <div class="menu dropdown_nav_metiers">
+                                                        <div class="item" data-value="illustrateur">
+                                                            <div class="nuancier coul_illustrateur"></div>
+                                                            Illustration
+                                                        </div>
+                                                        <div class="item" data-value="illustrateur-jeunesse">
+                                                            <div class="nuancier coul_illustrateur_jeunesse"></div>
+                                                            Illustration jeunesse
+                                                        </div>
+                                                        <div class="item" data-value="graphiste">
+                                                            <div class="nuancier coul_graphiste"></div>
+                                                            Graphisme
+                                                        </div>
+                                                        <div class="item" data-value="directeur-artistique">
+                                                            <div class="nuancier coul_directeur_artistique"></div>
+                                                            Direction artistique
+                                                        </div>
+                                                        <div class="item" data-value="digital">
+                                                            <div class="nuancier coul_digital"></div>
+                                                            Digital & développement
+                                                        </div>
+                                                        <div class="item" data-value="plasticien">
+                                                            <div class="nuancier coul_plasticien"></div>
+                                                            Art
+                                                        </div>
+                                                        <div class="item" data-value="photographe">
+                                                            <div class="nuancier coul_photographe"></div>
+                                                            Photographie
+                                                        </div>
+                                                        <div class="item" data-value="design">
+                                                            <div class="nuancier coul_design"></div>
+                                                            Design objet
+                                                        </div>
+                                                        <div class="item" data-value="architecte">
+                                                            <div class="nuancier coul_architecte"></div>
+                                                            Architecture
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_type }" x-text="erreurs.us_type"></div>
                                             </div>
                                         </div>
-
-                                        <button class="ui icon teal button valider_volet_1"><i class="angle right icon"></i></button>
-
+                                        <button class="ui icon teal button valider_volet_1" type="submit"><i class="angle right icon"></i></button>
                                     </div>
 
-
-                                    <!-- 2 volet-->
-                                    <div class="volet_2 hidden">
-
-                                        <div class="ui Large label  id_connection UItooltip" data-content="Utilisez cet identifiant pour vous connecter et administrer votre book" data-position="top center" data-variation="inverted" >
+                                    <!-- volet 2 : compte -->
+                                    <div class="volet_2" x-show="volet === 2" x-cloak x-transition.opacity.duration.400ms>
+                                        <div class="ui Large label id_connection" title="Utilisez cet identifiant pour vous connecter et administrer votre book">
                                             <i class="user icon"></i>
-                                            <span id="show_id_connection"></span>
+                                            <span id="show_id_connection" x-text="login.trim().toLowerCase()"></span>
                                         </div>
-
                                         <div class="grouped fields">
-                                            <div class="ui small input field">
+                                            <div class="ui small input field" :class="{ error: erreurs.us_pass }">
                                                 <input id="mdp-desac" type="password" name="us_pass" value="" autocomplete="new-password"
-                                                       placeholder="Mot de passe">
+                                                       placeholder="Mot de passe" @input="erreurs.us_pass = ''">
                                             </div>
+                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_pass }" x-text="erreurs.us_pass"></div>
                                         </div>
-
-
                                         <div class="grouped fields">
-                                            <div class="ui small input field">
-                                                <input type="mail" name="us_nom" value=""
-                                                       placeholder="Nom / Prénom">
+                                            <div class="ui small input field" :class="{ error: erreurs.us_nom }">
+                                                <input type="text" name="us_nom" value="" autocomplete="name"
+                                                       placeholder="Nom / Prénom" @input="erreurs.us_nom = ''">
                                             </div>
+                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_nom }" x-text="erreurs.us_nom"></div>
                                         </div>
-
                                         <div class="grouped fields">
-                                            <div class="ui small input field">
-                                                <input id="mail" type="mail" name="us_mail" value=""
-                                                       placeholder="Mail">
+                                            <div class="ui small input field" :class="{ error: erreurs.us_mail }">
+                                                <input id="mail" type="email" name="us_mail" value="" autocomplete="email"
+                                                       placeholder="Mail" @input="erreurs.us_mail = ''">
                                             </div>
+                                            <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_mail }" x-text="erreurs.us_mail"></div>
                                         </div>
-
                                         <div class="grouped fields">
-                                            <div class="field">
-                                                <div class="ui toggle checkbox us_licence ">
-                                                    <input name="us_licence" type="checkbox" tabindex="0"
-                                                           class="hidden">
+                                            <div class="field" :class="{ error: erreurs.us_licence }">
+                                                <div class="ui toggle checkbox us_licence" x-data="caseACocher" x-bind="racine" @change="erreurs.us_licence = ''">
+                                                    <input name="us_licence" type="checkbox" tabindex="0" class="hidden">
                                                     <label>
-														J’accepte les                                                        <a href="/doc/conditions-dutilisations"
-                                                           target="_blank">conditions d’utilisation</a>
-														{{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}                                                    </label>
+                                                        J’accepte les <a href="/doc/conditions-dutilisations" target="_blank">conditions d’utilisation</a>
+                                                        {{ __('de la plateforme :marque', ['marque' => $marque->nom]) }}
+                                                    </label>
                                                 </div>
+                                                <div class="ui basic red pointing prompt label" :class="{ show: erreurs.us_licence }" x-text="erreurs.us_licence"></div>
                                             </div>
                                         </div>
-
-                                        <button class="ui button icon valider_volet_2"><i class="angle left icon"></i></button>
-                                        <button class="ui teal button valider_submit"
-                                                type="submit">Valider</button>
-
+                                        <button type="button" class="ui button icon valider_volet_2" @click="volet = 1"><i class="angle left icon"></i></button>
+                                        <button class="ui teal button valider_submit" type="submit">Valider</button>
                                     </div>
-
                                 </form>
-
-
                             </div>
-
-
-
                         </div>
-
 
                     </div>
                 </div>
 
-
             </div>
         </div>
-
-
     </div>
 </x-portail.modale>
 <!-- Modal #end !-->
