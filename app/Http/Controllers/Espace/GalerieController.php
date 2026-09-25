@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Espace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class GalerieController extends Controller
@@ -13,8 +14,9 @@ class GalerieController extends Controller
         return view('espace.galeries');
     }
 
-    public function show(Gallery $galerie): View
+    /** Les visuels se gerent desormais sur la page des portfolios. */
+    public function show(Gallery $galerie): RedirectResponse
     {
-        return view('espace.visuels', ['galerie' => $galerie]);
+        return redirect()->to(route('espace.galeries').'#portfolio-'.$galerie->id);
     }
 }

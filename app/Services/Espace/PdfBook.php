@@ -4,6 +4,7 @@ namespace App\Services\Espace;
 
 use App\Models\Media;
 use App\Models\User;
+use App\Support\DossierBook;
 use FPDF;
 use Intervention\Image\ImageManager;
 
@@ -68,7 +69,7 @@ class PdfBook
                     break 2;
                 }
 
-                if ($this->pageVisuel($pdf, storage_path('app/public/books/'.$creatif->login.'/'.$visuel->filename))) {
+                if ($this->pageVisuel($pdf, DossierBook::chemin($creatif->login, $visuel->filename))) {
                     $pages++;
                 }
             }

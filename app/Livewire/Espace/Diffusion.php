@@ -9,6 +9,14 @@ use Livewire\Component;
 /** Diffusion du book (ubaction__user_diffusion du legacy). */
 class Diffusion extends Component
 {
+    /** Interrupteur de la page => colonne de book_settings (liste blanche). */
+    private const COLONNES = [
+        'web' => 'diffuse_web',
+        'portail' => 'diffuse_ub',
+        'newsletter' => 'diffuse_newsletter',
+        'disponible' => 'diffuse_availability',
+    ];
+
     public bool $web = true;
 
     public bool $portail = true;
@@ -27,21 +35,26 @@ class Diffusion extends Component
         $this->disponible = (bool) ($r?->diffuse_availability ?? false);
     }
 
-    public function enregistrer(): void
+    /** Un interrupteur s'enregistre des qu'il change, sans bouton (charte). */
+    public function basculer(string $champ): void
     {
-        Auth::user()->bookSetting()->updateOrCreate([], [
-            'diffuse_web' => $this->web,
-            'diffuse_ub' => $this->portail,
-            'diffuse_newsletter' => $this->newsletter,
-            'diffuse_availability' => $this->disponible,
-        ]);
+        abort_unless(isset(self::COLONNES[$champ]), 422);
 
-        session()->flash('statut', __('Diffusion enregistrée.'));
-        $this->redirectRoute('espace.diffusion');
+        $this->{$champ} = ! $this->{$champ};
+
+        Auth::user()->bookSetting()->updateOrCreate([], [self::COLONNES[$champ] => $this->{$champ}]);
     }
 
     public function render(): View
     {
-        return view('livewire.espace.diffusion');
+        $user = Auth::user();
+
+        return view('livewire.espace.diffusion', [
+            'canaux' => [
+                'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],
+                'portail' => [__('Diffusion sur Ultra-book'), __('Votre book apparaît dans l’annuaire et les recherches Ultra-book.'), 'https://'.config('ubdf.portail_domain').'#'.$user->login],
+                'newsletter' => [__('Newsletter'), __('Vos nouveaux projets peuvent être mis en avant dans la newsletter.'), null],
+            ],
+        ]);
     }
 }

@@ -2,11 +2,15 @@
 
 namespace App\Livewire\Espace;
 
+use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\BookSetting;
+use App\Services\Espace\AffichageProfil;
+use App\Services\Espace\DepotAvatar;
 use App\Services\Espace\ReglagesTheme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * Theme du book et ses reglages (user_pref_form et conf_modif_* du legacy).
@@ -17,7 +21,13 @@ use Livewire\Component;
  */
 class Habillage extends Component
 {
+    use EnregistreChamps;
+    use WithFileUploads;
+
     public string $theme = '';
+
+    /** Photo de profil recadree en carre par le navigateur, en attente d'enregistrement. */
+    public $avatarTemp = null;
 
     public string $titre = '';
 
@@ -48,14 +58,41 @@ class Habillage extends Component
         $this->chargerValeurs($service);
     }
 
+    public function deposerAvatar(DepotAvatar $service): void
+    {
+        $this->validate(['avatarTemp' => 'required|image|max:5120']);
+
+        $service->deposer($this->reglages(), $this->avatarTemp);
+        $this->avatarTemp = null;
+        $this->annoncerAvatar();
+    }
+
+    public function retirerAvatar(DepotAvatar $service): void
+    {
+        $service->retirer($this->reglages());
+        $this->annoncerAvatar();
+    }
+
+    /**
+     * Les autres vignettes de la page (barre de tete, menu) sont hors du
+     * composant : l'evenement les met a jour cote navigateur
+     * (resources/js/espace.js, [data-avatar-profil]).
+     */
+    private function annoncerAvatar(): void
+    {
+        $creatif = Auth::user()->fresh('bookSetting');
+        $profil = app(AffichageProfil::class);
+
+        $this->dispatch('avatar-profil-modifie',
+            url: $profil->photoUrl($creatif),
+            initiales: $profil->initiales($creatif),
+            couleur: $profil->couleur($creatif),
+        );
+    }
+
     public function enregistrer(ReglagesTheme $service): void
     {
-        $this->validate([
-            'titre' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:2000',
-            'piedDePage' => 'nullable|string|max:2000',
-            'valeurs' => 'array',
-        ]);
+        $this->validate(['valeurs' => 'array']);
 
         $reglages = $this->reglages();
         $configuration = $service->configuration($reglages, $this->theme);
@@ -69,9 +106,6 @@ class Habillage extends Component
         }
 
         $reglages->update([
-            'title' => $this->titre,
-            'description' => $this->description,
-            'footer' => $this->piedDePage,
             'theme_settings' => $service->appliquer($configuration, $saisies),
         ]);
 
@@ -79,11 +113,33 @@ class Habillage extends Component
         $this->redirectRoute('espace.design');
     }
 
-    public function render(ReglagesTheme $service): View
+    protected function champsAutoEnregistres(): array
     {
+        return [
+            'titre' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'piedDePage' => 'nullable|string|max:2000',
+        ];
+    }
+
+    protected function persisterChamp(string $nom, mixed $valeur): void
+    {
+        $colonne = ['titre' => 'title', 'description' => 'description', 'piedDePage' => 'footer'][$nom];
+
+        $this->reglages()->update([$colonne => (string) $valeur]);
+        $this->{$nom} = (string) $valeur;
+    }
+
+    public function render(ReglagesTheme $service, AffichageProfil $profil): View
+    {
+        $creatif = Auth::user();
+
         return view('livewire.espace.habillage', [
             'themes' => $this->themes(),
             'champs' => $service->champs($service->configuration($this->reglages(), $this->theme)),
+            'photoUrl' => $profil->photoUrl($creatif),
+            'initiales' => $profil->initiales($creatif),
+            'couleurAvatar' => $profil->couleur($creatif),
         ]);
     }
 

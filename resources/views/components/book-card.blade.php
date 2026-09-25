@@ -2,7 +2,7 @@
      Structure et classes reprises telles quelles du front 2018 : les
      attributs data-* sont consommes par js2019/js_core_cards.js (zoom,
      slider, memo book, statistiques). --}}
-@props(['book', 'nouvelle' => false])
+@props(['book', 'nouvelle' => false, 'apparition' => null])
 
 @php
     $category = $book->category?->slug ?? 'autre';
@@ -17,6 +17,7 @@
      data-user_detail='@json($detail, JSON_UNESCAPED_UNICODE)'
      data-slider='@json($slider, JSON_UNESCAPED_UNICODE)'
      data-motcles=''
+     @if ($apparition !== null) x-apparition.{{ $apparition }} @endif
 >
     <a class="ui fluid image dimmable"
        href="{{ $book->bookUrl() }}"
@@ -39,7 +40,7 @@
     <div class="content center aligned">
         @if ($book->bookSetting?->thumbnail)
             <img class="ui avatar image" data-us_="us_vign"
-                 src="{{ $book->thumbnailUrl() }}" alt="{{ $name }}-{{ $category }}" />
+                 src="{{ $book->thumbnailUrl('carre_183') }}" alt="{{ $name }}-{{ $category }}" />
         @endif
 
         <div class="header">{{ $name }}</div>

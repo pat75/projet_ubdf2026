@@ -20,7 +20,7 @@ class EspaceController extends Controller
         /** @var User $creatif */
         $creatif = $requete->user();
 
-        $lienMinibook = rtrim(lien('accueil'), '/').'#'.$creatif->login;
+        $lienMinibook = rtrim(url('/'), '/').'/#'.$creatif->login;
 
         return view('espace.tableau', [
             'creatif' => $creatif,

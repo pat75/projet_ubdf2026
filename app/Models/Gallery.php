@@ -12,14 +12,22 @@ class Gallery extends Model
 {
     use SoftDeletes;
 
+    protected $hidden = ['password'];
+
     protected $fillable = [
         'legacy_id', 'user_id', 'parent_id', 'name', 'slug',
-        'status', 'position', 'color', 'media_order',
+        'status', 'position', 'color', 'media_order', 'password',
     ];
 
     protected function casts(): array
     {
-        return ['media_order' => 'array'];
+        return ['media_order' => 'array', 'password' => 'encrypted'];
+    }
+
+    /** Protege par un mot de passe demande aux visiteurs du book. */
+    public function estProtegee(): bool
+    {
+        return filled($this->password);
     }
 
     public function scopePublished(Builder $query): Builder

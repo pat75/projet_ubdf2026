@@ -30,7 +30,7 @@ it('donne le code d integration dans l espace', function () {
 });
 
 it('produit le PDF du book, limite a 4 visuels en formule gratuite', function () {
-    $dossier = storage_path('app/public/books/microtest');
+    $dossier = App\Support\DossierBook::chemin('microtest');
     Illuminate\Support\Facades\File::ensureDirectoryExists($dossier);
     foreach (range(1, 12) as $i) {
         imagepng(imagecreatetruecolor(40, 30), $dossier."/v{$i}.jpg");

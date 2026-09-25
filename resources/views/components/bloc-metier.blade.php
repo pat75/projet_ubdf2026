@@ -9,7 +9,7 @@
 
 <div class="ui container bloc_portfolios">
 
-    <div class="bloc_titre">
+    <div class="bloc_titre" x-apparition>
         <a href="{{ $url }}">
             <h1 class="metier_group coultxt_{{ $slug }}">{{ App\Support\Metier::titreBloc($slug) }}</h1>
             <div class="sub_title">{{ App\Support\Metier::sousTitre($slug) }}</div>
@@ -19,11 +19,12 @@
     <div class="visibility">
         <div class="ui five doubling cards">
             @foreach ($books as $book)
-                <x-book-card :book="$book" />
+                {{-- Cartes en cascade : 70 ms de plus par carte, plafonne. --}}
+                <x-book-card :book="$book" :apparition="min($loop->index * 70, 420)" />
             @endforeach
 
             {{-- Derniere carte du bloc : compteur et acces a la categorie. --}}
-            <div class="ui card dimmable cat_link">
+            <div class="ui card dimmable cat_link" x-apparition:zoom.{{ min(count($books) * 70, 490) }}>
                 <a href="{{ $url }}" class="metier_carre_all_link cursor_effect">
                     <div class="content center aligned">
                         <div class="cat_link_icon">
@@ -40,7 +41,7 @@
         </div>
     </div>
 
-    <div class="grid-item width100 grid-metier iscrool_newitem voir_tous_metier_link">
+    <div class="grid-item width100 grid-metier iscrool_newitem voir_tous_metier_link" x-apparition>
         <a href="{{ $url }}" class="metier_carre_all_link">
             <span class="fonticon-uniF006 fonticon_b18"></span>
             {{ __('Voir tous les') }} <strong>{{ $pluriel }}</strong>

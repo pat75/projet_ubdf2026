@@ -5,7 +5,7 @@
      gris porte l'explication en infobulle. --}}
 <div @class([
     'grid grid-cols-[minmax(140px,200px)_minmax(0,1fr)] items-center gap-4 py-3.5',
-    'border-b border-ub-filet' => ! $dernier,
+    'border-b border-ub-filet-ligne' => ! $dernier,
 ])>
     <div class="flex items-center gap-1.5 text-[15px] text-ub-texte2">
         <span>{{ $libelle }}</span>

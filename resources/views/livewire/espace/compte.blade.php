@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5" x-data="{ locOpen: false, acces: @js($errors->hasAny(['email', 'nouveauMotDePasse', 'motDePasseActuel'])) }">
+<div class="flex flex-col gap-5" x-data="{ locOpen: false }">
 
     <div class="flex flex-col gap-1.5 px-1 pb-2">
         <div class="text-[13px] font-semibold uppercase tracking-[1.4px] text-ub-accent-fonce">{{ __('Mon compte') }}</div>
@@ -26,95 +26,125 @@
             {{ $creatif->login }}
         </x-espace.ligne>
 
+        {{-- Mot de passe et adresse mail : edition sur place, exactement
+             comme les autres champs (voir Claude_design.md) — au repos,
+             texte (ou points, pour le mot de passe) et un crayon ; au
+             clic, le champ d'origine ; a la sortie, enregistrerChamp() du
+             trait EnregistreChamps, appele directement en JS comme le fait
+             x-espace.champ-editable. Un vrai <input>, et non un texte
+             editable sur place : un mot de passe se saisit et se masque,
+             il ne s'affiche jamais en clair au repos — d'ou l'oeil pour le
+             relire pendant la frappe. Aucun des deux ne demande plus le
+             mot de passe actuel : la session en cours prouve deja
+             l'identite. --}}
         <x-espace.ligne :libelle="__('Mot de passe')" :prive="true">
-            <span class="text-[18px] tracking-[3px]" x-show="! acces">••••••••••</span>
-            <button type="button" @click="acces = ! acces"
-                    class="bouton-espace bouton-espace-petit px-3.5">
-                <span x-show="! acces">{{ __('Modifier') }}</span>
-                <span x-show="acces" x-cloak>{{ __('Annuler') }}</span>
-            </button>
+            <div x-data="{ edition: false, visible: false, valide: false, valeur: '', erreur: null, minuteur: null }" class="flex w-full flex-col gap-1">
+                <div class="flex max-w-60 items-center">
+                    <span x-show="! edition" class="flex items-center">
+                        <span class="text-[18px] tracking-[3px] text-ub-texte">••••••••••</span>
+                        <button type="button" @click="edition = true; erreur = null; $nextTick(() => $refs.champMotDePasse.focus())"
+                                :title="valide ? @js(__('Enregistré')) : @js(__('Modifier'))"
+                                class="ml-2.5 shrink-0 text-ub-texte3 hover:text-ub-texte">
+                            <svg x-show="! valide" class="h-4 w-4" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+                                <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/>
+                            </svg>
+                            <svg x-show="valide" x-cloak class="h-4 w-4 text-ub-succes" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                    </span>
+
+                    <span x-show="edition" x-cloak class="relative w-full">
+                        <input x-ref="champMotDePasse" :type="visible ? 'text' : 'password'" x-model="valeur" @input="erreur = null"
+                               @keydown.escape="edition = false; valeur = ''"
+                               @blur="if (valeur === '') { edition = false; return; }
+                                      $wire.enregistrerChamp('motDePasse', valeur).then((r) => {
+                                          if (r?.erreur) { erreur = r.erreur; return; }
+                                          erreur = null; valeur = ''; visible = false; edition = false; valide = true;
+                                          clearTimeout(minuteur); minuteur = setTimeout(() => valide = false, 4000);
+                                      })"
+                               autocomplete="new-password" placeholder="••••••••••" class="champ-espace pr-10">
+                        <button type="button" @click="visible = ! visible"
+                                :title="visible ? @js(__('Masquer')) : @js(__('Afficher'))"
+                                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-ub-texte3 hover:text-ub-texte">
+                            <svg x-show="! visible" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg x-show="visible" x-cloak class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.58 10.58a3 3 0 0 0 4.24 4.24M6.53 6.53C4.2 8.06 2.25 12 2.25 12s3.75 7.5 9.75 7.5c1.9 0 3.53-.5 4.88-1.24M9.88 4.7A10.4 10.4 0 0 1 12 4.5c6 0 9.75 7.5 9.75 7.5a15.8 15.8 0 0 1-2.13 3.05"/>
+                            </svg>
+                        </button>
+                    </span>
+                </div>
+
+                <span x-show="erreur" x-cloak x-text="erreur" class="text-[13px] text-ub-danger"></span>
+            </div>
         </x-espace.ligne>
 
         <x-espace.ligne :libelle="__('Adresse mail')" :prive="true" :dernier="true">
-            <span x-show="! acces">{{ $creatif->email }}</span>
-            <span x-show="acces" x-cloak class="text-[14px] text-ub-texte3">{{ __('Modifiable ci-dessous.') }}</span>
-        </x-espace.ligne>
+            <div x-data="{ edition: false, valide: false, valeur: @js($creatif->email), erreur: null, minuteur: null }" class="flex w-full flex-col gap-1">
+                <div class="flex items-center">
+                    <span x-show="! edition" class="flex items-center">
+                        <span x-text="valeur"></span>
+                        <button type="button" @click="edition = true; erreur = null; $nextTick(() => $refs.champEmail.focus())"
+                                :title="valide ? @js(__('Enregistré')) : @js(__('Modifier'))"
+                                class="ml-2.5 shrink-0 text-ub-texte3 hover:text-ub-texte">
+                            <svg x-show="! valide" class="h-4 w-4" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+                                <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/>
+                            </svg>
+                            <svg x-show="valide" x-cloak class="h-4 w-4 text-ub-succes" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </button>
+                    </span>
 
-        {{-- Adresse et mot de passe changent ensemble : l'un comme l'autre
-             demande le mot de passe actuel. --}}
-        <form wire:submit="enregistrerAcces" x-show="acces" x-collapse x-cloak class="mt-3 rounded-ub bg-[#fafaf8] p-5">
-            <div class="grid gap-4 sm:grid-cols-2">
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Adresse mail') }}
-                    <input type="email" wire:model="email" autocomplete="email" class="champ-espace">
-                    @error('email') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-                </label>
+                    <span x-show="edition" x-cloak class="w-full max-w-xs">
+                        <input x-ref="champEmail" type="email" x-model="valeur" @input="erreur = null"
+                               @keydown.escape="edition = false; valeur = @js($creatif->email)"
+                               @blur="if (valeur === @js($creatif->email)) { edition = false; return; }
+                                      $wire.enregistrerChamp('email', valeur).then((r) => {
+                                          if (r?.erreur) { erreur = r.erreur; return; }
+                                          erreur = null; edition = false; valide = true;
+                                          clearTimeout(minuteur); minuteur = setTimeout(() => valide = false, 4000);
+                                      })"
+                               autocomplete="email" class="champ-espace">
+                    </span>
+                </div>
 
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Mot de passe actuel') }}
-                    <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="champ-espace">
-                    @error('motDePasseActuel') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-                </label>
-
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Nouveau mot de passe') }}
-                    <input type="password" wire:model="nouveauMotDePasse" autocomplete="new-password" class="champ-espace">
-                    @error('nouveauMotDePasse') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-                </label>
-
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Confirmation') }}
-                    <input type="password" wire:model="nouveauMotDePasse_confirmation" autocomplete="new-password" class="champ-espace">
-                </label>
+                <span x-show="erreur" x-cloak x-text="erreur" class="text-[13px] text-ub-danger"></span>
             </div>
-
-            <button type="submit" wire:target="enregistrerAcces" wire:loading.attr="disabled"
-                    class="bouton-espace bouton-espace-grand mt-4 px-4">
-                {{ __('Enregistrer') }}
-            </button>
-        </form>
+        </x-espace.ligne>
     </x-espace.carte>
 
     {{-- Profil public. --}}
     <x-espace.carte :titre="__('Profil')" :sous-titre="__('Ces informations apparaissent sur votre book.')">
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-5 gap-y-4.5">
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Prénom') }} *
-                <input type="text" wire:model="profil.firstname" class="champ-espace">
-                @error('profil.firstname') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-            </label>
+        {{-- Textes : edition sur place, chacun s'enregistre seul. Listes :
+             enregistrees des qu'elles changent. --}}
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-5 gap-y-5">
+            <x-espace.champ-editable nom="firstname" :valeur="$profil['firstname']"
+                :libelle="__('Prénom').' *'" :vide="__('Ajouter votre prénom…')" />
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Nom') }} *
-                <input type="text" wire:model="profil.lastname" class="champ-espace">
-                @error('profil.lastname') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-            </label>
+            <x-espace.champ-editable nom="lastname" :valeur="$profil['lastname']"
+                :libelle="__('Nom').' *'" :vide="__('Ajouter votre nom…')" />
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Métier') }}
-                <select wire:model="categorie" class="champ-espace">
-                    <option value="">—</option>
-                    @foreach ($categories as $id => $nom)
-                        <option value="{{ $id }}">{{ $nom }}</option>
-                    @endforeach
-                </select>
-            </label>
+            <x-espace.select-discret wire:model.live="categorie" :options="$categories" :valeur="$categorie"
+                :libelle="__('Métier')" />
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Votre statut') }}
-                <select wire:model="statut" class="champ-espace">
-                    <option value="">—</option>
-                    @foreach ($statuts as $valeur)
-                        <option value="{{ $valeur }}">{{ $valeur }}</option>
-                    @endforeach
-                </select>
-            </label>
+            <div>
+                <x-espace.select-discret wire:model.live="statut" :options="array_combine($statuts, $statuts)" :valeur="$statut"
+                    :libelle="__('Votre statut')" />
+                @error('statut') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            </div>
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Société') }}
-                <input type="text" wire:model="profil.company" class="champ-espace">
-            </label>
+            <x-espace.champ-editable nom="company" :valeur="$profil['company']"
+                :libelle="__('Société')" :vide="__('Ajouter une société…')" />
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Site web') }}
-                <input type="url" wire:model="profil.website" placeholder="www.monsite.com" class="champ-espace">
-                @error('profil.website') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
-            </label>
+            <x-espace.champ-editable nom="website" :valeur="$profil['website']"
+                :libelle="__('Site web')" :vide="__('https://www.monsite.com')" />
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">
-                <span>{{ __('Téléphone') }} <span class="text-[10px] text-ub-prive" title="{{ __('Donnée privée') }}">●</span></span>
-                <input type="tel" wire:model="profil.phone" placeholder="+33601020304" class="champ-espace">
-            </label>
+            <x-espace.champ-editable nom="phone" :valeur="$profil['phone']" prive
+                :libelle="__('Téléphone')" :vide="__('+33601020304')" />
         </div>
 
         {{-- Interrupteur SMS, sous son filet. --}}
@@ -145,15 +175,29 @@
         </div>
 
         @if ($professionnel)
-            <div class="mt-5 border-t border-ub-filet pt-5">
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2 sm:max-w-md">
+            <div class="mt-5 border-t border-ub-filet pt-5"
+                 x-data="{ edition: @js(! $facturation) }" x-on:siret-trouve.window="edition = false">
+                <label class="flex flex-col gap-1 text-[12px] font-semibold uppercase tracking-[.06em] text-ub-texte3 sm:max-w-md">
                     {{ __('Numéro SIRET') }}
-                    {{-- Pas de bouton : le numero part des qu'il est complet
-                         et que sa cle est bonne. La demi-seconde de repit
-                         evite d'appeler l'annuaire a chaque frappe. --}}
-                    <span class="relative block sm:max-w-md">
+
+                    {{-- Au repos : texte + crayon, comme les autres champs
+                         (voir Claude_design.md, « Édition sur place »). En
+                         edition : le champ d'origine, avec sa recherche a
+                         l'annuaire des que le numero est complet et juste. --}}
+                    <span x-show="! edition" @click="edition = true"
+                          class="flex w-fit cursor-text items-center text-[15px] font-normal normal-case tracking-normal text-ub-texte">
+                        <span>{{ $facturation?->siretLisible() ?? __('Ajouter un SIRET…') }}</span>
+                        <button type="button" @click.stop="edition = true" title="{{ __('Modifier') }}"
+                                class="ml-2.5 shrink-0 text-ub-texte3 hover:text-ub-texte">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
+                                <path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"/>
+                            </svg>
+                        </button>
+                    </span>
+
+                    <span x-show="edition" x-cloak class="relative block sm:max-w-md">
                         <input type="text" wire:model.live.debounce.500ms="siret"
-                               inputmode="numeric" placeholder="552 081 317 66522" class="champ-espace pr-28">
+                               inputmode="numeric" placeholder="552 081 317 66522" class="champ-espace pr-28 text-[15px] font-normal normal-case tracking-normal">
                         <span wire:loading wire:target="siret,verifierSiret"
                               class="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-ub-texte3">{{ __('Recherche…') }}</span>
                     </span>
@@ -198,23 +242,20 @@
         <button type="button" @click="locOpen = ! locOpen" :aria-expanded="locOpen"
                 class="flex w-full items-center justify-between px-7 py-5.5 text-left hover:bg-[#fafaf8]">
             <span class="text-[20px] font-semibold">{{ __('Localisation') }}</span>
-            <span class="text-[18px] text-[#888] transition-transform duration-200" :class="locOpen && 'rotate-90'">›</span>
+            <x-espace.picto x-show="! locOpen" nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
+            <x-espace.picto x-show="locOpen" x-cloak nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
         </button>
 
         <div x-show="locOpen" x-collapse x-cloak class="px-7 pb-6">
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-5 gap-y-4.5">
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Adresse') }}
-                    <input type="text" wire:model="profil.address" class="champ-espace">
-                </label>
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Code postal') }}
-                    <input type="text" wire:model="profil.zipcode" class="champ-espace">
-                </label>
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Ville') }}
-                    <input type="text" wire:model="profil.city" class="champ-espace">
-                </label>
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Pays') }}
-                    <input type="text" wire:model="profil.country" class="champ-espace">
-                </label>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-5 gap-y-5">
+                <x-espace.champ-editable nom="address" :valeur="$profil['address']"
+                    :libelle="__('Adresse')" :vide="__('Ajouter une adresse…')" />
+                <x-espace.champ-editable nom="zipcode" :valeur="$profil['zipcode']"
+                    :libelle="__('Code postal')" :vide="__('Ajouter…')" />
+                <x-espace.champ-editable nom="city" :valeur="$profil['city']"
+                    :libelle="__('Ville')" :vide="__('Ajouter une ville…')" />
+                <x-espace.champ-editable nom="country" :valeur="$profil['country']"
+                    :libelle="__('Pays')" :vide="__('Ajouter un pays…')" />
             </div>
         </div>
     </section>
@@ -258,19 +299,4 @@
         </form>
     </section>
 
-    {{-- Barre d'enregistrement : elle ne parait que si le formulaire a
-         bouge, et suit le defilement en bas de fenetre. --}}
-    @if ($this->modifie)
-        <div class="sticky bottom-5 flex items-center justify-between gap-3 rounded-ub-barre bg-[#2f2f2f] py-3 pl-5 pr-3.5 text-white shadow-[0_10px_30px_rgba(0,0,0,.2)]">
-            <span class="text-[15px]">{{ __('Modifications non enregistrées') }}</span>
-
-            <div class="flex gap-2">
-                <button type="button" wire:click="annuler"
-                        class="bouton-espace bouton-espace-grand border border-white/25 px-3.5">{{ __('Annuler') }}</button>
-
-                <button type="button" wire:click="enregistrerProfil" wire:target="enregistrerProfil" wire:loading.attr="disabled"
-                        class="bouton-espace bouton-espace-grand px-4">{{ __('Enregistrer') }}</button>
-            </div>
-        </div>
-    @endif
 </div>

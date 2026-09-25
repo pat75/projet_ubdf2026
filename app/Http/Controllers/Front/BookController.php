@@ -4,14 +4,20 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\ContactBookRequest;
+use App\Models\Gallery;
 use App\Models\User;
 use App\Services\Auth\Recaptcha;
 use App\Services\Book\ContexteBook;
+use App\Services\Book\AccesPortfolios;
 use App\Services\Book\Gabarit;
+use App\Services\Book\LecteurVideos;
 use App\Services\Messagerie\DepotDemande;
 use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Book public, servi sur <login>.<book_domain>, dans son theme d'origine.
@@ -47,7 +53,28 @@ class BookController extends Controller
 
     public function galerie(string $login, string $titre, int $rub): Response
     {
-        return $this->rendre($login, 'portfolio', $rub);
+        return $this->verrou($login, $rub) ?? $this->rendre($login, 'portfolio', $rub);
+    }
+
+    /** Mot de passe d'un portfolio protege, saisi par un visiteur. */
+    public function deverrouiller(Request $requete, string $login, string $titre, int $rub, AccesPortfolios $acces): Response|RedirectResponse
+    {
+        $galerie = $this->portfolioProtege($login, $rub) ?? abort(404);
+        $cle = 'portfolio-mdp|'.$requete->ip().'|'.$galerie->id;
+
+        if (RateLimiter::tooManyAttempts($cle, 10)) {
+            return $this->pageMotDePasse($galerie, __('Trop d’essais. Réessayez dans quelques minutes.'));
+        }
+
+        if (! $acces->deverrouiller($galerie, (string) $requete->input('mot_de_passe'))) {
+            RateLimiter::hit($cle, 600);
+
+            return $this->pageMotDePasse($galerie, __('Mot de passe incorrect.'));
+        }
+
+        RateLimiter::clear($cle);
+
+        return redirect($requete->url());
     }
 
     public function actualites(string $login): Response
@@ -63,7 +90,7 @@ class BookController extends Controller
     /** `/<titre>-pi<id>` : une galerie de la version iPhone. */
     public function galerieMobile(string $login, string $titre, int $rub): Response
     {
-        return $this->rendre($login, 'iphone_galerie', $rub);
+        return $this->verrou($login, $rub) ?? $this->rendre($login, 'iphone_galerie', $rub);
     }
 
     public function contact(string $login): Response
@@ -140,7 +167,7 @@ class BookController extends Controller
                 $contexte->changerTheme($mobile['theme']);
                 $theme = config('book_themes.'.$mobile['theme']);
             } else {
-                return response($this->rendreMobile($contexte, $mobile['mode'], $type, $rub));
+                return $this->reponse($book, $this->rendreMobile($contexte, $mobile['mode'], $type, $rub));
             }
         }
 
@@ -152,7 +179,7 @@ class BookController extends Controller
                 'contact' => $this->preparerContact($contexte, $theme),
             };
 
-            return response(Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
+            return $this->reponse($book, Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
         }
 
         match ($type) {
@@ -172,7 +199,43 @@ class BookController extends Controller
             'contact' => $this->preparerContact($contexte, $theme),
         };
 
-        return response(Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
+        return $this->reponse($book, Gabarit::rendre($theme['dossier'].'/'.$theme['gabarit'], $contexte));
+    }
+
+    /** La page du mot de passe, si ce portfolio est ferme a ce visiteur. */
+    private function verrou(string $login, int $rub): ?Response
+    {
+        $galerie = $this->portfolioProtege($login, $rub);
+
+        return $galerie && ! app(AccesPortfolios::class)->ouvert($galerie)
+            ? $this->pageMotDePasse($galerie)
+            : null;
+    }
+
+    /** Le portfolio designe par l'URL (identifiant legacy d'abord), s'il est protege. */
+    private function portfolioProtege(string $login, int $rub): ?Gallery
+    {
+        $book = User::where('login', $login)->firstOrFail();
+
+        $galerie = $book->galleries()->where('legacy_id', $rub)->first()
+            ?? $book->galleries()->whereNull('legacy_id')->whereKey($rub)->first();
+
+        return $galerie?->estProtegee() ? $galerie : null;
+    }
+
+    private function pageMotDePasse(Gallery $galerie, ?string $erreur = null): Response
+    {
+        return response()->view('book.mot-de-passe', [
+            'galerie' => $galerie,
+            'book' => $galerie->user->bookSetting?->title ?: $galerie->user->login,
+            'erreur' => $erreur,
+        ], $erreur ? 422 : 200)->header('Cache-Control', 'no-store');
+    }
+
+    /** Page du book, avec le lecteur des videos YouTube et Vimeo. */
+    private function reponse(User $book, string $html): Response
+    {
+        return response(app(LecteurVideos::class)->injecter($html, $book));
     }
 
     /**

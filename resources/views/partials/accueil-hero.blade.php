@@ -315,8 +315,8 @@
                 </video>
 
                 <div class="video_bg">
-                    <div class="video_titre">Une mine de créatifs</div>
-                    <div class="video_soustitre">Illustration, graphisme, design, photo et plasticien</div>
+                    <div class="video_titre" x-apparition>Une mine de créatifs</div>
+                    <div class="video_soustitre" x-apparition.150>Illustration, graphisme, design, photo et plasticien</div>
                 </div>
             @else
                 {{-- Dustfolio : une illustration fixe a la place de la video.
@@ -327,14 +327,14 @@
                      src="{{ $marque->asset('accueil-freelance.svg') }}" alt="">
 
                 <div class="video_bg accroche_header">
-                    <div class="accroche_surtitre">{{ __('freelance') }}</div>
-                    <h2 class="accroche_titre">{{ __('Créez gratuitement votre portfolio') }}</h2>
-                    <div class="accroche_soustitre">{{ __('Diffusez-le et proposez vos services') }}</div>
+                    <div class="accroche_surtitre" x-apparition>{{ __('freelance') }}</div>
+                    <h2 class="accroche_titre" x-apparition.100>{{ __('Créez gratuitement votre portfolio') }}</h2>
+                    <div class="accroche_soustitre" x-apparition.200>{{ __('Diffusez-le et proposez vos services') }}</div>
 
                     {{-- Meme declencheur que le bouton « Creez un book » plus
                          bas dans la page : c'est le JavaScript du front 2018
                          qui ouvre la fenetre d'inscription. --}}
-                    <button class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl">
+                    <button x-apparition:zoom.300 class="ui huge right labeled icon button accroche_bouton cursor_effect btn_modal_creerbook_mdl">
                         <i class="right arrow icon"></i>
                         {{ __('Créer un book') }}
                     </button>
@@ -346,7 +346,7 @@
 
 
 <!-- Recherche  -->
-	<div class="ui  container bloc_rechercher ">
+	<div class="ui  container bloc_rechercher " x-apparition>
 		<div class="ui two column stackable center aligned grid segment" id="bloc_rechercher">
 
 			<div class="row one column ">
@@ -390,7 +390,7 @@
 	<!-- Last recherche -->
 
 
-    <div class="ui container bloc_last_recherche mobile_hidden">
+    <div class="ui container bloc_last_recherche mobile_hidden" x-apparition.100>
         <div class="ui grid">
 	                <div class="row">
 
@@ -545,7 +545,7 @@
     <!-- Modeles 2020 -->
     <div class="ui container bloc_slide mobile bloc_accueil_modele2020">
         <div class="ui middle aligned two column stackable grid">
-                <div class="right aligned column ">
+                <div class="right aligned column " x-apparition:gauche>
                     <h5>Freelances</h5>
                     <h1>{{ __('Créer votre portfolio') }}</h1>
                     <h4>Chargez vos images par glisser-poser</h4>
@@ -554,7 +554,7 @@
                         <i class="right arrow icon"></i>
                         CRÉEZ UN BOOK                    </button>
                 </div>
-                <div class=" center aligned olive+ column col_visuel_mdl_book">
+                <div class=" center aligned olive+ column col_visuel_mdl_book" x-apparition:droite.150>
                     <div class="accueil_mdl_book_visuel"></div>
                 </div>
         </div>
@@ -571,11 +571,11 @@
 
         <div class="ui middle aligned two column stackable grid">
 
-            <div class="right aligned olive+ column ">
+            <div class="right aligned olive+ column " x-apparition:gauche>
                 <img src="/img_front/accueil_entreprise_consult-b.svg" alt="freelance, entreprise">
             </div>
 
-            <div class="left aligned olive+ column">
+            <div class="left aligned olive+ column" x-apparition:droite.150>
                 <h5>Entreprises</h5>
                 <h1>{{ __('Une sélection de qualité') }}</h1>
 
@@ -629,7 +629,7 @@
     <a href="https://www.ultrabook.pro/?utm_source=ubaccueil" target="_blank">
         <div class="ui container bloc_slide mobile bloc_accueil_ubsitepro">
             <div class="ui middle aligned two column stackable grid">
-                <div class="right aligned column ">
+                <div class="right aligned column " x-apparition:gauche>
                     <h5>Mon site web PRO</h5>
 
                     <h1>Installer <strong>mon site internet PRO</strong></h1>
@@ -644,7 +644,7 @@
                     <img src="https://www.ultrabook.pro/img/ub_logo_web_wp_2022.svg" class="visuel_avantages">
                 </div>
 
-                <div class=" center aligned column col_visuel_mdl_book">
+                <div class=" center aligned column col_visuel_mdl_book" x-apparition:droite.150>
                     <img src="https://www.ultrabook.pro/img/enplusconstruction.svg" alt="Ultra-book site PRO">
                 </div>
 
@@ -732,10 +732,10 @@
     <header class="ui pt-4 md:pt-10 pb-10 mb-12 max-lg:mb-8 ubd-header shadow" style="padding: 90px 0 ;background-image: url('https://les-illustrateurs.com/_img/degrade.svg'); background-size: cover;">
         <div class="ui container">
             <div class="ui grid">
-                <div class="ui four wide computer sixteen wide mobile column">
+                <div class="ui four wide computer sixteen wide mobile column" x-apparition:gauche>
                     <img src="https://les-illustrateurs.com/_img/diffusion.svg" class="ui image" alt="Les illustrateurs/rices disponibles aujourd’hui">
                 </div>
-                <div class="ui twelve wide computer sixteen wide mobile column">
+                <div class="ui twelve wide computer sixteen wide mobile column" x-apparition:droite.150>
 
                     <div class="dispo_new" >NOUVEAU !</div>
                     <h1  class="mb-6 max-lg:mb-4 text-6xl max-lg:text-3xl font-thin max-lg:font-normal tracking-tight text-gray-900">

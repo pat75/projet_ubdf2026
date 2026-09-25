@@ -3,6 +3,7 @@
 namespace App\Services\Legacy;
 
 use App\Models\User;
+use App\Support\DossierBook;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -23,7 +24,7 @@ final class LegacyFiles
 
     /**
      * Images inserees dans le texte des pages via l'editeur (CKEditor), avec
-     * leurs sous-dossiers. Copiees telles quelles dans books/<login>/img_cms/ :
+     * leurs sous-dossiers. Copiees telles quelles dans <dossier du book>/img_cms/ (DossierBook) :
      * le HTML des pages les reference par ce chemin, que book_actu_txt()
      * reecrit a l'affichage.
      */
@@ -47,7 +48,7 @@ final class LegacyFiles
             return;
         }
 
-        $target = storage_path('app/public/books/'.$user->login);
+        $target = DossierBook::chemin($user->login);
         File::ensureDirectoryExists($target);
 
         foreach ([...self::SOURCE_DIRS, ...self::EXTRA_DIRS] as $dir) {

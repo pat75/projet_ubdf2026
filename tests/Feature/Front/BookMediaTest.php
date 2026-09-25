@@ -7,7 +7,7 @@ use Intervention\Image\ImageManager;
 
 beforeEach(function () {
     $this->login = 'creatif-test';
-    $this->dossier = Storage::disk('public')->path('books/'.$this->login);
+    $this->dossier = App\Support\DossierBook::chemin($this->login);
     File::ensureDirectoryExists($this->dossier);
 
     app(ImageManager::class)->createImage(800, 600)->save($this->dossier.'/visuel.jpg');

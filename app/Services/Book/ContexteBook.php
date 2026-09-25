@@ -5,6 +5,7 @@ namespace App\Services\Book;
 use App\Models\BookSection;
 use App\Models\Gallery;
 use App\Models\User;
+use App\Support\DossierBook;
 use App\Support\Marque;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -372,7 +373,9 @@ class ContexteBook
             ->with(['media' => fn ($q) => $q->published()])
             ->get();
 
-        $this->menu['ptf'] = $this->rubriques($galeries, fn (Gallery $g) => $this->visuels($g));
+        // Un portfolio verrouille garde sa place dans le menu, sans visuel.
+        $acces = app(AccesPortfolios::class);
+        $this->menu['ptf'] = $this->rubriques($galeries, fn (Gallery $g) => $acces->ouvert($g) ? $this->visuels($g) : []);
 
         return $this;
     }
@@ -698,7 +701,7 @@ class ContexteBook
             return (string) $img;
         }
 
-        $fichier = storage_path('app/public/books/'.$this->us_dir.'/'.basename((string) $img));
+        $fichier = DossierBook::chemin($this->us_dir, basename((string) $img));
 
         return $abs.$rep.$img.(is_file($fichier) ? '?'.filemtime($fichier) : '');
     }

@@ -17,7 +17,7 @@
 @endphp
 
 <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener"
-   {{ $attributes->merge(['class' => 'block w-[206px] shrink-0 overflow-hidden rounded-[4px] bg-white shadow-[0_0_10px_rgba(100,100,100,.1)] transition hover:shadow-[0_0_10px_rgba(0,0,0,.4)]']) }}>
+   {{ $attributes->merge(['class' => 'block w-[206px] shrink-0 overflow-hidden rounded-[18px] border-[11px] border-gray-400 bg-white shadow-[0_4px_14px_rgba(0,0,0,.25)] transition hover:shadow-[0_0_10px_rgba(0,0,0,.4)]']) }}>
 
     <div class="h-27.5 bg-black/20">
         @if ($couverture)
@@ -27,7 +27,7 @@
 
     <div class="flex flex-col items-center px-4 pb-4 pt-0 text-center">
         @if ($creatif->bookSetting?->thumbnail)
-            <img src="{{ $creatif->thumbnailUrl() }}" alt="{{ $creatif->fullName() }}"
+            <img src="{{ $creatif->thumbnailUrl('carre_183') }}" alt="{{ $creatif->fullName() }}" data-avatar-profil
                  class="-mt-[45px] mb-5 h-15 w-15 rounded-full object-cover shadow-[1px_1px_6px_#aaa]">
         @endif
 

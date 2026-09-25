@@ -197,12 +197,12 @@ class BookRepository
             ->with([
                 'category',
                 'bookSetting',
-                'media' => fn ($query) => $query->published()->whereNot('filename', '')->orderBy('position')->limit(6),
+                'media' => fn ($query) => $query->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(6),
             ])
             ->where('brand', $brand)
             ->whereHas('bookSetting', fn (Builder $query) => $query
                 ->where('diffuse_web', true)
                 ->where('diffuse_ub', true))
-            ->whereHas('media', fn (Builder $query) => $query->published()->whereNot('filename', ''));
+            ->whereHas('media', fn (Builder $query) => $query->published()->horsProteges()->whereNot('filename', ''));
     }
 }

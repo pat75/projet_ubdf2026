@@ -28,7 +28,7 @@ class PortfolioController extends Controller
          | Meme correction que dans BookRepository::baseQuery() — voir sa
          | note pour le detail (8 comptes Dustfolio invisibles a tort).
          */
-        $book = User::with(['category', 'bookSetting', 'media' => fn ($query) => $query->published()])
+        $book = User::with(['category', 'bookSetting', 'media' => fn ($query) => $query->published()->horsProteges()])
             ->where('login', $login)
             ->where('brand', $marque->code)
             ->whereHas('bookSetting', fn ($query) => $query

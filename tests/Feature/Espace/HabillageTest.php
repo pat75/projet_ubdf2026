@@ -27,11 +27,10 @@ it('enregistre les reglages en gardant le format du legacy', function () {
     $valeurs[$i] = '#123456';
     $valeurs[$j] = true;
 
-    $composant->set('valeurs', $valeurs)->set('titre', 'Mon book')->call('enregistrer');
+    $composant->set('valeurs', $valeurs)->call('enregistrer');
 
     $r = $this->creatif->bookSetting->fresh();
-    expect($r->title)->toBe('Mon book')
-        ->and($r->theme_settings['data']['.ub_couleur_fond']['backgroundColor'])->toBe('#123456')
+    expect($r->theme_settings['data']['.ub_couleur_fond']['backgroundColor'])->toBe('#123456')
         ->and($r->theme_settings['data']['ptf_activer_gmap']['ptf_activer_gmap'])->toBe('true');
 });
 
@@ -65,9 +64,71 @@ it('refuse un theme inconnu', function () {
     Livewire::test(Habillage::class)->call('choisirTheme', 'pirate')->assertStatus(422);
 });
 
+afterEach(function () {
+    \Illuminate\Support\Facades\File::deleteDirectory(App\Support\DossierBook::chemin($this->creatif->login ?? '_'));
+});
+
+it('depose une photo de profil recadree et l affiche a la place des initiales', function () {
+    $fichier = Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 400, 400);
+
+    Livewire::test(Habillage::class)
+        ->set('avatarTemp', $fichier)
+        ->call('deposerAvatar')
+        ->assertHasNoErrors()
+        // Declinaison carree : le rond affiche montre le recadrage choisi.
+        ->assertDispatched('avatar-profil-modifie', fn ($nom, $params) => str_contains($params['url'], '/carre_368/'));
+
+    $reglages = $this->creatif->bookSetting()->first();
+    expect($reglages->thumbnail)->not->toBeNull()
+        ->and(is_file(App\Support\DossierBook::chemin($this->creatif->login, $reglages->thumbnail)))->toBeTrue();
+});
+
+it('retire la photo de profil et revient aux initiales', function () {
+    $fichier = Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 400, 400);
+    $composant = Livewire::test(Habillage::class)->set('avatarTemp', $fichier)->call('deposerAvatar');
+    $ancien = $this->creatif->bookSetting()->first()->thumbnail;
+
+    $composant->call('retirerAvatar')
+        // Les autres vignettes de la page repassent aux initiales.
+        ->assertDispatched('avatar-profil-modifie', url: null);
+
+    expect($this->creatif->bookSetting()->first()->thumbnail)->toBeNull()
+        ->and(is_file(App\Support\DossierBook::chemin($this->creatif->login, $ancien)))->toBeFalse();
+});
+
+it('enregistre un champ de la presentation seul, a la sortie du champ', function () {
+    Livewire::test(Habillage::class)
+        ->call('enregistrerChamp', 'titre', 'Mon book')
+        ->assertReturned(['ok' => true])
+        ->call('enregistrerChamp', 'piedDePage', '© Adolie')
+        ->assertReturned(['ok' => true]);
+
+    $r = $this->creatif->bookSetting()->first();
+    expect($r->title)->toBe('Mon book')->and($r->footer)->toBe('© Adolie');
+});
+
+it('renvoie l erreur de validation sans rien enregistrer', function () {
+    $this->creatif->bookSetting()->create(['theme' => 'mdl_2016_zoom', 'title' => 'Avant']);
+
+    $reponse = Livewire::test(Habillage::class)->call('enregistrerChamp', 'titre', str_repeat('x', 300))->effects['returns'][0];
+
+    expect($reponse)->toHaveKey('erreur')
+        ->and($this->creatif->bookSetting()->first()->title)->toBe('Avant');
+});
+
+it('refuse d enregistrer un champ non declare', function () {
+    Livewire::test(Habillage::class)->call('enregistrerChamp', 'theme', 'pirate')->assertStatus(422);
+});
+
 it('enregistre la diffusion', function () {
-    Livewire::test(Diffusion::class)->set('web', false)->set('disponible', true)->call('enregistrer');
+    Livewire::test(Diffusion::class)->set('web', true)->set('disponible', false)
+        ->call('basculer', 'web')->call('basculer', 'disponible')
+        ->assertSee('2 / 3 canaux actifs');
 
     expect($this->creatif->bookSetting()->first())
         ->diffuse_web->toBeFalse()->diffuse_availability->toBeTrue();
+});
+
+it('refuse de basculer un champ non declare', function () {
+    Livewire::test(Diffusion::class)->call('basculer', 'login')->assertStatus(422);
 });

@@ -2,6 +2,9 @@
 
 use App\Livewire\Espace\Compte;
 use App\Models\User;
+use App\Services\Espace\ArchiveBook;
+use App\Support\DossierBook;
+use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 
 /*
@@ -32,8 +35,8 @@ it('propose les statuts professionnels du legacy', function () {
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->assertSet('statut', 'Freelance')
-        ->set('statut', 'Maison des artistes')
-        ->call('enregistrerProfil');
+        // Enregistre des que la liste change, sans bouton.
+        ->set('statut', 'Maison des artistes');
 
     expect($creatif->fresh()->status)->toBe('Maison des artistes');
 });
@@ -51,16 +54,16 @@ it('refuse un statut hors liste', function () {
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->set('statut', 'Pirate')
-        ->call('enregistrerProfil')
         ->assertHasErrors('statut');
+
+    expect($creatif->fresh()->status)->not->toBe('Pirate');
 });
 
 it('enregistre le consentement aux SMS', function () {
     $creatif = User::factory()->create(['accepts_sms' => false]);
 
     Livewire::actingAs($creatif)->test(Compte::class)
-        ->set('sms', true)
-        ->call('enregistrerProfil');
+        ->toggle('sms');
 
     expect($creatif->fresh()->accepts_sms)->toBeTrue();
 });
@@ -95,4 +98,31 @@ it('ne supprime rien si l identifiant ou le mot de passe ne suit pas', function 
         ->assertHasErrors('motDePasseActuel');
 
     expect(User::where('login', 'aline')->exists())->toBeTrue();
+});
+
+it('archive les images du book supprime dans storage/books_effaces', function () {
+    $login = 'zz'.uniqid();
+    $creatif = User::factory()->create(['login' => $login, 'password' => 'mot-de-passe-long']);
+    File::ensureDirectoryExists(DossierBook::chemin($login, 'galerie'));
+    File::put(DossierBook::chemin($login, 'galerie/visuel.jpg'), 'jpg');
+    File::put(DossierBook::chemin($login, 'notes.txt'), 'txt');
+
+    Livewire::actingAs($creatif)->test(Compte::class)
+        ->set('confirmationSuppression', $login)
+        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->call('supprimerPortfolio');
+
+    $archives = File::glob(storage_path(ArchiveBook::DOSSIER.'/'.$login.'_*.zip'));
+    $zip = new ZipArchive;
+    $zip->open($archives[0]);
+
+    expect($archives)->toHaveCount(1)
+        ->and($zip->numFiles)->toBe(2)
+        ->and($zip->locateName('galerie/visuel.jpg'))->not->toBeFalse()
+        ->and(json_decode($zip->getFromName('creatif.json'), true)['creatif'])
+            ->toHaveKey('login', $login)->not->toHaveKey('password')
+        ->and(File::isDirectory(DossierBook::chemin($login)))->toBeFalse();
+
+    $zip->close();
+    File::delete($archives);
 });

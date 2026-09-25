@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\VideoEnLigne;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ class Media extends Model
     protected $table = 'media';
 
     protected $fillable = [
-        'legacy_id', 'user_id', 'gallery_id', 'filename', 'title', 'alt', 'link',
+        'legacy_id', 'user_id', 'gallery_id', 'filename', 'title', 'alt', 'link', 'video_url',
         'description', 'mime', 'size', 'width', 'height', 'status', 'position',
     ];
 
@@ -40,9 +41,21 @@ class Media extends Model
             : route('book.media.declinaison', $parametres + ['declinaison' => $declinaison]);
     }
 
+    /** La video dont ce visuel est la vignette, s'il en est une. */
+    public function video(): ?VideoEnLigne
+    {
+        return $this->video_url ? VideoEnLigne::depuis($this->video_url) : null;
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published');
+    }
+
+    /** Hors des portfolios proteges par mot de passe : ce que le portail peut montrer. */
+    public function scopeHorsProteges(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('gallery', fn (Builder $g) => $g->whereNotNull('password'));
     }
 
     public function user(): BelongsTo

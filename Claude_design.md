@@ -78,6 +78,84 @@ Seul `px-*` (marge latérale) varie encore d'un bouton à l'autre ; la
 hauteur et la taille de texte sont fixées par le modificateur, donc
 stables quel que soit le texte du bouton.
 
+## Édition sur place
+
+Un texte modifiable (titre, description…) ne montre **pas de champ** :
+il s'affiche comme du texte, suivi d'un **crayon placé juste après le
+dernier caractère**, décalé de 10px (`ml-2.5`).
+
+**Règle de l'espace** : tout champ texte qui s'édite seul suit ce
+principe, sur toutes les pages. Références : bloc « Présentation » de
+`/espace/habillage`, cartes « Profil » et « Localisation » de
+`/espace/compte`.
+
+```blade
+<x-espace.champ-editable nom="titre" :valeur="$titre"
+    :libelle="__('Titre du book')" :vide="__('Ajouter un titre…')" />
+<x-espace.champ-editable nom="description" :valeur="$description" multiligne
+    :libelle="__('Description')" :vide="__('Ajouter une description…')" />
+```
+
+- **Entrer en édition** : clic sur le texte ou sur le crayon. Le curseur
+  se place en fin de texte, rien n'est sélectionné ni effacé.
+- **Pendant l'édition** : un filet **vert** (`border-b` `ub-succes`)
+  souligne **le texte seul** — saisi ou en cours de saisie —, jamais toute
+  la largeur de la ligne ; la typo ne change pas. Le **crayon disparaît**.
+  En multi-lignes (`multiligne`), la zone s'agrandit avec le contenu.
+- **Enregistrer** : sortie du texte, ou Entrée (une ligne seulement ; en
+  multi-lignes, Entrée va à la ligne). Rien n'est envoyé si la valeur n'a
+  pas changé. **Échap** annule.
+- **Pendant l'enregistrement** : le texte passe **en vert** (`ub-succes`)
+  dans une seule vague douce, puis revient à sa couleur (1,2 s, `champ-editable-vibre`) — jamais de clignotement agressif.
+- **Confirmation** : à la place du crayon, une **coche verte** pendant
+  **4 s**, puis le crayon revient.
+- **Refus** (validation) : message rouge `ub-danger` sous le texte.
+- **Texte vide** : invite en italique `ub-texte4` (`vide`).
+- **Côté Livewire** : trait `App\Livewire\Concerns\EnregistreChamps`,
+  avec `champsAutoEnregistres()` (nom => règles, liste blanche) et
+  `persisterChamp($nom, $valeur)`. Un nom absent de la liste est refusé.
+- Côté navigateur : Alpine `champEditable` (`resources/js/espace.js`).
+- **Donnée privée** : `prive` ajoute le point `ub-prive` (●) après le
+  libellé (ex. Téléphone).
+- **Listes** (Métier, Statut…) suivent le même principe qu'un texte : pas
+  de champ visible, la valeur choisie suivie d'une **flèche bas**, à la
+  même place que le crayon (`ml-2.5`). Composant
+  `<x-espace.select-discret :options="…" :valeur="…" :libelle="…"
+  wire:model.live="…" />` : un `<select>` natif invisible, posé par-dessus
+  le texte et la flèche, reçoit le clic, le clavier et le défilement
+  tactile — pas de dropdown refait à la main. Comme les textes,
+  s'enregistre dès que la valeur change (`wire:model.live` +
+  `updatedXxx()`), sans bouton.
+- **Champ à saisie progressive** (ex. SIRET, qui interroge un annuaire dès
+  que le numéro est complet) : au repos, texte + crayon comme un champ
+  normal ; au clic, le **champ d'origine** réapparaît (`wire:model.live`,
+  indicateur de recherche…), puisque la saisie doit rester suivie au fil
+  de la frappe, pas seulement à la sortie. Revient seul à l'affichage
+  texte une fois la valeur trouvée (évènement dédié, ex. `siret-trouve`).
+- **Interrupteurs** (SMS…) restent des contrôles visibles, et
+  s'enregistrent eux aussi dès qu'ils changent.
+- **Champ sensible mais courant** (mot de passe, adresse mail — c'est
+  l'identifiant de connexion) : même principe texte + crayon, mais avec
+  un vrai `<input>` plutôt qu'un texte éditable sur place : le clic sur
+  le crayon ouvre le champ, la sortie du champ appelle directement
+  `$wire.enregistrerChamp(nom, valeur)`, exactement comme
+  `champ-editable` (pas `wire:model` + hook `updatedXxx()`). Toujours
+  **sans mot de passe actuel ni confirmation** : la session en cours
+  prouve déjà l'identité. Pour le mot de passe : masqué au repos (des
+  points, jamais la vraie valeur), et un **œil** dans le champ pour le
+  relire pendant la frappe (`text`/`password`). Références : lignes
+  « Mot de passe » et « Adresse mail » de `/espace/compte`.
+- **Action protégée par le mot de passe actuel** : réservé aux gestes
+  plus lourds qu'un champ de profil (ex. supprimer le portfolio) —
+  formulaire classique, champs visibles, bouton, `current_password` en
+  règle de validation.
+- Pas de bouton « Enregistrer » ni de barre « Modifications non
+  enregistrées » pour ces champs. Un bouton ne subsiste que :
+  - pour un lot validé d'un coup (ex. « Enregistrer les réglages » du
+    modèle) ;
+  - pour une action qui exige le mot de passe actuel (suppression du
+    portfolio) : ce formulaire garde ses champs visibles et son bouton.
+
 ## Badges en face des titres
 
 Le compteur placé en face d'un titre de page (ex. « 28 non lus » en face
@@ -114,7 +192,7 @@ des cartes d'action restent des flèches de lien.
 
 Composant `<x-espace.picto nom="…">` (glyphes relevés dans la messagerie
 d'origine) : `courrier` (non lu), `courrier-lu` (lu), `poubelle`,
-`restaurer`, `angle-droite`, `angle-bas`. Ajouter un picto = ajouter son
+`restaurer`, `angle-droite`, `angle-bas`, `deplacer` (croix à quatre flèches : poignée de tout élément déplaçable). Ajouter un picto = ajouter son
 tracé dans `resources/views/components/espace/picto.blade.php`.
 
 ## Onglets

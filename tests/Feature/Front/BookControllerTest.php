@@ -47,3 +47,45 @@ it('separe strictement les books entre eux', function () {
         ->assertOk()
         ->assertDontSee('Illustrations');
 });
+
+it('ouvre les videos du book dans leur lecteur', function () {
+    $this->book->bookSetting->update(['diffuse_web' => true]);
+    $this->galerie->media()->create(['user_id' => $this->book->id, 'filename' => 'clip.jpg', 'status' => 'published',
+        'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+    $this->get(hoteBook('aurelie-b', '/illustrations-p'.$this->galerie->id))
+        ->assertOk()
+        ->assertSee('{"clip.jpg":"https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ', false);
+});
+
+it('n ajoute pas de lecteur a un book sans video', function () {
+    $this->book->bookSetting->update(['diffuse_web' => true]);
+
+    $this->get(hoteBook('aurelie-b'))->assertOk()->assertDontSee('youtube-nocookie', false);
+});
+
+describe('portfolio protege', function () {
+    beforeEach(function () {
+        $this->book->bookSetting->update(['diffuse_web' => true]);
+        $this->galerie->update(['password' => 'secret42']);
+        $this->galerie->media()->create(['user_id' => $this->book->id, 'filename' => 'prive.jpg', 'status' => 'published']);
+        $this->url = hoteBook('aurelie-b', '/illustrations-p'.$this->galerie->id);
+    });
+
+    it('demande le mot de passe au visiteur et cache les visuels ailleurs', function () {
+        $this->get($this->url)->assertOk()->assertSee('Ce portfolio est protégé')->assertDontSee('prive.jpg');
+        $this->get(hoteBook('aurelie-b'))->assertOk()->assertDontSee('prive.jpg');
+        $this->get('/books/aurelie-b/prive.jpg')->assertHeader('Cache-Control', 'no-store, private');
+    });
+
+    it('ouvre le portfolio pour la session avec le bon mot de passe', function () {
+        $this->post($this->url, ['mot_de_passe' => 'faux'])->assertStatus(422)->assertSee('Mot de passe incorrect.');
+        $this->post($this->url, ['mot_de_passe' => 'secret42'])->assertRedirect($this->url);
+
+        $this->get($this->url)->assertOk()->assertDontSee('Ce portfolio est protégé');
+    });
+
+    it('reste ouvert a son createur', function () {
+        $this->actingAs($this->book)->get($this->url)->assertOk()->assertDontSee('Ce portfolio est protégé');
+    });
+});

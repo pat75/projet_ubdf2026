@@ -2,21 +2,24 @@
 
 namespace App\Livewire\Espace;
 
+use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\BillingProfile;
 use App\Models\Category;
+use App\Services\Espace\ArchiveBook;
 use App\Services\Facturation\AnnuaireEntreprises;
 use App\Services\Facturation\SiretIntrouvable;
 use App\Services\Facturation\SiretInvalide;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Livewire\Attributes\Computed;
 use Livewire\Component;
 use RuntimeException;
 
 /** Informations du compte et mot de passe (user_modif_form du legacy). */
 class Compte extends Component
 {
+    use EnregistreChamps;
+
     /** Champs du profil modifiables ici, avec leur regle. */
     private const CHAMPS = [
         'firstname' => 'nullable|string|max:100',
@@ -42,13 +45,8 @@ class Compte extends Component
 
     public bool $sms = false;
 
-    public string $email = '';
 
     public string $motDePasseActuel = '';
-
-    public string $nouveauMotDePasse = '';
-
-    public string $nouveauMotDePasse_confirmation = '';
 
     /** Identifiant recopie pour confirmer la suppression du portfolio. */
     public string $confirmationSuppression = '';
@@ -60,22 +58,12 @@ class Compte extends Component
 
     public ?string $erreurSiret = null;
 
-    /**
-     * Copie des valeurs telles qu'elles sont en base : elle sert a savoir
-     * si le formulaire a bouge, pour n'afficher la barre d'enregistrement
-     * que lorsqu'il y a quelque chose a enregistrer.
-     *
-     * @var array<string, mixed>
-     */
-    public array $enregistre = [];
-
     public function mount(): void
     {
         $creatif = Auth::user();
 
         $this->profil = collect(self::CHAMPS)->mapWithKeys(fn ($r, $c) => [$c => (string) $creatif->{$c}])->all();
         $this->categorie = $creatif->category_id;
-        $this->email = (string) $creatif->email;
         $this->sms = (bool) $creatif->accepts_sms;
 
         // Les fiches reprises portent parfois l'indice du legacy la ou on
@@ -84,82 +72,71 @@ class Compte extends Component
 
         $this->professionnel = $creatif->billingProfile()->exists();
         $this->siret = (string) $creatif->billingProfile?->siret;
-
-        $this->enregistre = $this->valeurs();
     }
 
-    /** @return array<string, mixed> */
-    private function valeurs(): array
+    /*
+     | Chaque champ s'enregistre seul (edition sur place, voir
+     | Claude_design.md). Les textes du profil, l'adresse mail et le mot de
+     | passe passent tous par enregistrerChamp() ; les listes et
+     | l'interrupteur SMS, des qu'ils changent. « motDePasse » n'est pas
+     | une propriete du composant : rien ne le lit jamais en retour, un mot
+     | de passe ne s'affiche pas en clair.
+     */
+
+    protected function champsAutoEnregistres(): array
     {
-        return [
-            'profil' => $this->profil,
-            'categorie' => $this->categorie,
-            'statut' => $this->statut,
-            'sms' => $this->sms,
+        return self::CHAMPS + [
+            // L'un comme l'autre servent a se connecter, mais la session en
+            // cours prouve deja l'identite : pas besoin de reprouver le mot
+            // de passe actuel pour les changer, contrairement a une action
+            // plus lourde (supprimer le portfolio).
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore(Auth::id())],
+            'motDePasse' => ['nullable', 'string', 'min:8', 'max:255'],
         ];
     }
 
-    /** La barre d'enregistrement n'apparait que si quelque chose a bouge. */
-    #[Computed]
-    public function modifie(): bool
+    protected function persisterChamp(string $nom, mixed $valeur): void
     {
-        return $this->valeurs() !== $this->enregistre;
-    }
+        if ($nom === 'email') {
+            Auth::user()->update(['email' => $valeur]);
 
-    /** Remet le formulaire dans l'etat de la base. */
-    public function annuler(): void
-    {
-        foreach ($this->enregistre as $cle => $valeur) {
-            $this->{$cle} = $valeur;
+            return;
         }
 
-        $this->resetValidation();
-    }
+        if ($nom === 'motDePasse') {
+            if ($valeur === '') {
+                return;
+            }
 
-    public function enregistrerProfil(): void
-    {
-        $this->validate(collect(self::CHAMPS)->mapWithKeys(fn ($r, $c) => ['profil.'.$c => $r])->all() + [
-            'categorie' => ['nullable', Rule::exists('categories', 'id')],
-            'statut' => ['nullable', Rule::in(config('ubdf.statuts'))],
-        ]);
-
-        Auth::user()->update(array_map(fn ($v) => $v === '' ? null : trim($v), $this->profil) + [
-            'category_id' => $this->categorie,
-            'status' => $this->statut ?: null,
-            'accepts_sms' => $this->sms,
-        ]);
-
-        $this->enregistre = $this->valeurs();
-
-        session()->flash('statut', __('Modifications enregistrées'));
-    }
-
-    /** Changer l'adresse ou le mot de passe demande le mot de passe actuel. */
-    public function enregistrerAcces(): void
-    {
-        $creatif = Auth::user();
-
-        $this->validate([
-            'motDePasseActuel' => ['required', 'current_password'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($creatif->id)],
-            'nouveauMotDePasse' => ['nullable', 'string', 'min:8', 'max:255', 'confirmed'],
-        ]);
-
-        $creatif->email = $this->email;
-
-        if ($this->nouveauMotDePasse !== '') {
-            $creatif->password = $this->nouveauMotDePasse;
-        }
-
-        $creatif->save();
-
-        if ($this->nouveauMotDePasse !== '') {
+            Auth::user()->update(['password' => $valeur]);
             session()->regenerate();
+
+            return;
         }
 
-        $this->reset('motDePasseActuel', 'nouveauMotDePasse', 'nouveauMotDePasse_confirmation');
-        session()->flash('statut', __('Accès enregistrés.'));
-        $this->redirectRoute('espace.compte');
+        $valeur = trim((string) $valeur);
+
+        Auth::user()->update([$nom => $valeur === '' ? null : $valeur]);
+        $this->profil[$nom] = $valeur;
+    }
+
+    public function updatedCategorie(): void
+    {
+        $this->validate(['categorie' => ['nullable', Rule::exists('categories', 'id')]]);
+
+        Auth::user()->update(['category_id' => $this->categorie ?: null]);
+    }
+
+    public function updatedStatut(): void
+    {
+        $this->validate(['statut' => ['nullable', Rule::in(config('ubdf.statuts'))]]);
+
+        Auth::user()->update(['status' => $this->statut ?: null]);
+    }
+
+    public function updatedSms(): void
+    {
+        Auth::user()->update(['accepts_sms' => $this->sms]);
     }
 
     /*
@@ -229,6 +206,7 @@ class Compte extends Component
         $this->siret = $donnees['siret'];
 
         session()->flash('statut', __('Informations d’entreprise récupérées.'));
+        $this->dispatch('siret-trouve');
     }
 
     /**
@@ -238,9 +216,10 @@ class Compte extends Component
      * n'est plus servi, mais les donnees restent en base le temps qu'un
      * administrateur puisse revenir dessus — le legacy posait de meme un
      * `us_delete` sans rien effacer. Le createur retape son identifiant :
-     * c'est le garde-fou du geste.
+     * c'est le garde-fou du geste. Les images, elles, quittent le disque
+     * public : elles sont compressees dans storage/books_effaces/.
      */
-    public function supprimerPortfolio(): void
+    public function supprimerPortfolio(ArchiveBook $archive): void
     {
         $creatif = Auth::user();
 
@@ -250,6 +229,8 @@ class Compte extends Component
         ], [
             'confirmationSuppression.in' => __('Recopiez votre identifiant pour confirmer la suppression.'),
         ]);
+
+        $archive->archiver($creatif);
 
         Auth::logout();
         session()->invalidate();

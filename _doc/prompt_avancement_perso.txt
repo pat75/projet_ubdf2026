@@ -1,0 +1,15 @@
+ 
+ +  revoir et terminer la page mon compte
+    Notamment pour le mot de passe et l'e-mails
+
++   prévoir sur mon compte la possibilité de se désinscrire des newsletter
+
++   sur la page image : https://ubdf2026.ultra-book.name/espace/galeries 
+Je voudrais pour chaque portfolio par exemple 1T T3 et les autres
+La possibilité d'indiquer un mot de passe pour accéder aux portfolio
+Ce mot de passe sera uniquement demandé aux visiteurs, lorsqu'ils regarderont le book
+Exemple de Book https://adolie.ubdf2026.ultra-book.name/
+Utiliser un icône de cadenas ouvert et fermé pour le mot de passe
+
+Analyser la demande posée des questions et traiter
+

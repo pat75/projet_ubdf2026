@@ -85,6 +85,13 @@ Route::domain('{login}.'.$bookDomain)
         Route::get('/{titre}-p{rub}', [BookController::class, 'galerie'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
             ->name('book.galerie');
+        // Mot de passe d'un portfolio protege.
+        Route::post('/{titre}-p{rub}', [BookController::class, 'deverrouiller'])
+            ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
+            ->name('book.galerie.deverrouiller');
+        Route::post('/{titre}-pi{rub}', [BookController::class, 'deverrouiller'])
+            ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}'])
+            ->name('book.galerie.mobile.deverrouiller');
     });
 
 /*

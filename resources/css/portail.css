@@ -1,0 +1,10 @@
+/*
+ * Utilitaires Tailwind du portail, pour les animations de l'accueil
+ * (resources/js/portail.js). Ni preflight ni detection automatique : le
+ * portail reste sur les feuilles du front 2018 (Semantic UI), seules les
+ * classes posees par la directive x-apparition sont produites.
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../js/portail.js";

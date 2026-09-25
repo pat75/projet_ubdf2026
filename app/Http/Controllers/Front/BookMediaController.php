@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Services\Book\AccesPortfolios;
 use App\Services\Images\Declinaison;
 use App\Services\Images\GenerateurImages;
+use App\Support\DossierBook;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -57,24 +59,38 @@ class BookMediaController extends Controller
             abort(404);
         }
 
+        // Visuel d'un portfolio protege, encore ferme a ce visiteur : on
+        // repond comme pour un fichier absent, sans rien en devoiler.
+        // Rien n'est mis en cache : le meme visiteur le verra une fois le
+        // portfolio deverrouille.
+        $acces = app(AccesPortfolios::class)->fichier($login, $file);
+
+        if ($acces === AccesPortfolios::FERME) {
+            return $this->prive($this->parDefaut());
+        }
+
         $format = Declinaison::nommee($declinaison);
 
         if ($format === null) {
             abort(404);
         }
 
-        $source = Storage::disk('public')->path('books/'.$login.'/'.$file);
+        $source = DossierBook::chemin($login, $file);
         $produite = $this->generateur->produire($source, $format);
 
         if ($produite === null) {
             return $this->parDefaut();
         }
 
-        return response()->file($produite, [
+        $reponse = response()->file($produite, [
             // Un an : remplacer un visuel dans l'espace creatif produira une
             // nouvelle entree de cache, l'URL portant le nom du fichier.
             'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);
+
+        // Un visuel protege, meme ouvert a ce visiteur, ne doit pas finir
+        // dans un cache partage.
+        return $acces === AccesPortfolios::OUVERT ? $this->prive($reponse) : $reponse;
     }
 
     /**
@@ -85,7 +101,7 @@ class BookMediaController extends Controller
      */
     public function cms(string $login, string $chemin): BinaryFileResponse|Response
     {
-        $racine = realpath(Storage::disk('public')->path('books/'.$login.'/img_cms'));
+        $racine = realpath(DossierBook::chemin($login, 'img_cms'));
         $fichier = $racine ? realpath($racine.'/'.rawurldecode($chemin)) : false;
 
         // realpath() resout les « .. » : le fichier doit rester sous la racine.
@@ -97,6 +113,13 @@ class BookMediaController extends Controller
     }
 
     /** Trame grise du legacy, affichee a la place d'un visuel manquant. */
+    private function prive(BinaryFileResponse|Response $reponse): BinaryFileResponse|Response
+    {
+        $reponse->headers->set('Cache-Control', 'no-store, private');
+
+        return $reponse;
+    }
+
     private function parDefaut(): BinaryFileResponse|Response
     {
         $defaut = public_path('img_default/ultra-book_default_trame_91x91.gif');
