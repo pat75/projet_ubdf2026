@@ -49,20 +49,29 @@ class InstallFrontAssetsCommand extends Command
     ];
 
     /**
+     * Sous-dossiers versionnes dans ce depot : la copie ne les ecrase pas.
+     * js2019 est le JavaScript du portail, reecrit pour remplacer jQuery
+     * (_doc/17_remplacement_jquery.md) ; la version du site 2019 n'est plus
+     * la reference.
+     */
+    private const VERSIONNES = [
+        'html_pages_v2018/_/js2019',
+    ];
+
+    /**
      * Retouches appliquees apres copie.
      *
      * `/front/ajax_2010.php` : nginx attribue toute URL en `.php` a PHP-FPM
      * avant que Laravel ne la voie. Le fichier n'existant plus, le serveur
      * repondait « File not found. » de lui-meme — sans qu'aucun test PHP ne
      * puisse le montrer, le client de test ne passant pas par nginx. Le
-     * point d'entree de l'inscription est donc `/inscription`.
+     * point d'entree de l'inscription est donc `/inscription`. Cette
+     * retouche vivait ici pour js2019/js_core_inscription.js ; le fichier
+     * est desormais versionne, corrige a la source.
      *
      * @var array<string, array<string, string>>
      */
-    private const RETOUCHES = [
-        'html_pages_v2018/_/js2019/js_core_inscription.js' => ['/front/ajax_2010.php' => '/inscription'],
-        'html_pages_v2018/_/js2019/js_core_inscription.min.js' => ['/front/ajax_2010.php' => '/inscription'],
-    ];
+    private const RETOUCHES = [];
 
     public function handle(): int
     {
@@ -90,7 +99,7 @@ class InstallFrontAssetsCommand extends Command
                 continue;
             }
 
-            File::copyDirectory($de, $vers);
+            $this->copierSansVersionnes($de, $vers, $dossier);
             $this->info("Copie : {$dossier}");
         }
 
@@ -98,6 +107,29 @@ class InstallFrontAssetsCommand extends Command
         $this->retoucher();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Copie un dossier sans toucher a ses sous-dossiers versionnes : ils
+     * sont mis de cote le temps de la copie, puis remis en place.
+     */
+    private function copierSansVersionnes(string $de, string $vers, string $dossier): void
+    {
+        $abri = storage_path('framework/cache/front-versionne-'.uniqid());
+        $proteges = array_filter(self::VERSIONNES, fn ($v) => str_starts_with($v, $dossier.'/') && File::isDirectory(public_path($v)));
+
+        foreach ($proteges as $v) {
+            File::moveDirectory(public_path($v), $abri.'/'.$v);
+        }
+
+        File::copyDirectory($de, $vers);
+
+        foreach ($proteges as $v) {
+            File::deleteDirectory(public_path($v));
+            File::moveDirectory($abri.'/'.$v, public_path($v));
+        }
+
+        File::deleteDirectory($abri);
     }
 
     /**
