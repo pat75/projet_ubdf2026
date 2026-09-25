@@ -58,7 +58,7 @@ class InscriptionController extends Controller
         'Votre nom de book/identifiant doit contenir plus de 3 caractères',
         'Caractères incorrects : lettres minuscules, chiffres, - et _',
         'Ce nom existe déjà',
-        'Sélectionner un métier ou domaine',
+        'Choisissez l’adresse de votre book',
         'Votre mot de passe doit contenir au moins 8 caractères',
         'Indiquer votre mail',
         'Il ne s’agit pas d’un mail',

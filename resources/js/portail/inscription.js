@@ -1,8 +1,8 @@
 
 /*
  * Page « Creer un book » (front/creer-un-book), ex-fenetre d'inscription de
- * js_core_inscription.js. Deux volets : identifiant et metier, puis
- * mot de passe, nom, mail et conditions. L'envoi part en fetch sur
+ * js_core_inscription.js. Une seule etape, comme /register sur Tesli :
+ * nom, mail, adresse du book, mot de passe, captcha et conditions. Envoi en fetch sur
  * /inscription (InscriptionController), qui repond
  * { error, error_msg: [...] } ou { error: false, url_domaine, url_action }.
  *
@@ -21,7 +21,6 @@ export default function inscription(Alpine) {
     Alpine.data('inscription', (textes = {}) => ({
         t: (phrase) => textes[phrase] ?? phrase,
         vue: 'formulaire', // formulaire | erreur | validation
-        volet: 1,
         erreurs: {},
         messagesErreur: [],
         chargement: false,
@@ -32,6 +31,11 @@ export default function inscription(Alpine) {
         urlEspace: null,
         // Image du captcha local (App\Services\Captcha\Captcha, formulaire « inscription »).
         captcha: '',
+
+        // Formulaire en une etape : le captcha s'affiche des l'arrivee.
+        init() {
+            this.rechargerCaptcha();
+        },
 
         async verifierLogin() {
             const login = this.login.trim().toLowerCase();
@@ -50,23 +54,6 @@ export default function inscription(Alpine) {
             }
         },
 
-        async suivant(formulaire) {
-            await this.verifierLogin();
-            const login = this.login.trim().toLowerCase();
-            this.erreurs = {
-                us_login: !login ? this.t('Indiquer votre nom')
-                    : login.length < 3 ? this.t('Votre nom de book/identifiant doit contenir plus de 3 caractères')
-                    : !MOTIF_LOGIN.test(login) ? this.t('Caractères incorrects : lettres minuscules, chiffres, - et _')
-                    : this.loginLibre === false ? this.t('Ce nom existe déjà')
-                    : '',
-                us_type: formulaire.us_type.value ? '' : this.t('Sélectionner un métier ou domaine'),
-            };
-            if (!this.valide()) return;
-
-            this.volet = 2;
-            if (!this.captcha) this.rechargerCaptcha();
-        },
-
         // Nouvelle image, donc nouveau code : chaque code ne sert qu'une fois.
         rechargerCaptcha() {
             this.captcha = `/captcha/inscription?${Date.now()}`;
@@ -75,8 +62,15 @@ export default function inscription(Alpine) {
         },
 
         async envoyer(formulaire) {
+            await this.verifierLogin();
+            const login = this.login.trim().toLowerCase();
             const mail = formulaire.us_mail.value.trim();
             this.erreurs = {
+                us_login: !login ? this.t('Choisissez l’adresse de votre book')
+                    : login.length < 3 ? this.t('Votre nom de book/identifiant doit contenir plus de 3 caractères')
+                    : !MOTIF_LOGIN.test(login) ? this.t('Caractères incorrects : lettres minuscules, chiffres, - et _')
+                    : this.loginLibre === false ? this.t('Ce nom existe déjà')
+                    : '',
                 us_pass: formulaire.us_pass.value.length < 8 ? this.t('Votre mot de passe doit contenir au moins 8 caractères') : '',
                 us_nom: formulaire.us_nom.value.trim() ? '' : this.t('Indiquer votre nom'),
                 us_mail: !mail ? this.t('Indiquer votre mail') : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? this.t('Il ne s’agit pas d’un mail') : '',

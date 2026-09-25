@@ -1553,5 +1553,14 @@
     "Retour à la connexion": "Back to login",
     "La connexion par Google n’est pas disponible pour le moment.": "Google sign-in is not available at the moment.",
     "La connexion par Google a échoué. Réessayez, ou utilisez votre mot de passe.": "Google sign-in failed. Try again, or use your password.",
-    "Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant et votre mot de passe.": "Several portfolios use this email: log in with your username and password."
+    "Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant et votre mot de passe.": "Several portfolios use this email: log in with your username and password.",
+    "Gratuit, prêt en quelques minutes.": "Free, ready in minutes.",
+    "S’inscrire avec Google": "Sign up with Google",
+    "ou avec votre e-mail": "or with your email",
+    "Déjà un compte ?": "Already have an account?",
+    "Nom Prénom": "Full name",
+    "Adresse disponible": "Address available",
+    "Corriger": "Correct",
+    "Choisissez l’adresse de votre book": "Choose your portfolio address",
+    "adresse-de-votre-book": "your-portfolio-address"
 }

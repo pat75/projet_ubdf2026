@@ -11,43 +11,45 @@
          les regles du formulaire de l'ancienne fenetre (css2019/core.css). --}}
     <section class="creer_book modal_creerbook" x-data="inscription(@js($textes))">
 
-        {{-- Retour a l'accueil : maison en haut a droite, croix sur mobile. --}}
-        <a href="{{ lien('accueil') }}" class="creer_book_fermer" aria-label="{{ __('Retour à l’accueil') }}">
-            <i class="home icon"></i>
+        {{-- Fermer la page : retour a la page precedente du site, sinon a l'accueil. --}}
+        <a href="{{ lien('accueil') }}" class="creer_book_fermer" aria-label="{{ __('Fermer') }}"
+           @click.prevent="document.referrer.startsWith(location.origin) && history.length > 1 ? history.back() : (location.href = $el.href)">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18"/>
+            </svg>
         </a>
 
         <div class="creer_book_formulaire" x-show="vue !== 'validation'">
             <div class="creer_book_colonne">
                 <img class="creer_book_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
-                <h1 class="creer_book_titre">{{ __('Créez un book') }}</h1>
-                <p class="creer_book_accroche">
-                    {{ __('Rejoignez les 50.000 créatifs.') }}<br>
-                    {{ __('Créez, diffusez et proposez vos services') }}
-                </p>
+                <h1 class="creer_book_titre">{{ __('Créer mon book') }}</h1>
+                <p class="creer_book_accroche">{{ __('Gratuit, prêt en quelques minutes.') }}</p>
 
                 @if ($google)
                     {{-- Retour de Google : nom et mail sont connus, il reste
-                         l'adresse du book, le metier et les conditions. --}}
+                         l'adresse du book et les conditions. --}}
                     <p class="creer_book_google_compte">
                         {{ __('Compte Google :') }} <strong>{{ $google['email'] }}</strong>
                     </p>
                     @include('partials.inscription.google')
                 @else
-                    <x-portail.bouton-google :libelle="__('Créer mon book avec Google')" class="creer_book_google" />
-                    <div class="creer_book_ou"><span>{{ __('ou avec un mot de passe') }}</span></div>
+                    <x-portail.bouton-google :libelle="__('S’inscrire avec Google')" class="creer_book_google" />
+                    <div class="creer_book_ou"><span>{{ __('ou avec votre e-mail') }}</span></div>
 
                     <div class="ui segment basic" id="inscription_segment_">
                         @include('partials.inscription.formulaire')
                     </div>
                 @endif
 
-                @guest
-                    <div class="creer_book_connexion">
-                        {{ __('Déjà un book ?') }}
-                        <a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Se connecter') }}</a>
-                    </div>
-                @endguest
             </div>
+
+            {{-- Tout en bas de la colonne, comme sur Tesli. --}}
+            @guest
+                <div class="creer_book_connexion">
+                    {{ __('Déjà un compte ?') }}
+                    <a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Se connecter') }}</a>
+                </div>
+            @endguest
         </div>
 
         <div class="creer_book_visuel" :class="{ actif: vue === 'validation' }">

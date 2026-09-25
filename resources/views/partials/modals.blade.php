@@ -1,6 +1,8 @@
 {{-- Popups et modales du portail (recherche, connexion,
      memo book, contact). Le comportement est porte par js2019. --}}
 <!-- All popup and modal !-->
+{{-- Menus du haut : absents des pages plein ecran (creer un book). --}}
+@unless (View::hasSection('plein_ecran'))
 <!-- Menu -top - mobile -->
 
 <div class="ui fixed secondary mobile only menu " id="menu-top-fixed-mobile" x-data="barreMobile">
@@ -302,6 +304,8 @@
 </div>
 
 
+
+@endunless
 
 <!-- Popup rechercher menu_top !-->
 <x-portail.modale nom="recherche" class="large" id="bloc_rechercher_top_menu_modal">
@@ -812,7 +816,9 @@
     <div class="connexion" x-data="connexion">
 
         <button type="button" class="btn_close connexion_fermer" aria-label="{{ __('Fermer') }}">
-            <i class="close icon"></i>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18"/>
+            </svg>
         </button>
 
         <div class="connexion_visuel">
@@ -842,23 +848,23 @@
                         </div>
                     @enderror
 
-                    <x-portail.bouton-google />
+                    <x-portail.bouton-google class="creer_book_google" />
 
                     <div class="creer_book_ou"><span>{{ __('ou avec votre mot de passe') }}</span></div>
 
-                    <form action="/ubaction__user_open" id="login_form" method="post" class="ui form" @submit.prevent="connecter($el)" novalidate>
+                    <form action="/ubaction__user_open" id="login_form" method="post" class="ui form creer_book_form" @submit.prevent="connecter($el)" novalidate>
                         @csrf
                         <input type="hidden" name="g-recaptcha-response">
                         <div class="field" :class="{ error: erreurLogin }">
-                            <label for="login">{{ __('Votre identifiant') }}</label>
                             <input id="login" type="text" name="login" value="{{ old('login') }}"
+                                   placeholder="{{ __('Identifiant') }}" aria-label="{{ __('Identifiant') }}"
                                    autocomplete="username" @input="erreurLogin = ''">
                             <div class="ui basic red pointing prompt label" :class="{ show: erreurLogin }" x-text="erreurLogin"></div>
                         </div>
                         <div class="field" x-data="{ visible: false }">
-                            <label for="pass">{{ __('Votre mot de passe') }}</label>
                             <div class="ui icon input">
                                 <input id="pass" :type="visible ? 'text' : 'password'" type="password" name="pass" value=""
+                                       placeholder="{{ __('Mot de passe') }}" aria-label="{{ __('Mot de passe') }}"
                                        autocomplete="current-password">
                                 <i class="link icon" :class="visible ? 'eye slash' : 'eye'" @click="visible = ! visible"
                                    :title="visible ? @js(__('Masquer')) : @js(__('Afficher'))"></i>
@@ -869,11 +875,6 @@
                             <a id="btn_mdp_forget" href="#" @click.prevent="vue = 'mdp'">{{ __('Mot de passe oublié ?') }}</a>
                         </div>
                     </form>
-
-                    <p class="connexion_inscription">
-                        {{ __('Pas encore de book ?') }}
-                        <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
-                    </p>
                 </div>
 
                 <!-- mot de passe oublie : envoi en cours -->
@@ -917,6 +918,12 @@
                     <a href="#" class="btn_back_mdp" @click.prevent="vue = 'connexion'">{{ __('Retour à la connexion') }}</a>
                 </div>
             </div>
+
+            {{-- Tout en bas de la colonne, comme sur « Creer un book ». --}}
+            <p class="connexion_inscription" x-show="vue === 'connexion'" x-cloak>
+                {{ __('Pas encore de book ?') }}
+                <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+            </p>
         </div>
     </div>
 </x-portail.modale>

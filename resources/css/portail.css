@@ -40,21 +40,26 @@
     width: auto !important;
     display: flex;
     flex-wrap: wrap;
-    min-height: 100vh;
-    min-height: 100dvh;
+    /* Exactement la hauteur de la fenetre : chaque colonne defile seule
+       si son contenu depasse. */
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     position: relative;
 }
 .creer_book_formulaire {
     flex: 1 1 520px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 48px 16px;
+    padding: 32px 16px 16px;
+    overflow-y: auto;
     background: #f7f7f5;
 }
 .creer_book_colonne {
     width: 100%;
     max-width: 440px;
+    margin: auto 0;
 }
 .creer_book_logo {
     display: block;
@@ -64,23 +69,35 @@
 }
 .creer_book .creer_book_titre {
     font-family: 'Source Sans Pro', sans-serif;
-    font-size: 34px;
+    font-size: 45px; /* 34px + 20 %, puis + 10 % */
     font-weight: 300;
     line-height: 1.15;
     margin: 0 0 8px;
     color: #2b2b2b;
 }
 .creer_book_accroche {
-    font-size: 15px;
+    font-size: 16.5px; /* 15px + 10 % */
     line-height: 1.5;
     color: #777;
     margin: 0 0 8px;
 }
 .creer_book #inscription_segment_ {
+    /* css2019 : margin-top 50 % et hauteur 100 %, pour l'ancienne fenetre. */
+    height: auto;
+    margin: 0;
     padding: 0;
 }
+.creer_book #inscription_segment_gauche {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+}
 .creer_book_connexion {
-    margin-top: 18px;
+    width: 100%;
+    max-width: 440px;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #e4e4e2;
     font-size: 14px;
     color: #777;
 }
@@ -93,16 +110,22 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 56px 16px;
-    background: #e8f6f7;
+    padding: 20px 16px;
+    /* Bleu de #509fdb, leger degrade en diagonale (coin clair en haut a gauche). */
+    background: linear-gradient(135deg, #6bb0e2 0%, #509fdb 55%, #3f8fcc 100%);
+    overflow-y: auto;
 }
 .creer_book_visuel.actif {
     display: flex;
     flex-basis: 100%;
 }
 .creer_book_illustration {
-    width: 74%;
-    max-width: 420px;
+    /* 80 % plus grande que la premiere version (74 % / 420px). */
+    /* -45 % (1088 -> 598px), puis -15 % (598 -> 508px). */
+    width: 47%;
+    max-width: 508px;
+    max-height: calc(47dvh - 19px);
+    object-fit: contain;
     height: auto;
     animation: creer-book-flotte 7s ease-in-out infinite;
 }
@@ -131,16 +154,12 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, .06);
-    color: #2b2b2b;
+    color: #000;
+    transition: transform .2s ease;
 }
 .creer_book_fermer:hover {
-    background: rgba(0, 0, 0, .12);
-    color: #2b2b2b;
-}
-.creer_book_fermer .icon {
-    margin: 0;
+    color: #000;
+    transform: rotate(90deg);
 }
 
 /* Bouton « Continuer avec Google » (components/portail/bouton-google). */
@@ -163,21 +182,40 @@
     color: #3c4043;
 }
 .creer_book_google {
-    margin-top: 20px;
+    margin-top: 46px; /* 40px + 15 % */
+}
+/* Largeur ajustee au texte, centres dans la colonne (comme sur Tesli). */
+.creer_book_google {
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 32px;
 }
 .creer_book_ou {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 24px 0 4px;
-    color: #999;
+    margin: 5.5% 0; /* 5 % + 10 % */
+    color: #509fdb;
+}
+/* Sous le bouton Google : +15 % (5 % -> 5,75 %), puis +10 % (5,75 % -> 6,325 %). */
+.creer_book_google + .creer_book_ou {
+    margin-top: 6.325%;
     font-size: 13px;
+}
+/* Connexion : 20px de plus au-dessus et en dessous du separateur. */
+.connexion .creer_book_google + .creer_book_ou {
+    margin-top: calc(6.325% + 20px);
+}
+.connexion .creer_book_ou {
+    margin-bottom: calc(5.5% + 20px);
 }
 .creer_book_ou::before,
 .creer_book_ou::after {
     content: "";
     flex: 1;
-    border-top: 1px solid #e4e4e2;
+    border-top: 1px solid #509fdb;
 }
 .creer_book_google_compte,
 .creer_book_note {
@@ -185,8 +223,27 @@
     color: #777;
     margin: 16px 0;
 }
-.creer_book_licence {
+/* Semantic impose `.ui.form .field > label { display: block }` : d'ou le
+   selecteur plus precis. La case s'aligne sur la premiere ligne du texte. */
+.creer_book_form.ui.form .field > .creer_book_licence {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     font-size: 13px;
+    font-weight: 300;
+    line-height: 18px;
+    color: #2b2b2b;
+}
+.creer_book_form.ui.form .creer_book_licence input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin: 2px 0 0;
+    vertical-align: baseline;
+}
+.creer_book_licence a {
+    color: #0b7b85;
+    text-decoration: underline;
 }
 .creer_book_abandon {
     margin-top: 16px;
@@ -206,7 +263,12 @@
 .ui.dimmer[data-modale-fond="connexion"] {
     padding: 0 !important;
 }
-.ui.modal.connexion_plein {
+.ui.modal.connexion_plein,
+/* Semantic (semantic.css) : « .modals.dimmer .ui.scrolling.modal { margin:
+   1rem auto !important } », plus specifique que la regle seule ci-dessus —
+   d'ou ce doublon plus precis, qui laissait sinon une bande noire du fond
+   (le dimmer) visible en haut de l'ecran. */
+.ui.page.modals.dimmer .ui.modal.connexion_plein {
     position: fixed !important;
     inset: 0;
     width: 100% !important;
@@ -252,7 +314,9 @@
     align-items: center;
     justify-content: center;
     padding: 56px 16px;
-    background: #e8f6f7;
+    /* Meme principe que la colonne de droite de « Creer un book » :
+       bleu #509fdb, leger degrade en diagonale. */
+    background: linear-gradient(135deg, #6bb0e2 0%, #509fdb 55%, #3f8fcc 100%);
 }
 .connexion_visuel img {
     width: 70%;
@@ -262,34 +326,46 @@
 .connexion_panneau {
     flex: 1 1 50%;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     padding: 64px 16px 48px;
+    overflow-y: auto;
     position: relative;
 }
 .connexion_colonne {
     width: 100%;
     max-width: 400px;
+    /* Centre la colonne, laisse « Pas encore de book » tout en bas
+       (meme principe que .creer_book_colonne). */
+    margin: auto 0;
 }
+/* Meme traitement typographique que le logo/titre/sous-titre de
+   « Creer un book » (.creer_book_logo, .creer_book_titre, .creer_book_accroche). */
 .connexion_logo {
     display: block;
-    height: 32px;
+    height: 36px;
     width: auto;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 8px;
 }
 .connexion .connexion_titre {
     font-family: 'Source Sans Pro', sans-serif;
-    font-size: 30px;
+    font-size: 40.5px; /* 45px - 10 % */
     font-weight: 300;
     line-height: 1.15;
     color: #2b2b2b;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
 }
 .connexion_accroche {
-    font-size: 14px;
+    font-size: 16.5px;
     line-height: 1.5;
     color: #777;
-    margin: 0 0 24px;
+    margin: 0 0 8px;
+}
+/* +10px sous « Retrouvez votre book… » seulement (pas le texte du mot de
+   passe oublie, qui reutilise la meme classe). */
+.connexion_titre + .connexion_accroche {
+    margin-bottom: 18px;
 }
 .connexion .ui.form .field > label {
     font-weight: 600;
@@ -325,7 +401,11 @@
     text-decoration: underline;
 }
 .connexion_inscription {
-    margin-top: 28px;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid #e4e4e2;
     font-size: 14px;
     color: #777;
 }
@@ -336,4 +416,109 @@
     .connexion_visuel {
         display: flex;
     }
+}
+
+/* Champs du formulaire « Creer un book » : une simple ligne en bas, comme
+   le formulaire de contact des books (book/ultra2020/contact). */
+.creer_book_form.ui.form .field {
+    margin-bottom: 20px;
+}
+.creer_book_form.ui.form input[type="text"],
+.creer_book_form.ui.form input[type="email"],
+.creer_book_form.ui.form input[type="password"] {
+    height: auto;
+    padding: 8px 0;
+    border: 0;
+    border-bottom: 1px solid #767676;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 16px;
+    font-weight: 300;
+    color: #000;
+}
+.creer_book_form.ui.form input::placeholder {
+    color: #666;
+}
+.creer_book_form.ui.form input:focus {
+    border-bottom-color: #000;
+    background: transparent;
+    box-shadow: none;
+}
+.creer_book_form.ui.form .ui.icon.input > i.icon {
+    width: 1.5em;
+}
+.creer_book_adresse {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #767676;
+}
+.creer_book_adresse:focus-within {
+    border-bottom-color: #000;
+}
+.creer_book_adresse span {
+    color: #666;
+    font-size: 16px;
+    font-weight: 300;
+    white-space: nowrap;
+}
+.creer_book_form.ui.form .creer_book_adresse input {
+    font-weight: 700;
+    flex: 1;
+    min-width: 0;
+    border-bottom: 0;
+}
+.creer_book_captcha {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.creer_book_captcha img {
+    flex-shrink: 0;
+    background: #fff;
+    cursor: pointer;
+}
+.creer_book_form.ui.form .creer_book_captcha input {
+    width: 170px;
+}
+.creer_book_erreur {
+    margin-top: 4px;
+    color: #db2828;
+    font-size: 13px;
+}
+.creer_book_aide {
+    margin-top: 4px;
+    color: #21ba45;
+    font-size: 13px;
+}
+.creer_book_form .creer_book_valider {
+    display: block;
+    width: fit-content;
+    margin: 6px 0 0;
+    font-weight: 700;
+    padding-left: 40px;
+    padding-right: 40px;
+    height: 43px;
+    border-radius: 0;
+}
+.creer_book_retour {
+    color: #0b7b85;
+    text-decoration: underline;
+}
+
+/* L'ecran de connexion passe au-dessus du menu du haut du portail. */
+.ui.dimmer[data-modale-fond="connexion"] {
+    z-index: 100000 !important;
+}
+
+/* « Creer un book » et connexion : bouton Google en noir (variante sombre
+   admise par la charte Google : fond fonce, texte blanc, G en couleurs). */
+.creer_book_google.bouton_google {
+    border-color: #000;
+    background: #000;
+    color: #fff;
+}
+.creer_book_google.bouton_google:hover {
+    background: #333;
+    color: #fff;
 }
