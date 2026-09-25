@@ -98,15 +98,6 @@
             'items-center text-center' => ! $zen,
             'items-center text-center md:sticky md:top-10 md:items-start md:self-start md:text-left' => $zen,
         ])>
-            <button type="button" @class([
-                        'z-50 p-2 md:hidden',
-                        'absolute right-0 top-0' => $zen,
-                        '-mt-6 mb-4' => ! $zen,
-                    ]) @click="menu = ! menu"
-                    :aria-expanded="menu" aria-label="{{ __('Menu') }}">
-                <svg x-show="! menu" class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-                <svg x-show="menu" x-cloak class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-            </button>
 
             <a href="/" class="block transition duration-300 max-md:origin-top" :class="menu && 'max-md:scale-50'" data-curseur>
                 @if ($entete && $entete['type'] === 'photo')
@@ -129,6 +120,13 @@
             @if ($vue->texte('description') !== '' || $edition)
                 <div class="mt-3.5"><x-book.texte-editable cle="description" tag="h2" :edition="$edition" class="font-texte text-[18px] font-light leading-[1.17] text-book-texte2 md:text-[22px]">{!! $vue->texte('description') !!}</x-book.texte-editable></div>
             @endif
+
+            {{-- Mobile : le burger, juste au-dessus de « les projets » ; il deplie le menu dessous. --}}
+            <button type="button" class="z-50 mt-5 p-2 md:hidden" @click="menu = ! menu"
+                    :aria-expanded="menu" aria-label="{{ __('Menu') }}">
+                <svg x-show="! menu" class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                <svg x-show="menu" x-cloak class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
 
             <nav x-data="soulignement" @mouseleave="revenir()" aria-label="{{ __('Menu du book') }}" @class([
                 'relative mt-5 max-md:hidden',
