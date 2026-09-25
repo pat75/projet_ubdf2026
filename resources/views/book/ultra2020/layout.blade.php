@@ -10,6 +10,9 @@
 --}}
 @php
     $zen = $vue->zen();
+    $edition = $vue->edition();
+    // Texte modifiable sur place en mode edition (resources/js/book/edition.js).
+    $editable = fn (string $cle) => $edition ? new \Illuminate\Support\HtmlString('x-data="texteBook(\''.$cle.'\')" data-editable') : '';
     $entete = $vue->entete();
     $taille = $vue->tailleEntete();
     $reseaux = $vue->reseaux();
@@ -17,9 +20,9 @@
     $description = trim($b->cont_page_meta);
     $imagePartage = $b->visuel_accueil !== '' ? $vue->photo() : ($vue->visuels()[0]['grand'] ?? '');
     $liens = [
-        ['url' => '/portfolio', 'libelle' => $vue->lien('name_portfolio', 'Portfolio'), 'actif' => in_array($b->page_type, ['accueil', 'portfolio'], true)],
-        ['url' => '/actualites', 'libelle' => $vue->lien('name_page', 'Bio'), 'actif' => $b->page_type === 'news'],
-        ['url' => '/contact', 'libelle' => $vue->lien('name_contact', 'Contact'), 'actif' => $b->page_type === 'contact'],
+        ['url' => '/portfolio', 'cle' => 'name_portfolio', 'libelle' => $vue->lien('name_portfolio', 'Portfolio'), 'actif' => in_array($b->page_type, ['accueil', 'portfolio'], true)],
+        ['url' => '/actualites', 'cle' => 'name_page', 'libelle' => $vue->lien('name_page', 'Bio'), 'actif' => $b->page_type === 'news'],
+        ['url' => '/contact', 'cle' => 'name_contact', 'libelle' => $vue->lien('name_contact', 'Contact'), 'actif' => $b->page_type === 'contact'],
     ];
     $tailles = $entete && $entete['type'] === 'photo'
         ? ['S' => 'size-15', 'M' => 'size-[90px]', 'L' => $zen ? 'size-[70px] md:size-[180px]' : 'size-[90px] md:size-[180px]'][$taille]
@@ -30,6 +33,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if ($edition)
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="robots" content="noindex">
+    @endif
     <title>{{ $titrePage }}</title>
     <meta name="description" content="{{ trim('book '.$description) }}">
     <meta name="keywords" content="{{ __('Ultra-book, creation de book,') }} {{ str_replace(['[&quot;', '&quot;]', '&quot;,&quot;'], ['', '', ','], $b->cont_page_key) }}">
@@ -67,7 +74,7 @@
         <style>{!! trim($vue->pref->expert_css) !!}</style>
     @endif
 </head>
-<body class="{{ $zen ? 'theme_ultrazen' : 'theme_ultrafrais' }} {{ $vue->couleur() }} min-h-screen bg-book-fond font-texte text-book-texte2 antialiased"
+<body @if ($edition) x-data :class="$store.edition.actif && 'edition'" @endif class="{{ $zen ? 'theme_ultrazen' : 'theme_ultrafrais' }} {{ $vue->couleur() }} min-h-screen bg-book-fond font-texte text-book-texte2 antialiased"
       id="{{ $b->page_type }}">
 
     @if ($vue->curseur())
@@ -78,7 +85,10 @@
     @endif
 
     <div x-data="{ menu: false }" @class([
-        'mx-auto max-w-[1200px] px-4 pt-10 md:px-6',
+        'mx-auto max-w-[1200px] px-4 md:px-6',
+        // Place de la barre du mode edition.
+        'pt-10' => ! $edition,
+        'pt-20' => $edition,
         'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] md:gap-10' => $zen,
     ])>
 
@@ -113,11 +123,11 @@
                     'font-titre text-[26px] leading-[1.43] text-book-texte2 md:text-[32px]',
                     'font-semibold' => ! $zen,
                     'font-normal leading-[1.23]' => $zen,
-                ])>{!! $vue->texte('titre') !!}</h1>
+                ]) {{ $editable('titre') }}>{!! $vue->texte('titre') !!}</h1>
             </a>
 
-            @if ($vue->texte('description') !== '')
-                <h2 class="mt-3.5 font-texte text-[18px] font-light leading-[1.17] text-book-texte2 md:text-[22px]">{!! $vue->texte('description') !!}</h2>
+            @if ($vue->texte('description') !== '' || $edition)
+                <h2 class="mt-3.5 font-texte text-[18px] font-light leading-[1.17] text-book-texte2 md:text-[22px]" {{ $editable('description') }}>{!! $vue->texte('description') !!}</h2>
             @endif
 
             <nav x-data="soulignement" @mouseleave="revenir()" aria-label="{{ __('Menu du book') }}" @class([
@@ -176,8 +186,12 @@
         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>
     </button>
 
-    {{-- Pixel de statistiques du book (StatsBookController). --}}
+    @if ($edition)
+        @include('book.ultra2020._edition')
+    @else
+    {{-- Pixel de statistiques du book (StatsBookController) : pas pour son createur. --}}
     <img src="/ubstats.gif?r={{ random_int(0, 9999) }}" width="1" height="1" alt="" class="hidden">
+    @endif
 
     @if (! empty($b->cont_analytic))
         {{-- Mesure propre au createur, en GA4, s'il en a declare une. --}}

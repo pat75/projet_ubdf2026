@@ -9,6 +9,7 @@ use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\DesabonnementController;
+use App\Http\Controllers\Front\EditionBookController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Front\StatsBookController;
@@ -74,6 +75,13 @@ Route::domain('{login}.'.$bookDomain)
         Route::get('/actualites', [BookController::class, 'actualites']);
         Route::get('/contact', [BookController::class, 'contact'])->name('book.contact');
         Route::post('/contact', [BookController::class, 'envoyer'])->name('book.contact.envoyer');
+
+        // Mode edition (Ultra-frais / Ultra-zen) : entree par lien signe
+        // emis depuis l'espace, puis reglages enregistres un a un.
+        Route::get('/edition/{jeton}', [EditionBookController::class, 'entrer'])
+            ->middleware('signed')->name('book.edition.entrer');
+        Route::post('/reglages', [EditionBookController::class, 'enregistrer'])
+            ->middleware('auth')->name('book.reglages');
 
         Route::get('/{titre}-r{rub}-c{pag}', [BookController::class, 'page'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}', 'pag' => '[0-9]{1,12}'])
@@ -274,6 +282,7 @@ $portail = function () {
         Route::get('/galeries', [GalerieController::class, 'index'])->name('galeries');
         Route::get('/galeries/{galerie}', [GalerieController::class, 'show'])
             ->can('update', 'galerie')->name('galeries.show');
+        Route::get('/modifier-mon-book', [EditionBookController::class, 'lien'])->name('edition-book');
         Route::get('/pages', [PageController::class, 'index'])->name('pages');
         Route::get('/pages/images', [PageImageController::class, 'index'])->name('pages.images.index');
         Route::post('/pages/upload-image', [PageImageController::class, 'store'])->name('pages.upload-image');

@@ -127,6 +127,20 @@
     .contenu-page blockquote, .contenu-page cite { font-size: 22px; }
 }
 
+/* Mode edition : textes modifiables signales au survol, crayon apres le texte. */
+.edition [data-editable] {
+    cursor: text;
+    outline-offset: 4px;
+}
+.edition [data-editable]:hover,
+.edition [data-editable]:focus {
+    outline: 1px dashed currentColor;
+}
+.edition [data-editable]:empty::before {
+    content: '…';
+    opacity: .4;
+}
+
 /* Contenu du pied de page saisi par le createur (lien du modele). */
 .pied-book a {
     margin: 0 20px;

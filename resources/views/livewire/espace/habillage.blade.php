@@ -29,6 +29,12 @@
             <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-accent-texte">{{ __('Sélectionner mon modèle de portfolio') }}</div>
             <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Habillage') }}</h1>
         </div>
+
+        {{-- Ultra-frais / Ultra-zen : reglages modifiables sur le book lui-meme. --}}
+        @if (in_array($theme, ['mdl_2020_ultra_frais', 'mdl_2020_ultra_zen'], true))
+            <a href="{{ route('espace.edition-book') }}" target="_blank" rel="noopener"
+               class="bouton-espace bouton-espace-grand px-4.5">{{ __('Modifier mon book ↗') }}</a>
+        @endif
     </div>
 
     <section class="mb-8">

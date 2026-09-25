@@ -52,6 +52,20 @@ class VueUltra2020
         $this->pref = $pref->data ?? (object) [];
     }
 
+    /** Le createur, connecte sur le sous-domaine de son book (EditionBookController). */
+    public function edition(): bool
+    {
+        return auth()->check() && auth()->user()->login === $this->b->us_dir;
+    }
+
+    /** Espace du createur, sur le portail de sa marque. */
+    public function urlEspace(): string
+    {
+        $hote = config('marques.marques.'.$this->b->book->brand.'.hotes')[0] ?? null;
+
+        return $hote ? 'https://'.$hote.'/espace' : url('/espace');
+    }
+
     public function zen(): bool
     {
         return $this->b->modele_book === 'mdl_2020_ultra_zen';

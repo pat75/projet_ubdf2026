@@ -92,3 +92,73 @@ it('rend le contact, envoye a la route du book', function () {
         ->assertSee('name="fm_contact_message"', false)
         ->assertSee('Et si on parlait de votre projet ?');
 });
+
+/*
+| Mode edition (EditionBookController)
+*/
+
+function entrerEnEdition($test): void
+{
+    $cible = $test->actingAs($test->book)->get(route('espace.edition-book'))->assertRedirect()->headers->get('Location');
+    auth()->logout();
+    $test->get($cible)->assertRedirect('/portfolio');
+}
+
+it('ouvre le mode edition par un lien signe, a usage unique', function () {
+    $cible = $this->actingAs($this->book)->get(route('espace.edition-book'))->headers->get('Location');
+    expect($cible)->toStartWith('https://lea-frais.'.config('ubdf.book_domain').'/edition/');
+
+    auth()->logout();
+    $this->get($cible)->assertRedirect('/portfolio');
+    $this->assertAuthenticatedAs($this->book);
+
+    // Deuxieme usage : refuse.
+    auth()->logout();
+    $this->get($cible)->assertForbidden();
+});
+
+it('refuse un lien falsifie ou destine a un autre book', function () {
+    $cible = $this->actingAs($this->book)->get(route('espace.edition-book'))->headers->get('Location');
+    auth()->logout();
+
+    $this->get(str_replace('lea-frais.', 'autre-login.', $cible))->assertForbidden();
+    $this->get($cible.'x')->assertForbidden();
+});
+
+it('affiche le mode edition au seul createur', function () {
+    $this->get(urlUltra('lea-frais'))->assertDontSee('Mode édition');
+
+    entrerEnEdition($this);
+
+    $this->get(urlUltra('lea-frais'))
+        ->assertSee('Mode édition')
+        ->assertSee("x-data=\"texteBook('titre')\"", false)
+        ->assertDontSee('ubstats.gif', false);
+});
+
+it('enregistre un reglage de la liste blanche, filtre le HTML et le CSS', function () {
+    entrerEnEdition($this);
+    $url = urlUltra('lea-frais', '/reglages');
+
+    $this->postJson($url, ['cle' => 'theme', 'valeur' => 'theme_black'])->assertOk();
+    $this->postJson($url, ['cle' => 'nav_link.name_page', 'valeur' => 'À propos'])->assertOk();
+    $this->postJson($url, ['cle' => 'footer', 'valeur' => '<a href="/x" onclick="x()">Lien</a><script>x()</script>'])->assertOk();
+    $this->postJson($url, ['cle' => 'expert_css', 'valeur' => 'h1{color:red}</style><script>'])->assertOk();
+
+    $data = $this->book->bookSetting->fresh()->theme_settings['data'];
+    expect($data['theme'])->toBe('theme_black')
+        ->and($data['nav_link']['name_page'])->toBe('À propos')
+        ->and($data['footer'])->not->toContain('onclick')->not->toContain('<script')
+        ->and($data['expert_css'])->not->toContain('</style');
+
+    $this->postJson($url, ['cle' => 'theme', 'valeur' => 'rose'])->assertStatus(422);
+    $this->postJson($url, ['cle' => 'us_formule', 'valeur' => '3'])->assertStatus(422);
+});
+
+it('refuse les reglages d un book a un autre createur', function () {
+    $autre = User::factory()->create(['login' => 'autre-creatif']);
+
+    $this->actingAs($autre)->postJson(urlUltra('lea-frais', '/reglages'), ['cle' => 'theme', 'valeur' => 'theme_black'])->assertForbidden();
+    $this->postJson(urlUltra('lea-frais', '/reglages'), ['cle' => 'theme', 'valeur' => 'theme_black']);
+    expect($this->book->bookSetting->fresh()->theme_settings['data']['theme'] ?? null)->not->toBe('theme_black');
+});
