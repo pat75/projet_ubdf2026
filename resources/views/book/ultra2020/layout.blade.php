@@ -90,6 +90,8 @@
         'pt-10' => ! $edition,
         'pt-20' => $edition,
         'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] md:gap-10' => $zen,
+        // Ultra-frais : pied de page toujours en bas de l'ecran, meme si la page est courte.
+        'flex min-h-screen flex-col' => ! $zen,
     ])>
 
         {{-- En-tete : icone ou photo, titre, description, menu --}}
@@ -163,7 +165,7 @@
             @endif
         </header>
 
-        <main @class(['mt-10', 'md:mt-0' => $zen])>
+        <main @class(['mt-10', 'md:mt-0' => $zen, 'flex-1' => ! $zen])>
             @yield('contenu')
         </main>
 

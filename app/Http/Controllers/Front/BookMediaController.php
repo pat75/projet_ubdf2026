@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Services\Book\AccesPortfolios;
+use App\Services\Espace\DepotImagePage;
 use App\Services\Images\Declinaison;
 use App\Services\Images\GenerateurImages;
 use App\Support\DossierBook;
@@ -101,15 +102,18 @@ class BookMediaController extends Controller
      */
     public function cms(string $login, string $chemin): BinaryFileResponse|Response
     {
-        $racine = realpath(DossierBook::chemin($login, 'img_cms'));
-        $fichier = $racine ? realpath($racine.'/'.rawurldecode($chemin)) : false;
+        // cms/ : images deposees depuis l'editeur ; img_cms/ : celles du legacy.
+        foreach ([DepotImagePage::DOSSIER, DepotImagePage::DOSSIER_LEGACY] as $dossier) {
+            $racine = realpath(DossierBook::chemin($login, $dossier));
+            $fichier = $racine ? realpath($racine.'/'.rawurldecode($chemin)) : false;
 
-        // realpath() resout les « .. » : le fichier doit rester sous la racine.
-        if (! $fichier || ! str_starts_with($fichier, $racine.DIRECTORY_SEPARATOR) || ! is_file($fichier)) {
-            return $this->parDefaut();
+            // realpath() resout les « .. » : le fichier doit rester sous la racine.
+            if ($fichier && str_starts_with($fichier, $racine.DIRECTORY_SEPARATOR) && is_file($fichier)) {
+                return response()->file($fichier, ['Cache-Control' => 'public, max-age=604800']);
+            }
         }
 
-        return response()->file($fichier, ['Cache-Control' => 'public, max-age=604800']);
+        return $this->parDefaut();
     }
 
     /** Trame grise du legacy, affichee a la place d'un visuel manquant. */

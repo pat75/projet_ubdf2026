@@ -67,9 +67,23 @@ it('transmet le formulaire de contact du book a la messagerie', function () {
         'fm_contact_nom_prenom' => 'Jean Client',
         'fm_contact_mail' => 'jean@example.com',
         'fm_contact_message' => 'Bonjour, une commande pour la rentrée ?',
+        'captcha' => app(App\Services\Captcha\Captcha::class)->generer('contact_book'),
     ])->assertOk()->assertJson(['error' => false]);
 
     expect(Conversation::where('user_id', $this->book->id)->count())->toBe(1);
+});
+
+it('refuse le contact du book sans le bon code, sur tous les modeles', function () {
+    app(App\Services\Captcha\Captcha::class)->generer('contact_book');
+
+    $this->post(urlBook('/contact'), [
+        'fm_contact_mail' => 'jean@example.com',
+        'fm_contact_message' => 'Bonjour, une commande pour la rentrée ?',
+        'captcha' => 'ZZZZ',
+    ])->assertOk()->assertJsonStructure(['errors']);
+
+    expect(Conversation::where('user_id', $this->book->id)->count())->toBe(0);
+    $this->get(urlBook('/contact'))->assertSee('/captcha/contact_book', false)->assertDontSee('g-recaptcha', false);
 });
 
 it('renvoie les erreurs dans la forme du formulaire d origine', function () {

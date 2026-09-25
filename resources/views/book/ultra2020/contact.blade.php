@@ -20,6 +20,7 @@
         <div x-data="contactBook"
              data-msg-message="{{ __('Votre message doit contenir au moins 10 caractères.') }}"
              data-msg-mail="{{ __('Il ne s’agit pas d’un mail') }}"
+             data-msg-captcha="{{ __('Recopiez les 4 caractères de l’image.') }}"
              data-msg-envoi="{{ __('Envoi impossible pour le moment.') }}">
 
             <div x-show="vue === 'merci'" x-cloak x-transition.opacity class="py-10">
@@ -59,6 +60,30 @@
                     <p x-show="erreurs.mail" x-text="erreurs.mail" x-cloak class="mt-1 text-[13px] text-red-600"></p>
                 </div>
 
+
+                {{-- Captcha local (App\Services\Captcha\Captcha), servi par ce sous-domaine. --}}
+                <div class="mt-2">
+                    <div class="flex items-center gap-3">
+                        <img x-ref="captcha" src="{{ route('book.captcha', ['login' => $b->us_dir, 'formulaire' => 'contact_book']) }}"
+                             data-src="{{ route('book.captcha', ['login' => $b->us_dir, 'formulaire' => 'contact_book']) }}"
+                             width="158" height="53" alt="{{ __('Code à recopier') }}" class="shrink-0 bg-white">
+                        <button type="button" @click="nouveauCode()" class="p-1 text-book-texte3 hover:text-book-texte" title="{{ __('Autre code') }}" aria-label="{{ __('Autre code') }}" data-curseur>
+                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 4v5h-5M20 12a8 8 0 0 1-14 5.3M4 20v-5h5"/></svg>
+                        </button>
+                        <input id="contact-captcha" name="captcha" aria-label="{{ __('Code à recopier') }}" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                               placeholder="{{ __('Recopiez le code') }}" class="{{ $champ }} w-40 min-w-0">
+                    </div>
+                    <p x-show="erreurs.captcha" x-text="erreurs.captcha" x-cloak class="mt-1 text-[13px] text-red-600"></p>
+                </div>
+
+                <div>
+                    <button type="submit" :disabled="vue === 'envoi'" data-curseur
+                            class="inline-flex items-center gap-2 bg-book-texte px-8 py-3 font-titre text-[13px] uppercase tracking-[1.3px] text-book-fond transition hover:opacity-80 disabled:opacity-60">
+                        <svg x-show="vue === 'envoi'" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        {{ __('Envoyer') }}
+                    </button>
+                </div>
+
                 {{-- Information sur les donnees, au survol ou au toucher. --}}
                 <div x-data="{ info: false }" class="relative text-[13px] text-book-texte3" @mouseenter="info = true" @mouseleave="info = false">
                     <button type="button" class="flex items-center gap-2 hover:text-book-texte" @click="info = ! info" :aria-expanded="info">
@@ -69,19 +94,6 @@
                        class="absolute bottom-full left-0 z-20 mb-2 max-w-sm bg-book-texte p-3 text-[12px] leading-relaxed text-book-fond shadow-lg">
                         {{ __('Les informations indiquées dans ce formulaire ne seront pas diffusées à des tiers, autres que le destinataire du message et la plateforme Ultra-book. Un mail vous permettra de suivre l’évolution de votre message et surtout de vérifier s’il a été lu par le destinataire.') }}
                     </p>
-                </div>
-
-                @if (config('services.recaptcha.v2.key'))
-                    <div x-ref="captcha" data-cle="{{ config('services.recaptcha.v2.key') }}"></div>
-                @endif
-
-                <div>
-                    <button type="submit" :disabled="vue === 'envoi'" data-curseur
-                            class="inline-flex items-center gap-2 bg-book-texte px-8 py-3 font-titre text-[13px] uppercase tracking-[1.3px] text-book-fond transition hover:opacity-80 disabled:opacity-60">
-                        <svg x-show="vue === 'envoi'" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                        {{ __('Envoyer') }}
-                    </button>
-                </div>
             </form>
         </div>
 

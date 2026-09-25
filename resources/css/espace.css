@@ -224,8 +224,12 @@ button:not(:disabled) {
  | defaut d'Imperavi, pour rester lisibles sur la largeur d'une carte de
  | l'espace plutot que sur une page pleine largeur du legacy.
  */
-.redactor-toolbar { border-radius: 0; }
-.redactor-toolbar a.re-button-icon { font-size: 18px; padding: 10px 14px 8px 14px; }
+/* Barre blanche a 3px du filet du bloc d edition ; icones sur fond gris, separees de 2px.
+   Prefixe .redactor-box : redactor.min.css est charge apres cette feuille. */
+.redactor-box .redactor-toolbar-wrapper { padding: 3px 3px 0; }
+.redactor-box .redactor-toolbar { border-radius: 0; padding: 4px; background: #fff; }
+.redactor-box .redactor-toolbar a.re-button-icon { font-size: 18px; padding: 10px 14px 8px 14px; margin: 0 2px 2px 0; background: #e6e6e3; box-shadow: none; }
+.redactor-box .redactor-toolbar a.re-button-icon:hover { background: #d6d6d2; }
 .redactor-toolbar a.redactor-button-active { background: var(--color-ub-accent); color: #fff; }
 .redactor-in { padding: 16px !important; font-size: 15px; line-height: 1.6; }
 
@@ -244,20 +248,36 @@ button:not(:disabled) {
     margin-top: 12px;
 }
 
-.redactor-imagemanager-ajouter {
+.redactor-modal .redactor-imagemanager-ajouter {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px 20px;
+    border: 2px dashed color-mix(in srgb, var(--color-ub-succes) 60%, transparent);
+    background: color-mix(in srgb, var(--color-ub-succes) 10%, transparent);
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s;
+}
+.redactor-modal .redactor-imagemanager-ajouter:hover,
+.redactor-modal .redactor-imagemanager-ajouter.survol {
+    border-color: var(--color-ub-succes);
+    background: color-mix(in srgb, var(--color-ub-succes) 20%, transparent);
+}
+.redactor-imagemanager-ajouter-icone {
+    display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    height: 96px;
-    border: 1.5px dashed var(--color-ub-bord);
-    color: var(--color-ub-texte3);
-    font-size: 12px;
-    cursor: pointer;
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: var(--color-ub-succes);
+    color: #fff;
 }
-.redactor-imagemanager-ajouter:hover { border-color: var(--color-ub-accent); color: var(--color-ub-accent-texte); }
-.redactor-imagemanager-ajouter span:first-child { font-size: 22px; line-height: 1; }
+.redactor-imagemanager-ajouter-icone svg { width: 24px; height: 24px; }
+.redactor-modal .redactor-imagemanager-ajouter-texte { margin: 0; font-size: 18px; font-weight: 900; color: var(--color-ub-texte); }
 
 .redactor-imagemanager-carte { position: relative; }
 

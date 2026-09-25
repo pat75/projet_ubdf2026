@@ -10,7 +10,7 @@ use App\Models\Media;
 use App\Models\User;
 use App\Services\Messagerie\Intermediation;
 use App\Jobs\EvaluerSpamIAConversation;
-use App\Support\Captcha;
+use App\Services\Captcha\Captcha;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
@@ -60,7 +60,7 @@ function demande(array $remplace = []): array
         'us_message' => 'Bonjour, je cherche un illustrateur pour une couverture.',
         'us_nom_prenom' => 'Claire Dupont',
         'us_mail' => 'claire@example.com',
-        'captcha_answer' => Captcha::generer(),
+        'captcha_answer' => app(Captcha::class)->generer('contact'),
     ], $remplace);
 }
 
@@ -124,7 +124,7 @@ it('rend un 200 portant error plutot qu un 422', function () {
 });
 
 it('refuse un captcha errone', function () {
-    Captcha::generer();
+    app(Captcha::class)->generer('contact');
 
     $this->postJson(portail_url('/intermediate_send'), array_merge(demande(), ['captcha_answer' => 'ZZZZZ']))
         ->assertOk()
@@ -136,7 +136,7 @@ it('refuse un captcha errone', function () {
 it('invalide le captcha meme apres un echec', function () {
     // Le legacy ne retirait le code de la session qu'en cas de succes : on
     // pouvait reessayer indefiniment sur la meme image.
-    $code = Captcha::generer();
+    $code = app(Captcha::class)->generer('contact');
 
     $this->postJson(portail_url('/intermediate_send'), demande(['captcha_answer' => 'ZZZZZ']));
 
@@ -243,7 +243,7 @@ it('sert une image de captcha', function () {
         ->assertOk()
         ->assertHeader('Content-Type', 'image/svg+xml');
 
-    expect(session(Captcha::SESSION))->toHaveLength(config('messagerie.captcha.longueur'));
+    expect(session('captcha.contact'))->toHaveLength(Captcha::LONGUEUR);
 });
 
 it('declenche la detection IA du spam quand elle est activee', function () {

@@ -6,6 +6,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('Mon espace')) | {{ $marque->nom }}</title>
 
+    {{-- Icones d'onglet navigateur, reprises du portail 2018
+         (@include('partials.head') / img_front/favicon). --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="/img_front/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img_front/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/img_front/favicon/apple-icon-180x180.png">
+    <link rel="manifest" href="/img_front/favicon/manifest.json">
+    <meta name="theme-color" content="#ffffff">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap">

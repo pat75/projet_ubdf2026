@@ -155,8 +155,17 @@ function inscription(array $remplace = []): array
         'us_nom' => 'Bertin Camille',
         'us_type' => 'illustrateur',
         'us_licence' => 'on',
+        // Code du captcha local, tire comme le ferait l'affichage de l'image.
+        'captcha' => app(App\Services\Captcha\Captcha::class)->generer('inscription'),
     ], $remplace);
 }
+
+it('refuse l inscription sans le bon code du captcha', function () {
+    $this->postJson('/inscription', inscription(['captcha' => 'ZZZZ']))
+        ->assertJson(['error' => true]);
+
+    expect(App\Models\User::where('login', 'camille-b')->exists())->toBeFalse();
+});
 
 it('cree un compte et connecte le creatif', function () {
     $reponse = $this->postJson('/inscription', inscription());

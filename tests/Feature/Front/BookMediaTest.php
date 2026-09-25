@@ -78,3 +78,14 @@ it('donne aux vignettes du portail la declinaison des cartes', function () {
 
     expect($creatif->fresh()->thumbnailUrl())->toContain('/front_desk/visuel.jpg');
 });
+
+it('sert les images des pages depuis cms/, puis img_cms/ du legacy', function () {
+    File::ensureDirectoryExists($this->dossier.'/cms');
+    File::ensureDirectoryExists($this->dossier.'/img_cms/images');
+    File::copy($this->dossier.'/visuel.jpg', $this->dossier.'/cms/neuve.jpg');
+    File::copy($this->dossier.'/visuel.jpg', $this->dossier.'/img_cms/images/ancienne.jpg');
+
+    $this->get("/books/{$this->login}/cms/neuve.jpg")->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+    $this->get("/books/{$this->login}/cms/images/ancienne.jpg")->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+    $this->get("/books/{$this->login}/cms/../visuel.jpg")->assertHeader('Content-Type', 'image/gif');
+});

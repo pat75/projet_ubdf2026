@@ -3,8 +3,9 @@
  * core.js (validation Semantic UI, envoi ajax, reCAPTCHA).
  *
  * POST /contact (BookController::envoyer) : `{error: false}` en cas de
- * succes, `{errors: [...]}` sinon. Le reCAPTCHA v2 n'est affiche que s'il
- * est configure (data-cle) ; le serveur ignore la verification sinon.
+ * succes, `{errors: [...]}` sinon. Captcha local (App\Services\Captcha) :
+ * le code est consomme a chaque envoi, l'image est donc renouvelee apres
+ * un refus.
  */
 const MAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,30 +14,25 @@ export default function contact(Alpine) {
         vue: 'formulaire', // formulaire | envoi | merci
         erreurs: {},
         serveur: [],
-        widget: null,
 
-        init() {
-            const cle = this.$refs.captcha?.dataset.cle;
-            if (!cle) return;
-
-            window.ubdfCaptcha = () => {
-                this.widget = window.grecaptcha.render(this.$refs.captcha, { sitekey: cle });
-            };
-            const script = document.createElement('script');
-            script.src = `https://www.google.com/recaptcha/api.js?onload=ubdfCaptcha&render=explicit&hl=${document.documentElement.lang}`;
-            script.async = true;
-            document.head.append(script);
+        // Nouvelle image, donc nouveau code : chaque code ne sert qu'une fois.
+        nouveauCode() {
+            const img = this.$refs.captcha;
+            img.src = `${img.dataset.src}?${Date.now()}`;
+            this.$root.querySelector('[name=captcha]').value = '';
         },
 
         verifier(f) {
             const message = f.fm_contact_message.value.trim();
             const mail = f.fm_contact_mail.value.trim();
+            const code = f.captcha.value.trim();
             this.erreurs = {
                 message: message.length >= 10 ? '' : this.$root.dataset.msgMessage,
                 mail: MAIL.test(mail) ? '' : this.$root.dataset.msgMail,
+                captcha: code.length === 4 ? '' : this.$root.dataset.msgCaptcha,
             };
 
-            return !this.erreurs.message && !this.erreurs.mail;
+            return !Object.values(this.erreurs).some(Boolean);
         },
 
         async envoyer(f) {
@@ -55,7 +51,7 @@ export default function contact(Alpine) {
             if (retour.errors?.length) {
                 this.serveur = retour.errors;
                 this.vue = 'formulaire';
-                if (this.widget !== null) window.grecaptcha?.reset(this.widget);
+                this.nouveauCode();
 
                 return;
             }

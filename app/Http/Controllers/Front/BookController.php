@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\ContactBookRequest;
 use App\Models\Gallery;
 use App\Models\User;
-use App\Services\Auth\Recaptcha;
 use App\Services\Book\ContexteBook;
 use App\Services\Book\AccesPortfolios;
 use App\Services\Book\Gabarit;
@@ -107,13 +106,9 @@ class BookController extends Controller
      * spam, notification des deux parties. Le rappel JavaScript d'origine
      * attend `{error: bool}`.
      */
-    public function envoyer(ContactBookRequest $requete, string $login, DepotDemande $depot, Recaptcha $recaptcha): JsonResponse
+    public function envoyer(ContactBookRequest $requete, string $login, DepotDemande $depot): JsonResponse
     {
         $book = User::where('login', $login)->firstOrFail();
-
-        if (! $recaptcha->valideV2($requete->input('g-recaptcha-response'))) {
-            return response()->json(['errors' => [__('Cochez la case « Je ne suis pas un robot ».')]]);
-        }
 
         if ($depot->limiteAtteinte($requete->ip())) {
             return response()->json(['errors' => [__('Trop de demandes envoyées. Réessayez dans une heure.')]]);

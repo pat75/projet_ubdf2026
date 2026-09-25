@@ -8,10 +8,8 @@ use App\Models\BookSection;
 use App\Services\Espace\NettoyeurHtml;
 use App\Services\Espace\RenduBlocsPage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 /**
@@ -24,12 +22,6 @@ class Pages extends Component
 {
     use EnregistreChamps;
 
-    #[Validate('required|string|max:100')]
-    public string $nom = '';
-
-    /** Titre de la nouvelle page, par rubrique. */
-    public array $nouvellePage = [];
-
     /** Page actuellement depliee, ou null. */
     public ?int $edition = null;
 
@@ -39,19 +31,21 @@ class Pages extends Component
     /** Blocs Editor.js de la page depliee (config('pages.editeur_texte') === 'redactor_bloc'). */
     public array $blocs = [];
 
+    /**
+     * Nouvelle rubrique sans nom (« Nouvelle rubrique » n'est qu'une
+     * invite), a nommer sur place ; masquee jusqu'a ce qu'elle soit nommee,
+     * pour ne pas laisser d'entree vide dans le menu du book.
+     */
     public function creerRubrique(): void
     {
-        $this->validate();
-
         Auth::user()->sections()->create([
             'kind' => BookSection::PAGES,
-            'title' => $this->nom,
-            'slug' => Str::slug($this->nom) ?: 'rubrique',
-            'is_published' => true,
-            'position' => (int) Auth::user()->sections()->max('position') + 1,
+            'title' => '',
+            'slug' => 'rubrique',
+            'is_published' => false,
+            // En tete de liste : avant la premiere rubrique existante.
+            'position' => (int) Auth::user()->sections()->min('position') - 1,
         ]);
-
-        $this->reset('nom');
     }
 
     public function basculerRubrique(int $id): void
@@ -64,27 +58,25 @@ class Pages extends Component
     {
         $rubrique = $this->rubrique($id);
 
-        DB::transaction(function () use ($rubrique) {
-            $rubrique->articles()->delete();
-            $rubrique->delete();
-        });
-    }
-
-    public function creerPage(int $rubriqueId): void
-    {
-        $titre = trim($this->nouvellePage[$rubriqueId] ?? '');
-
-        if ($titre === '' || mb_strlen($titre) > 255) {
-            $this->addError('nouvellePage.'.$rubriqueId, __('Donnez un titre à la page.'));
-
+        // Une rubrique ne se supprime que vide : ses pages d'abord, une a une.
+        if ($rubrique->articles()->exists()) {
             return;
         }
 
+        $rubrique->delete();
+    }
+
+    /**
+     * Nouvelle page sans titre (« Nouvelle page » n'est qu'une invite),
+     * ouverte aussitot ; brouillon jusqu'au premier enregistrement.
+     */
+    public function creerPage(int $rubriqueId): void
+    {
         $rubrique = $this->rubrique($rubriqueId);
         $page = $rubrique->articles()->create([
             'user_id' => Auth::id(),
-            'title' => $titre,
-            'slug' => Str::slug($titre),
+            'title' => '',
+            'slug' => 'page',
             'status' => 'draft',
             'position' => (int) $rubrique->articles()->max('position') + 1,
         ]);
@@ -93,7 +85,6 @@ class Pages extends Component
             $rubrique->update(['page_order' => [...$rubrique->page_order, (string) $page->id]]);
         }
 
-        unset($this->nouvellePage[$rubriqueId]);
         $this->ouvrirPage($page->id);
     }
 
@@ -114,7 +105,9 @@ class Pages extends Component
 
         $page = $this->page($id);
         $this->edition = $id;
-        $this->corps = (string) $page->body;
+        // Anciennes URL /users_2/... : reecrites pour l'editeur, et donc
+        // enregistrees sous leur forme actuelle au prochain enregistrement.
+        $this->corps = urls_medias_book((string) $page->body);
         $this->blocs = $page->body_blocks ?? [];
         $this->resetErrorBag(['corps', 'blocs']);
     }
@@ -123,7 +116,7 @@ class Pages extends Component
     {
         $this->validate(['corps' => 'nullable|string|max:200000']);
 
-        $this->page($this->edition)->update(['body' => $nettoyeur->nettoyer($this->corps)]);
+        $this->page($this->edition)->update(['body' => $nettoyeur->nettoyer($this->corps), 'status' => 'published']);
     }
 
     /** Enregistrement pour config('pages.editeur_texte') === 'redactor_bloc' : voir resources/js/espace-blocs.js. */
@@ -134,6 +127,7 @@ class Pages extends Component
         $this->page($this->edition)->update([
             'body_blocks' => $this->blocs,
             'body' => $nettoyeur->nettoyer($rendu->versHtml($this->blocs)),
+            'status' => 'published',
         ]);
     }
 
@@ -175,7 +169,7 @@ class Pages extends Component
 
     public function render(): View
     {
-        $rubriques = Auth::user()->sections()->with('articles')->orderBy('kind')->orderBy('position')->get();
+        $rubriques = Auth::user()->sections()->with('articles')->orderBy('position')->orderBy('id')->get();
 
         foreach ($rubriques as $rubrique) {
             $ordre = array_flip($rubrique->page_order ?? []);
@@ -186,8 +180,47 @@ class Pages extends Component
 
         return view('livewire.espace.pages', [
             'rubriques' => $rubriques,
-            'editeurTexte' => config('pages.editeur_texte'),
+            'editeurTexte' => $this->editeurTexte(),
+            'devEditeur' => $this->devEditeur(),
         ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Moteur d'edition : config('pages.editeur_texte'), que la bascule de
+    | developpement (session) peut remplacer, en local seulement.
+    |--------------------------------------------------------------------------
+    */
+
+    private const EDITEURS = [
+        'redactor' => 'Redactor 3.5.2 classique',
+        'redactor_bloc' => 'Redactor bloc (Editor.js)',
+    ];
+
+    private function devEditeur(): bool
+    {
+        return app()->environment(['local', 'development']);
+    }
+
+    private function editeurTexte(): string
+    {
+        $choix = $this->devEditeur() ? session('dev.editeur_pages') : null;
+
+        return isset(self::EDITEURS[$choix]) ? $choix : config('pages.editeur_texte');
+    }
+
+    public function libelleEditeur(): string
+    {
+        return self::EDITEURS[$this->editeurTexte()] ?? $this->editeurTexte();
+    }
+
+    /** Bascule de developpement : passe a l'autre moteur et recharge la page. */
+    public function basculerEditeur(): void
+    {
+        abort_unless($this->devEditeur(), 403);
+
+        session(['dev.editeur_pages' => $this->editeurTexte() === 'redactor' ? 'redactor_bloc' : 'redactor']);
+        $this->redirectRoute('espace.pages');
     }
 
     protected function champsAutoEnregistres(): array
@@ -212,9 +245,20 @@ class Pages extends Component
         $valeur = trim((string) $valeur);
 
         match ($champ) {
-            'rubrique' => $this->rubrique((int) $id)->update(['title' => $valeur]),
+            'rubrique' => $this->nommerRubrique($this->rubrique((int) $id), $valeur),
             'page' => $this->page((int) $id)->update(['title' => $valeur, 'slug' => Str::slug($valeur) ?: 'page']),
         };
+    }
+
+    private function nommerRubrique(BookSection $rubrique, string $titre): void
+    {
+        $premiereFois = $rubrique->title === '';
+
+        $rubrique->update([
+            'title' => $titre,
+            'slug' => Str::slug($titre) ?: 'rubrique',
+            'is_published' => $premiereFois ? true : $rubrique->is_published,
+        ]);
     }
 
     private function rubrique(int $id): BookSection

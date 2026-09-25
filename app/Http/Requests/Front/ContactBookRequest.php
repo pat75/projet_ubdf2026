@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Front;
 
+use App\Rules\CaptchaValide;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -20,7 +21,8 @@ class ContactBookRequest extends FormRequest
             'fm_contact_nom_prenom' => ['nullable', 'string', 'max:255'],
             'fm_contact_mail' => ['required', 'string', 'email:rfc', 'max:255'],
             'fm_contact_message' => ['required', 'string', 'min:10', 'max:5000'],
-            'g-recaptcha-response' => ['nullable', 'string'],
+            // Captcha local (App\Services\Captcha\Captcha), a la place du reCAPTCHA.
+            'captcha' => ['required', 'string', new CaptchaValide('contact_book')],
         ];
     }
 
@@ -30,6 +32,7 @@ class ContactBookRequest extends FormRequest
             'fm_contact_nom_prenom' => __('nom'),
             'fm_contact_mail' => __('adresse mail'),
             'fm_contact_message' => __('message'),
+            'captcha' => __('code de sécurité'),
         ];
     }
 

@@ -1,7 +1,8 @@
 /*
  * Inscription a la newsletter (pied de page, menu), ex-ub_newsletter de
  * ub_core_function_autres.js : envoi en ajax, message de retour affiche
- * 5 s sous le formulaire.
+ * 5 s sous le formulaire. POST /newsletter (NewsletterController),
+ * reponse { error, message }.
  */
 export default function newsletter(Alpine) {
     Alpine.data('newsletter', () => ({
@@ -10,18 +11,22 @@ export default function newsletter(Alpine) {
         minuterie: null,
 
         async envoyer(formulaire) {
-            const url = new URL(formulaire.action, window.location.origin);
-            new FormData(formulaire).forEach((valeur, nom) => url.searchParams.set(nom, valeur));
-
             let retour;
             try {
-                const reponse = await fetch(url, { headers: { Accept: 'application/json' } });
-                retour = reponse.ok ? await reponse.json() : { error: true, message: 'Inscription impossible pour le moment.' };
+                const reponse = await fetch(formulaire.action, {
+                    method: 'POST',
+                    body: new FormData(formulaire),
+                    headers: { Accept: 'application/json' },
+                });
+                retour = reponse.status === 200 || reponse.status === 422
+                    ? await reponse.json()
+                    : { error: true, message: 'Inscription impossible pour le moment.' };
             } catch {
                 retour = { error: true, message: 'Inscription impossible pour le moment.' };
             }
 
             this.afficher(retour.message, !!retour.error);
+            if (!retour.error) formulaire.reset();
         },
 
         afficher(message, erreur) {

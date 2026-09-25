@@ -13,9 +13,10 @@ use RuntimeException;
 
 /**
  * Depose une image inseree dans le corps d'une page (editeur Redactor de
- * App\Livewire\Espace\Pages), dans img_cms/ du book : meme dossier et
- * meme URL (BookMediaController::cms) que le legacy pour ces images-la —
- * servies telles quelles, a la taille choisie dans l'editeur, sans
+ * App\Livewire\Espace\Pages), dans cms/ du dossier du book
+ * (books/a/d/o/adolie/cms/). Les images du legacy restent dans img_cms/ ;
+ * les deux sont servies sous la meme URL /books/<login>/cms/...
+ * (BookMediaController::cms) — telles quelles, a la taille choisie dans l'editeur, sans
  * declinaison a la volee. Ce ne sont pas des visuels de portfolio : pas
  * d'entree Media, elles ne comptent pas dans le quota de App\Services\Espace\Quotas ;
  * seule leur ligne App\Models\PageImage les rend listables et supprimables
@@ -23,6 +24,21 @@ use RuntimeException;
  */
 class DepotImagePage
 {
+    /** Dossier des images deposees depuis l'editeur, dans le dossier du book. */
+    public const DOSSIER = 'cms';
+
+    /** Dossier des images reprises du legacy, lu en repli. */
+    public const DOSSIER_LEGACY = 'img_cms';
+
+    /** Fichier d'une image : cms/, ou img_cms/ pour une image deposee avant le changement de dossier. */
+    public static function chemin(string $login, string $nom): string
+    {
+        $chemin = DossierBook::chemin($login, self::DOSSIER.'/'.$nom);
+        $ancien = DossierBook::chemin($login, self::DOSSIER_LEGACY.'/'.$nom);
+
+        return ! is_file($chemin) && is_file($ancien) ? $ancien : $chemin;
+    }
+
     public function __construct(private readonly ImageManager $images) {}
 
     public function deposer(User $creatif, UploadedFile $fichier): PageImage
@@ -48,7 +64,7 @@ class DepotImagePage
         $image->update($ecrit);
 
         if ($ecrit['filename'] !== $ancien) {
-            File::delete(DossierBook::chemin($login, 'img_cms/'.$ancien));
+            File::delete(self::chemin($login, $ancien));
         }
 
         return $image;
@@ -56,7 +72,7 @@ class DepotImagePage
 
     public function supprimer(PageImage $image): void
     {
-        File::delete(DossierBook::chemin($image->user->login, 'img_cms/'.$image->filename));
+        File::delete(self::chemin($image->user->login, $image->filename));
         $image->delete();
     }
 
@@ -76,7 +92,7 @@ class DepotImagePage
         $nom = $nomExistant && str_ends_with($nomExistant, '.'.$extension)
             ? $nomExistant
             : Str::lower(Str::random(32)).'.'.$extension;
-        $chemin = DossierBook::chemin($login, 'img_cms/'.$nom);
+        $chemin = DossierBook::chemin($login, self::DOSSIER.'/'.$nom);
 
         File::ensureDirectoryExists(dirname($chemin));
 

@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\DemandeContactRequest;
 use App\Services\Messagerie\DepotDemande;
-use App\Support\Captcha;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 
 class ContactController extends Controller
 {
@@ -39,24 +37,6 @@ class ContactController extends Controller
         $this->depot->deposer($destinataire, $request->validated(), $request->ip());
 
         return $this->succes($request->validated()['action']);
-    }
-
-    /**
-     * Image du captcha : GET /captcha_img.
-     *
-     * Le legacy dessinait cinq lettres avec GD et une police au hasard. Le
-     * rendu passe ici en SVG : pas de dependance a GD ni aux fichiers de
-     * police, et une image que le navigateur affiche a n'importe quelle
-     * definition.
-     */
-    public function captcha(): Response
-    {
-        $code = Captcha::generer();
-
-        return response(view('front.captcha', ['code' => $code])->render(), 200, [
-            'Content-Type' => 'image/svg+xml',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate',
-        ]);
     }
 
     private function succes(string $action): JsonResponse

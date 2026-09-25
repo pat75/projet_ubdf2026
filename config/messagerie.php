@@ -189,12 +189,4 @@ return [
         // Probabilite calibree a partir de laquelle le label s'affiche.
         'seuil' => 0.6,
     ],
-
-    'captcha' => [
-        // Caracteres sans ambiguite visuelle : ni O/0, ni I/1/l.
-        'alphabet' => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
-        'longueur' => 5,
-        'largeur' => 160,
-        'hauteur' => 46,
-    ],
 ];

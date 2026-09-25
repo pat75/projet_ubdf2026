@@ -24,7 +24,7 @@ it('depose une image envoyee depuis l editeur Redactor et rend son URL', functio
     $url = $reponse->json('filelink');
     expect($url)->toContain('/books/testeur/cms/');
 
-    $chemin = DossierBook::chemin('testeur', 'img_cms/'.basename(parse_url($url, PHP_URL_PATH)));
+    $chemin = DossierBook::chemin('testeur', 'cms/'.basename(parse_url($url, PHP_URL_PATH)));
     expect(File::exists($chemin))->toBeTrue();
 });
 
@@ -49,7 +49,7 @@ it('liste les images deposees par le createur, la plus recente d abord', functio
 it('remplace le fichier d une image, sans changer son URL', function () {
     $depot = $this->post(route('espace.pages.upload-image'), ['file' => UploadedFile::fake()->image('photo.jpg')]);
     $image = $this->creatif->pageImages()->sole();
-    $ancienChemin = DossierBook::chemin('testeur', 'img_cms/'.$image->filename);
+    $ancienChemin = DossierBook::chemin('testeur', 'cms/'.$image->filename);
 
     $reponse = $this->post(route('espace.pages.images.update', $image), ['file' => UploadedFile::fake()->image('nouvelle.jpg')])
         ->assertOk();
@@ -61,7 +61,7 @@ it('remplace le fichier d une image, sans changer son URL', function () {
 it('supprime une image, du disque et de la base', function () {
     $this->post(route('espace.pages.upload-image'), ['file' => UploadedFile::fake()->image('photo.jpg')]);
     $image = $this->creatif->pageImages()->sole();
-    $chemin = DossierBook::chemin('testeur', 'img_cms/'.$image->filename);
+    $chemin = DossierBook::chemin('testeur', 'cms/'.$image->filename);
 
     $this->deleteJson(route('espace.pages.images.destroy', $image))->assertOk();
 

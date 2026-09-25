@@ -25,7 +25,7 @@ window.espacePageEditor = (el, surChangement, urls) => {
 
     const app = window.$R(el, {
         lang: 'fr',
-        buttons: ['format', 'bold', 'italic', 'deleted', 'lists', 'alignment', 'fontfamily', 'fontcolor', 'fontsize', 'image', 'video', 'link', 'horizontalrule', 'html'],
+        buttons: ['format', 'bold', 'italic', 'alignment', 'fontfamily', 'fontcolor', 'fontsize', 'image', 'video', 'link', 'horizontalrule', 'html'],
         plugins: ['alignment', 'fontfamily', 'fontcolor', 'fontsize', 'imageposition', 'video', 'fullscreen', 'imagemanager'],
         fontfamily: ['Montserrat', 'HKGrotesk', 'Dosis', 'Lato', 'Arial', 'Verdana', 'Times New Roman'],
         source: true,

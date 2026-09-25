@@ -39,18 +39,40 @@ it('ouvre une page avec l editeur par blocs charge cote JS', function () {
 });
 
 it('cree une rubrique puis une page en brouillon, ouverte aussitot', function () {
-    Livewire::test(Pages::class)->set('nom', 'Presse')->call('creerRubrique')->assertHasNoErrors();
+    Livewire::test(Pages::class)->call('creerRubrique')->assertHasNoErrors();
 
-    $presse = $this->creatif->sections()->where('title', 'Presse')->sole();
+    $presse = $this->creatif->sections()->where('title', '')->sole();
+    expect($presse->is_published)->toBeFalse();
+
+    Livewire::test(Pages::class)->call('enregistrerChamp', 'rubrique-'.$presse->id, 'Presse');
+    expect($presse->refresh())->title->toBe('Presse')->is_published->toBeTrue();
 
     Livewire::test(Pages::class)
-        ->set('nouvellePage.'.$presse->id, 'Article Libé')
         ->call('creerPage', $presse->id)
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSet('edition', $presse->articles()->sole()->id);
 
-    $page = $presse->articles()->sole();
+    expect($presse->articles()->sole())->title->toBe('')->status->toBe('draft');
 
-    expect($page)->title->toBe('Article Libé')->status->toBe('draft');
+    Livewire::test(Pages::class)->call('ouvrirPage', $presse->articles()->sole()->id)
+        ->set('corps', '<p>Texte</p>')->call('enregistrerPage');
+
+    expect($presse->articles()->sole()->status)->toBe('published');
+});
+
+it('bascule le moteur d edition en developpement, jamais ailleurs', function () {
+    app()->detectEnvironment(fn () => 'local');
+    config(['pages.editeur_texte' => 'redactor']);
+
+    Livewire::test(Pages::class)
+        ->assertSee('Redactor 3.5.2 classique')
+        ->call('basculerEditeur')
+        ->assertRedirect(route('espace.pages'));
+
+    Livewire::test(Pages::class)->assertSee('Redactor bloc (Editor.js)');
+
+    app()->detectEnvironment(fn () => 'production');
+    Livewire::test(Pages::class)->assertDontSee('dev_only', false)->call('basculerEditeur')->assertForbidden();
 });
 
 it('deplie une page pour l editer, et la replie au second clic', function () {
@@ -158,4 +180,32 @@ it('interdit les pages d un autre creatif', function () {
 
     $this->get(route('espace.pages.edit', $page))->assertForbidden();
     Livewire::test(Pages::class)->call('supprimerRubrique', $rubrique->id)->assertForbidden();
+});
+
+it('place une nouvelle rubrique en tete de liste', function () {
+    Livewire::test(Pages::class)->call('creerRubrique');
+
+    $premiere = $this->creatif->sections()->orderBy('position')->orderBy('id')->first();
+    expect($premiere->title)->toBe('');
+});
+
+it('ne supprime une rubrique que vide', function () {
+    $this->rubrique->articles()->create(['user_id' => $this->creatif->id, 'title' => 'Parcours', 'status' => 'published']);
+
+    Livewire::test(Pages::class)
+        ->assertSee('Supprimez-la d’abord', false)
+        ->call('supprimerRubrique', $this->rubrique->id);
+    expect($this->rubrique->fresh())->not->toBeNull();
+
+    $this->rubrique->articles()->delete();
+    Livewire::test(Pages::class)->call('supprimerRubrique', $this->rubrique->id);
+    expect($this->rubrique->fresh())->toBeNull();
+});
+
+it('reecrit les anciennes URL d images a l ouverture dans l editeur', function () {
+    $page = $this->rubrique->articles()->create(['user_id' => $this->creatif->id, 'title' => 'Parcours', 'status' => 'published',
+        'body' => '<p><img src="https://www.ultra-book.com/users_2/a/d/adolie/img_cms/images/3c97.jpg"><img src="/users_2/a/d/o/adolie/img_cms/images/3c98.jpg"></p>']);
+
+    Livewire::test(Pages::class)->call('ouvrirPage', $page->id)
+        ->assertSet('corps', '<p><img src="/books/adolie/cms/images/3c97.jpg"><img src="/books/adolie/cms/images/3c98.jpg"></p>');
 });

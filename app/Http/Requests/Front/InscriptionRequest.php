@@ -45,7 +45,7 @@ class InscriptionRequest extends FormRequest
             'us_nom' => ['required', 'string', 'max:120'],
             'us_type' => ['nullable', 'string', Rule::exists('categories', 'slug')],
             'us_licence' => ['accepted'],
-            'g-recaptcha-response' => ['nullable', 'string'],
+            'captcha' => ['nullable', 'string', 'max:10'],
         ];
     }
 

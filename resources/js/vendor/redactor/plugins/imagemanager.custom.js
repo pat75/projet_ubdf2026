@@ -6,7 +6,7 @@
  * (ub_usadmin_core.js) : ni fichier plugin correspondant, ni UI de liste
  * dans le coeur. Ce plugin construit celle-ci, dans le style et selon les
  * conventions des plugins Redactor livres (voir video.min.js) :
- *   - un bouton juste apres celui d'insertion d'image ;
+ *   - le bouton d'insertion d'image de la barre ouvre la bibliotheque ;
  *   - une fenetre modale qui charge la liste (opts.imagemanagerListe),
  *     avec upload (opts.imageUpload, deja cable pour le glisser-deposer),
  *     remplacement et suppression (opts.imagemanagerAction, gabarit
@@ -22,7 +22,8 @@
                 imagemanager: {
                     library: 'Bibliothèque',
                     'library-title': 'Bibliothèque d’images',
-                    add: 'Ajouter une image',
+                    add: 'Glisser-déposer vos images ici',
+                    sending: 'Envoi en cours…',
                     empty: 'Aucune image déposée pour le moment.',
                     loading: 'Chargement…',
                     error: 'Impossible de charger la bibliothèque.',
@@ -40,6 +41,12 @@
                 + '</div>',
         },
 
+        // Le lang.get de ce Redactor ignore les traductions des plugins
+        // (chaine vide) : repli sur les libelles francais ci-dessus.
+        t(cle) {
+            return this.lang.get('imagemanager.' + cle) || this.translations.fr.imagemanager[cle] || cle;
+        },
+
         init(app) {
             this.app = app;
             this.opts = app.opts;
@@ -53,31 +60,28 @@
                 return;
             }
 
-            this.toolbar.addButtonAfter('image', 'imagemanager', {
-                title: this.lang.get('imagemanager.library'),
-                api: 'plugin.imagemanager.open',
-            }).setIcon('<i class="re-icon-imagemanager">'
-                + '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">'
-                + '<rect x="2" y="3" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/>'
-                + '<rect x="6" y="7" width="12" height="12" rx="1.5" fill="currentColor" fill-opacity=".15" stroke="currentColor" stroke-width="1.4"/>'
-                + '<circle cx="9.5" cy="10.5" r="1.1" fill="currentColor"/>'
-                + '<path d="M7 15l2.6-2.6a1 1 0 0 1 1.4 0L14 15.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'
-                + '</svg></i>');
+            // Le bouton « image » de la barre ouvre la bibliotheque (depot,
+            // choix, remplacement) plutot que la fenetre d'upload du coeur.
+            const bouton = this.toolbar.getButton('image');
+            if (bouton) bouton.setApi('plugin.imagemanager.open');
         },
 
         open() {
             this.app.api('module.modal.build', {
-                title: this.lang.get('imagemanager.library-title'),
+                title: this.t('library-title'),
                 width: '620px',
                 name: 'imagemanager',
-                commands: { close: { title: this.lang.get('imagemanager.close') } },
+                commands: { close: { title: this.t('close') } },
             });
         },
 
         onmodal: {
             imagemanager: {
                 opened: function (e, modal) {
-                    this.charger(modal.find('[data-imagemanager-liste]').get());
+                    // Le second argument de ce rappel arrive vide avec ce
+                    // Redactor : la fenetre ouverte est lue dans le DOM.
+                    const liste = document.querySelector('.redactor-modal.open .redactor-imagemanager-liste');
+                    this.charger(liste);
                 },
             },
         },
@@ -85,35 +89,53 @@
         // Recharge la liste (apres ajout, remplacement ou suppression) sans
         // fermer la fenetre.
         async charger(conteneur) {
-            conteneur.innerHTML = '<p class="redactor-imagemanager-message">' + this.lang.get('imagemanager.loading') + '</p>';
+            conteneur.innerHTML = '<p class="redactor-imagemanager-message">' + this.t('loading') + '</p>';
 
             try {
                 const reponse = await fetch(this.opts.imagemanagerListe, { headers: { Accept: 'application/json' } });
                 const images = await reponse.json();
                 this.afficher(conteneur, images);
             } catch (erreur) {
-                conteneur.innerHTML = '<p class="redactor-imagemanager-message">' + this.lang.get('imagemanager.error') + '</p>';
+                conteneur.innerHTML = '<p class="redactor-imagemanager-message">' + this.t('error') + '</p>';
             }
         },
 
         afficher(conteneur, images) {
             conteneur.innerHTML = '';
 
+            // Zone de depot : meme apparence que celle de /espace/galeries.
             const ajout = document.createElement('label');
             ajout.className = 'redactor-imagemanager-ajouter';
-            ajout.innerHTML = '<span>+</span><span>' + this.lang.get('imagemanager.add') + '</span>'
-                + '<input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden>';
-            ajout.querySelector('input').addEventListener('change', (e) => {
-                if (e.target.files[0]) {
-                    this.envoyer(e.target.files[0], conteneur);
+            ajout.innerHTML = '<span class="redactor-imagemanager-ajouter-icone">'
+                + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
+                + '<path stroke-linecap="round" stroke-linejoin="round" d="M12 15V4m0 0L8 8m4-4 4 4M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>'
+                + '<span class="redactor-imagemanager-ajouter-texte">' + this.t('add') + '</span>'
+                + '<input type="file" multiple accept="image/jpeg,image/png,image/gif,image/webp" hidden>';
+            const deposer = (fichiers) => {
+                if (fichiers.length) {
+                    ajout.querySelector('.redactor-imagemanager-ajouter-texte').textContent = this.t('sending');
+                    this.envoyer([...fichiers], conteneur);
                 }
+            };
+            ajout.querySelector('input').addEventListener('change', (e) => deposer(e.target.files));
+            ajout.addEventListener('dragover', (e) => {
+                if (e.dataTransfer.types.includes('Files')) {
+                    e.preventDefault();
+                    ajout.classList.add('survol');
+                }
+            });
+            ajout.addEventListener('dragleave', () => ajout.classList.remove('survol'));
+            ajout.addEventListener('drop', (e) => {
+                e.preventDefault();
+                ajout.classList.remove('survol');
+                deposer(e.dataTransfer.files);
             });
             conteneur.appendChild(ajout);
 
             if (!images.length) {
                 const vide = document.createElement('p');
                 vide.className = 'redactor-imagemanager-message';
-                vide.textContent = this.lang.get('imagemanager.empty');
+                vide.textContent = this.t('empty');
                 conteneur.appendChild(vide);
 
                 return;
@@ -145,7 +167,7 @@
 
             const remplacer = document.createElement('label');
             remplacer.className = 'redactor-imagemanager-action';
-            remplacer.title = this.lang.get('imagemanager.replace');
+            remplacer.title = this.t('replace');
             remplacer.innerHTML = '↻<input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden>';
             remplacer.querySelector('input').addEventListener('change', (e) => {
                 if (e.target.files[0]) {
@@ -156,10 +178,10 @@
             const supprimer = document.createElement('button');
             supprimer.type = 'button';
             supprimer.className = 'redactor-imagemanager-action';
-            supprimer.title = this.lang.get('imagemanager.delete');
+            supprimer.title = this.t('delete');
             supprimer.textContent = '✕';
             supprimer.addEventListener('click', () => {
-                if (window.confirm(this.lang.get('imagemanager.confirm-delete'))) {
+                if (window.confirm(this.t('confirm-delete'))) {
                     this.supprimer(image, conteneur);
                 }
             });
@@ -175,12 +197,14 @@
             this.app.api('module.image.insert', { file: { url: image.url, id: image.id } });
         },
 
-        async envoyer(fichier, conteneur) {
-            const donnees = new FormData();
-            donnees.append('file', fichier);
-            Object.entries(this.opts.uploadData || {}).forEach(([cle, valeur]) => donnees.append(cle, valeur));
+        async envoyer(fichiers, conteneur) {
+            for (const fichier of fichiers) {
+                const donnees = new FormData();
+                donnees.append('file', fichier);
+                Object.entries(this.opts.uploadData || {}).forEach(([cle, valeur]) => donnees.append(cle, valeur));
 
-            await fetch(this.opts.imageUpload, { method: 'POST', body: donnees, headers: { Accept: 'application/json' } });
+                await fetch(this.opts.imageUpload, { method: 'POST', body: donnees, headers: { Accept: 'application/json' } });
+            }
             this.charger(conteneur);
         },
 

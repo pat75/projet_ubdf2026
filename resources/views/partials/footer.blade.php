@@ -71,9 +71,9 @@
 							<div>Les dernières sélections du mois</div>
 							<div class="no-spam">Confidentialité, sécurité et absence de spam</div>
 
-							<form class="ui form form_newsletter_2018" action="/front/action_ajax_2.php" @submit.prevent="envoyer($el)">
+							<form class="ui form form_newsletter_2018" action="{{ route('newsletter.inscription') }}" @submit.prevent="envoyer($el)">
 
-								<input type="hidden" name="action" value="add">
+								@csrf
 
 								<div class="ui  action mini input">
 									<input type="text" name="mail" placeholder="Mail...">

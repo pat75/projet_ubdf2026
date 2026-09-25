@@ -102,25 +102,35 @@ if (! function_exists('recursive_array_search')) {
     }
 }
 
-if (! function_exists('book_actu_txt')) {
+if (! function_exists('urls_medias_book')) {
     /**
-     * HTML d'une page de book.
+     * Reecrit les URL d'images du legacy presentes dans le HTML d'une page.
      *
      * Les images inserees dans les pages sont referencees sous
-     * `/users_2/<l>/<l>/<login>/cms_html/<fichier>` (ou cms_pref, img_).
-     * Le legacy prefixait ces chemins par l'adresse du portail ; ils
-     * designent maintenant le service d'images, qui sert l'original.
+     * `/users_2/<l>/<l>[/<l>]/<login>/img_cms/<fichier>` (ou cms_pref,
+     * img_) : dossier a deux ou trois lettres, eventuellement prefixe par
+     * l'adresse du portail. Elles designent maintenant le service
+     * d'images (/books/<login>/...), independant du rangement sur disque
+     * (DossierBook, trois lettres).
      */
-    function book_actu_txt($tmp_txt, $abs_url = '')
+    function urls_medias_book(string $html): string
     {
-        $html = htmlspecialchars_decode((string) $tmp_txt, ENT_QUOTES);
-
-        $prefixe = '#(src|href)="(?:https?://[^/"]+)?/users_2/[^/"]/[^/"]/([^/"]+)/';
+        // Deux lettres (legacy : a/d/adolie) ou trois (a/d/o/adolie, rangement
+        // actuel de DossierBook colle tel quel dans une page).
+        $prefixe = '#(src|href)="(?:https?://[^/"]+)?/users_2/(?:[^/"]/){2,3}([^/"]+)/';
 
         // Images de l'editeur : arborescence conservee.
         $html = preg_replace($prefixe.'img_cms/([^"]+)"#', '$1="/books/$2/cms/$3"', $html);
 
         // Autres dossiers du book (declinaisons, cms_pref) : l'original.
         return preg_replace($prefixe.'[^/"]+/([^/"]+)"#', '$1="/books/$2/source/$3"', $html);
+    }
+}
+
+if (! function_exists('book_actu_txt')) {
+    /** HTML d'une page de book, URL d'images du legacy reecrites (urls_medias_book). */
+    function book_actu_txt($tmp_txt, $abs_url = '')
+    {
+        return urls_medias_book(htmlspecialchars_decode((string) $tmp_txt, ENT_QUOTES));
     }
 }

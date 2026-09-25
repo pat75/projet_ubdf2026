@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Une image deposee dans le corps d'une page, via l'editeur Redactor
- * (App\Livewire\Espace\Pages). Le fichier vit dans img_cms/ du book du
+ * (App\Livewire\Espace\Pages). Le fichier vit dans cms/ du book du
  * proprietaire (App\Services\Espace\DepotImagePage) ; cette ligne n'en
  * garde que les metadonnees, pour la bibliotheque d'images du bouton
  * image de l'editeur.

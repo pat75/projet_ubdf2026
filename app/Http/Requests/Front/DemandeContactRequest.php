@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Front;
 
 use App\Models\User;
-use App\Support\Captcha;
+use App\Rules\CaptchaValide;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -43,7 +43,7 @@ class DemandeContactRequest extends FormRequest
             'us_tel' => ['nullable', 'string', 'max:40'],
             'us_book_visuel' => ['nullable', 'string', 'max:250'],
             'mf_request_detail' => ['nullable', 'string', 'max:250'],
-            'captcha_answer' => ['required', 'string', new Captcha],
+            'captcha_answer' => ['required', 'string', new CaptchaValide('contact')],
         ];
     }
 
