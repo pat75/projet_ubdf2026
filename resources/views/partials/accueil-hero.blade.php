@@ -361,11 +361,11 @@
 				<div class="column recherche_nom">
 
 					<div class="ui segment basic left aligned">
-						<form action="/recherche" class="form_rechercher2018">
-							<div class="ui action input search rech2018">
+						<form action="/recherche" class="form_rechercher2018" x-data="recherche" @submit.prevent="envoyer($el)">
+							<div class="ui action input search category rech2018" @click.outside="resultats = []">
 								<div class="ui left icon input">
 									<i class="search big icon"></i>
-									<input class="prompt" type="text" name="q" value="" required>
+									<input class="prompt" type="text" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 									<span class="floating-label mobile-hidden">{{ __('Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...') }}</span>
                                     <span class="floating-label mobile only">{{ __('Métier, mots clés ou Nom...') }}</span>
                                     <input type="hidden" name="type_recherche" value="">
@@ -373,9 +373,9 @@
 										{{ __('Rechercher') }}									</button>
 								</div>
 
-								<div class="results"></div>
+								<x-portail.resultats-recherche />
 							</div>
-							<div class="ui basic red pointing prompt label transition error_prompt ">Indiquez un mot clé ou un nom</div>
+							<div class="ui basic red pointing prompt label transition error_prompt " :class="{ show: erreurVide }">Indiquez un mot clé ou un nom</div>
 
 						</form>
 					</div>
@@ -399,35 +399,35 @@
                 </div>
 
                 <div class="fourteen wide column">
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,illustration">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,illustration" href="{{ lien('recherche', ['q' => 'illustration,illustration', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>illustrateur</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,bande dessinée">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,bande dessinée" href="{{ lien('recherche', ['q' => 'illustration,bande dessinée', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>bande dessinée</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,jeunesse">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,jeunesse" href="{{ lien('recherche', ['q' => 'illustration,jeunesse', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>jeunesse</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,comics">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,comics" href="{{ lien('recherche', ['q' => 'illustration,comics', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>comics</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,presse">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,presse" href="{{ lien('recherche', ['q' => 'illustration,presse', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>presse</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,publicité">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,publicité" href="{{ lien('recherche', ['q' => 'illustration,publicité', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>publicité</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,personnages">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,personnages" href="{{ lien('recherche', ['q' => 'illustration,personnages', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>personnages</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,iso">
+                                    <a class="ui large basic label cursor_effect  coul_illustration" data-slug="illustration,iso" href="{{ lien('recherche', ['q' => 'illustration,iso', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>isométrie</strong>
                     </a>
 
@@ -441,35 +441,35 @@
                 </div>
 
                 <div class="fourteen wide column">
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,graphisme">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,graphisme" href="{{ lien('recherche', ['q' => 'graphisme,graphisme', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>graphistes</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,da">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,da" href="{{ lien('recherche', ['q' => 'graphisme,da', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>directeur artistique</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,print">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,print" href="{{ lien('recherche', ['q' => 'graphisme,print', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>print</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,communication">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,communication" href="{{ lien('recherche', ['q' => 'graphisme,communication', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>communication</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,logo">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,logo" href="{{ lien('recherche', ['q' => 'graphisme,logo', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>logo</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,flyer">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,flyer" href="{{ lien('recherche', ['q' => 'graphisme,flyer', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>flyer</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,brochure">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,brochure" href="{{ lien('recherche', ['q' => 'graphisme,brochure', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>brochure</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,maquettiste">
+                                    <a class="ui large basic label cursor_effect  coul_graphisme" data-slug="graphisme,maquettiste" href="{{ lien('recherche', ['q' => 'graphisme,maquettiste', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>maquettiste</strong>
                     </a>
 
@@ -483,23 +483,23 @@
                 </div>
 
                 <div class="fourteen wide column">
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,web">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,web" href="{{ lien('recherche', ['q' => 'digital,web', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>web, site internet</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,UX designer">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,UX designer" href="{{ lien('recherche', ['q' => 'digital,UX designer', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>UX designer</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,digital UI Designer">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,digital UI Designer" href="{{ lien('recherche', ['q' => 'digital,digital UI Designer', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>UI designer</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,directeur artistique digital">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,directeur artistique digital" href="{{ lien('recherche', ['q' => 'digital,directeur artistique digital', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>directeur artistique web</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,dévelopeur wordpress">
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,dévelopeur wordpress" href="{{ lien('recherche', ['q' => 'digital,dévelopeur wordpress', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>dévelopeur wordpress</strong>
                     </a>
 
@@ -513,23 +513,23 @@
                 </div>
 
                 <div class="fourteen wide column">
-                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,presse">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,presse" href="{{ lien('recherche', ['q' => 'photo,presse', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>presse</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,portrait">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,portrait" href="{{ lien('recherche', ['q' => 'photo,portrait', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>portrait</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,architecture">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,architecture" href="{{ lien('recherche', ['q' => 'photo,architecture', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>architecture</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,culinaire">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,culinaire" href="{{ lien('recherche', ['q' => 'photo,culinaire', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>culinaire</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,corporate">
+                                    <a class="ui large basic label cursor_effect  coul_photo" data-slug="photo,corporate" href="{{ lien('recherche', ['q' => 'photo,corporate', 'type_recherche' => 'mcles']) }}">
                         <i class="chevron right icon"></i><strong>corporate / entreprise</strong>
                     </a>
 

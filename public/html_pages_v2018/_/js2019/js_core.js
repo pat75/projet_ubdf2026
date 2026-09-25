@@ -18,8 +18,6 @@ $(document).ready(function () {
     console.log("########################");
 
 
-    // recherche
-    ubdf_recherche.init();
 
     // init
     ub_fn.init();
@@ -99,7 +97,6 @@ $(document).ready(function () {
 
     ub_infinit.init();
 
-    ubdf_accueil.init();
 
 
 

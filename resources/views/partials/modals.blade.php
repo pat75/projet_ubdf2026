@@ -20,8 +20,8 @@
 
 
         <div class="item recherche mode_rechercher" id="bloc_rechercher_top2_mobile" x-show="recherche" x-cloak>
-            <form action="/recherche" class="form_rechercher2018">
-                <div class="ui action input search rech2018">
+            <form action="/recherche" class="form_rechercher2018" x-data="recherche" @submit.prevent="envoyer($el)">
+                <div class="ui action input search category rech2018" @click.outside="resultats = []">
                     <div class="ui menu ">
 
                         <!-- domaine -->
@@ -30,9 +30,9 @@
                         <!-- input -->
                         <div class="item">
                             <div class="ui left input">
-                                <input class="prompt" type="text" name="q" value="" required>
+                                <input class="prompt" type="text" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 
-                                <div class="option link_rechercher_options">
+                                <div class="option link_rechercher_options" x-infobulle="'.popup_rechercher_options'" :class="{ show_on: $store.optionsRecherche.selection || $store.optionsRecherche.abonnes }">
                                     <div class="border"></div>
                                     <i class="toggle on icon"></i>
                                     <i class="toggle off icon"></i>
@@ -43,6 +43,8 @@
                                 <button type="submit" class="ui small grey button submit_rechercher">
                                     <i class="search icon"></i>
                                 </button>
+
+                                <x-portail.resultats-recherche />
 
                             </div>
                         </div>
@@ -312,8 +314,8 @@
            </svg>
        </span>
 
-        <form action="/recherche" class="form_rechercher2018">
-            <div class="ui action input search rech2018">
+        <form action="/recherche" class="form_rechercher2018" x-data="recherche" @submit.prevent="envoyer($el)">
+            <div class="ui action input search category rech2018" @click.outside="resultats = []">
                 <div class="ui menu ">
 
                     <div class="item">
@@ -322,11 +324,13 @@
                             <input type="hidden" name="page_domaine" value="tous">
                             <input type="hidden" name="type_recherche" value="pseudo">
 
-                            <input class="prompt" type="text" placeholder="Indiquez un mot clé, un domaine ou un nom" name="q" value="" required>
+                            <input class="prompt" type="text" placeholder="Indiquez un mot clé, un domaine ou un nom" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 
                             <button type="submit" class="ui small  button submit_rechercher ">
                                 <i class="search icon"></i>
                             </button>
+
+                            <x-portail.resultats-recherche />
 
                         </div>
                     </div>
@@ -348,12 +352,12 @@
             <h4 class="ui header">Options de recherche</h4>
             <div class="ui link list" id="bloc_menu_contant_metiers">
                 <div class="inline field">
-                    <div class="ui toggle checkbox flt_sel">
+                    <div class="ui toggle checkbox flt_sel" x-data="caseACocher" x-bind="racine" @change="$store.optionsRecherche.selection = $event.target.checked">
                         <input type="checkbox" name="flt_sel" tabindex="0">
                         <label>Sélections</label>
                     </div>
                     <br/><br/>
-                    <div class="ui toggle checkbox flt_pro">
+                    <div class="ui toggle checkbox flt_pro" x-data="caseACocher" x-bind="racine" @change="$store.optionsRecherche.abonnes = $event.target.checked">
                         <input type="checkbox" name="flt_pro" tabindex="0">
                         <label>Ultra-book</label>
                     </div>

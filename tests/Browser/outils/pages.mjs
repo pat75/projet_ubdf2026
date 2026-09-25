@@ -95,6 +95,24 @@ const entetePlus = {
     },
 };
 
+/* Recherche : suggestions de mots-cles, saisie libre (nom). */
+const rechercheParcours = {
+    'recherche par suggestion': async page => {
+        const champ = page.locator('.bloc_accueil .rech2018 input[name=q], .recherche_nom .rech2018 input[name=q]').first();
+        await champ.fill('illus');
+        await visible(page, '.recherche_nom .rech2018 .results.visible .result');
+        await page.locator('.recherche_nom .rech2018 .results .result').first().click();
+        await page.waitForURL(/\/recherche\?.*type_recherche=mcles/, { timeout: 10000 });
+    },
+    'recherche par nom': async page => {
+        const champ = page.locator('.recherche_nom .rech2018 input[name=q]').first();
+        await champ.fill('adolie');
+        await champ.press('Enter');
+        await page.waitForURL(/\/recherche\?.*q=adolie.*type_recherche=pseudo/, { timeout: 10000 });
+        await visible(page, '#accueil_portfolio .ui.card');
+    },
+};
+
 /* Pied de page et bandeau cookies, sur l'accueil. */
 const pied = {
     'bandeau cookies': async page => {
@@ -117,7 +135,7 @@ const pied = {
 };
 
 export const pages = [
-    { url: '/', actions: { ...entete, ...entetePlus, ...parcours, ...pied } },
+    { url: '/', actions: { ...entete, ...entetePlus, ...parcours, ...rechercheParcours, ...pied } },
     { url: '/recherche', actions: entete },
     { url: '/annuaire', actions: entete },
     { url: '/annuaire_b' },

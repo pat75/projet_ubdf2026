@@ -73,6 +73,12 @@ export default function controles(Alpine) {
             ['@click'](e) {
                 if (e.target.closest('a')) return;
                 const champ = this.$el.querySelector('input[type=checkbox]');
+                // Clic direct sur le champ (visible dans certaines cases) :
+                // le navigateur l'a deja bascule, seul l'aspect suit.
+                if (e.target === champ) {
+                    this.$el.classList.toggle('checked', champ.checked);
+                    return;
+                }
                 champ.checked = !champ.checked;
                 this.$el.classList.toggle('checked', champ.checked);
                 champ.dispatchEvent(new Event('change', { bubbles: true }));
