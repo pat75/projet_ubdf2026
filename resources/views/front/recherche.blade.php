@@ -6,6 +6,8 @@
 @section('body_class', 'page_recherche')
 
 @section('content')
+    @include('partials.bloc-recherche')
+
     <div class="ui container bloc_portfolios">
 
         <div class="bloc_titre">
