@@ -64,7 +64,6 @@
 
 
 
-<script type="text/javascript">jQuery.noConflict(true);</script>
 
 <!-- SementicUI #2018-->
 <meta name="viewport"   content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -93,7 +92,6 @@
 
 
 <!-- commun-->
-<link rel="stylesheet" href="/js_jquery/js_2011/tipsy/tipsy.min.css"/>
 
 
 
@@ -400,212 +398,29 @@ var ub_gal = {
 
 
 
+	/*
+	 * Chargement du front 2019. Seuls les scripts reellement executes par
+	 * le portail restent : page_type vaut toujours 'home', user_admin_js
+	 * false et type_action '___' ; l'administration integree au book et la
+	 * messagerie sont servies par l'espace creatif (Livewire).
+	 * Retrait progressif de jQuery : voir _doc/17_remplacement_jquery.md.
+	 */
 	the_LAB = $LAB
-
 		.setOptions({BasePath: "/html_pages_v2018/_/", UseCachePreload: true})
-
-
-		// Jquery
 		.script("js_cdn/jquery-1.12.4.min.js")
 		.script("js_cdn/jquery-migrate-1.4.1.min.js")
-
-        
-
-        // Jquery UI + func patch
-		// drag&drop
-		.script((page_type == 'user' || user_admin_js ) ? "https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" : false)
-
-
-		// stats live juil2016
-		.script("https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js")
-
-
-		// 2018
-		// SemnticUI+fotorama
-		//
 		.script("lib/Semantic-UI-CSS-master2.3.1/semantic.min.js")
-		.script("https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js") // -> on /lib
-
-
-
-		// ptf
-		//
-		//.script("js2019/jquery_allplugin_min.js")
-        .script("js2019/js_allplug2018.js?v=1594989160")
-
-        
-
-
-
-		.script("js2019/ub_core_function_autres.js?v=1594989160") 	            // 		core autres front =2014 	_min
-
-        
-        // menu apparence
-        .script((page_type == 'user' || user_admin_js ) ? "/form_class/form_js2018/file_ajax.js" : false)                       //modif sept2019
-        .script((page_type == 'user' || user_admin_js ) ? "/form_class/valums-file-uploader/client/fileuploader.js" : false)    //modif sept2019
-		.script((page_type == 'user' || user_admin_js ) ? "/form_class/farbtastic/farbtastic.min.js" : false)                   //modif sept2019
+		.script("https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.3.3/js/swiper.min.js")
+		// cookie, JSON, Handlebars, tipsy, easing, scrollTo, Magnific
+		.script("js2019/js_allplug2018.js?v=1594989160")
+		.script("js2019/ub_core_function_autres.js?v=1594989160")
 		.wait()
-
-
-
-
-
-		// Charge pour les fm-ajax v2 x-editable #2019
-		//
-		.wait( function () { $.fn.poshytip = {defaults: null} })
-		//.script((page_type == 'user' || user_admin_js ) ? "//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/jquery-editable/js/jquery-editable-poshytip.min.js" : false) // #2018
-		.script((page_type == 'user' || user_admin_js ) ? "lib/jquery-editable-poshytip.js" : false) // #2018
-		.script((page_type == 'user' || user_admin_js ) ? "js2019/js_core_fm2"+ext_min+".js" : false) // #2018
-
-
-
-		//
-		// core work #2019
-		//
 		.script("js2019/js_core_inscription"+ext_min+".js")
 		.script("js2019/js_core_pages"+ext_min+".js")
 		.script("js2019/js_core_cards"+ext_min+".js")
-        .script("js2019/js_core_function"+ext_min+".js")
+		.script("js2019/js_core_function"+ext_min+".js")
 		.wait()
-		//
-		// run all script core_
-		.script("js2019/js_core"+ext_min+".js")
-
-
-
-
-
-		// book 2011  - admin
-		//
-		.script(user_admin_js ? "/js_jquery/dropzone-3.10.2/dropzone.min.js" : false) // add sep 2014
-		.script(user_admin_js ? "/js_jquery/js_2011/ckeip.js" : false)
-		.script(user_admin_js ? "/js_jquery/js_2011/ckeditor/ckeditor.js" : false) // minifier ok
-		.script(user_admin_js ? "/js_jquery/js_2011/ckeditor/adapters/jquery.js" : false) // minifier ok
-		.script(user_admin_js ? "/js_jquery/js_2011/jquery.tmpl.min.js" : false) // doublon avec handlebars.min.js
-		.script(user_admin_js ? "/js_jquery/js_2011/serializelist.min.js" : false)
-		.script(user_admin_js ? "/js_jquery/js_2011/jquery.editableText.js" : false) // modif 2018 .min
-		.script(user_admin_js ? "/html_pages_v2018/_/lib/minicolors/jquery.miniColors.js" : false) // modif 22sep 2014
-
-
-		// stats formules admin
-        .script((page_type == 'user' || user_admin_js ) ? "/js_jquery/js_2011/jquery.peity.min.js" : false) // #2019
-
-
-		// Charge pour les fm-ajax
-		.script((page_type == 'user' || user_admin_js ) ? "js2019/ub_usadmin_core.js?v=1594989160" : false) // core admin-book =2014 #2017
-		// Bulles - tooltipster
-		.script((page_type == 'user' || user_admin_js ) ? "/html_pages_v2018/_/js/tooltipster-master/dist/js/tooltipster.bundle.min.js" : false) // tooltip form error #dec2017
-		// Aide - intro JS #2018
-		.script((page_type == 'user' || user_admin_js ) ? "/html_pages_v2018/_/lib/intro.js-2.9.3/intro.js" : false) // modif 4nov 2014
-
-		// us admin - Message intermediate 2019
-		.script((type_action  == 'user_message___' || type_action  == 'message') ? "js2019/ub_usadmin_message.js?v=1594989160" : false) // core admin-book =2014 #2017
-
-
-		//
-		.wait(function() {
-
-
-			$(document).ready(function () {
-
-				//if (user_admin_js && type_action != 'user_pref_form___')    ub_gal.init();   //     start -> accueil/ptf/info
-
-                console.log(type_action+' -> '+page_type)
-
-
-				if (        type_action == '_projet__portfolio'
-						||  type_action == '_projet__news'
-                        ||  type_action == '_projet__accueil'
-                    )       {
-
-                    $.extend(ub_gal, ub_gal_options);
-
-                    ub_gal.init();       // start -> accueil/ptf/info
-                }
-
-				if ( type_action  == 'user_message___' || type_action  == 'message' ) {
-				if ( typeof fn_msg_admin !== 'undefined' ) {
-					fn_msg_admin.init(); // start -> Message intermediate 2019
-				} else {
-					// LABjs pas encore fini - retry
-					var _retry_msg = setInterval(function() {
-						if ( typeof fn_msg_admin !== 'undefined' ) {
-							clearInterval(_retry_msg);
-							fn_msg_admin.init();
-						}
-					}, 50);
-				}
-			}
-
-
-
-                //  brave
-                /*
-                if ( page_type == 'user' || user_admin_js ) {
-                    if (typeof (brave) != undefined) {
-                        brave.init();
-                        //alert('brave')
-                    }
-                }
-                */
-
-			});
-
-
-
-
-
-		})
-
-
-
-
-
-
-
-		
-
-
-		.wait(function() {
-			$(document).ready(function () {
-
-					    
-		    $('.defaultText').focus(function(srcc)  {
-		        if ($(this).val() == $(this)[0].title) {
-		            $(this).removeClass('defaultTextActive');
-		            $(this).val('');
-		        	}
-		    });		    
-		    $('.defaultText').blur(function() {
-		        if ($(this).val() == '') {
-		            $(this).addClass('defaultTextActive');
-		            $(this).val($(this)[0].title);
-		        	}
-		    });		    
-		    $('.defaultText').blur();			
-		
-			});
-		})
-
-
-
-		
-
-
-
-
-		// nano book
-		//
-		
-
-
-
-
-
-
-
-		console.log('end script LAB ');
-
+		.script("js2019/js_core"+ext_min+".js");
 
 </script>
 
