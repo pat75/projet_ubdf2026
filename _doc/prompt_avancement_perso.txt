@@ -21,11 +21,6 @@ Propose deux solutions
 
 
 
-+ Page recherché
-Si l'utilisateur clique dans le menu du haut sur l'icône, loupe.
-Une page /search va s'afficher avec le même bloc, trouver les meilleurs portfolio de créatif
-Uniquement sur cette page.
-Quand l'utilisateur aura lancé la recherche des résultats apparaîtront en Ajax en dessous du menu de recherche
 
 
 + menu top
@@ -47,6 +42,12 @@ Déplacer le switch, UB, DF, à droite du logo Ultra-book
 Car sur la première version initiale, il y avait que les deux premières lettres de l'identifiant.
 - le site sera testé dans un premier temps avec un nom de domaine spécifique exemple extra extra–book.com
 Le temps de vérifier si tout fonctionne bien sur le nouvel hébergement 
+
+Site :
+https://www.extra-book.com
+Pour les books : 
+https://{sousdomaines}.extra-book.com
+
 
 
 

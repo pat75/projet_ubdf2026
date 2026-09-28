@@ -1,4 +1,4 @@
-{{-- Bloc de recherche de l'accueil (repris du front 2018), reutilise en tete de la page /recherche : x-data="recherche" (resources/js/portail/recherche.js). --}}
+{{-- Bloc de recherche de l'accueil (repris du front 2018), reutilise en tete des pages /recherche et /search ($ajax : resultats charges sous le bloc) : x-data="recherche" (resources/js/portail/recherche.js). --}}
 <!-- Recherche  -->
 	<div class="ui  container bloc_rechercher " x-apparition>
 		<div class="ui two column stackable center aligned grid segment" id="bloc_rechercher">
@@ -15,11 +15,11 @@
 				<div class="column recherche_nom">
 
 					<div class="ui segment basic left aligned">
-						<form action="/recherche" class="form_rechercher2018" x-data="recherche" @submit.prevent="envoyer($el)">
+						<form action="{{ empty($ajax) ? '/recherche' : lien('search') }}" class="form_rechercher2018" x-data="recherche" @submit.prevent="envoyer($el)" @if (! empty($ajax)) data-ajax @endif>
 							<div class="ui action input search category rech2018" @click.outside="resultats = []">
 								<div class="ui left icon input">
 									<i class="search big icon"></i>
-									<input class="prompt" type="text" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
+									<input class="prompt" type="text" name="q" value="{{ $recherche->q ?? '' }}" required autocomplete="off" x-init="requete = $el.value" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 									<span class="floating-label mobile-hidden">{{ __('Essayez : "Métier : illustration" ou "Mots clés : publicité" ou "Nom"...') }}</span>
                                     <span class="floating-label mobile only">{{ __('Métier, mots clés ou Nom...') }}</span>
                                     <input type="hidden" name="type_recherche" value="">

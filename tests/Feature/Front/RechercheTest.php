@@ -148,3 +148,27 @@ it('neutralise les jokers de LIKE', function () {
         ->assertOk()
         ->assertDontSee('nolwenn');
 });
+
+it('sert la page /search avec le bloc de recherche en mode ajax', function () {
+    $this->get(url_portail('/search'))
+        ->assertOk()
+        ->assertSee('Trouvez les meilleurs portfolios de créatifs.', false)
+        ->assertSee('data-ajax', false)
+        ->assertSee('id="resultats_recherche"', false);
+});
+
+it('rend les resultats de /search en fragment HTML pour l ajax', function () {
+    $reponse = $this->getJson(url_portail('/search?q=aquarelle'), ['X-Requested-With' => 'XMLHttpRequest']);
+
+    $reponse->assertOk()->assertJsonStructure(['html', 'total', 'ubdf' => ['cartes_url', 'cartes_params']]);
+
+    expect($reponse->json('html'))->toContain('nolwenn')->not->toContain('hectorm')
+        ->and($reponse->json('html'))->not->toContain('Trouvez les meilleurs portfolios')
+        ->and($reponse->json('total'))->toBe(2);
+});
+
+it('pointe la loupe du menu vers /search', function () {
+    $this->get(url_portail('/accueil'))
+        ->assertOk()
+        ->assertSee('href="'.lien('search').'"', false);
+});

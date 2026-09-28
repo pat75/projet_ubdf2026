@@ -292,6 +292,8 @@ $portail = function (?string $langue = null) {
     Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
 
     Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
+    // Page ouverte par la loupe du menu : resultats charges en ajax sous le bloc.
+    Route::get('/search', [RechercheController::class, 'search'])->name('search');
 
     // Page « Creer un book », segment traduit (config/slugs.php). Les
     // segments des autres langues renvoient vers celui-ci.

@@ -24,19 +24,40 @@ class RechercheController extends Controller
      */
     public function page(Request $request): View
     {
-        $recherche = Recherche::depuisRequete($request);
+        return view('front.recherche', $this->donnees(Recherche::depuisRequete($request)));
+    }
 
-        $resultats = $recherche->exploitable()
-            ? $this->books->rechercher($recherche)
-            : collect();
+    /**
+     * Page `/search`, ouverte par la loupe du menu : meme bloc que
+     * l'accueil, mais le formulaire y est soumis en ajax et les resultats
+     * s'affichent dessous, sans recharger la page. Appelee en ajax, elle
+     * ne rend que ce fragment.
+     */
+    public function search(Request $request): View|JsonResponse
+    {
+        $donnees = $this->donnees(Recherche::depuisRequete($request)) + ['ajax' => true];
 
+        if (! $request->ajax()) {
+            return view('front.recherche', $donnees);
+        }
+
+        return response()->json([
+            'html' => view('front.partials.resultats-recherche', $donnees)->render(),
+            'total' => $donnees['total'],
+            'ubdf' => $donnees['ubdf'],
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function donnees(Recherche $recherche): array
+    {
         $total = $recherche->exploitable()
             ? $this->books->compterRecherche($recherche)
             : 0;
 
-        return view('front.recherche', [
+        return [
             'recherche' => $recherche,
-            'books' => $resultats,
+            'books' => $recherche->exploitable() ? $this->books->rechercher($recherche) : collect(),
             'total' => $total,
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
@@ -51,7 +72,7 @@ class RechercheController extends Controller
                 ],
                 'book_domain' => config('ubdf.book_domain'),
             ],
-        ]);
+        ];
     }
 
     /** Cartes suivantes du defilement, rendues en HTML comme le premier ecran. */

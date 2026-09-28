@@ -90,7 +90,41 @@ export default function recherche(Alpine) {
                     formulaire.appendChild(champ);
                 }
             }
-            formulaire.submit();
+            if (formulaire.hasAttribute('data-ajax')) {
+                this.resultats = [];
+                this.envoyerAjax(formulaire);
+            } else {
+                formulaire.submit();
+            }
+        },
+
+        /*
+         * Page /search : les resultats s'affichent sous le bloc sans
+         * recharger. L'URL suit la requete (partageable, bouton retour), et
+         * le defilement infini repart sur les nouveaux criteres.
+         */
+        async envoyerAjax(formulaire) {
+            const zone = document.getElementById('resultats_recherche');
+            const url = new URL(formulaire.action, window.location.origin);
+            url.search = new URLSearchParams(new FormData(formulaire)).toString();
+
+            zone.setAttribute('aria-busy', 'true');
+            try {
+                const reponse = await fetch(url, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!reponse.ok) throw new Error(reponse.status);
+                const donnees = await reponse.json();
+
+                window.ubdf = { ...window.ubdf, ...donnees.ubdf };
+                zone.innerHTML = donnees.html; // HTML rendu par le serveur (front.partials.resultats-recherche)
+                history.replaceState(null, '', url);
+                zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch {
+                formulaire.submit();
+            } finally {
+                zone.removeAttribute('aria-busy');
+            }
         },
     }));
 }

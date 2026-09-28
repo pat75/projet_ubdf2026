@@ -16,9 +16,9 @@
 			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
 			        </div>
 
-        <div class="item right btn_rechercher mode_accueil" x-show="! recherche" @click="recherche = true">
+        <a class="item right btn_rechercher mode_accueil" x-show="! recherche" href="{{ lien('search') }}" aria-label="{{ __('Rechercher') }}">
             <i class="search icon"></i>
-        </div>
+        </a>
 
 
         <div class="item recherche mode_rechercher" id="bloc_rechercher_top2_mobile" x-show="recherche" x-cloak>
@@ -105,7 +105,7 @@
 
                         <!-- bloc menu seach -->
                         <div class="item recherche_menu_top link_rechercher  cursor_effect" x-data x-infobulle="'.popup_rechercher'">
-                            <div class="open" id="search-menu" @click="$store.modale.ouvrir('recherche')">
+                            <a class="open" id="search-menu" href="{{ lien('search') }}" aria-label="{{ __('Rechercher') }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                                      width="620.692px" height="620.692px" viewBox="0 0 451 451" style="enable-background:new 0 0 451 451;"
                                      xml:space="preserve">
@@ -114,7 +114,7 @@
                                                 C452.25,441.8,452.25,433.2,447.05,428z M26.95,192.3c0-91.2,74.2-165.3,165.3-165.3c91.2,0,165.3,74.2,165.3,165.3
                                                 s-74.1,165.4-165.3,165.4C101.15,357.7,26.95,283.5,26.95,192.3z"/>
                                 </svg>
-                            </div>
+                            </a>
                         </div>
 
 
@@ -428,135 +428,6 @@
 
 
 
-
-
-
-<!-- Modal ajax 2019 intermediate card - bloc tpl_bloc_modal_content_ajax_intermediate_header_creatif -->
-
-
-<!-- Modal ajax 2019 intermediate card - bloc tpl_bloc_modal_content_ajax_intermediate_form_creatif -->
-
-
-
-<!-- Modal ajax 2019 intermediate card !-->
-<x-portail.modale nom="intermediaire" class="large modal_content_ajax_intermediate">
-    {{-- Demande de contact au creatif de la visionneuse :
-         resources/js/portail/contact.js. --}}
-    <div class="content" x-data="contactCreatif">
-
-        <div class="btn_close outbox">
-            <div></div>
-        </div>
-
-        <div class="ui very relaxed grid two column middle center aligned stackable">
-
-            <!-- createur -->
-            <div class="column middle aligned segment_header">
-                <h2 class="ui icon header">
-                    <img :src="book.avatar" :alt="book.fiche.book_prenom_nom" class="ui circular image" x-show="book.avatar">
-                    <div class="content" x-text="book.fiche.book_prenom_nom"></div>
-                </h2>
-                <h6 class="ui center aligned header localisation" x-show="book.fiche.book_ville">
-                    <div>
-                        <i class="map marker alternate icon"></i>
-                        <span x-text="book.fiche.book_pays"></span>
-                        <span class="ville" x-text="book.fiche.book_ville"></span>
-                    </div>
-                </h6>
-                <p>
-                    <div class="ui left labeled mini button disponible">
-                        <a class="ui right pointing label" :class="book.fiche.book_dispo === 'true' ? 'olive' : 'orange'">
-                            <i class="icon" :class="book.fiche.book_dispo === 'true' ? 'coffee' : 'plane'"></i>
-                        </a>
-                        <div class="ui button" x-text="book.fiche.book_dispo === 'true' ? 'Disponible' : 'Indisponible'"></div>
-                    </div>
-                </p>
-            </div>
-
-            <!-- envoi en cours -->
-            <div class="column middle aligned loading_segment" x-show="vue === 'envoi'" x-cloak>
-                <div class="ui active inverted dimmer">
-                    <div class="ui medium loader"></div>
-                </div>
-            </div>
-
-            <div class="column middle aligned segment_content" x-show="vue !== 'envoi'">
-
-                <div class="ui segment basic space1" id="segment_intermediate_reponse_error" x-show="vue === 'erreur'" x-cloak>
-                    Nous avons rencontré une ou plusieurs erreurs dans le formulaire
-                    <p class="error_list"><template x-for="message in erreurs.liste ?? []"><span><span x-text="message"></span><br></span></template></p>
-                    <div class="btn_back_form" @click="retour()"><i class="angle left icon"></i>Retour</div>
-                </div>
-
-                <div class="ui segment basic space1" id="segment_intermediate_reponse" x-show="vue === 'merci'" x-cloak>
-                    <i class="check icon"></i>
-                    <div class="ui header">Merci</div>
-                    Votre demande vient d’être envoyée
-                </div>
-
-                <div class="ui segment basic space1" id="segment_intermediate_form" x-show="vue === 'formulaire'">
-                    <div class="ui left aligned basic small segment">
-                        <form id="intermediate_form" class="ui form" x-ref="formulaire" novalidate @submit.prevent="envoyer($el)">
-                            <input type="hidden" name="action" value="work_A_contact">
-                            <input type="hidden" name="mf_request_detail" value="">
-                            <input type="hidden" name="us_dir" :value="book.login">
-                            <input type="hidden" name="us_key" :value="book.fiche.book_key">
-                            <input type="hidden" name="us_book_visuel" :value="visuel">
-
-                            <div class="ui header"><i class="shopping bag icon"></i>Je souhaite vous contacter</div>
-
-                            <div class="grouped fields">
-                                <div class="ui field" :class="{ error: erreurs.us_message }">
-                                    <div class="ui input">
-                                        <textarea rows="5" name="us_message" placeholder="Mon message" @input="erreurs.us_message = ''"></textarea>
-                                    </div>
-                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_message" x-text="erreurs.us_message" x-cloak></div>
-                                </div>
-                            </div>
-
-                            <span class="sub_title">Contact</span>
-                            <div class="grouped fields">
-                                <div class="ui field" :class="{ error: erreurs.us_nom_prenom }">
-                                    <div class="ui input">
-                                        <input type="text" name="us_nom_prenom" placeholder="Prénom, nom" autocomplete="name" @input="erreurs.us_nom_prenom = ''">
-                                    </div>
-                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_nom_prenom" x-text="erreurs.us_nom_prenom" x-cloak></div>
-                                </div>
-                            </div>
-                            <div class="grouped fields">
-                                <div class="ui field" :class="{ error: erreurs.us_mail }">
-                                    <div class="ui left icon input">
-                                        <input type="email" name="us_mail" value="" placeholder="Indiquez votre mail" autocomplete="email" @input="erreurs.us_mail = ''">
-                                        <i class="mail icon"></i>
-                                    </div>
-                                    <div class="ui basic red pointing prompt label" x-show="erreurs.us_mail" x-text="erreurs.us_mail" x-cloak></div>
-                                </div>
-                            </div>
-
-                            <div class="grouped fields" style="margin-top:10px;">
-                                <div class="ui field" :class="{ error: erreurs.captcha_answer }">
-                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                        <img id="captcha_img" :src="captcha" alt="captcha" title="Cliquez pour changer"
-                                             width="150" height="50" style="border:1px solid #ddd;border-radius:3px;cursor:pointer;background:#fff" @click="rechargerCaptcha()">
-                                        <div class="ui input" style="width:130px;">
-                                            <input type="text" name="captcha_answer" id="captcha_answer_input" maxlength="4" placeholder="Recopiez"
-                                                   autocomplete="off" style="letter-spacing:2px;text-transform:uppercase;" @input="erreurs.captcha_answer = ''">
-                                        </div>
-                                        <i class="sync alternate icon" id="captcha_reload_btn" title="Nouvelle image"
-                                           style="cursor:pointer;color:#888;font-size:1.1em;" @click="rechargerCaptcha()"></i>
-                                    </div>
-                                    <div class="ui pointing red basic label" x-show="erreurs.captcha_answer" x-text="erreurs.captcha_answer" x-cloak style="margin-top:4px;"></div>
-                                </div>
-                            </div>
-                            <button class="ui teal button valider_submit_inter" type="submit">Valider</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</x-portail.modale>
-<!-- Modal #end !-->
 
 
 

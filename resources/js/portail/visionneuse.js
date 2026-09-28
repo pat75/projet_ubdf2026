@@ -63,6 +63,7 @@ export default function visionneuse(Alpine) {
         images: [],
         index: 0,
         suivant: null, // carte du book suivant dans la grille
+        contactOuvert: false, // formulaire de contact a la place du diaporama
 
         get image() {
             return this.images[this.index] ?? {};
@@ -77,12 +78,17 @@ export default function visionneuse(Alpine) {
             this.avatar = (carte.querySelector('.avatar')?.getAttribute('src') ?? '')
                 .replace(/vignette_home_(.*)_tiny(\.jpg|png|gif)/, 'vignette_home_$1_small$2');
             const petitEcran = window.screen.width < MOBILE;
+            // Une legende laissee au nom du fichier d'origine (ex.
+            // "photo_final_02.jpg") n'est d'aucune utilite au visiteur :
+            // seul un texte ecrit par le createur est affiche.
+            const nomDeFichier = /\.(jpe?g|png|gif|webp|svg|bmp|tiff?)$/i;
             this.images = (this.slider.book_img ?? []).map((v) => ({
                 src: (petitEcran && v.fichier_mobile) || v.fichier,
-                titre: v.title ?? '',
+                titre: nomDeFichier.test((v.title ?? '').trim()) ? '' : (v.title ?? ''),
             }));
             this.index = 0;
             this.suivant = carte.nextElementSibling?.matches('.ui.card[data-user]') ? carte.nextElementSibling : null;
+            this.contactOuvert = false;
             this.ouverte = true;
             document.documentElement.classList.add('swipebox-html');
             history.replaceState(null, '', `#${this.login}`);
@@ -91,6 +97,7 @@ export default function visionneuse(Alpine) {
         fermer() {
             if (!this.ouverte) return;
             this.ouverte = false;
+            this.contactOuvert = false;
             document.documentElement.classList.remove('swipebox-html');
             history.replaceState(null, '', window.location.pathname + window.location.search);
         },
@@ -115,9 +122,9 @@ export default function visionneuse(Alpine) {
             }
         },
 
-        // Contact du creatif (fenetre « intermediaire »).
+        // Contact du creatif : le formulaire prend la place du diaporama.
         contacter() {
-            Alpine.store('modale').ouvrir('intermediaire');
+            this.contactOuvert = true;
         },
 
         memoriser() {
@@ -128,6 +135,10 @@ export default function visionneuse(Alpine) {
     document.addEventListener('keydown', (e) => {
         const v = Alpine.store('visionneuse');
         if (!v.ouverte || Alpine.store('modale').ouverte) return;
+        if (v.contactOuvert) {
+            if (e.key === 'Escape') v.contactOuvert = false;
+            return;
+        }
         if (e.key === 'ArrowRight') v.suivante();
         if (e.key === 'ArrowLeft') v.precedente();
         if (e.key === 'Escape') v.fermer();

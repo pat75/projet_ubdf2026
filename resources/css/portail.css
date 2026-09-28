@@ -11,10 +11,20 @@
 @source "../js/portail/";
 @source "../views/components/portail/";
 @source "../views/partials/footer.blade.php";
+@source "../views/partials/visionneuse-contact.blade.php";
 
 /* Masque les elements Alpine tant qu'Alpine n'a pas demarre. */
 [x-cloak] {
     display: none !important;
+}
+
+/* /search : resultats estompes pendant la requete ajax (recherche.js). */
+#resultats_recherche {
+    transition: opacity .2s;
+}
+#resultats_recherche[aria-busy="true"] {
+    opacity: .4;
+    pointer-events: none;
 }
 
 /* Survol d'une carte de book : le voile « ZOOM » (ex-module dimmer de
@@ -545,9 +555,176 @@
 }
 .container.bloc_portfolios .bloc_titre a h2.metier_group:hover { color: #545454; }
 
+/*
+ | Visionneuse d'un book (partials/visionneuse) : le bandeau d'en-tete
+ | (#book_open .ui.container) n'est pas positionne dans core.css
+ | (non versionne) — #swipebox-slider, lui, est en position absolue avec
+ | z-index:100, et passe donc devant en empilement malgre son ordre dans
+ | le DOM. Le lien « Book complet », trop fin (une ligne de texte), se
+ | faisait alors parfois prendre par la zone de clic « image suivante »
+ | juste en dessous : le curseur de defilement restait affiche et le clic
+ | avancait l'image au lieu d'ouvrir le book. On repositionne l'en-tete
+ | au-dessus, explicitement.
+ */
+#book_open .ui.container.no-margin {
+    position: relative;
+    z-index: 1000;
+}
+#book_open .link_goto_book_ a,
+#book_open .memobook_add,
+#book_open #dispo button {
+    cursor: pointer !important;
+}
+
+#book_open .sans_cadre,
+#book_open .sans_cadre a {
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+#book_open .memobook_add.sans_cadre {
+    display: inline-flex;
+    align-items: center;
+}
+/* Fleche « book suivant » (#mfp-book_suivant) : un chevron dessine par
+   core.css (non versionne) en gris fonce (#333), pense pour un fond clair
+   — illisible sur le fond sombre de la visionneuse. Blanc a 100 %. */
+#mfp-book_suivant {
+    z-index: 1200 !important;
+}
+#mfp-book_suivant_lien {
+    opacity: 1 !important;
+}
+/* Legende en graisse 200 dans core.css : quasi effacee sur fond noir. */
+#mfp-book_suivant .suivant_legende {
+    font-weight: 400 !important;
+}
+/* core.css coupe les evenements souris dans la visionneuse
+   (pointer-events: none) : le formulaire de contact les retablit, sinon
+   aucun champ ne peut etre saisi. */
+#visionneuse_contact,
+#visionneuse_contact * {
+    pointer-events: auto;
+    user-select: text;
+}
+#visionneuse_contact input::placeholder {
+    text-transform: none;
+    letter-spacing: normal;
+}
+#mfp-book_suivant,
+#mfp-book_suivant_lien,
+#mfp-book_suivant .suivant,
+#mfp-book_suivant .suivant::before,
+#mfp-book_suivant .suivant::after {
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+#book_open .icone_svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+#book_open .link_goto_book_ a {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    /* Zone de clic plus haute que la seule ligne de texte, pour ne pas
+       la laisser reprise par la zone « image suivante » juste en dessous. */
+    padding: 6px 0 !important;
+}
+
 @media only screen and (max-width: 767px) {
     .bloc_accueil_modele2020 .grid h2 { font-size: 40px; line-height: 40px; }
     .bloc_accueil_entreprise2020_stats .grid .left.column h2,
     .bloc_accueil_ubsitepro .grid .left.column h2 { font-size: 52px; line-height: 52px; margin-bottom: -14px; }
     .bloc_rechercher #bloc_rechercher h2 { margin: -12px 0 30px 0; font-size: 28px; }
+}
+
+/*
+ | Accueil, bloc « Creer votre portfolio » : core.css (non versionne) donne
+ | 700px fixes au visuel. Sur mobile la page s'elargissait a 537px et le
+ | telephone la dezoomait (tout le site, et la visionneuse, decales).
+ */
+@media only screen and (max-width: 767px) {
+    /* Des blocs animes (x-apparition) debordent a droite avant leur
+       apparition : on coupe le debordement horizontal de la page, sans
+       creer de zone de defilement (clip, pas hidden). */
+    .pusher {
+        overflow-x: clip;
+    }
+    /* Visionneuse : « Book complet » puis « Contacter » juste dessous,
+       tous deux sur la verticale du nom du createur (core.css decale la
+       liste de 100px et envoie « Contacter » en bas de l'ecran). */
+    #book_open h2.ui.header .ui.list {
+        margin-left: 65px !important;
+    }
+    /* Ville et pays en minuscules, sur la verticale du nom. */
+    #book_open h2.ui.header .ui.list .item.localise_ {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        text-transform: none !important;
+    }
+    #book_open h2.ui.header .ui.list .item.localise_ * {
+        text-transform: none !important;
+    }
+    #book_open h2.ui.header .ui.list .item.action_ {
+        margin-left: 0 !important;
+        margin-top: 6px !important;
+    }
+    #book_open h2.ui.header #msg_send {
+        position: static !important;
+        margin: 0 !important;
+    }
+    /* L'image, centree sur toute la hauteur, passerait sous « Contacter » :
+       on la descend sous l'en-tete. */
+    /* Compteur « 1 / 6 » et fleches : en bas de l'ecran, centres. */
+    /* :not(...) : laisse Alpine masquer le compteur (x-show) pendant le
+       formulaire de contact, malgre le display:flex !important. */
+    #swipebox-overlay #book_open .ui.container.no-margin .ub_img_action:not([style*="display: none"]) {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        bottom: 16px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: auto !important;
+        height: auto !important;
+        z-index: 5;
+    }
+    /* Fleche « precedent » : taille nulle sur mobile dans core.css, elle
+       decentrait le compteur en prenant un espacement. */
+    #swipebox-overlay #book_open .ui.container.no-margin .ub_img_action > .precedent {
+        display: none !important;
+    }
+    #swipebox-overlay #book_open .ui.container.no-margin .ub_img_action > * {
+        position: relative !important;
+        inset: auto !important;
+        margin: 0 !important;
+        flex-shrink: 0;
+    }
+    /* Legende de l'image juste au-dessus du compteur. */
+    #swipebox-overlay #swipebox-caption {
+        top: auto !important;
+        bottom: 76px !important;
+        height: auto !important;
+        padding: 0 16px !important;
+    }
+    #swipebox-slider .slide {
+        padding-top: 90px;
+        box-sizing: border-box;
+    }
+    .accueil_mdl_book_visuel {
+        width: 100% !important;
+        max-width: 100% !important;
+        background-size: contain !important;
+        background-position: center !important;
+    }
 }
