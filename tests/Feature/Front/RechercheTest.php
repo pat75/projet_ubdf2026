@@ -202,6 +202,19 @@ it('suggere les mots-cles des books des trois caracteres', function () {
     $this->getJson(url_portail('/recherche/suggestions?q=aq'))->assertOk()->assertExactJson([]);
 });
 
+it('affiche les portfolios du moment tires des recherches du moment', function () {
+    foreach (['gravure', 'gravure', 'aquarelle'] as $q) {
+        \App\Models\SearchQuery::create(['q' => $q, 'brand' => 'ub']);
+    }
+
+    $reponse = $this->get(url_portail('/search'))->assertOk()->assertSee('Les portfolios du moment');
+
+    // « gravure » d'abord (hectorm), puis « aquarelle » : un autre book.
+    $html = explode('Les portfolios du moment', $reponse->getContent())[1];
+    expect($html)->toContain('user_hectorm')
+        ->and(substr_count($html, 'class="ui card '))->toBeLessThanOrEqual(5);
+});
+
 it('pointe la loupe du menu vers /search', function () {
     $this->get(url_portail('/accueil'))
         ->assertOk()

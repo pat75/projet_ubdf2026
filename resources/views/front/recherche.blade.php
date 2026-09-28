@@ -41,6 +41,29 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Cinq portfolios tires des recherches du moment
+                 (RechercheController::portfoliosDuMoment). --}}
+            @if (! empty($portfoliosDuMoment) && $portfoliosDuMoment->isNotEmpty())
+                {{-- Meme ossature que « Les recherches du moment » : titre et
+                     cartes partent du meme bord gauche. --}}
+                <div class="ui container portfolios_du_moment">
+                    <div class="ui grid">
+                        <div class="row one column">
+                            <div class="column">
+                                <div class="ui segment basic left aligned">
+                                    <h2>{{ __('Les portfolios du moment') }}</h2>
+                                    <div class="ui five doubling cards">
+                                        @foreach ($portfoliosDuMoment as $book)
+                                            <x-book-card :book="$book" />
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endif
     </div>
 @endsection

@@ -44,6 +44,7 @@ class RechercheController extends Controller
             // Page d'accueil du moteur : les mots-cles en vogue sous le bloc.
             if ($recherche->q === '') {
                 $donnees['populaires'] = $this->populaires($recherche->brand);
+                $donnees['portfoliosDuMoment'] = $this->portfoliosDuMoment($donnees['populaires'], $recherche->brand);
             }
 
             return view('front.recherche', $donnees);
@@ -97,6 +98,36 @@ class RechercheController extends Controller
                 'domaine' => in_array($tete, $domaines, true) ? $tete : null,
             ];
         }, $populaires);
+    }
+
+    /**
+     * Cinq portfolios tires des recherches du moment : le meilleur resultat
+     * de chaque mot-cle, dans l'ordre de la liste, sans doublon. Au plus 12
+     * mots-cles interroges, pour borner le cout de la page.
+     *
+     * @param  list<array{q: string}>  $populaires
+     * @return \Illuminate\Support\Collection<int, \App\Models\User>
+     */
+    private function portfoliosDuMoment(array $populaires, string $brand, int $nombre = 5)
+    {
+        $books = collect();
+
+        foreach (array_slice($populaires, 0, 12) as $populaire) {
+            $recherche = new Recherche(q: $populaire['q'], mode: 'mcles', brand: $brand);
+            if (! $recherche->exploitable()) {
+                continue;
+            }
+
+            $book = $this->books->rechercher($recherche)->first(fn ($b) => ! $books->has($b->id));
+            if ($book) {
+                $books->put($book->id, $book);
+            }
+            if ($books->count() === $nombre) {
+                break;
+            }
+        }
+
+        return $books->values();
     }
 
     /** @return array<string, mixed> */

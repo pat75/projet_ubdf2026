@@ -27,12 +27,39 @@
 .recherches_populaires {
     margin-bottom: 4rem;
 }
+.recherches_populaires:has(+ .portfolios_du_moment) {
+    margin-bottom: 0;
+}
 .recherches_populaires h2 {
     margin-bottom: 1.5rem;
     font-weight: 300;
 }
 .recherches_populaires .ui.label {
     margin: 0 .5rem .7rem 0;
+}
+
+/* /search sans requete : portfolios du moment, sous les recherches du
+   moment — 50 px au moins entre les deux blocs. */
+.recherches_populaires + .portfolios_du_moment {
+    margin-top: 50px;
+}
+/* Memes retraits que .bloc_last_recherche (core.css, porte par les
+   recherches du moment) : 40 px de cote, lignes de grille sans padding.
+   Les deux titres tombent ainsi sur la meme verticale. */
+.portfolios_du_moment {
+    margin-bottom: 4rem;
+    padding: 0 40px;
+}
+.portfolios_du_moment .ui.grid > .row {
+    padding: 0 !important;
+}
+.portfolios_du_moment h2 {
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+}
+.portfolios_du_moment .ui.cards {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* Suggestions sous le champ de recherche (x-portail.resultats-recherche) :
