@@ -16,6 +16,10 @@
  *   charge et visible, en cascade sur la ligne (comme l'accueil du portail).
  * - Filtre « les projets » : une rubrique ou toutes, les visuels
  *   reapparaissent en fondu.
+ * - Intertitres (`[data-visuel]` sans image ni `data-grand`) : filtres
+ *   avec leur rubrique, ignores par la visionneuse.
+ *
+ * Commun a Ultra-frais / Ultra-zen et a Zoom 2016.
  */
 // Mouvements reduits (systeme), ou page rechargee par un reglage du mode edition.
 const reduit = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -42,14 +46,15 @@ export default function mosaique(Alpine) {
                 const img = item.querySelector('img');
                 const pret = () => {
                     item._charge = true;
-                    img.style.removeProperty('aspect-ratio');
+                    img?.style.removeProperty('aspect-ratio');
                     this.reveler(item);
                 };
 
                 if (!reduit()) item.classList.add(...CACHE);
+                // Intertitre de rubrique (Zoom, portfolio groupe) : rien a charger.
+                if (!img) return pret();
                 img.complete && img.naturalWidth ? pret() : img.addEventListener('load', pret, { once: true });
                 img.addEventListener('error', pret, { once: true });
-
             });
 
             // Etendues calculees sur la grille en hauteur naturelle, puis
@@ -105,7 +110,7 @@ export default function mosaique(Alpine) {
 
         // Visuels affiches, pour la visionneuse.
         visibles() {
-            return this.items.filter((item) => !item.hidden);
+            return this.items.filter((item) => !item.hidden && item.dataset.grand);
         },
 
         ouvrir(item) {

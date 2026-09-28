@@ -1,4 +1,4 @@
-{{-- Menu des pages de contenu ($menu = VueUltra2020::menuPages()), ex-ultra2020__front_nav_2020. --}}
+{{-- Menu des pages de contenu ($menu = VueBook::menuPages()), ex-ultra2020__front_nav_2020 et zoom2016__front_nav_2015. --}}
 <ul class="flex flex-col gap-3 text-left">
     @foreach ($menu['rubriques'] as $rubrique)
         <li>

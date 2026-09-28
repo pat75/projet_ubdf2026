@@ -93,5 +93,5 @@
         </div>
     </div>
 
-    @include('book.ultra2020._visionneuse')
+    @include('book.commun._visionneuse')
 @endsection

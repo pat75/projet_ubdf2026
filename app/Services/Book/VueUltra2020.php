@@ -2,8 +2,6 @@
 
 namespace App\Services\Book;
 
-use Illuminate\Support\Str;
-
 /**
  * Donnees des modeles Ultra-frais et Ultra-zen (dossier ultra2020), pour
  * les vues Blade/Tailwind/Alpine de resources/views/book/ultra2020.
@@ -19,7 +17,7 @@ use Illuminate\Support\Str;
  * visuel_size (small | normal | large), cursor, titre, description,
  * nav_link, social_link, footer, expert_css.
  */
-class VueUltra2020
+class VueUltra2020 extends VueBook
 {
     /**
      * Icones du visuel de profil, par identifiant fixe : header = id + 2.
@@ -56,31 +54,6 @@ class VueUltra2020
     ];
 
     public const RESEAUX = ['facebook', 'instagram', 'pinterest', 'twitter', 'linkedin'];
-
-    /** Visuels charges d'emblee, en priorite haute : le premier ecran. */
-    public const PRIORITAIRES = 6;
-
-    public readonly object $pref;
-
-    public function __construct(public readonly ContexteBook $b)
-    {
-        $pref = json_decode($b->cont_conf2012 ?: '{}');
-        $this->pref = $pref->data ?? (object) [];
-    }
-
-    /** Le createur, connecte sur le sous-domaine de son book (EditionBookController). */
-    public function edition(): bool
-    {
-        return auth()->check() && auth()->user()->login === $this->b->us_dir;
-    }
-
-    /** Espace du createur, sur le portail de sa marque. */
-    public function urlEspace(): string
-    {
-        $hote = config('marques.marques.'.$this->b->book->brand.'.hotes')[0] ?? null;
-
-        return $hote ? 'https://'.$hote.'/espace' : url('/espace');
-    }
 
     public function zen(): bool
     {
@@ -149,17 +122,6 @@ class VueUltra2020
         return $trace ? ['type' => 'icone', 'trace' => $trace] : null;
     }
 
-    public function photo(): string
-    {
-        $visuel = (string) $this->b->visuel_accueil;
-
-        if ($visuel === '' || preg_match('/deleted$|\/$/i', $visuel)) {
-            return '/img_default/ultra-book_default_160x160.png';
-        }
-
-        return (str_contains($visuel, 'http') ? '' : $this->b->rep_pref).$visuel;
-    }
-
     /** @return array<string, string> reseau => URL, liens renseignes seulement. */
     public function reseaux(): array
     {
@@ -174,141 +136,5 @@ class VueUltra2020
         }
 
         return $liens;
-    }
-
-    /**
-     * Rubriques du portfolio ayant au moins un visuel.
-     *
-     * @return list<array{cle: string, nom: string}>
-     */
-    public function rubriques(): array
-    {
-        $gal = $this->b->gal_cont['gal'] ?? [];
-        $rubriques = [];
-
-        foreach ($gal as $k => $rub) {
-            if (is_int($k) && ! empty($gal['img'][$rub['rub_id']])) {
-                $rubriques[] = ['cle' => self::cle($k, $rub['rub_nom']), 'nom' => self::brut($rub['rub_nom'])];
-            }
-        }
-
-        return $rubriques;
-    }
-
-    /**
-     * Visuels du portfolio, dans l'ordre des rubriques, bornes au nombre
-     * permis par la formule (comme le legacy : `>=`, donc un de moins).
-     *
-     * @return list<array<string, mixed>>
-     */
-    public function visuels(): array
-    {
-        $gal = $this->b->gal_cont['gal'] ?? [];
-        $visuels = [];
-        $max = max(0, $this->b->us_formule_img_nb - 1);
-
-        foreach ($gal as $k => $rub) {
-            if (! is_int($k)) {
-                continue;
-            }
-
-            foreach ($gal['img'][$rub['rub_id']] ?? [] as $img) {
-                if (count($visuels) >= $max) {
-                    break 2;
-                }
-
-                if (($img['img_fichier'] ?? '') === '') {
-                    continue;
-                }
-
-                $defaut = (bool) preg_match('/^(ultra-book_default_|visuel_default_)/', $img['img_fichier']);
-                $grand = ($defaut ? '/img_default/' : $this->b->rep_img900).$img['img_fichier'];
-                $moyen = ($defaut ? '/img_default/' : $this->b->rep_img550).$img['img_fichier'];
-
-                $visuels[] = [
-                    'rubrique' => self::cle($k, $rub['rub_nom']),
-                    'nom_rubrique' => self::brut($rub['rub_nom']),
-                    'titre' => self::brut($img['img_titre']),
-                    'description' => self::brut($img['img_desc']),
-                    'grand' => $grand,
-                    'moyen' => $moyen,
-                    'largeur' => $img['img_largeur'] ?? null,
-                    'hauteur' => $img['img_hauteur'] ?? null,
-                ];
-            }
-        }
-
-        return $visuels;
-    }
-
-    /**
-     * Menu des pages (Bio, actualites), ex-ultra2020__front_nav_2020 :
-     * rubriques et leurs pages, la page affichee et son contenu. Une seule
-     * rubrique : ses pages sans intitule de rubrique, comme le legacy.
-     *
-     * @return array{rubriques: list<array{nom: string, url: string, active: bool, pages: list<array{titre: string, url: string, active: bool}>}>, seule: bool, page: ?array}
-     */
-    public function menuPages(): array
-    {
-        $act = $this->b->menu['act'] ?? [];
-        $rubId = (int) $this->b->rub_id;
-        $pagId = (int) $this->b->pag_id;
-        $rubriques = [];
-        $courante = null;
-
-        foreach ($act as $k => $rub) {
-            if (! is_int($k) || empty($act['img'][$rub['rub_id']])) {
-                continue;
-            }
-
-            $pages = [];
-            foreach ($act['img'][$rub['rub_id']] as $i => $pag) {
-                $premiere = $rubriques === [] && $i === 0 && $rubId === 0 && $pagId === 0;
-                $active = (int) $pag['img_id'] === $pagId || $premiere;
-                $pages[] = [
-                    'titre' => self::brut($pag['img_titre']),
-                    'url' => wd_remove_accents($pag['img_titre']).'-r'.$rub['rub_id'].'-c'.$pag['img_id'],
-                    'active' => $active,
-                ];
-                if ($active && ! $courante) {
-                    $courante = $pag;
-                }
-            }
-
-            $rubriques[] = [
-                'nom' => self::brut($rub['rub_nom']),
-                'url' => $pages[0]['url'],
-                'active' => (int) $rub['rub_id'] === $rubId || ($rubId === 0 && $rubriques === []),
-                'pages' => $pages,
-            ];
-        }
-
-        return [
-            'rubriques' => $rubriques,
-            'seule' => count($rubriques) === 1,
-            'page' => $courante,
-        ];
-    }
-
-    /** Identifiant de filtre d'une rubrique : rang + nom, comme le legacy (`0__illustrations`). */
-    public static function cle(int $rang, string $nom): string
-    {
-        return $rang.'__'.(Str::slug($nom) ?: 'rubrique');
-    }
-
-    /**
-     * Texte a afficher tel quel : les titres sont stockes encodes par
-     * l'ancien editeur (&#039;, &quot;). Decode ici, echappe une seule
-     * fois par Blade.
-     */
-    public static function brut(mixed $texte): string
-    {
-        return html_entity_decode(strip_tags((string) $texte), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    }
-
-    /** ultra2020__stripslashes_ : entites laissees par l'ancien editeur. */
-    public static function deslasher(string $v): string
-    {
-        return str_replace(['&apos;', '&quot;', '&amp;'], ["'", '"', '&'], $v);
     }
 }

@@ -1,10 +1,14 @@
 /*
- * Books aux modeles Ultra-frais et Ultra-zen (resources/views/book/ultra2020),
- * en Tailwind : remplace Semantic UI 2.4, core.css et masory.css du legacy.
+ * Books passes en Tailwind : Ultra-frais et Ultra-zen
+ * (resources/views/book/ultra2020 : remplace Semantic UI 2.4, core.css et
+ * masory.css du legacy), Zoom 2016 (resources/views/book/zoom2016 :
+ * remplace mdl_zoom.css, Isotope et Fotorama).
  */
 @import 'tailwindcss' source(none);
 
 @source '../views/book/ultra2020';
+@source '../views/book/zoom2016';
+@source '../views/book/commun';
 @source '../js/book';
 @source '../views/components/book';
 @source '../views/components/espace/picto.blade.php';
@@ -25,6 +29,18 @@
     --color-book-texte2: var(--book-texte2);
     --color-book-texte3: var(--book-texte3);
     --color-book-filet: var(--book-filet);
+    --color-book-bandeau: var(--book-bandeau);
+    --color-book-bandeau-texte: var(--book-bandeau-texte);
+}
+
+/* Apparition du contenu : fondu montant, une fois, au chargement. */
+@theme {
+    --animate-apparition: apparition .8s cubic-bezier(.22, .61, .36, 1) both;
+}
+
+@keyframes apparition {
+    from { opacity: 0; transform: translateY(1.25rem); }
+    to { opacity: 1; transform: none; }
 }
 
 [x-cloak] {
@@ -72,6 +88,41 @@
 }
 
 /*
+ * Zoom 2016 : typographie Dosis partout ; grille de 2 a 5 colonnes comme
+ * les points de rupture de mdl_zoom.css (600, 980, 1180 px).
+ */
+.modele-zoom {
+    --font-titre: 'Dosis', ui-sans-serif, sans-serif;
+    --font-texte: 'Dosis', ui-sans-serif, sans-serif;
+}
+.mosaique.mosaique-zoom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 600px) {
+    .mosaique.mosaique-zoom { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 980px) {
+    .mosaique.mosaique-zoom { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1180px) {
+    .mosaique.mosaique-zoom { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/*
+ * Textes libres de Zoom (presentation, contact) : HTML de l'ancien editeur,
+ * qui porte ses propres polices et couleurs. On ne borne que les images.
+ */
+.texte-libre img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+.texte-libre a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/*
  * Texte des pages (Bio, actualites), saisi dans l'editeur de l'espace :
  * balisage libre, mis en forme ici comme article.column-page du legacy.
  */
@@ -95,8 +146,14 @@
 }
 .contenu-page img {
     width: 100%;
-    max-width: 925px;
-    height: auto;
+    max-width: min(925px, 100%) !important;
+    height: auto !important;
+}
+/* Largeurs fixees en ligne par l'ancien editeur : bornees a l'ecran. */
+.contenu-page iframe,
+.contenu-page video,
+.contenu-page table {
+    max-width: 100%;
 }
 .contenu-page h1,
 .contenu-page h2,

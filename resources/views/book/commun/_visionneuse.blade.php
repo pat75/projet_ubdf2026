@@ -1,4 +1,4 @@
-{{-- Visionneuse du portfolio ($store.visionneuse, resources/js/book/visionneuse.js), ex-Magnific Popup. --}}
+{{-- Visionneuse du portfolio ($store.visionneuse, resources/js/book/visionneuse.js), ex-Magnific Popup et Fotorama. --}}
 <div x-data x-show="$store.visionneuse.ouverte" x-cloak x-transition.opacity.duration.300ms
      class="fixed inset-0 z-[70] flex flex-col bg-black/90 text-white"
      role="dialog" aria-modal="true" aria-label="{{ __('Visionneuse') }}"

@@ -116,6 +116,10 @@ return [
         'gabarit' => 'ultrabook_type',
         'accueil' => 'portfolio',
         'assets' => 'zoom2016',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de
+        // resources/views/book/zoom2016 (App\Services\Book\VueZoom2016).
+        'vue' => App\Services\Book\VueZoom2016::class,
+        'vues' => ['accueil' => 'portfolio', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'colonne_legacy' => 'us_pf_conf2016_zoom',
         'defaut' => '{"data":{"link_accueil":{"form_text":"Portfolio"},"link_bio":{"form_text":"Bio"},"link_contact":{"form_text":"Contact"},"ptf_activer_contact":{"ptf_activer_contact":"true"},"ptf_activer_gmap":{"ptf_activer_gmap":"false"},"ptf_activer_sociaux":{"ptf_activer_sociaux":"true"},"ptf_activer_iso_category":{"ptf_activer_iso_category":"false"},".ub_couleur_fond":{"backgroundColor":"#ffffff"},".ub_couleur_nav":{"color":"#292929"}}}',
     ],

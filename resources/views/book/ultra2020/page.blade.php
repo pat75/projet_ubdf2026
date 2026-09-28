@@ -14,7 +14,7 @@
 
 @if ($vue->zen() && $multi)
     @section('sous-menu')
-        @include('book.ultra2020._menu-pages')
+        @include('book.commun._menu-pages')
     @endsection
 @endif
 
@@ -27,7 +27,7 @@
                 <svg class="size-6 transition-transform duration-300" :class="ouvert && 'rotate-45'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M12 2v20M2 12h20"/></svg>
             </button>
             <div x-show="ouvert" x-cloak x-transition.opacity class="mt-3 flex justify-center">
-                @include('book.ultra2020._menu-pages')
+                @include('book.commun._menu-pages')
             </div>
         </div>
     @endif
@@ -35,7 +35,7 @@
     <div @class(['md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] md:gap-10' => ! $vue->zen() && $multi])>
         @if (! $vue->zen() && $multi)
             <aside class="max-md:hidden">
-                @include('book.ultra2020._menu-pages')
+                @include('book.commun._menu-pages')
             </aside>
         @endif
 

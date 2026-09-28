@@ -25,10 +25,10 @@ function urlBook(string $chemin = '/'): string
     return 'https://aurelie-b.'.config('ubdf.book_domain').$chemin;
 }
 
-it('rend le book dans son theme d origine', function () {
+it('rend le book dans son theme', function () {
     $this->get(urlBook())
         ->assertOk()
-        ->assertSee('/2012_web/zoom2016/_/css/mdl_zoom.css', false)
+        ->assertSee('modele-zoom', false)
         ->assertSee('v1.jpg', false);
 });
 
@@ -96,9 +96,9 @@ it('sert le gabarit non diffuse a un visiteur, le theme a son proprietaire', fun
     $this->book->bookSetting->update(['diffuse_web' => false]);
 
     $this->get(urlBook())->assertOk()->assertSee('2012_web/non_diffuse', false)
-        ->assertDontSee('mdl_zoom.css', false);
+        ->assertDontSee('modele-zoom', false);
 
-    $this->actingAs($this->book)->get(urlBook())->assertOk()->assertSee('mdl_zoom.css', false);
+    $this->actingAs($this->book)->get(urlBook())->assertOk()->assertSee('modele-zoom', false);
 });
 
 it('rend l accueil de Pinter en mosaique de tout le portfolio', function () {
@@ -115,7 +115,7 @@ dataset('agents', [
 it('sert la version web des themes responsives a tous les terminaux', function (string $agent) {
     // Zoom (theme du book de test) est responsive : pas de version mobile.
     $this->withHeader('User-Agent', $agent)->get(urlBook())
-        ->assertOk()->assertSee('mdl_zoom.css', false);
+        ->assertOk()->assertSee('modele-zoom', false);
 })->with('agents');
 
 it('sert la version classique mobile a un iPhone sur un theme ancien', function () {

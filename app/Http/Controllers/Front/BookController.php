@@ -197,7 +197,8 @@ class BookController extends Controller
 
         // Themes passes en Blade/Tailwind/Alpine : les pages deja portees.
         if ($vue = $theme['vues'][$type] ?? null) {
-            $html = view('book.'.$theme['dossier'].'.'.$vue, ['b' => $contexte, 'vue' => new VueUltra2020($contexte)])->render();
+            $classe = $theme['vue'] ?? VueUltra2020::class;
+            $html = view('book.'.$theme['dossier'].'.'.$vue, ['b' => $contexte, 'vue' => new $classe($contexte)])->render();
 
             return $this->reponse($book, $html);
         }

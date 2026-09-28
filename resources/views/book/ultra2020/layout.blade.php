@@ -14,9 +14,6 @@
     $entete = $vue->entete();
     $taille = $vue->tailleEntete();
     $reseaux = $vue->reseaux();
-    $titrePage = ucfirst($b->cont_page_titre);
-    $description = trim($b->cont_page_meta);
-    $imagePartage = $b->visuel_accueil !== '' ? $vue->photo() : ($vue->visuels()[0]['grand'] ?? '');
     $liens = [
         ['url' => '/portfolio', 'cle' => 'name_portfolio', 'libelle' => $vue->lien('name_portfolio', 'Portfolio'), 'actif' => in_array($b->page_type, ['accueil', 'portfolio'], true)],
         ['url' => '/actualites', 'cle' => 'name_page', 'libelle' => $vue->lien('name_page', 'Bio'), 'actif' => $b->page_type === 'news'],
@@ -33,25 +30,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if ($edition)
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="robots" content="noindex">
     @endif
-    <title>{{ $titrePage }}</title>
-    <meta name="description" content="{{ trim('book '.$description) }}">
-    <meta name="keywords" content="{{ __('Ultra-book, creation de book,') }} {{ str_replace(['[&quot;', '&quot;]', '&quot;,&quot;'], ['', '', ','], $b->cont_page_key) }}">
-
-    <link rel="icon" href="{{ $b->icone }}">
-    <link rel="apple-touch-icon" href="{{ $b->icone_iphone }}">
-
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $titrePage }}">
-    <meta property="og:description" content="{{ $description }}">
-    <meta property="og:url" content="{{ request()->url() }}">
-    @if ($imagePartage)
-        <meta property="og:image" content="{{ url($imagePartage) }}">
-        <meta name="twitter:image" content="{{ url($imagePartage) }}">
-    @endif
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{{ $titrePage }}">
+    @include('book.commun._seo')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
