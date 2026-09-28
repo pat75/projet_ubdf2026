@@ -8,6 +8,12 @@ Couleurs, rayons et ombres : jetons de `resources/css/espace.css`
 (`ub-texte`, `ub-texte3`, `ub-filet`, `ub-fond`, `ub-accent`…). Pas de
 couleur en dur quand un jeton existe.
 
+## Logo
+
+Ultra-book utilise toujours le même visuel, sur l'ensemble du site :
+`/img_front/ultra-book_logo_nb.svg`. Jamais de logo recomposé en texte
+ni d'autre fichier. Sur fond sombre : même fichier, avec `invert`.
+
 ## Titre de page
 
 Le bloc d'en-tête de chaque page de l'espace (référence : « Mes
