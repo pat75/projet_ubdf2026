@@ -16,6 +16,10 @@ import motcles from './motcles.json';
  * (« illustrateur » -> illustration).
  */
 const MAX_RESULTATS = 38;
+const MIN_BASE = 3;
+// Ecart entre le dernier caractere saisi et le bouton ✕.
+const ECART_VIDER = 20;
+const GROUPE_BASE = 'mots-clés';
 
 function suggestions(langue) {
     const domaines = motcles[langue] ?? motcles.fr;
@@ -23,9 +27,12 @@ function suggestions(langue) {
 
     for (const [domaine, mots] of Object.entries(domaines)) {
         const alias = motcles.alias.find((a) => a.title === domaine)?.alias.split('|')[0];
-        liste.push({ domaine, titre: domaine, description: `catégorie ${domaine}`, alias, valeur: domaine });
+        // etiquette/couleur : affichage en label (x-portail.resultats-recherche).
+        liste.push({ domaine, titre: domaine, description: `catégorie ${domaine}`, alias, valeur: domaine,
+            etiquette: domaine, couleur: domaine });
         for (const mot of mots) {
-            liste.push({ domaine, titre: `${domaine} ${mot}`, description: mot, valeur: `${domaine},${mot}` });
+            liste.push({ domaine, titre: `${domaine} ${mot}`, description: mot, valeur: `${domaine},${mot}`,
+                etiquette: mot, couleur: domaine });
         }
     }
 
@@ -43,32 +50,113 @@ export default function recherche(Alpine) {
 
     Alpine.data('recherche', () => ({
         requete: '',
+
+        /*
+         * Le ✕ se recale a chaque nouvelle recherche (requete, voir
+         * x-effect), mais aussi quand la mise en page bouge sans que le texte
+         * change : polices chargees, fenetre redimensionnee, focus.
+         */
+        init() {
+            // $nextTick : les x-ref des enfants ne sont pas encore enregistres.
+            this.$nextTick(() => {
+                if (!this.$refs.vider) return;
+                const recaler = () => requestAnimationFrame(() => this.placerVider());
+                document.fonts?.ready.then(recaler);
+                window.addEventListener('resize', recaler, { passive: true });
+                this.$refs.champ.addEventListener('focus', recaler);
+                this.$refs.champ.addEventListener('keyup', recaler);
+            });
+        },
         resultats: [],
         erreurVide: false,
         liste: suggestions(document.documentElement.lang === 'en' ? 'en' : 'fr'),
 
-        get groupes() {
-            const groupes = {};
-            for (const r of this.resultats) {
-                (groupes[r.domaine] ??= []).push(r);
-            }
-            return Object.entries(groupes);
-        },
-
         chercher() {
             const saisie = this.requete.trim();
             if (!saisie) {
-                this.resultats = [];
+                this.numero++;
+                this.resultats = this.motsBase = this.catalogue = [];
                 return;
             }
             const requete = domaineDeLAlias(saisie) ?? saisie;
             const debut = new RegExp(`^${requete.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
-            this.resultats = this.liste
+            this.catalogue = this.liste
                 .filter((s) => debut.test(s.titre) || debut.test(s.description))
                 .slice(0, MAX_RESULTATS);
+            this.resultats = [...this.motsBase, ...this.catalogue];
+            this.chercherEnBase(saisie);
+        },
+
+        /*
+         * Des 3 caracteres : les mots-cles saisis par les createurs
+         * (GET /recherche/suggestions), en tete de la liste deroulante.
+         * Une reponse arrivee apres une frappe plus recente est ignoree.
+         */
+        catalogue: [],
+        motsBase: [],
+        numero: 0,
+
+        async chercherEnBase(saisie) {
+            const numero = ++this.numero;
+            if (saisie.length < MIN_BASE) {
+                this.motsBase = [];
+                this.resultats = this.catalogue;
+                return;
+            }
+            try {
+                const reponse = await fetch(`/recherche/suggestions?q=${encodeURIComponent(saisie)}`, {
+                    headers: { Accept: 'application/json' },
+                });
+                if (!reponse.ok || numero !== this.numero) return;
+                this.motsBase = (await reponse.json()).map(({ mot, total }) => ({
+                    domaine: GROUPE_BASE,
+                    titre: mot,
+                    description: `${total} portfolio${total > 1 ? 's' : ''}`,
+                    valeur: mot,
+                    etiquette: mot,
+                    couleur: null,
+                }));
+                this.resultats = [...this.motsBase, ...this.catalogue];
+            } catch {
+                // Sans reseau, les suggestions du catalogue suffisent.
+            }
+        },
+
+        /*
+         * Bouton ✕ (bloc-recherche) : ECART_VIDER (20 px) apres le dernier caractere saisi.
+         * La largeur du texte est mesuree avec la police du champ ; le
+         * bouton ne deborde jamais du bord droit du champ.
+         */
+        placerVider() {
+            const { champ, vider } = this.$refs;
+            if (!champ || !vider) return;
+            const style = getComputedStyle(champ);
+            const mesure = (this.mesure ??= document.createElement('canvas').getContext('2d'));
+            mesure.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+            const texte = mesure.measureText(champ.value).width;
+
+            const debut = champ.offsetLeft + parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
+            const maximum = champ.offsetLeft + champ.offsetWidth - vider.offsetWidth - 8;
+            vider.style.left = `${Math.min(debut + texte - champ.scrollLeft + ECART_VIDER, maximum)}px`;
+
+            // Verticalement : centre sur la ligne de texte (zone de contenu,
+            // hors padding — le libelle flottant decale le texte vers le bas).
+            const hautContenu = champ.offsetTop + parseFloat(style.borderTopWidth) + parseFloat(style.paddingTop);
+            const hauteurContenu = champ.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            vider.style.top = `${hautContenu + hauteurContenu / 2}px`;
+        },
+
+        /* Bouton ✕ : champ vide, suggestions fermees, curseur rendu au champ. */
+        vider(formulaire) {
+            this.numero++;
+            this.requete = '';
+            this.resultats = this.motsBase = this.catalogue = [];
+            formulaire.querySelector('[name=q]').focus();
         },
 
         choisir(suggestion) {
+            // Par `requete` (x-model) et non par le DOM : le ✕ suit le texte.
+            this.requete = suggestion.valeur;
             this.$el.closest('form').querySelector('[name=q]').value = suggestion.valeur;
             this.envoyer(this.$el.closest('form'), 'mcles');
         },
@@ -119,6 +207,7 @@ export default function recherche(Alpine) {
                 window.ubdf = { ...window.ubdf, ...donnees.ubdf };
                 zone.innerHTML = donnees.html; // HTML rendu par le serveur (front.partials.resultats-recherche)
                 history.replaceState(null, '', url);
+                this.$nextTick(() => this.placerVider());
                 zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } catch {
                 formulaire.submit();

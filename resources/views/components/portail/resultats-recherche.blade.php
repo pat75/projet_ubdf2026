@@ -1,25 +1,15 @@
-{{-- Suggestions d'un formulaire de recherche (resources/js/portail/recherche.js),
-     dans le HTML des resultats de Semantic search (type category). --}}
-<div class="results transition" :class="{ visible: resultats.length }" x-show="resultats.length" x-cloak
+{{-- Suggestions d'un formulaire de recherche (resources/js/portail/recherche.js) :
+     de simples etiquettes, identiques a celles de « Les recherches du
+     moment » (/search) — couleurs coul_<domaine> via bloc_last_recherche.
+     Mots-cles des books en tete, puis ceux du catalogue. --}}
+<div class="suggestions_recherche bloc_last_recherche" x-show="resultats.length" x-cloak
      @mousedown.prevent>
-    <template x-for="[domaine, liste] in groupes" :key="domaine">
-        <div class="category" :class="'cat_' + domaine">
-            <div class="name" x-text="domaine"></div>
-            <div class="results">
-                <template x-for="suggestion in liste" :key="suggestion.valeur">
-                    <a class="result txtblanc" :class="'coul_' + domaine" href="#" @click.prevent="choisir(suggestion)">
-                        <div class="content">
-                            <div class="title" x-text="suggestion.titre"></div>
-                            <div class="description">
-                                <span x-text="suggestion.description"></span>
-                                <template x-if="suggestion.alias">
-                                    <span class="dom_metier"><span class="fonticon-arrow-right icon"></span><span x-text="suggestion.alias"></span></span>
-                                </template>
-                            </div>
-                        </div>
-                    </a>
-                </template>
-            </div>
-        </div>
+    <template x-for="suggestion in resultats" :key="suggestion.domaine + suggestion.valeur">
+        {{-- Pas de `basic` : son :hover Semantic blanchit le fond sous un
+             texte blanc (voir portail.css, .suggestions_recherche). --}}
+        <a class="ui large label cursor_effect" :class="suggestion.couleur ? 'coul_' + suggestion.couleur : ''"
+           href="#" @click.prevent="choisir(suggestion)">
+            <i class="chevron right icon"></i><strong x-text="suggestion.etiquette"></strong>
+        </a>
     </template>
 </div>

@@ -187,6 +187,21 @@ it('affiche les mots-cles les plus recherches sur 90 jours sur /search sans requ
         ->assertDontSee('tapisserie');
 });
 
+it('suggere les mots-cles des books des trois caracteres', function () {
+    \App\Support\SuggestionsMotsCles::oublier();
+
+    // « illustration jeunesse » est porte par deux books : il passe en tete.
+    $this->getJson(url_portail('/recherche/suggestions?q=Illu'))
+        ->assertOk()
+        ->assertExactJson([['mot' => 'illustration jeunesse', 'total' => 2]]);
+
+    // Accents et milieu de mot-cle : « jeu » trouve « illustration jeunesse ».
+    expect(collect($this->getJson(url_portail('/recherche/suggestions?q=jeu'))->json())->pluck('mot')->all())
+        ->toBe(['illustration jeunesse']);
+
+    $this->getJson(url_portail('/recherche/suggestions?q=aq'))->assertOk()->assertExactJson([]);
+});
+
 it('pointe la loupe du menu vers /search', function () {
     $this->get(url_portail('/accueil'))
         ->assertOk()

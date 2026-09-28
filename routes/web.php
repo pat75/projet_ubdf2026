@@ -203,6 +203,8 @@ Route::group([], function () {
      */
     Route::get('/recherche/cartes/{page}', [RechercheController::class, 'cartes'])
         ->where('page', '[0-9]{1,3}')->name('recherche.cartes');
+    Route::get('/recherche/suggestions', [RechercheController::class, 'suggestions'])
+        ->middleware('throttle:300,1')->name('recherche.suggestions');
     Route::get('/rechercher_submit', [RechercheController::class, 'legacy'])
         ->name('recherche.legacy');
 

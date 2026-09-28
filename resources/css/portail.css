@@ -35,6 +35,70 @@
     margin: 0 .5rem .7rem 0;
 }
 
+/* Suggestions sous le champ de recherche (x-portail.resultats-recherche) :
+   etiquettes compactes, comme « Les recherches du moment ». */
+.suggestions_recherche {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-top: .4rem;
+    padding: .8rem;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+    text-align: left;
+}
+.suggestions_recherche .ui.label {
+    margin: 0 !important;
+    transition: filter .15s, box-shadow .15s;
+}
+/* Survol : l'etiquette garde son fond (couleur du metier, ou gris des
+   mots-cles saisis par les createurs), assombri. */
+.suggestions_recherche .ui.label:hover {
+    filter: brightness(.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .2) !important;
+}
+.suggestions_recherche .ui.label:hover,
+.suggestions_recherche .ui.label:hover strong,
+.suggestions_recherche .ui.label:hover .icon {
+    color: #fff !important;
+}
+
+/* Bouton ✕ du bloc de recherche : 20 px apres le dernier caractere
+   saisi, `left` calcule par placerVider (recherche.js). */
+.rech2018 .vider_recherche {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.25em;
+    height: 2.25em;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: #eee;
+    color: #555;
+    cursor: pointer;
+}
+.rech2018 .vider_recherche:hover {
+    background: #ddd;
+    color: #000;
+}
+.bloc_rechercher .rech2018 input.prompt {
+    padding-right: 3em;
+}
+
 /* /search : resultats estompes pendant la requete ajax (recherche.js). */
 #resultats_recherche {
     transition: opacity .2s;

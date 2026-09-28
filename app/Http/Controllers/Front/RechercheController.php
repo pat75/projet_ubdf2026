@@ -7,6 +7,7 @@ use App\Models\SearchQuery;
 use App\Repository\BookRepository;
 use App\Support\CarteLegacy;
 use App\Support\Recherche;
+use App\Support\SuggestionsMotsCles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -125,6 +126,12 @@ class RechercheController extends Controller
                 'book_domain' => config('ubdf.book_domain'),
             ],
         ];
+    }
+
+    /** Auto-completion du champ de recherche (recherche.js), des 3 caracteres. */
+    public function suggestions(Request $request): JsonResponse
+    {
+        return response()->json(SuggestionsMotsCles::pour((string) $request->query('q', '')));
     }
 
     /** Cartes suivantes du defilement, rendues en HTML comme le premier ecran. */
