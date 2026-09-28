@@ -700,7 +700,7 @@
             <!-- createur -->
             <div class="column middle aligned segment_header">
                 <h2 class="ui icon header">
-                    <img :src="book.avatar" class="ui circular image" x-show="book.avatar">
+                    <img :src="book.avatar" :alt="book.fiche.book_prenom_nom" class="ui circular image" x-show="book.avatar">
                     <div class="content" x-text="book.fiche.book_prenom_nom"></div>
                 </h2>
                 <h6 class="ui center aligned header localisation" x-show="book.fiche.book_ville">
@@ -1002,18 +1002,50 @@
 <div id="ub_us_stats_book" class="hide"></div>
 
 
-	<script type="application/ld+json">
-		{
-			"@@context" : "https://schema.org",
-		    "@@type" : "Organization",
-		    "name" : "Ultra-book",
-		    "url" : "https://www.ultra-book.com",
-		    "sameAs" : [ "https://www.facebook.com/ultrabook.fr/",
-		    "https://twitter.com/ultra_book",
-		    "https://www.pinterest.com/ultrabook001/",
-		    "https://plus.google.com/+Ultrabook01"]
-		}
-	</script>
+	{{-- Donnees structurees communes a tout le portail : l'organisation et le
+	     site, avec sa recherche interne (SearchAction). Les pages y ajoutent
+	     les leurs (@stack('jsonld')). --}}
+	@php
+	    $racine = rtrim($marque->canonique, '/');
+	    $graphe = [
+	        '@context' => 'https://schema.org',
+	        '@graph' => [
+	            [
+	                '@type' => 'Organization',
+	                '@id' => $racine.'/#organisation',
+	                'name' => $marque->nom,
+	                'url' => $racine.'/',
+	                'logo' => $racine.$marque->logo,
+	                'email' => $marque->email,
+	                'description' => $marque->description(),
+	                'sameAs' => $marque->estDefaut() ? [
+	                    'https://www.facebook.com/ultrabook.fr/',
+	                    'https://www.instagram.com/ultra.book/',
+	                    'https://twitter.com/ultra_book',
+	                    'https://www.pinterest.com/ultrabook001/',
+	                ] : [],
+	            ] + ($marque->estDefaut() ? ['foundingDate' => '2007'] : []),
+	            [
+	                '@type' => 'WebSite',
+	                '@id' => $racine.'/#site',
+	                'name' => $marque->nom,
+	                'url' => $racine.'/',
+	                'inLanguage' => $marque->langues,
+	                'publisher' => ['@id' => $racine.'/#organisation'],
+	                'potentialAction' => [
+	                    '@type' => 'SearchAction',
+	                    'target' => [
+	                        '@type' => 'EntryPoint',
+	                        'urlTemplate' => $racine.parse_url(lien('recherche'), PHP_URL_PATH).'?q={search_term_string}&type_recherche=mcles',
+	                    ],
+	                    'query-input' => 'required name=search_term_string',
+	                ],
+	            ],
+	        ],
+	    ];
+	@endphp
+	<script type="application/ld+json">{!! json_encode($graphe, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+	@stack('jsonld')
 
 
 

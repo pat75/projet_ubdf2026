@@ -48,7 +48,7 @@ return [
 
             // Titre et description par defaut. Ultra-book etant monolingue,
             // ils sont ecrits en francais, sans passer par __().
-            'titre' => 'Portfolios freelance, illustrateur, graphiste, creer son book | Ultra-book',
+            'titre' => 'Portfolios freelance, illustrateur, graphiste, créer son book | Ultra-book',
             'description' => 'Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs.',
 
             // Hotes reconnus. Le prefixe « www. » est retire avant

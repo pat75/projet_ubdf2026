@@ -11,7 +11,7 @@
 
     <div class="bloc_titre" x-apparition>
         <a href="{{ $url }}">
-            <h1 class="metier_group coultxt_{{ $slug }}">{{ App\Support\Metier::titreBloc($slug) }}</h1>
+            <h2 class="metier_group coultxt_{{ $slug }}">{{ App\Support\Metier::titreBloc($slug) }}</h2>
             <div class="sub_title">{{ App\Support\Metier::sousTitre($slug) }}</div>
         </a>
     </div>

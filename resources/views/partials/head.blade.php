@@ -2,44 +2,55 @@
      pilotees par la section @yield('meta'). --}}
 <head id="ultra-book">
 
+@php
+    /*
+     | Referencement : une seule adresse par page. L'URL canonique est bati
+     | sur le domaine de production de la marque (et non sur l'hote servi),
+     | sans parametre de requete ; une page peut la fixer (@section('canonical')).
+     */
+    $canonique = trim($__env->yieldContent('canonical')) ?: rtrim($marque->canonique, '/').request()->getPathInfo();
+    $titrePage = trim($__env->yieldContent('title')) ?: $marque->titre();
+    $descriptionPage = trim($__env->yieldContent('description')) ?: $marque->description();
+    $imagePartage = trim($__env->yieldContent('og_image')) ?: rtrim($marque->canonique, '/').'/img_front/favicon/android-icon-192x192.png';
+@endphp
 <meta charset="UTF-8">
-<meta http-equiv="Content-Language" content="fr_FR" />
-<meta http-equiv="Cache-control"    content="public">
-<meta name="viewport" 				content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{{-- Zoom autorise : user-scalable=no penalise l'accessibilite (et Lighthouse). --}}
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-    <title>@yield('title', $marque->titre())</title>
-    <meta name="Description" 			content="@yield('description', $marque->description())"/>
+    <title>{{ $titrePage }}</title>
+    <meta name="description" content="{{ $descriptionPage }}">
+    <link rel="canonical" href="{{ $canonique }}">
+    {{-- L'espace creatif est prive : jamais indexe, meme s'il est lie. --}}
+    <meta name="robots" content="@yield('robots', request()->is('espace', 'espace/*', '*/espace', '*/espace/*') ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')">
+    @yield('hreflang')
 
 
 
-<meta name="Keywords" 				content="{{ $marque->nom }},book freelance,portfolio gratuit,book gratuit,création de portfolio,art graphique,portfolio creatif,book de creatifs,book illustrateur,book graphiste,book webdesign,book freelance,book directeurs artistique,créer un book,créer son book"/>
+{{-- Plus de meta keywords : ignoree par les moteurs, elle ne renseigne que la concurrence. --}}
 <meta name="application-name" 	    content="{{ $marque->nom }}" />
 
 {{-- og:locale attend la forme POSIX complete (fr_FR), pas le code court. --}}
 <meta property='og:locale' 		    content='{{ App\Support\Langue::posix(app()->getLocale()) }}'/>
 <meta property='og:type' 			content='website'/>
-<meta property='og:title' 			content='@yield('title', $marque->titre())'/>
-<meta property='og:url' 			content='{{ url()->current() }}'/>
+<meta property='og:title' 			content='{{ $titrePage }}'/>
+<meta property='og:url' 			content='{{ $canonique }}'/>
 <meta property='og:site_name'		content='{{ $marque->nom }}'/>
-<meta property='og:description' 	content='{{ $marque->description() }}'/>
-<meta property='og:image' 			content='https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png'/>
+<meta property='og:description' 	content='{{ $descriptionPage }}'/>
+<meta property='og:image' 			content='{{ $imagePartage }}'/>
 
 <meta name="twitter:card" 			content="summary" />
 <meta name="twitter:site" 			content="&#64;ultra_book" />
-<meta name="twitter:title" 		    content="@yield('title', $marque->titre())" />
-<meta name="twitter:description"    content="{{ $marque->description() }}"/>
-<meta name="twitter:url" 			content="{{ url()->current() }}" />
-<meta name="twitter:image" 		    content="https://www.ultra-book.com/img_front/favicon/android-icon-192x192.png" />
+<meta name="twitter:title" 		    content="{{ $titrePage }}" />
+<meta name="twitter:description"    content="{{ $descriptionPage }}"/>
+<meta name="twitter:url" 			content="{{ $canonique }}" />
+<meta name="twitter:image" 		    content="{{ $imagePartage }}" />
 <meta name="twitter:creator" 		content="&#64;ultra_book" />
 
 
-<link href="https://plus.google.com/b/113618166875483060799/+Ultrabook01" rel="publisher" />
 <meta name="p:domain_verify" 		content="3141b3250ec1ce665aa24814628e365b"/>
 
 
-<meta http-equiv="X-UA-Compatible" 	content="IE=edge,chrome=1">
-<meta name="viewport" 				content="width=device-width,initial-scale=1">
 
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -66,7 +77,6 @@
 
 
 <!-- SementicUI #2018-->
-<meta name="viewport"   content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 
 <link rel="stylesheet"  href="/html_pages_v2018/_/lib/Semantic-UI-CSS-master2.3.1/semantic.min.css">

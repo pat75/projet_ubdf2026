@@ -510,7 +510,7 @@
         <div class="ui middle aligned two column stackable grid">
                 <div class="right aligned column " x-apparition:gauche>
                     <h5>Freelances</h5>
-                    <h1>{{ __('Créer votre portfolio') }}</h1>
+                    <h2>{{ __('Créer votre portfolio') }}</h2>
                     <h4>Chargez vos images par glisser-poser</h4>
                     <h4>Modifiez l’apparence, et diffusez</h4>
                     <a class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" href="{{ lien('inscription.page') }}">
@@ -542,7 +542,7 @@
 
             <div class="left aligned olive+ column" x-apparition:droite.150>
                 <h5>Entreprises</h5>
-                <h1>{{ __('Une sélection de qualité') }}</h1>
+                <h2>{{ __('Une sélection de qualité') }}</h2>
 
                 <div class="accueil_stats ">
 
@@ -599,7 +599,7 @@
                 <div class="right aligned column " x-apparition:gauche>
                     <h5>Mon site web PRO</h5>
 
-                    <h1>Installer <strong>mon site internet PRO</strong></h1>
+                    <h2>Installer <strong>mon site internet PRO</strong></h2>
                     <h4>Un vrai site complet, extensible et illimité, </h4>
                     <h4>installé sur votre nom de domaine et votre hébergement.</h4>
                     <h6 style="    margin-bottom: 8px;">Forfait installation, configuration et licence illimitée.</h6>
@@ -608,7 +608,7 @@
                         <i class="right arrow icon" style="    background-color: blueviolet;"></i> Détail de l’offre                    </button>
                     <br/>
                     <br/>
-                    <img src="https://www.ultrabook.pro/img/ub_logo_web_wp_2022.svg" class="visuel_avantages">
+                    <img src="https://www.ultrabook.pro/img/ub_logo_web_wp_2022.svg" class="visuel_avantages" alt="Ultra-book site PRO" loading="lazy">
                 </div>
 
                 <div class=" center aligned column col_visuel_mdl_book" x-apparition:droite.150>
@@ -707,9 +707,9 @@
                 <div class="ui twelve wide computer sixteen wide mobile column" x-apparition:droite.150>
 
                     <div class="dispo_new" >NOUVEAU !</div>
-                    <h1  class="mb-6 max-lg:mb-4 text-6xl max-lg:text-3xl font-thin max-lg:font-normal tracking-tight text-gray-900">
+                    <h2  class="mb-6 max-lg:mb-4 text-6xl max-lg:text-3xl font-thin max-lg:font-normal tracking-tight text-gray-900">
                         Retrouver les illustrateurs/rices<div style="line-height: 42px;" class="text-white font-normal">disponibles aujourd’hui</div>
-                    </h1>
+                    </h2>
                     <h2   class="text-4xl leading-10 max-lg:text-lg font-light max-lg:font-light text-black">
                         <a href="https://www.les-illustrateurs.com" class="dispo_bouton_arrondi">CONTACTER LES DISPOS</a>
                         <a href="https://www.les-illustrateurs.com" class="dispo_link">www.les-illustrateurs.com</a>

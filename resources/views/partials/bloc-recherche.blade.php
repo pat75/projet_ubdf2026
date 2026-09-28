@@ -6,7 +6,7 @@
 			<div class="row one column ">
 				<div class="column aligned">
 					<div class="ui segment basic ">
-						<h1>{{ __('Trouvez les meilleurs portfolios de créatifs.') }}</h1>
+						<{{ $niveauTitre ?? 'h1' }}>{{ __('Trouvez les meilleurs portfolios de créatifs.') }}</{{ $niveauTitre ?? 'h1' }}>
 					</div>
 				</div>
 			</div>

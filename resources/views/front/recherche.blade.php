@@ -4,9 +4,14 @@
     ? $recherche->q.' — portfolios de créatifs | Ultra-book'
     : 'Rechercher un portfolio | Ultra-book')
 @section('body_class', 'page_recherche')
+{{-- Resultats de recherche interne : les moteurs suivent les liens vers
+     les books, mais n'indexent pas une page par requete (consigne Google). --}}
+@if ($recherche->q !== '')
+    @section('robots', 'noindex, follow')
+@endif
 
 @section('content')
-    @include('partials.bloc-recherche')
+    @include('partials.bloc-recherche', ['niveauTitre' => 'h2'])
 
     <div class="ui container bloc_portfolios">
 
