@@ -46,7 +46,8 @@
 
 
 		<!-- Icones -->
-		<link rel="stylesheet" href="/2012_web/grid2015/__/css/fontello-8503d1b6/css/ub-grid-icons.css">
+		<?php /* Police d'icones, version de __/font (codes de ub-grid-style.css) ; www.ultra-book.fr ne la sert plus. */ ?>
+		<style>@font-face { font-family: 'ub-grid-icons'; src: url('/2012_web/grid2015/__/font/ub-grid-icons.woff') format('woff'), url('/2012_web/grid2015/__/font/ub-grid-icons.ttf') format('truetype'); font-display: block; }</style>
 
 
 	
