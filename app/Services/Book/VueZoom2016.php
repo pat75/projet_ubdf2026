@@ -30,14 +30,84 @@ class VueZoom2016 extends VueBook
         'Sansita One', 'Patua One', 'Ubuntu Condensed', 'Open Sans',
     ];
 
+    /** Fonds proposes dans le panneau (reglage « theme », comme Ultra-frais) : fond, bandeau. */
+    public const FONDS = [
+        'theme_white' => ['#ffffff', '#ffffff'],
+        'theme_gris' => ['#f0eded', '#f0eded'],
+        'theme_black' => ['#363535', '#292929'],
+    ];
+
+    /** Fond choisi dans le panneau, ou null : couleurs du legacy (.ub_couleur_*). */
+    public function fond(): ?string
+    {
+        $theme = (string) ($this->pref->theme ?? '');
+
+        return isset(self::FONDS[$theme]) ? $theme : null;
+    }
+
     public function couleurFond(): string
     {
-        return self::couleurCss($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
+        return $this->fond() ? self::FONDS[$this->fond()][0] : self::couleurCss($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
     }
 
     public function couleurBandeau(): string
     {
-        return self::couleurCss($this->pref->{'.ub_couleur_nav'}->color ?? null, '#292929');
+        return $this->fond() ? self::FONDS[$this->fond()][1] : self::couleurCss($this->pref->{'.ub_couleur_nav'}->color ?? null, '#292929');
+    }
+
+    /**
+     * Visuel du bandeau (reglage « header », comme Ultra-frais) :
+     * absent = la photo de l'habillage, comme le legacy ; 0 = aucun ;
+     * 1 = photo ; 2+ = pictogramme de VueUltra2020::ICONES.
+     */
+    public function entete(): ?array
+    {
+        $valeur = $this->pref->header ?? null;
+
+        if ($valeur === null || (int) $valeur === 1) {
+            return $this->aPhoto() ? ['type' => 'photo', 'src' => $this->photo()] : null;
+        }
+
+        $id = (int) $valeur;
+        $trace = VueUltra2020::ICONES[$id - 2] ?? VueUltra2020::ICONES_RETIREES[$id - 2] ?? null;
+
+        return $trace ? ['type' => 'icone', 'trace' => $trace] : null;
+    }
+
+    /** S | M | L ; absent : M, la taille du legacy. */
+    public function tailleEntete(): string
+    {
+        $taille = strtoupper((string) ($this->pref->header_size ?? 'M'));
+
+        return in_array($taille, ['S', 'M', 'L'], true) ? $taille : 'M';
+    }
+
+    /** small | normal | large : espace entre les visuels ; absent : le filet d'1px du legacy. */
+    public function tailleVisuels(): string
+    {
+        $taille = (string) ($this->pref->visuel_size ?? 'small');
+
+        return in_array($taille, ['small', 'normal', 'large'], true) ? $taille : 'small';
+    }
+
+    /** @return array<string, string> reseau => URL des profils du createur. */
+    public function reseaux(): array
+    {
+        $liens = [];
+
+        foreach (VueUltra2020::RESEAUX as $reseau) {
+            $url = trim((string) ($this->pref->social_link->{'link_'.$reseau} ?? ''));
+            if ($url !== '') {
+                $liens[$reseau] = preg_match('~^(?:f|ht)tps?://~i', $url) ? $url : 'https://'.$url;
+            }
+        }
+
+        return $liens;
+    }
+
+    public function texte(string $cle): string
+    {
+        return self::deslasher((string) ($this->pref->{$cle} ?? ''));
     }
 
     /**
@@ -102,6 +172,11 @@ class VueZoom2016 extends VueBook
      */
     public function piedDePage(): ?string
     {
+        // Pied saisi dans le panneau d'edition, sinon celui du legacy.
+        if (($pied = trim($this->texte('footer'))) !== '') {
+            return $pied;
+        }
+
         $pied = (string) $this->b->cont_piedpage;
 
         return $this->b->us_formule === 1 && $pied !== '' && $pied !== '[invisible]'

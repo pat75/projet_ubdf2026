@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Front;
 
 use App\Services\Book\VueUltra2020;
+use App\Services\Book\VueZoom2016;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -12,16 +13,14 @@ use Illuminate\Validation\Rule;
  * Un reglage du book modifie depuis le mode edition. Liste blanche par
  * modele (celui du createur) : toute cle absente est refusee.
  * Les cles imbriquees du JSON s'ecrivent avec un point (nav_link.name_page) ;
- * CHEMINS donne l'emplacement des cles dont le nom JSON contient un point
- * (`.ub_couleur_fond`). Les cles `texte.*` vont dans les textes libres du
+ * CHEMINS donne l'emplacement des cles Zoom rangees sous un sous-objet
+ * (`link_bio.form_text`). Les cles `texte.*` vont dans les textes libres du
  * theme (theme_texts), pas dans sa configuration.
  */
 class ReglageBookRequest extends FormRequest
 {
     /** Reglages Zoom 2016 : cle => emplacement dans le JSON du theme. */
     public const CHEMINS = [
-        'couleur_fond' => ['.ub_couleur_fond', 'backgroundColor'],
-        'couleur_bandeau' => ['.ub_couleur_nav', 'color'],
         'link_accueil' => ['link_accueil', 'form_text'],
         'link_bio' => ['link_bio', 'form_text'],
         'link_contact' => ['link_contact', 'form_text'],
@@ -35,13 +34,17 @@ class ReglageBookRequest extends FormRequest
     public static function reglages(?string $theme = null): array
     {
         if ($theme === 'mdl_2016_zoom') {
-            $couleur = ['required', 'string', 'regex:/^#[0-9a-f]{6}$/i'];
             $interrupteur = ['required', Rule::in(['true', 'false'])];
             $intitule = ['nullable', 'string', 'max:40'];
 
             return [
-                'couleur_fond' => $couleur,
-                'couleur_bandeau' => $couleur,
+                'theme' => ['required', Rule::in(array_keys(VueZoom2016::FONDS))],
+                'header' => ['required', 'integer', Rule::in([0, 1, ...array_map(fn (int $id) => $id + 2, array_keys(VueUltra2020::ICONES))])],
+                'header_size' => ['required', Rule::in(['S', 'M', 'L'])],
+                'visuel_size' => ['required', Rule::in(['small', 'normal', 'large'])],
+                'footer' => ['nullable', 'string', 'max:5000'],
+                'expert_css' => ['nullable', 'string', 'max:20000'],
+                ...collect(VueUltra2020::RESEAUX)->mapWithKeys(fn ($r) => ["social_link.link_{$r}" => ['nullable', 'string', 'max:255']])->all(),
                 'link_accueil' => $intitule,
                 'link_bio' => $intitule,
                 'link_contact' => $intitule,

@@ -48,7 +48,7 @@
                         data-titre="{{ $visuel['titre'] }}" data-nom-rubrique="{{ $visuel['nom_rubrique'] }}"
                         data-description="{{ $visuel['description'] }}"
                         class="group relative self-start transition duration-700 ease-[cubic-bezier(.22,.61,.36,1)]">
-                    <div class="p-px">
+                    <div class="{{ ['small' => 'p-px', 'normal' => 'p-1', 'large' => 'p-2.5'][$vue->tailleVisuels()] }}">
                         <button type="button" class="relative block w-full cursor-zoom-in overflow-hidden bg-book-texte/5" @click="ouvrir($el.closest('figure'))"
                                 aria-label="{{ trim(__('Agrandir').' '.$visuel['titre']) }}">
                             <img src="{{ $visuel['moyen'] }}"

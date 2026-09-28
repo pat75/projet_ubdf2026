@@ -12,10 +12,16 @@
 --}}
 @php
     $liens = [
-        ['url' => '/', 'libelle' => $vue->lien('link_accueil', __('Portfolio')), 'actif' => in_array($b->page_type, ['accueil', 'portfolio'], true)],
-        ['url' => '/actualites', 'libelle' => $vue->lien('link_bio', __('Bio')), 'actif' => $b->page_type === 'news'],
-        ['url' => '/contact', 'libelle' => $vue->lien('link_contact', __('Contact')), 'actif' => $b->page_type === 'contact'],
+        ['url' => '/', 'cle' => 'link_accueil', 'libelle' => $vue->lien('link_accueil', __('Portfolio')), 'actif' => in_array($b->page_type, ['accueil', 'portfolio'], true)],
+        ['url' => '/actualites', 'cle' => 'link_bio', 'libelle' => $vue->lien('link_bio', __('Bio')), 'actif' => $b->page_type === 'news'],
+        ['url' => '/contact', 'cle' => 'link_contact', 'libelle' => $vue->lien('link_contact', __('Contact')), 'actif' => $b->page_type === 'contact'],
     ];
+    $entete = $vue->entete();
+    $taille = [
+        'photo' => ['S' => 'max-h-14 md:max-h-20', 'M' => 'max-h-20 md:max-h-40', 'L' => 'max-h-28 md:max-h-60'],
+        'icone' => ['S' => 'h-10 md:h-14', 'M' => 'h-14 md:h-24', 'L' => 'h-20 md:h-36'],
+    ];
+    $reseaux = $vue->reseaux();
     $polices = collect(['Dosis:wght@300;400;500;700', ...array_map(fn ($p) => str_replace(' ', '+', $p), $vue->policesUtilisees())])
         ->map(fn ($p) => 'family='.str_replace(' ', '+', $p))->implode('&');
     $partage = $vue->actif('ptf_activer_sociaux') ? $vue->partage() : [];
@@ -42,6 +48,11 @@
     @endif
 
     @vite(['resources/css/book.css', 'resources/js/book.js'])
+
+    @if (trim($vue->texte('expert_css')) !== '')
+        {{-- CSS libre du createur (reglage expert), comme Ultra-frais. --}}
+        <style>{!! trim($vue->texte('expert_css')) !!}</style>
+    @endif
 </head>
 <body @if ($vue->edition()) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif
       class="{{ $vue->edition() ? 'lg:pl-[24rem]' : '' }} modele-zoom min-h-screen bg-book-fond font-texte text-book-texte2 antialiased" style="{{ $vue->variables() }}" id="{{ $b->page_type }}">
@@ -60,9 +71,11 @@
 
                 <a href="/" class="block motion-safe:animate-apparition">
                     <h1 class="sr-only">{{ $vue->nomCreateur() }}</h1>
-                    @if ($vue->aPhoto())
-                        <img src="{{ $vue->photo() }}" alt="{{ $vue->nomCreateur() }}" fetchpriority="high"
-                             class="max-h-20 w-auto max-w-[70vw] object-contain md:max-h-40">
+                    @if ($entete && $entete['type'] === 'photo')
+                        <img src="{{ $entete['src'] }}" alt="{{ $vue->nomCreateur() }}" fetchpriority="high"
+                             @class(['w-auto max-w-[70vw] object-contain', $taille['photo'][$vue->tailleEntete()]])>
+                    @elseif ($entete)
+                        <svg viewBox="0 0 24 24" @class(['w-auto fill-current', $taille['icone'][$vue->tailleEntete()]]) aria-hidden="true">{!! $entete['trace'] !!}</svg>
                     @endif
                 </a>
 
@@ -82,12 +95,13 @@
                                     'font-medium opacity-100' => $lien['actif'],
                                     'opacity-85' => ! $lien['actif'],
                                 ])>
-                                    {{-- Rubrique courante soulignee ; les autres, au survol. --}}
-                                    <span @class([
+                                    {{-- Rubrique courante soulignee ; les autres, au survol.
+                                         En mode edition : intitule modifiable sur place (crayon). --}}
+                                    <x-book.texte-editable :cle="$lien['cle']" tag="span" :edition="$vue->edition()" @class([
                                         'border-b-2 pb-1 transition-colors duration-300',
                                         'border-current' => $lien['actif'],
                                         'border-transparent group-hover:border-current/40' => ! $lien['actif'],
-                                    ])>{{ $lien['libelle'] }}</span>
+                                    ])>{{ $lien['libelle'] }}</x-book.texte-editable>
                                 </a>
                             </li>
                         @endforeach
@@ -105,6 +119,14 @@
         </main>
 
         <footer class="px-4 pb-10 pt-14 text-center text-[13px] text-book-texte3">
+            @if ($reseaux)
+                {{-- Profils du createur (reglage « social_link »). --}}
+                <ul class="mb-5 flex flex-wrap justify-center gap-x-8 gap-y-2 text-[15px]">
+                    @foreach ($reseaux as $reseau => $url)
+                        <li><a href="{{ $url }}" target="_blank" rel="noopener me" class="capitalize hover:text-book-texte">{{ $reseau }}</a></li>
+                    @endforeach
+                </ul>
+            @endif
             @if ($pied = $vue->piedDePage())
                 <div class="texte-libre mb-3">{!! $pied !!}</div>
             @endif

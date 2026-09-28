@@ -141,12 +141,35 @@ describe('mode edition', function () {
             ->assertSee('csrf-token', false);
     });
 
-    it('enregistre les couleurs dans les cles du legacy', function () {
-        reglerZoom($this, 'couleur_bandeau', '#dc006b')->assertOk();
-        reglerZoom($this, 'couleur_fond', 'red;}')->assertStatus(422);
+    it('regle le fond par trois boutons, les books sans choix gardent leurs couleurs', function () {
+        $this->get(urlZoom())->assertSee('--book-bandeau:#292929', false);
 
-        expect($this->book->bookSetting->fresh()->theme_settings['data']['.ub_couleur_nav']['color'])->toBe('#dc006b');
-        $this->get(urlZoom())->assertSee('--book-bandeau:#dc006b', false);
+        reglerZoom($this, 'theme', 'theme_black')->assertOk();
+        reglerZoom($this, 'theme', '#ff0000')->assertStatus(422);
+
+        $this->get(urlZoom())->assertSee('--book-fond:#363535', false)->assertSee('--book-texte:#ffffff', false);
+    });
+
+    it('regle le visuel, sa taille, la marge, les profils, le pied et le CSS expert', function () {
+        reglerZoom($this, 'header', '3')->assertOk();
+        reglerZoom($this, 'header_size', 'L')->assertOk();
+        reglerZoom($this, 'visuel_size', 'large')->assertOk();
+        reglerZoom($this, 'social_link.link_instagram', 'instagram.com/zoe')->assertOk();
+        reglerZoom($this, 'footer', '<p>Tous droits réservés</p>')->assertOk();
+        reglerZoom($this, 'expert_css', 'h1{color:red}</style><script>')->assertOk();
+
+        $html = $this->get(urlZoom())->getContent();
+        expect($html)->toContain('h-20 md:h-36')
+            ->toContain('class="p-2.5"')
+            ->toContain('href="https://instagram.com/zoe"')
+            ->toContain('Tous droits réservés')
+            ->toContain('h1{color:red}')
+            ->not->toContain('</style><script>');
+    });
+
+    it('rend les intitules du menu modifiables sur place', function () {
+        $this->get(urlZoom())->assertDontSee('texteBook', false);
+        $this->actingAs($this->book)->get(urlZoom())->assertSee("texteBook('link_bio')", false);
     });
 
     it('enregistre un interrupteur et un intitule du menu', function () {
@@ -164,6 +187,6 @@ describe('mode edition', function () {
     });
 
     it('refuse les reglages d Ultra-frais sur un book Zoom', function () {
-        reglerZoom($this, 'theme', 'theme_black')->assertStatus(422);
+        reglerZoom($this, 'cursor', 'true')->assertStatus(422);
     });
 });
