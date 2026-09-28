@@ -69,22 +69,6 @@
     </button>
 </section>
 
-<section x-data="blocReglage('menu')">
-    <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
-        <span>{{ __('Intitulés du menu') }}</span>
-        <x-espace.picto nom="angle-droite" x-show="! ouvert" class="h-5 w-5 shrink-0" />
-        <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-5 w-5 shrink-0" />
-    </button>
-    <div x-show="ouvert" x-cloak class="mt-2">
-    <div class="flex flex-col gap-2">
-        @foreach (['name_portfolio' => 'Portfolio', 'name_page' => 'Bio', 'name_contact' => 'Contact'] as $cle => $defaut)
-            <input type="text" value="{{ $vue->lien($cle, $defaut) }}" maxlength="40"
-                   @change="regler('nav_link.{{ $cle }}', $el.value)" class="{{ $champ }}">
-        @endforeach
-    </div>
-    </div>
-</section>
-
 <section x-data="blocReglage('reseaux')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ __('Réseaux sociaux') }}</span>

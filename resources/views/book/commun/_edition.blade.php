@@ -94,15 +94,19 @@
      panneau, pour rester au meme endroit quand l'apercu visiteur l'efface. --}}
 <div x-show="! $store.edition.cadre"
      :class="$store.edition.actif ? 'border-b border-r' : 'border shadow-lg'"
-     class="fixed left-0 top-14 z-[76] flex h-[53px] w-full max-w-sm items-center gap-2 border-gray-200 bg-white px-5 font-sans text-[13px] max-lg:hidden">
+     class="fixed left-0 top-14 z-[76] flex h-[53px] w-full max-w-sm items-center gap-3 border-gray-200 bg-white pr-5 font-sans text-[13px] max-lg:hidden">
+    {{-- Retour a l'espace : carre colle au bord gauche, fleche seule. --}}
+    <a href="{{ $vue->urlEspace() }}" title="{{ __('Mon espace') }}"
+       class="flex h-full w-[53px] shrink-0 items-center justify-center bg-black text-white hover:bg-gray-800">
+        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <span class="sr-only">{{ __('Mon espace') }}</span>
+    </a>
     <div class="flex items-center gap-1 rounded-full bg-black p-1 text-[12px] text-white">
         <button type="button" @click="$store.edition.actif = ! $store.edition.actif"
                 class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 hover:bg-white/15">
             <svg x-show="! $store.edition.actif" x-cloak class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             <span x-text="$store.edition.actif ? @js(__('Aperçu')) : @js(__('Modifier'))"></span>
         </button>
-        <span class="h-4 w-px bg-white/60" aria-hidden="true"></span>
-        <a href="{{ $vue->urlEspace() }}" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 hover:bg-white/15"><svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>{{ __('Mon espace') }}</a>
     </div>
     <div class="ml-auto flex items-center gap-0.5" role="group" aria-label="{{ __('Format d’aperçu') }}">
         @foreach ([

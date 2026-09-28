@@ -72,7 +72,7 @@
 
 <section x-data="blocReglage('menu')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
-        <span>{{ __('Intitulés du menu') }}</span>
+        <span>{{ __('Accueil dans le menu') }}</span>
         <x-espace.picto nom="angle-droite" x-show="! ouvert" class="h-5 w-5 shrink-0" />
         <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-5 w-5 shrink-0" />
     </button>
@@ -88,16 +88,7 @@
             <input type="text" value="{{ $accueil }}" maxlength="40" aria-label="{{ __('Accueil') }}"
                    @change="regler('ub_menu_titre_accueil', $el.value)" class="{{ $champ }} mt-2">
         @endif
-        <div class="mt-4 flex flex-col gap-2">
-            @foreach (['ub_menu_titre_ptf' => __('Portfolio'), 'ub_menu_titre_actu' => __('Bio')] as $cle => $defaut)
-                <label class="flex items-center gap-2">
-                    <span class="w-20 shrink-0 text-gray-600">{{ $defaut }}</span>
-                    <input type="text" value="{{ $vue->intitule($cle, $defaut) }}" maxlength="40"
-                           @change="regler(@js($cle), $el.value)" class="{{ $champ }}">
-                </label>
-            @endforeach
-        </div>
-        <p class="mt-2 text-gray-500">{{ __('Laissez vide pour masquer une entrée.') }}</p>
+        <p class="mt-2 text-gray-500">{{ __('Portfolio et Bio se modifient directement sur la page, au crayon.') }}</p>
     </div>
 </section>
 
