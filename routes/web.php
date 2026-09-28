@@ -28,6 +28,7 @@ use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
+use App\Http\Controllers\Front\LlmsController;
 use App\Http\Controllers\Front\RobotsController;
 use App\Http\Controllers\Front\SitemapController;
 use App\Http\Controllers\Front\StatsController;
@@ -140,6 +141,8 @@ Route::group([], function () {
         ->whereNumber('paquet')->name('sitemap.books');
     Route::redirect('/sitemap', '/sitemap.xml', 301);
     Route::get('/robots.txt', RobotsController::class)->name('robots');
+    // Presentation du portail pour les assistants IA (llmstxt.org).
+    Route::get('/llms.txt', LlmsController::class)->name('llms');
 
     // Compteurs globaux, attendus par js_core_pages.js a ce chemin exact.
     Route::get('/cache_js/data_stats.json', StatsController::class)->name('stats');
