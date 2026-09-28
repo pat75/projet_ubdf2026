@@ -113,10 +113,13 @@ final class LegacyMigrator
                     'signup_ip' => Str::limit((string) $row->us_ip, 45, ''),
                     'signup_referer' => LegacyText::clean($row->us_referer),
                     'admin_note' => LegacyText::clean($row->us_commentaire),
-                    'created_at' => $this->date($row->us_date) ?? now(),
                 ],
             );
 
+            // Date d'inscription du legacy : hors $fillable (un horodatage
+            // ne se remplit pas en masse), updateOrCreate l'ignorait et tous
+            // les comptes prenaient la date de l'import.
+            $user->forceFill(['created_at' => $this->date($row->us_date) ?? $user->created_at ?? now()]);
             $user->save();
         }
 
