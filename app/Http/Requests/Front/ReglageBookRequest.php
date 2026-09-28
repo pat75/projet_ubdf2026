@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Front;
 
+use App\Services\Book\VueResponsive2014;
 use App\Services\Book\VueUltra2020;
 use App\Services\Book\VueZoom2016;
 use Illuminate\Contracts\Validation\Validator;
@@ -28,11 +29,46 @@ class ReglageBookRequest extends FormRequest
         'ptf_activer_contact' => ['ptf_activer_contact', 'ptf_activer_contact'],
         'ptf_activer_gmap' => ['ptf_activer_gmap', 'ptf_activer_gmap'],
         'ptf_activer_iso_category' => ['ptf_activer_iso_category', 'ptf_activer_iso_category'],
+        // Responsive 2014
+        'ub_menu_titre_accueil' => ['ub_menu_titre_accueil', 'form_text'],
+        'ub_menu_titre_ptf' => ['ub_menu_titre_ptf', 'form_text'],
+        'ub_menu_titre_actu' => ['ub_menu_titre_actu', 'form_text'],
+        'ptf_type_presentation' => ['ptf_type_presentation', 'ptf_type_presentation'],
+        'ptf_type_vign' => ['ptf_type_vign', 'ptf_type_vign'],
+        'ptf_position_vign' => ['ptf_position_vign', 'ptf_position_vign'],
+        'ptf_titre_aff' => ['ptf_titre_aff', 'ptf_titre_aff'],
+        'ptf_vignette_aff' => ['ptf_vignette_aff', 'ptf_vignette_aff'],
     ];
 
     /** Reglage => regles de sa valeur, pour le modele du book. */
     public static function reglages(?string $theme = null): array
     {
+        $communs = fn () => [
+            'footer' => ['nullable', 'string', 'max:5000'],
+            'expert_css' => ['nullable', 'string', 'max:20000'],
+            ...collect(VueUltra2020::RESEAUX)->mapWithKeys(fn ($r) => ["social_link.link_{$r}" => ['nullable', 'string', 'max:255']])->all(),
+        ];
+
+        if ($theme === 'mdl_2014_responsive') {
+            $interrupteur = ['required', Rule::in(['true', 'false'])];
+            $intitule = ['nullable', 'string', 'max:40'];
+
+            return [
+                'theme' => ['required', Rule::in(array_keys(VueResponsive2014::FONDS))],
+                'ub_menu_titre_accueil' => $intitule,
+                'ub_menu_titre_ptf' => $intitule,
+                'ub_menu_titre_actu' => $intitule,
+                'ptf_type_presentation' => ['required', Rule::in(['slide', 'full', 'image'])],
+                'ptf_type_vign' => ['required', Rule::in(['thumbs', 'dots', 'none'])],
+                'ptf_position_vign' => ['required', Rule::in(['top', 'bottom'])],
+                'ptf_titre_aff' => $interrupteur,
+                'ptf_vignette_aff' => $interrupteur,
+                'texte.cont_menu_gauche' => ['nullable', 'string', 'max:5000'],
+                'texte.cont_menu_gauche2' => ['nullable', 'string', 'max:5000'],
+                ...$communs(),
+            ];
+        }
+
         if ($theme === 'mdl_2016_zoom') {
             $interrupteur = ['required', Rule::in(['true', 'false'])];
             $intitule = ['nullable', 'string', 'max:40'];

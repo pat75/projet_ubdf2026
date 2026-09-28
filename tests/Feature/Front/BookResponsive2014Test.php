@@ -102,3 +102,42 @@ it('rend la Bio et un contact qui n est plus une rubrique de pages', function ()
         ->assertSee('x-data="contactBook"', false)
         ->assertSee('<link rel="canonical" href="https://remi-resp.'.config('ubdf.book_domain').'/contact">', false);
 });
+
+describe('mode edition', function () {
+    function reglerR($test, string $cle, string $valeur)
+    {
+        return $test->actingAs($test->book)->postJson(urlResp('/reglages'), ['cle' => $cle, 'valeur' => $valeur]);
+    }
+
+    it('affiche le panneau Responsive et les crayons au seul createur', function () {
+        $this->get(urlResp())->assertDontSee('Réglages du book')->assertDontSee('texteBook', false);
+        $this->actingAs($this->book)->get(urlResp())->assertOk()
+            ->assertSee('Réglages du book')
+            ->assertSee('Diaporama du portfolio')
+            ->assertSee("texteBook('ub_menu_titre_ptf')", false);
+    });
+
+    it('enregistre fond, diaporama et intitules dans les cles du legacy', function () {
+        reglerR($this, 'theme', 'theme_black')->assertOk();
+        reglerR($this, 'ptf_type_vign', 'dots')->assertOk();
+        reglerR($this, 'ub_menu_titre_ptf', 'Projets')->assertOk();
+        reglerR($this, 'ptf_type_vign', 'rien')->assertStatus(422);
+        reglerR($this, 'header', '1')->assertStatus(422);
+
+        $data = $this->book->bookSetting->fresh()->theme_settings['data'];
+        expect($data['ptf_type_vign']['ptf_type_vign'])->toBe('dots')
+            ->and($data['ub_menu_titre_ptf']['form_text'])->toBe('Projets');
+
+        $this->get(urlResp('/affiches-p'.$this->galerie->id))
+            ->assertSee('--book-fond:#363535', false)
+            ->assertSee('Projets')
+            ->assertSee('rounded-full transition', false);
+    });
+
+    it('range les textes de la colonne dans les textes du theme, HTML filtre', function () {
+        reglerR($this, 'texte.cont_menu_gauche', '<b>Peintre</b><script>x</script>')->assertOk();
+
+        expect($this->book->bookSetting->fresh()->theme_texts['mdl_2014_responsive']['cont_menu_gauche'])->not->toContain('<script');
+        $this->get(urlResp())->assertSee('<b>Peintre</b>', false);
+    });
+});

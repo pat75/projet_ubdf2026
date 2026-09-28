@@ -25,9 +25,46 @@ class VueResponsive2014 extends VueBook
 {
     protected const LIMITE_PAR_RUBRIQUE = true;
 
+    /** Fonds proposes dans le panneau (reglage « theme », comme Ultra-frais). */
+    public const FONDS = ['theme_white' => '#ffffff', 'theme_gris' => '#f0eded', 'theme_black' => '#363535'];
+
+    /** Fond choisi dans le panneau, ou null : couleur du legacy (.ub_couleur_fond). */
+    public function fond(): ?string
+    {
+        $theme = (string) ($this->pref->theme ?? '');
+
+        return isset(self::FONDS[$theme]) ? $theme : null;
+    }
+
     public function couleurFond(): string
     {
-        return self::couleurCss($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
+        return $this->fond() ? self::FONDS[$this->fond()] : self::couleurCss($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
+    }
+
+    /** Valeur brute d'un intitule du menu, pour le panneau. */
+    public function intitule(string $cle, string $defaut): string
+    {
+        return self::brut($this->pref->{$cle}->form_text ?? $defaut);
+    }
+
+    public function texte(string $cle): string
+    {
+        return self::deslasher((string) ($this->pref->{$cle} ?? ''));
+    }
+
+    /** @return array<string, string> reseau => URL des profils du createur. */
+    public function reseaux(): array
+    {
+        $liens = [];
+
+        foreach (VueUltra2020::RESEAUX as $reseau) {
+            $url = trim((string) ($this->pref->social_link->{'link_'.$reseau} ?? ''));
+            if ($url !== '') {
+                $liens[$reseau] = preg_match('~^(?:f|ht)tps?://~i', $url) ? $url : 'https://'.$url;
+            }
+        }
+
+        return $liens;
     }
 
     /** Image de fond du book, si le createur l'a choisie (ptf_choix_fond = img). */
@@ -189,6 +226,11 @@ class VueResponsive2014 extends VueBook
     /** Pied de page : celui du createur (formule payante), ou la mention de la plateforme. */
     public function piedDePage(): ?string
     {
+        // Pied saisi dans le panneau d'edition, sinon celui du legacy.
+        if (($pied = trim($this->texte('footer'))) !== '') {
+            return $pied;
+        }
+
         $pied = (string) $this->b->cont_piedpage;
 
         return $this->b->us_formule === 1 && $pied !== '' && $pied !== '[invisible]'

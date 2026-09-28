@@ -24,6 +24,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if ($vue->edition())
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+    @endif
     @include('book.commun._seo')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,8 +42,14 @@
 
     {{-- Typographie et couleurs reglees par le createur (ex-ub_book_core_mdl2012.js). --}}
     <style>{!! $vue->cssReglages() !!}</style>
+
+    @if (trim($vue->texte('expert_css')) !== '')
+        {{-- CSS libre du createur (reglage expert), comme Ultra-frais. --}}
+        <style>{!! trim($vue->texte('expert_css')) !!}</style>
+    @endif
 </head>
-<body class="modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
+<body @if ($vue->edition()) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif
+      class="{{ $vue->edition() ? 'lg:pl-[24rem]' : '' }} modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
       style="{{ $vue->variables() }}{{ $fond ? ';background-image:url('.e($fond).')' : '' }}" id="{{ $b->page_type }}">
 
     <div x-data="{ menu: false }" @keydown.escape.window="menu = false" class="mx-auto max-w-[1280px] lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 lg:px-10">
@@ -92,7 +101,7 @@
                     @if ($rubriques)
                         <div>
                             @if ($titrePtf)
-                                <p class="ub_menu_titre ub_font_menut mb-2">{{ $titrePtf['texte'] ?? __('Portfolio') }}</p>
+                                <p class="ub_menu_titre ub_font_menut mb-2"><x-book.texte-editable cle="ub_menu_titre_ptf" tag="span" :edition="$vue->edition()">{{ $titrePtf['texte'] ?? __('Portfolio') }}</x-book.texte-editable></p>
                             @endif
                             <ul class="flex flex-col gap-1.5 pl-1">
                                 @foreach ($rubriques as $rubrique)
@@ -111,7 +120,7 @@
                     @if ($pages['rubriques'])
                         <div>
                             @if ($titreBio)
-                                <p class="ub_menu_titre ub_font_menut mb-2">{{ $titreBio['texte'] ?? __('Bio') }}</p>
+                                <p class="ub_menu_titre ub_font_menut mb-2"><x-book.texte-editable cle="ub_menu_titre_actu" tag="span" :edition="$vue->edition()">{{ $titreBio['texte'] ?? __('Bio') }}</x-book.texte-editable></p>
                             @endif
                             <ul class="flex flex-col gap-2 pl-1">
                                 @foreach ($pages['rubriques'] as $rubrique)
@@ -161,6 +170,14 @@
             </main>
 
             <footer class="pb-10 pt-12 text-[12px] text-book-texte3">
+                @if ($reseaux = $vue->reseaux())
+                    {{-- Profils du createur (reglage « social_link »). --}}
+                    <ul class="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-[14px]">
+                        @foreach ($reseaux as $reseau => $url)
+                            <li><a href="{{ $url }}" target="_blank" rel="noopener me" class="capitalize hover:text-book-texte">{{ $reseau }}</a></li>
+                        @endforeach
+                    </ul>
+                @endif
                 @if ($pied = $vue->piedDePage())
                     <div class="texte-libre">{!! $pied !!}</div>
                 @elseif ($vue->mentionPlateforme())
@@ -179,10 +196,12 @@
         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>
     </button>
 
-    @unless ($vue->edition())
+    @if ($vue->edition())
+        @include('book.commun._edition')
+    @else
         {{-- Pixel de statistiques du book (StatsBookController) : pas pour son createur. --}}
         <img src="/ubstats.gif?r={{ random_int(0, 9999) }}" width="1" height="1" alt="" class="hidden">
-    @endunless
+    @endif
 
     @if (! empty($b->cont_analytic))
         {{-- Mesure propre au createur, en GA4, s'il en a declare une. --}}
