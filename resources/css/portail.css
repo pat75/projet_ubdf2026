@@ -57,9 +57,11 @@
     margin-bottom: 1.5rem;
     font-weight: 300;
 }
+/* Semantic pose .75em de chaque cote de chaque carte : la grille est
+   ramenee d'autant pour que la premiere carte parte du « L » du titre. */
 .portfolios_du_moment .ui.cards {
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: -.75em;
+    margin-right: -.75em;
 }
 
 /* Suggestions sous le champ de recherche (x-portail.resultats-recherche) :
