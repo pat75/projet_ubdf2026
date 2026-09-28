@@ -11,6 +11,7 @@
 @source '../views/book/responsive';
 @source '../views/book/classique2015';
 @source '../views/book/pinter';
+@source '../views/book/grid2015';
 @source '../views/book/commun';
 @source '../js/book';
 @source '../views/components/book';
@@ -117,6 +118,12 @@
 }
 @media (min-width: 768px) {
     .mosaique.mosaique-pinter { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Grid 2015 : Dosis, police par defaut du modele (surchargee par .ub_font_*). */
+.modele-grid {
+    --font-titre: 'Dosis', ui-sans-serif, sans-serif;
+    --font-texte: 'Dosis', ui-sans-serif, sans-serif;
 }
 
 /* Responsive 2014 : Ruda, police par defaut du modele (surchargee par .ub_font_*). */

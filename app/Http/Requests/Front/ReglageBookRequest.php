@@ -49,7 +49,7 @@ class ReglageBookRequest extends FormRequest
             ...collect(VueUltra2020::RESEAUX)->mapWithKeys(fn ($r) => ["social_link.link_{$r}" => ['nullable', 'string', 'max:255']])->all(),
         ];
 
-        if (in_array($theme, ['mdl_2014_responsive', 'mdl_2015_classique', 'mdl_2013_pinter'], true)) {
+        if (in_array($theme, ['mdl_2014_responsive', 'mdl_2015_classique', 'mdl_2013_pinter', 'mdl_2015_grid'], true)) {
             $interrupteur = ['required', Rule::in(['true', 'false'])];
             $intitule = ['nullable', 'string', 'max:40'];
 
@@ -63,6 +63,7 @@ class ReglageBookRequest extends FormRequest
                 'ptf_position_vign' => ['required', Rule::in(['top', 'bottom'])],
                 'ptf_titre_aff' => $interrupteur,
                 'ptf_vignette_aff' => $interrupteur,
+                'accueil_ptf_vignette_aff' => $interrupteur,
                 'texte.cont_menu_gauche' => ['nullable', 'string', 'max:5000'],
                 'texte.cont_menu_gauche2' => ['nullable', 'string', 'max:5000'],
                 'texte.cont_acceuil_bas' => ['nullable', 'string', 'max:5000'],

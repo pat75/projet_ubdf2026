@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Book\VueClassique2015;
+use App\Services\Book\VueGrid2015;
 use App\Services\Book\VuePinter2013;
 use App\Services\Book\VueResponsive2014;
 use App\Services\Book\VueZoom2016;
@@ -120,6 +121,9 @@ return [
         'titre' => 'Modèle Grid 2015',
         'dossier' => 'grid2015',
         'gabarit' => 'ultrabook_2015_type',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de resources/views/book/grid2015.
+        'vue' => VueGrid2015::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'accueil' => 'pages',
         'contact' => 'page',
         'assets' => 'grid2015',

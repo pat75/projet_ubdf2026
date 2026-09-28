@@ -31,8 +31,11 @@
     </div>
 </section>
 
-@php $pinter ??= false; @endphp
-@unless ($pinter)
+@php
+    $pinter ??= false;
+    $grid ??= false;
+@endphp
+@unless ($pinter || $grid)
 <section x-data="blocReglage('diaporama')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ __('Diaporama du portfolio') }}</span>
@@ -74,6 +77,7 @@
 
 @endunless
 
+@unless ($grid)
 <section x-data="blocReglage('menu')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ __('Accueil dans le menu') }}</span>
@@ -95,6 +99,8 @@
         <p class="mt-2 text-gray-500">{{ __('Portfolio et Bio se modifient directement sur la page, au crayon.') }}</p>
     </div>
 </section>
+
+@endunless
 
 <section x-data="blocReglage('reseaux')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
@@ -118,13 +124,15 @@
 
 @php
     $classique ??= false;
-    $interrupteurs = $pinter ? [] : ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]];
-    if (! $classique && ! $pinter) {
+    $interrupteurs = $grid
+        ? ['accueil_ptf_vignette_aff' => [__('Tuiles du portfolio sur l’accueil'), __('Une grande tuile par rubrique.'), true]]
+        : ($pinter ? [] : ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]]);
+    if (! $classique && ! $pinter && ! $grid) {
         $interrupteurs['ptf_vignette_aff'] = [__('Vignettes sur l’accueil'), __('Une tuile par rubrique du portfolio.'), true];
     }
-    $textes = $classique
+    $textes = $grid ? ['cont_menu_gauche' => __('Texte sous le menu')] : ($classique
         ? ['cont_acceuil_bas' => __('Texte sous le visuel d’accueil'), 'cont_menu_gauche' => __('Texte en haut de la colonne'), 'cont_menu_gauche2' => __('Texte sous le menu')]
-        : ['cont_menu_gauche' => __('Texte sous le visuel'), 'cont_menu_gauche2' => __('Texte sous le menu')];
+        : ['cont_menu_gauche' => __('Texte sous le visuel'), 'cont_menu_gauche2' => __('Texte sous le menu')]);
 @endphp
 @foreach ($interrupteurs as $cle => [$nom, $aide, $defaut])
     @php $actif = $vue->actif($cle, $defaut); @endphp
