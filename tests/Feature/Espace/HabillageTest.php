@@ -3,6 +3,10 @@
 use App\Livewire\Espace\Diffusion;
 use App\Livewire\Espace\Habillage;
 use App\Models\User;
+use App\Services\Espace\ReglagesTheme;
+use App\Support\DossierBook;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -10,10 +14,13 @@ beforeEach(function () {
     $this->actingAs($this->creatif);
 });
 
-it('affiche les reglages du theme actif', function () {
+it('place la presentation en tete et ne propose plus les reglages du modele', function () {
     $this->creatif->bookSetting()->create(['theme' => 'mdl_2016_zoom']);
 
-    $this->get(route('espace.design'))->assertOk()->assertSee('Modèle Zoom 2016')->assertSee('Link bio');
+    $this->get(route('espace.design'))->assertOk()
+        ->assertSeeInOrder(['Présentation', 'Modèle du book', 'Modèle Zoom 2016'])
+        ->assertDontSee('Réglages du modèle')
+        ->assertDontSee('Link bio');
 });
 
 it('enregistre les reglages en gardant le format du legacy', function () {
@@ -21,7 +28,7 @@ it('enregistre les reglages en gardant le format du legacy', function () {
 
     $composant = Livewire::test(Habillage::class);
     $valeurs = $composant->get('valeurs');
-    $champs = app(App\Services\Espace\ReglagesTheme::class)->champs(json_decode(config('book_themes.mdl_2016_zoom.defaut'), true));
+    $champs = app(ReglagesTheme::class)->champs(json_decode(config('book_themes.mdl_2016_zoom.defaut'), true));
     $i = collect($champs)->search(fn ($c) => $c['chemin'] === ".ub_couleur_fond\x1FbackgroundColor");
     $j = collect($champs)->search(fn ($c) => $c['chemin'] === "ptf_activer_gmap\x1Fptf_activer_gmap");
     $valeurs[$i] = '#123456';
@@ -36,7 +43,7 @@ it('enregistre les reglages en gardant le format du legacy', function () {
 
 it('rejette une couleur invalide', function () {
     $this->creatif->bookSetting()->create(['theme' => 'mdl_2016_zoom']);
-    $champs = app(App\Services\Espace\ReglagesTheme::class)->champs(json_decode(config('book_themes.mdl_2016_zoom.defaut'), true));
+    $champs = app(ReglagesTheme::class)->champs(json_decode(config('book_themes.mdl_2016_zoom.defaut'), true));
     $i = collect($champs)->search(fn ($c) => $c['type'] === 'couleur');
 
     $composant = Livewire::test(Habillage::class);
@@ -65,11 +72,11 @@ it('refuse un theme inconnu', function () {
 });
 
 afterEach(function () {
-    \Illuminate\Support\Facades\File::deleteDirectory(App\Support\DossierBook::chemin($this->creatif->login ?? '_'));
+    File::deleteDirectory(DossierBook::chemin($this->creatif->login ?? '_'));
 });
 
 it('depose une photo de profil recadree et l affiche a la place des initiales', function () {
-    $fichier = Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 400, 400);
+    $fichier = UploadedFile::fake()->image('avatar.jpg', 400, 400);
 
     Livewire::test(Habillage::class)
         ->set('avatarTemp', $fichier)
@@ -80,11 +87,11 @@ it('depose une photo de profil recadree et l affiche a la place des initiales', 
 
     $reglages = $this->creatif->bookSetting()->first();
     expect($reglages->thumbnail)->not->toBeNull()
-        ->and(is_file(App\Support\DossierBook::chemin($this->creatif->login, $reglages->thumbnail)))->toBeTrue();
+        ->and(is_file(DossierBook::chemin($this->creatif->login, $reglages->thumbnail)))->toBeTrue();
 });
 
 it('retire la photo de profil et revient aux initiales', function () {
-    $fichier = Illuminate\Http\UploadedFile::fake()->image('avatar.jpg', 400, 400);
+    $fichier = UploadedFile::fake()->image('avatar.jpg', 400, 400);
     $composant = Livewire::test(Habillage::class)->set('avatarTemp', $fichier)->call('deposerAvatar');
     $ancien = $this->creatif->bookSetting()->first()->thumbnail;
 
@@ -93,7 +100,7 @@ it('retire la photo de profil et revient aux initiales', function () {
         ->assertDispatched('avatar-profil-modifie', url: null);
 
     expect($this->creatif->bookSetting()->first()->thumbnail)->toBeNull()
-        ->and(is_file(App\Support\DossierBook::chemin($this->creatif->login, $ancien)))->toBeFalse();
+        ->and(is_file(DossierBook::chemin($this->creatif->login, $ancien)))->toBeFalse();
 });
 
 it('enregistre un champ de la presentation seul, a la sortie du champ', function () {
@@ -131,4 +138,25 @@ it('enregistre la diffusion', function () {
 
 it('refuse de basculer un champ non declare', function () {
     Livewire::test(Diffusion::class)->call('basculer', 'login')->assertStatus(422);
+});
+
+it('ne propose pas les anciens modeles a un book cree apres 2015', function () {
+    $this->creatif->forceFill(['created_at' => '2018-03-01'])->save();
+    $this->creatif->bookSetting()->create(['theme' => 'mdl_2020_ultra_frais']);
+
+    $this->get(route('espace.design'))->assertOk()->assertDontSee('Anciens modèles');
+});
+
+it('propose les anciens modeles a un book cree jusqu en 2015', function () {
+    $this->creatif->forceFill(['created_at' => '2012-05-10'])->save();
+    $this->creatif->bookSetting()->create(['theme' => 'mdl_2020_ultra_frais']);
+
+    $this->get(route('espace.design'))->assertOk()->assertSee('Anciens modèles');
+});
+
+it('garde les anciens modeles visibles pour un book recent qui en porte un', function () {
+    $this->creatif->forceFill(['created_at' => '2018-03-01'])->save();
+    $this->creatif->bookSetting()->create(['theme' => 'mdl_2014_responsive']);
+
+    $this->get(route('espace.design'))->assertOk()->assertSee('Anciens modèles');
 });

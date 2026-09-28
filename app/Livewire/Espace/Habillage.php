@@ -4,6 +4,7 @@ namespace App\Livewire\Espace;
 
 use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\BookSetting;
+use App\Models\User;
 use App\Services\Espace\AffichageProfil;
 use App\Services\Espace\DepotAvatar;
 use App\Services\Espace\ReglagesTheme;
@@ -140,7 +141,19 @@ class Habillage extends Component
             'photoUrl' => $profil->photoUrl($creatif),
             'initiales' => $profil->initiales($creatif),
             'couleurAvatar' => $profil->couleur($creatif),
+            'anciensModeles' => $this->anciensModelesProposes($creatif),
         ]);
+    }
+
+    /**
+     * Les anciens modeles ne sont proposes qu'aux books crees
+     * jusqu'en 2015, qui ont pu les connaitre — ou a un book qui en porte
+     * encore un, pour qu'il le voie dans la liste.
+     */
+    private function anciensModelesProposes(User $creatif): bool
+    {
+        return ($creatif->created_at?->year ?? 0) <= 2015
+            || ! in_array($this->theme, ['mdl_2020_ultra_frais', 'mdl_2020_ultra_zen', 'mdl_2015_grid', 'mdl_2016_zoom'], true);
     }
 
     private function chargerValeurs(ReglagesTheme $service): void

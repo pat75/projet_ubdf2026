@@ -20,7 +20,8 @@
     // precedents ; le reste, plus ancien, se deplie a la demande.
     $recents = ['mdl_2020_ultra_frais', 'mdl_2020_ultra_zen'];
     $precedents = ['mdl_2015_grid', 'mdl_2016_zoom'];
-    $anciens = collect($themes)->keys()->diff([...$recents, ...$precedents])->all();
+    // Books crees apres 2015 : pas d'anciens modeles (Habillage::anciensModelesProposes).
+    $anciens = $anciensModeles ? collect($themes)->keys()->diff([...$recents, ...$precedents])->all() : [];
 @endphp
 <div>
     {{-- En-tete de page, gabarit de Claude_design.md (reference : Mes messages). --}}
@@ -37,45 +38,10 @@
         @endif
     </div>
 
-    <section class="mb-8">
-        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Modèle du book') }}</h2>
-        <p class="mt-1 text-[13px] text-ub-texte3">{{ __('Chaque modèle garde ses propres réglages : revenir à un ancien modèle les retrouve.') }}</p>
-
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            @foreach ($recents as $cle)
-                @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
-            @endforeach
-        </div>
-
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            @foreach ($precedents as $cle)
-                @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
-            @endforeach
-        </div>
-
-        @if ($anciens)
-            <div x-data="{ ouvert: false }" class="carte-espace mt-4 overflow-hidden">
-                <button type="button" @click="ouvert = ! ouvert"
-                        class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left">
-                    <span class="text-[15px] font-bold text-ub-texte">{{ __('Anciens modèles') }}</span>
-                    <x-espace.picto x-show="! ouvert" nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
-                    <x-espace.picto x-show="ouvert" nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
-                </button>
-
-                <div x-show="ouvert" class="grid grid-cols-1 gap-4 border-t border-ub-filet p-5 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($anciens as $cle)
-                        @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
-                    @endforeach
-                </div>
-            </div>
-        @endif
-    </section>
-
-    <div class="space-y-3">
-        {{-- Presentation et reglages du modele : deux blocs depliables,
-             empiles, titre + fleche a droite (voir Claude_design.md,
-             « Listes depliables »). La presentation s'enregistre champ par
-             champ ; seuls les reglages du modele passent par le bouton. --}}
+    <div class="mb-8">
+        {{-- Presentation, en tete de page : bloc depliable, titre + fleche a
+             droite (voir Claude_design.md, « Listes depliables »). S'enregistre
+             champ par champ. Les reglages du modele ne sont plus proposes ici. --}}
         <div x-data="{ ouvert: true }" class="carte-espace overflow-hidden">
             <button type="button" @click="ouvert = ! ouvert"
                     class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left">
@@ -154,43 +120,39 @@
                     :libelle="__('Pied de page')" :vide="__('Ajouter un pied de page…')" />
             </div>
         </div>
-
-        @if ($champs)
-            <form wire:submit="enregistrer" class="space-y-3">
-                <div x-data="{ ouvert: false }" class="carte-espace overflow-hidden">
-                    <button type="button" @click="ouvert = ! ouvert"
-                            class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left">
-                        <span class="text-[15px] font-bold text-ub-texte">{{ __('Réglages du modèle') }}</span>
-                        <x-espace.picto x-show="! ouvert" nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
-                        <x-espace.picto x-show="ouvert" nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
-                    </button>
-
-                    <div x-show="ouvert" class="grid gap-4 border-t border-ub-filet px-5 pb-5 pt-4 sm:grid-cols-2">
-                        @foreach ($champs as $i => $c)
-                            <label wire:key="champ-{{ $theme }}-{{ $i }}" class="flex items-center justify-between gap-3 rounded-md bg-ub-fond px-3 py-2.5 text-[14px]">
-                                <span class="text-ub-texte2">{{ $c['libelle'] }}</span>
-                                @switch($c['type'])
-                                    @case('booleen')
-                                        <input type="checkbox" wire:model="valeurs.{{ $i }}" class="h-4 w-4 rounded border-ub-bord">
-                                        @break
-                                    @case('couleur')
-                                        <input type="color" wire:model="valeurs.{{ $i }}" class="h-8 w-12 rounded border border-ub-bord">
-                                        @break
-                                    @case('nombre')
-                                        <input type="number" wire:model="valeurs.{{ $i }}" class="w-24 rounded-md border border-ub-bord px-2 py-1 text-ub-texte">
-                                        @break
-                                    @default
-                                        <input type="text" wire:model="valeurs.{{ $i }}" class="w-1/2 rounded-md border border-ub-bord px-2 py-1 text-ub-texte">
-                                @endswitch
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="pt-3">
-                    <x-espace.bouton wire:loading.attr="disabled" wire:target="enregistrer">{{ __('Enregistrer les réglages') }}</x-espace.bouton>
-                </div>
-            </form>
-        @endif
     </div>
+
+    <section class="mb-8">
+        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Modèle du book') }}</h2>
+        <p class="mt-1 text-[13px] text-ub-texte3">{{ __('Chaque modèle garde ses propres réglages : revenir à un ancien modèle les retrouve.') }}</p>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            @foreach ($recents as $cle)
+                @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
+            @endforeach
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            @foreach ($precedents as $cle)
+                @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
+            @endforeach
+        </div>
+
+        @if ($anciens)
+            <div x-data="{ ouvert: false }" class="carte-espace mt-4 overflow-hidden">
+                <button type="button" @click="ouvert = ! ouvert"
+                        class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left">
+                    <span class="text-[15px] font-bold text-ub-texte">{{ __('Anciens modèles') }}</span>
+                    <x-espace.picto x-show="! ouvert" nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
+                    <x-espace.picto x-show="ouvert" nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
+                </button>
+
+                <div x-show="ouvert" class="grid grid-cols-1 gap-4 border-t border-ub-filet p-5 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($anciens as $cle)
+                        @include('livewire.espace.partials.carte-theme', ['nom' => $themes[$cle]])
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    </section>
 </div>
