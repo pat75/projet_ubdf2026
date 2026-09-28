@@ -67,7 +67,6 @@ final class LegacyMigrator
                     'login' => mb_strtolower(trim($row->us_login)),
                     'email' => $this->email($row),
                     'password' => $this->password($row),
-                    'email_verified_at' => $row->us_confirm_mail === 'true' ? now() : null,
                     'category_id' => $this->categoryId($row->us_type),
                     'brand' => in_array($row->us_view, ['ub', 'df'], true) ? $row->us_view : 'ub',
                     'locale' => $this->locale($row->us_lang),
@@ -116,10 +115,13 @@ final class LegacyMigrator
                 ],
             );
 
-            // Date d'inscription du legacy : hors $fillable (un horodatage
-            // ne se remplit pas en masse), updateOrCreate l'ignorait et tous
-            // les comptes prenaient la date de l'import.
-            $user->forceFill(['created_at' => $this->date($row->us_date) ?? $user->created_at ?? now()]);
+            // Horodatages hors $fillable (ils ne se remplissent pas en masse) :
+            // updateOrCreate les ignorait, tous les comptes prenaient la date
+            // de l'import et aucun mail n'etait marque comme confirme.
+            $user->forceFill([
+                'created_at' => $this->date($row->us_date) ?? $user->created_at ?? now(),
+                'email_verified_at' => $row->us_confirm_mail === 'true' ? ($user->email_verified_at ?? now()) : null,
+            ]);
             $user->save();
         }
 
@@ -232,7 +234,7 @@ final class LegacyMigrator
                 continue;
             }
 
-            Gallery::updateOrCreate(
+            $galerie = Gallery::updateOrCreate(
                 ['legacy_id' => $row->rub_id],
                 [
                     'user_id' => $userId,
@@ -242,9 +244,11 @@ final class LegacyMigrator
                     'position' => max(0, (int) $row->rub_ordre_rub),
                     'color' => $row->rub_coul ?: null,
                     'media_order' => $this->orderList($row->rub_ordre_img),
-                    'created_at' => $this->date($row->rub_date_crea) ?? now(),
                 ],
             );
+
+            // created_at hors $fillable : pose a part (voir migrateUsers).
+            $galerie->forceFill(['created_at' => $this->date($row->rub_date_crea) ?? $galerie->created_at])->save();
 
             $count++;
         }
@@ -307,7 +311,7 @@ final class LegacyMigrator
                 continue;
             }
 
-            Media::updateOrCreate(
+            $media = Media::updateOrCreate(
                 ['legacy_id' => $row->img_id],
                 [
                     'user_id' => $userId,
@@ -320,9 +324,11 @@ final class LegacyMigrator
                     'mime' => $row->img_type ?: null,
                     'size' => max(0, (int) $row->img_poids),
                     'status' => $this->status($row->img_publier),
-                    'created_at' => $this->date($row->img_date_crea) ?? now(),
                 ],
             );
+
+            // created_at hors $fillable : pose a part (voir migrateUsers).
+            $media->forceFill(['created_at' => $this->date($row->img_date_crea) ?? $media->created_at])->save();
 
             $count++;
         }
