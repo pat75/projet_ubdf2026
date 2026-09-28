@@ -55,7 +55,7 @@
     @endif
 </head>
 <body @if ($vue->edition()) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif
-      class="{{ $vue->edition() ? 'lg:pl-[24rem]' : '' }} modele-zoom min-h-screen bg-book-fond font-texte text-book-texte2 antialiased" style="{{ $vue->variables() }}" id="{{ $b->page_type }}">
+      class="{{ $vue->edition() ? 'mode-edition lg:pl-[24rem] max-lg:pt-12' : '' }} modele-zoom min-h-screen bg-book-fond font-texte text-book-texte2 antialiased" style="{{ $vue->variables() }}" id="{{ $b->page_type }}">
 
     <div x-data="{ menu: false }" class="flex min-h-screen flex-col">
 

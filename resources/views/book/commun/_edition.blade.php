@@ -18,7 +18,13 @@
 {{-- Sur grand ecran, ces boutons sont dans le panneau ; la barre flottante
      ne sert qu'en mobile. --}}
 <div x-show="! $store.edition.cadre"
-     class="lg:hidden fixed left-1/2 top-3 z-[80] flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/90 p-1 font-sans text-[13px] text-white shadow-lg">
+     class="lg:hidden fixed inset-x-0 top-0 z-[80] flex h-12 items-center gap-1 bg-black pr-1 font-sans text-[13px] text-white shadow-lg">
+    {{-- Retour a l'espace : carre colle au bord gauche, fleche seule (comme sur grand ecran). --}}
+    <a href="{{ $vue->urlEspace() }}" title="{{ __('Mon espace') }}"
+       class="flex h-full w-12 shrink-0 items-center justify-center border-r border-white/20 hover:bg-white/15">
+        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <span class="sr-only">{{ __('Mon espace') }}</span>
+    </a>
     <span class="px-3 max-sm:hidden" x-show="$store.edition.actif">{{ __('Mode édition') }}</span>
     <button type="button" x-show="$store.edition.actif" @click="$store.edition.panneau = ! $store.edition.panneau"
             class="lg:hidden rounded-full px-3 py-1.5 hover:bg-white/15" :class="$store.edition.panneau && 'bg-white/20'">{{ __('Réglages') }}</button>
@@ -27,8 +33,6 @@
         <svg x-show="! $store.edition.actif" x-cloak class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         <span x-text="$store.edition.actif ? @js(__('Aperçu')) : @js(__('Modifier'))"></span>
     </button>
-    <span class="h-4 w-px bg-white/60" aria-hidden="true"></span>
-    <a href="{{ $vue->urlEspace() }}" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:bg-white/15"><svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>{{ __('Mon espace') }}</a>
 </div>
 
 {{-- Message d'enregistrement --}}

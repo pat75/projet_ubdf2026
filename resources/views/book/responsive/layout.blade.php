@@ -49,13 +49,13 @@
     @endif
 </head>
 <body @if ($vue->edition()) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif
-      class="{{ $vue->edition() ? 'lg:pl-[24rem]' : '' }} modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
+      class="{{ $vue->edition() ? 'mode-edition lg:pl-[24rem] max-lg:pt-12' : '' }} modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
       style="{{ $vue->variables() }}{{ $fond ? ';background-image:url('.e($fond).')' : '' }}" id="{{ $b->page_type }}">
 
     <div x-data="{ menu: false }" @keydown.escape.window="menu = false" class="mx-auto max-w-[1280px] lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 lg:px-10">
 
         {{-- Mobile : barre du haut --}}
-        <div class="sticky top-0 z-40 flex items-center justify-between gap-4 bg-book-texte px-4 py-3 text-book-fond lg:hidden">
+        <div class="sticky top-0 z-40 flex items-center justify-between gap-4 in-[.mode-edition]:top-12 bg-book-texte px-4 py-3 text-book-fond lg:hidden">
             <a href="/" class="truncate text-[15px] uppercase tracking-[.06em]">{{ $b->cont_book_titre ?: $vue->nomCreateur() }}</a>
             <button type="button" @click="menu = ! menu" :aria-expanded="menu" aria-controls="colonne-book" aria-label="{{ __('Menu') }}" class="-mr-2 p-2">
                 <svg x-show="! menu" class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
