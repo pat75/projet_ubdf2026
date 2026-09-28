@@ -14,7 +14,11 @@ class PdfController extends Controller
     {
         $nom = ($request->user()->brand === 'df' ? 'dustfolio' : 'ultra-book').'_'.now()->format('j-m-Y').'.pdf';
 
-        return response($pdf->generer($request->user()), 200, [
+        // Interrupteurs de la page Exporter : ?titres=0 masque le nom des
+        // rubriques, ?legendes=1 ajoute le titre des visuels.
+        $contenu = $pdf->generer($request->user(), $request->boolean('titres', true), $request->boolean('legendes'));
+
+        return response($contenu, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$nom.'"',
         ]);

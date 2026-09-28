@@ -13,6 +13,9 @@ Schedule::command('ubdf:relancer-formules')
     ->timezone('Europe/Paris')
     ->withoutOverlapping();
 
+// Archives « Mes donnees » expirees (DataExport::CONSERVATION_JOURS).
+Schedule::command('ubdf:purger-exports')->dailyAt('04:00')->timezone('Europe/Paris')->withoutOverlapping();
+
 /*
  | Sauvegardes : base de donnees et code, chaque nuit. Les visuels des books
  | en sont exclus (voir config/backup.php) et relevent d'une synchronisation

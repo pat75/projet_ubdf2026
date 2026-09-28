@@ -67,14 +67,23 @@ it('montre les quotas de la formule sur le tableau de bord', function () {
         ->assertSee('max: 12', false);
 });
 
-it('salue le createur et propose de voir son book', function () {
+it('salue le createur', function () {
     $creatif = User::factory()->create(['firstname' => 'Adolie', 'login' => 'adolie']);
 
-    $reponse = $this->actingAs($creatif)->get(route('espace'))->assertOk()
-        ->assertSee('Bonjour Adolie')
-        ->assertSee('Voir mon book ↗', false);
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()
+        ->assertSee('Bonjour Adolie');
+});
 
-    expect($reponse->getContent())->toContain($creatif->portfolioUrl());
+it('indique la selection du book en face du titre, seulement si elle existe', function () {
+    $selectionne = User::factory()->create(['in_home_selection' => true, 'home_selection_at' => '2026-03-15']);
+    $absent = User::factory()->create(['in_home_selection' => false]);
+
+    $this->actingAs($selectionne)->get(route('espace'))->assertOk()
+        ->assertSee('Book sélectionné !')
+        ->assertSee('depuis mars 2026');
+
+    $this->actingAs($absent)->get(route('espace'))->assertOk()
+        ->assertDontSee('Book sélectionné');
 });
 
 it('propose de copier ou d ouvrir les deux liens du book', function () {

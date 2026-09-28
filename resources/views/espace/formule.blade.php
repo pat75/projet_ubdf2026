@@ -4,16 +4,15 @@
 
 @section('content')
 
-    {{-- En-tete : l'illustration, le surtitre et le remerciement nomme. --}}
-    <div class="flex items-center gap-7 pb-2">
-        <img src="{{ asset('img_admin/budget.svg') }}" alt="" class="w-[150px] shrink-0">
-
+    {{-- En-tete : le surtitre et le remerciement nomme. --}}
+    <div class="pb-2">
         <div>
             <div class="text-[13px] font-semibold uppercase tracking-[.12em] text-ub-accent-texte">{{ __('Ma formule') }}</div>
 
             <h1 class="mt-1.5 mb-1 text-[38px] font-bold leading-[1.1] text-[#1b1b1b]">
                 @if ($creatif->plan)
-                    {{ __('Merci pour votre soutien, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}
+                    {{-- Meme degrade que le fond du bloc « merci pour votre soutien ». --}}
+                    <span class="bg-linear-to-br from-[#22c1c3] to-[#16a6d9] bg-clip-text text-transparent">{{ __('Merci pour votre soutien, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}</span>
                 @else
                     {{ __('Votre formule, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}
                 @endif

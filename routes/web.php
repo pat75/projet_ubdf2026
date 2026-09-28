@@ -15,6 +15,7 @@ use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Front\NewsletterController;
 use App\Http\Controllers\Front\StatsBookController;
+use App\Http\Controllers\Espace\ExportController;
 use App\Http\Controllers\Espace\FormuleController;
 use App\Http\Controllers\Espace\GalerieController;
 use App\Http\Controllers\Espace\PageController;
@@ -336,6 +337,8 @@ $portail = function (?string $langue = null) {
             ->whereNumber('option')->middleware('throttle:10,1')->name('formule.payer');
         Route::get('/formule/retour', [PaiementController::class, 'retour'])->name('formule.retour');
         Route::view('/exporter', 'espace.exporter')->name('exporter');
+        Route::get('/exporter/archive/{export}', [ExportController::class, 'telecharger'])
+            ->whereNumber('export')->name('export.telecharger');
         Route::get('/exporter/pdf', PdfController::class)->middleware('throttle:10,1')->name('pdf');
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
         Route::get('/factures/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('facture.pdf');

@@ -4,13 +4,61 @@
 
 +   prévoir sur mon compte la possibilité de se désinscrire des newsletter
 
-+   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner le bon éditeur
++   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner 
+le bon éditeur
 
 
 
 
 
-- sur la page : /espace/formule supprimer supprimer le visuel à gauche à côté deux. Merci pour votre soutien.
+
+
++ dans le créatif est connecté sur son menu, mon portfolio, modifier l'icône diffusion
+
+
+
++ sur page d'accueil et sur les mini book les pages du site
+Analyser et Optimiser également le référencement SOE,et GEO
+Proposer des solutions pour améliorer
+
+
+
+
+
+
+
+
+Quand tu auras terminé la dernière demande et fais-le comit - OK
+
++ page exporter
+sur https://ubdf2026.ultra-book.name/espace/exporter 
+
++ Supprimer le bloc iframe
+
++ Export Mon compte et images
+Proposer à l'utilisateur d'exporter l'ensemble des informations de son compte ainsi que l'ensemble de ses portfolio, contenu base de données et images en Json.
+Ajouter à l'archive, zip l'ensemble des images au format HD
+Prévoir également l'exportation du visuel profil, prévoir l'exportation de des messages
+Je voudrais un système similaire à l'exportation de Facebook avec toutes les informations du compte
+Prévoir un système de limitation d'exportation pour ne pas saturer le serveur
+
++ export PDF
+Revoir le système d'exportation en PDF, pour ajouter un loader, le temps de la génération du PDF.
+En fonction du format des images, prévoir quatre types de mise en page des images
+- image, full page
+- deux images sur la page ( version aligné à l'horizontale et version aligne à la verticale suivant le format des images)
+- une grande image horizontale sur la première moitié de la page et deux autres petites images sur la seconde moitié aligné sur l'horizontal
+- quatre images en carré sur la page
+Prévoir un algorithme qui permet de dispatcher ses modèles en fonction des formats des images.
+L'ordre d'apparition des images doit toujours être similaire à ce qui a été fait sur le portfolio
+Prévoir un système pour afficher le nom du portfolio pour chaque groupe d'images
+Ajouter sur la page d'accueil, le visuel de profil d'illustrateur.
+En mode développement limité à 8 pages
+Les formules gratuites sont limitées à six pages
+
+
+Sur la page d'exportation, ajouter l'icône PDF devant être exporter mon book en PDF.
+Afficher les limitations, les formules.
 
 
 
@@ -82,6 +130,4 @@ Ajouter des animations pour l'affichage du contenu.
 Optimiser également le référencement SOE,et GEO books
 
 
-+ sur page d'accueil - OK
-Analyser et Optimiser également le référencement SOE,et GEO
 

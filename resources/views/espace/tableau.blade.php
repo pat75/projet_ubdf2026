@@ -3,7 +3,8 @@
 @section('title', __('Tableau de bord'))
 
 @section('content')
-    {{-- En-tete : salutation, titre, et l'acces direct au book publie. --}}
+    {{-- En-tete : salutation, titre, et a droite la selection du book
+         (badge de la charte) — rien si le book n'est pas selectionne. --}}
     <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
             <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-texte3">
@@ -12,10 +13,28 @@
             <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Tableau de bord') }}</h1>
         </div>
 
-        <a href="{{ $creatif->portfolioUrl() }}" target="_blank" rel="noopener"
-           class="bouton-espace bouton-espace-grand px-4.5">
-            {{ __('Voir mon book ↗') }}
-        </a>
+        @if ($creatif->in_home_selection)
+            {{-- Badge de selection : rouge, un reflet le traverse toutes les
+                 5 s ; coupe si l'utilisateur prefere moins de mouvement. --}}
+            <span class="badge-selection relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-linear-to-r from-[#e0312b] to-[#ff5a4e] px-5 py-2.5 text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(224,49,43,.35)]">
+                <span class="badge-selection-etoile text-[18px] leading-none" aria-hidden="true">★</span>
+                {{ __('Book sélectionné !') }}
+                @if ($creatif->home_selection_at)
+                    <span class="font-normal text-white/80">{{ __('depuis :date', ['date' => $creatif->home_selection_at->translatedFormat('F Y')]) }}</span>
+                @endif
+            </span>
+            <style>
+                .badge-selection::after {
+                    content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+                    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+                    animation: badge-selection-reflet 5s ease-in-out infinite;
+                }
+                @keyframes badge-selection-reflet { 0%, 60% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+                @media (prefers-reduced-motion: reduce) {
+                    .badge-selection::after { animation: none; }
+                }
+            </style>
+        @endif
     </div>
 
     {{-- La carte du book, puis les deux liens a partager, chacun avec son
