@@ -58,13 +58,14 @@ class VueBook
     }
 
     /**
-     * Rubriques du portfolio ayant au moins un visuel.
+     * Rubriques du portfolio ayant au moins un visuel (menu['ptf'] : la
+     * meme source sur toutes les pages, accueil de pages compris).
      *
      * @return list<array{cle: string, nom: string}>
      */
     public function rubriques(): array
     {
-        $gal = $this->b->gal_cont['gal'] ?? [];
+        $gal = $this->b->menu['ptf'] ?? [];
         $rubriques = [];
 
         foreach ($gal as $k => $rub) {
@@ -94,7 +95,7 @@ class VueBook
     public function visuels(): array
     {
         return $this->memo('visuels', function () {
-            $gal = $this->b->gal_cont['gal'] ?? [];
+            $gal = $this->b->menu['ptf'] ?? [];
             $visuels = [];
             $max = max(0, $this->b->us_formule_img_nb - 1);
 
@@ -120,6 +121,7 @@ class VueBook
                     $dossier = fn (string $rep) => ($defaut ? '/img_default/' : $rep).$img['img_fichier'];
 
                     $visuels[] = [
+                        'rub_id' => (int) $rub['rub_id'],
                         'rubrique' => self::cle($k, $rub['rub_nom']),
                         'nom_rubrique' => self::brut($rub['rub_nom']),
                         'titre' => self::titreVisuel($img['img_titre']),
@@ -309,6 +311,124 @@ class VueBook
     public function reseaux(): array
     {
         return [];
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reglages de typographie des modeles 2012 a 2015
+    |--------------------------------------------------------------------------
+    | Le createur regle police, couleur et taille par classe CSS
+    | (`.ub_font_menut: {fontFamily, color, fontSize}`) ; core.js les
+    | appliquait en jQuery au chargement. Ils deviennent ici une feuille de
+    | style, proprietes et valeurs filtrees.
+    */
+
+    /** Proprietes CSS acceptees, nom camelCase du legacy => nom CSS. */
+    private const PROPRIETES = [
+        'fontFamily' => 'font-family',
+        'color' => 'color',
+        'fontSize' => 'font-size',
+        'backgroundColor' => 'background-color',
+        'fontWeight' => 'font-weight',
+        'fontStyle' => 'font-style',
+        'textTransform' => 'text-transform',
+        'letterSpacing' => 'letter-spacing',
+    ];
+
+    /** Classes `.ub_*` du reglage, qui pilotent des elements de la page. */
+    public function cssReglages(): string
+    {
+        $regles = [];
+
+        foreach ((array) $this->pref as $selecteur => $valeurs) {
+            if (! preg_match('/^\.[a-z0-9_]+$/i', $selecteur) || ! is_object($valeurs)) {
+                continue;
+            }
+
+            $declarations = [];
+            foreach ((array) $valeurs as $propriete => $valeur) {
+                $css = self::PROPRIETES[$propriete] ?? null;
+                $valeur = $css ? self::valeurCss($css, (string) $valeur) : null;
+                if ($valeur !== null) {
+                    $declarations[] = $css.':'.$valeur;
+                }
+            }
+
+            if ($declarations) {
+                $regles[] = $selecteur.'{'.implode(';', $declarations).'}';
+            }
+        }
+
+        return implode("\n", $regles);
+    }
+
+    /** @return list<string> polices Google choisies dans les reglages. */
+    public function policesReglages(): array
+    {
+        $polices = [];
+
+        foreach ((array) $this->pref as $valeurs) {
+            $police = is_object($valeurs) ? trim((string) ($valeurs->fontFamily ?? ''), " '\"") : '';
+            $police = trim(explode(',', $police)[0], " '\"");
+            if ($police !== '' && preg_match('/^[a-z0-9 ]+$/i', $police)) {
+                $polices[] = $police;
+            }
+        }
+
+        return array_values(array_unique($polices));
+    }
+
+    /** Parametre `family=` de Google Fonts pour une liste de polices. */
+    public static function urlPolices(array $polices): ?string
+    {
+        $polices = array_values(array_unique(array_filter($polices)));
+
+        return $polices ? 'https://fonts.googleapis.com/css2?'.implode('&', array_map(fn ($p) => 'family='.str_replace(' ', '+', $p), $polices)).'&display=swap' : null;
+    }
+
+    private static function valeurCss(string $propriete, string $valeur): ?string
+    {
+        $valeur = trim($valeur);
+
+        return match ($propriete) {
+            'color', 'background-color' => ($c = self::couleurCss($valeur, '')) !== '' ? $c : null,
+            'font-family' => preg_match('/^[a-z0-9 ,\'"-]+$/i', $valeur) ? $valeur : null,
+            'font-size', 'letter-spacing' => preg_match('/^\d+(\.\d+)?(px|em|rem|%)$/', $valeur) ? $valeur : null,
+            default => preg_match('/^[a-z0-9-]+$/i', $valeur) ? $valeur : null,
+        };
+    }
+
+    /** Couleur CSS acceptee telle quelle (#hex ou rgb[a]), sinon le defaut. */
+    public static function couleurCss(mixed $valeur, string $defaut): string
+    {
+        $valeur = trim((string) $valeur);
+
+        return preg_match('/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i', $valeur) ? $valeur : $defaut;
+    }
+
+    /** Couleur sombre : luminance relative (WCAG) sous 0,179 (meme contraste avec le blanc et le noir). */
+    public static function sombre(string $couleur): bool
+    {
+        if (preg_match('/^#([0-9a-f]{3})$/i', $couleur, $m)) {
+            $couleur = '#'.preg_replace('/(.)/', '$1$1', $m[1]);
+        }
+
+        if (preg_match('/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i', $couleur, $m)) {
+            $rvb = array_map('hexdec', [$m[1], $m[2], $m[3]]);
+        } elseif (preg_match('/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i', $couleur, $m)) {
+            $rvb = [(float) $m[1], (float) $m[2], (float) $m[3]];
+        } else {
+            return false;
+        }
+
+        [$r, $v, $b] = array_map(function ($c) {
+            $c /= 255;
+
+            return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+        }, $rvb);
+
+        return 0.2126 * $r + 0.7152 * $v + 0.0722 * $b < 0.179;
     }
 
     /** Identifiant de filtre d'une rubrique : rang + nom, comme le legacy (`0__illustrations`). */

@@ -32,12 +32,12 @@ class VueZoom2016 extends VueBook
 
     public function couleurFond(): string
     {
-        return self::couleur($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
+        return self::couleurCss($this->pref->{'.ub_couleur_fond'}->backgroundColor ?? null, '#ffffff');
     }
 
     public function couleurBandeau(): string
     {
-        return self::couleur($this->pref->{'.ub_couleur_nav'}->color ?? null, '#292929');
+        return self::couleurCss($this->pref->{'.ub_couleur_nav'}->color ?? null, '#292929');
     }
 
     /**
@@ -146,37 +146,5 @@ class VueZoom2016 extends VueBook
             'LinkedIn' => 'https://www.linkedin.com/shareArticle?mini=true&url='.$url.'&title='.$titre,
             'Pinterest' => 'https://pinterest.com/pin/create/button/?url='.$url.'&description='.$titre,
         ];
-    }
-
-    /** Couleur CSS acceptee telle quelle (#hex ou rgb[a]), sinon le defaut. */
-    public static function couleur(mixed $valeur, string $defaut): string
-    {
-        $valeur = trim((string) $valeur);
-
-        return preg_match('/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i', $valeur) ? $valeur : $defaut;
-    }
-
-    /** Couleur sombre : luminance relative (WCAG) sous 0,179 (meme contraste avec le blanc et le noir). */
-    public static function sombre(string $couleur): bool
-    {
-        if (preg_match('/^#([0-9a-f]{3})$/i', $couleur, $m)) {
-            $couleur = '#'.preg_replace('/(.)/', '$1$1', $m[1]);
-        }
-
-        if (preg_match('/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i', $couleur, $m)) {
-            $rvb = array_map('hexdec', [$m[1], $m[2], $m[3]]);
-        } elseif (preg_match('/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i', $couleur, $m)) {
-            $rvb = [(float) $m[1], (float) $m[2], (float) $m[3]];
-        } else {
-            return false;
-        }
-
-        [$r, $v, $b] = array_map(function ($c) {
-            $c /= 255;
-
-            return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
-        }, $rvb);
-
-        return 0.2126 * $r + 0.7152 * $v + 0.0722 * $b < 0.179;
     }
 }

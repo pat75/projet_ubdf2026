@@ -84,6 +84,10 @@ return [
         'contact' => 'page',
         'portfolio_vers_accueil' => true,
         'assets' => 'responsive',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de
+        // resources/views/book/responsive (App\Services\Book\VueResponsive2014).
+        'vue' => App\Services\Book\VueResponsive2014::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'colonne_legacy' => 'us_pf_conf2014_responsive',
         'defaut' => '{"data":{"accueil_contenu_aff":{"accueil_contenu_aff_c":"false"},"ub_menu_titre_accueil":{"form_text":"[accueil-noir]"},"ub_menu_titre_ptf":{"form_text":"Portfolio"},"ub_menu_titre_actu":{"form_text":"Bio"},".ub_font_menut":{"fontFamily":"Ruda","color":"rgb(184, 122, 46)"},".ub_font_menu_newsr":{"fontFamily":"Ruda","color":"#000000"},".ub_font_menu_newsp":{"fontFamily":"Ruda","color":"#787878"},".ub_font_ptf_titre":{"fontFamily":"Ruda","color":"#000000","fontSize":"14px"},".ub_font_ptf_legende":{"color":"#8f8f8f","fontFamily":"Ruda","fontSize":"11px"},"ptf_type_presentation":{"ptf_type_presentation":"slide"},"ptf_position_vign":{"ptf_position_vign":"bottom"},"ptf_type_vign":{"ptf_type_vign":"thumbs"},"ptf_titre_aff":{"ptf_titre_aff":"false"},".ub_couleur_fond":{"backgroundColor":"#fff"}}}',
     ],

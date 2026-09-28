@@ -278,7 +278,8 @@ class BookController extends Controller
         $formulaire = view('book.contact', ['b' => $contexte])->render();
         $contexte->contact = $formulaire;
 
-        if (($theme['contact'] ?? 'gabarit') === 'page') {
+        // Modele passe en Blade avec sa propre page contact : pas de page de rubrique.
+        if (($theme['contact'] ?? 'gabarit') === 'page' && ! isset($theme['vues']['contact'])) {
             $contexte->pageContact($formulaire);
         }
     }

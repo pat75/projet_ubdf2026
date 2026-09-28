@@ -92,7 +92,7 @@ it('choisit la couleur du texte selon la clarte du bandeau', function () {
 });
 
 it('refuse une couleur qui sortirait de la declaration CSS', function () {
-    expect(VueZoom2016::couleur('red;} body{display:none', '#fff'))->toBe('#fff');
+    expect(VueZoom2016::couleurCss('red;} body{display:none', '#fff'))->toBe('#fff');
 });
 
 it('ecarte les noms de fichier employes comme titre', function () {

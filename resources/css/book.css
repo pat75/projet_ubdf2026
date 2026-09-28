@@ -8,6 +8,7 @@
 
 @source '../views/book/ultra2020';
 @source '../views/book/zoom2016';
+@source '../views/book/responsive';
 @source '../views/book/commun';
 @source '../js/book';
 @source '../views/components/book';
@@ -106,6 +107,12 @@
 }
 @media (min-width: 1180px) {
     .mosaique.mosaique-zoom { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* Responsive 2014 : Ruda, police par defaut du modele (surchargee par .ub_font_*). */
+.modele-responsive {
+    --font-titre: 'Ruda', ui-sans-serif, sans-serif;
+    --font-texte: 'Ruda', ui-sans-serif, sans-serif;
 }
 
 /*
