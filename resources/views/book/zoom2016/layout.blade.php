@@ -76,12 +76,17 @@
                         @foreach ($liens as $lien)
                             <li>
                                 <a href="{{ $lien['url'] }}" @if ($lien['actif']) aria-current="page" @endif @class([
-                                    'relative block py-2 text-[16px] transition-opacity hover:opacity-100 md:pb-7 md:pt-3',
+                                    'group block py-2 text-[16px] transition-opacity hover:opacity-100 md:pb-6 md:pt-3',
                                     'font-medium opacity-100' => $lien['actif'],
                                     'opacity-85' => ! $lien['actif'],
-                                    // Triangle sous la rubrique courante, a cheval sur le bord du bandeau.
-                                    'md:after:absolute md:after:left-1/2 md:after:top-full md:after:-translate-x-1/2 md:after:border-x-[13px] md:after:border-t-[13px] md:after:border-x-transparent md:after:border-t-book-bandeau md:after:content-[\'\']' => $lien['actif'],
-                                ])>{{ $lien['libelle'] }}</a>
+                                ])>
+                                    {{-- Rubrique courante soulignee ; les autres, au survol. --}}
+                                    <span @class([
+                                        'border-b-2 pb-1 transition-colors duration-300',
+                                        'border-current' => $lien['actif'],
+                                        'border-transparent group-hover:border-current/40' => ! $lien['actif'],
+                                    ])>{{ $lien['libelle'] }}</span>
+                                </a>
                             </li>
                         @endforeach
                     </ul>
