@@ -18,6 +18,10 @@
     $titreBio = $vue->titreMenu('ub_menu_titre_actu', __('Bio'));
     $fond = $vue->imageDeFond();
     $polices = $vue->urlPolicesBook();
+    $bandeau = $vue->bandeau();
+    $vignettes = $vue->vignettesColonne();
+    // Classique 2015 : l'accueil prend toute la largeur, la colonne reste le menu mobile.
+    $pleineLargeur = $b->page_type === 'accueil' && ! $vue->colonneSurAccueil();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -52,7 +56,27 @@
       class="{{ $vue->edition() ? 'mode-edition lg:pl-[24rem] max-lg:pt-12' : '' }} modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
       style="{{ $vue->variables() }}{{ $fond ? ';background-image:url('.e($fond).')' : '' }}" id="{{ $b->page_type }}">
 
-    <div x-data="{ menu: false }" @keydown.escape.window="menu = false" class="mx-auto max-w-[1280px] lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10 lg:px-10">
+    @if (array_filter(array_column($bandeau, 'src')))
+        {{-- Classique 2015 : bandeau de trois visuels servant de menu (ex-ultrabook_menutop). --}}
+        <nav aria-label="{{ __('Bandeau') }}" class="mx-auto flex max-w-[1280px] motion-safe:animate-apparition lg:px-10 lg:pt-4">
+            @foreach ($bandeau as $case)
+                <a href="{{ $case['url'] }}" class="block min-w-0 overflow-hidden transition-opacity hover:opacity-85" style="flex: {{ $case['largeur'] }} 1 0%">
+                    @if ($case['src'])
+                        <img src="{{ $case['src'] }}" alt="{{ $case['libelle'] }}" width="{{ $case['largeur'] }}" height="110" fetchpriority="high"
+                             style="aspect-ratio: {{ $case['largeur'] }} / 110" class="block h-auto w-full object-cover">
+                    @else
+                        <span class="sr-only">{{ $case['libelle'] }}</span>
+                    @endif
+                </a>
+            @endforeach
+        </nav>
+    @endif
+
+    <div x-data="{ menu: false }" @keydown.escape.window="menu = false" @class([
+        'mx-auto max-w-[1280px] lg:grid lg:gap-10 lg:px-10',
+        'lg:grid-cols-[240px_minmax(0,1fr)]' => ! $pleineLargeur,
+        'lg:grid-cols-1' => $pleineLargeur,
+    ])>
 
         {{-- Mobile : barre du haut --}}
         <div class="sticky top-0 z-40 flex items-center justify-between gap-4 in-[.mode-edition]:top-12 bg-book-texte px-4 py-3 text-book-fond lg:hidden">
@@ -68,7 +92,7 @@
 
         {{-- Colonne : visuel, textes libres, menu --}}
         <aside id="colonne-book"
-               class="fixed inset-y-0 left-0 z-50 w-[82vw] max-w-80 -translate-x-full overflow-y-auto bg-book-fond px-6 py-8 shadow-xl transition-transform duration-300 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:overflow-visible lg:bg-transparent lg:px-0 lg:py-10 lg:shadow-none"
+               class="fixed inset-y-0 left-0 z-50 w-[82vw] max-w-80 -translate-x-full overflow-y-auto bg-book-fond px-6 py-8 shadow-xl transition-transform duration-300 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:overflow-visible lg:bg-transparent lg:px-0 lg:py-10 lg:shadow-none {{ $pleineLargeur ? 'lg:hidden' : '' }}"
                :class="menu && 'translate-x-0!'">
             <div class="motion-safe:animate-apparition lg:sticky lg:top-10">
                 <a href="/" class="block">
@@ -111,6 +135,20 @@
                                             'font-bold opacity-100' => $rubrique['active'],
                                             'opacity-80' => ! $rubrique['active'],
                                         ])>{{ $rubrique['nom'] }}</a>
+                                        @if ($rubrique['active'] && count($vignettes) > 1)
+                                            {{-- Classique 2015 : vignettes de la rubrique, qui pilotent le diaporama. --}}
+                                            <div x-data="{ courante: 0 }" @diaporama-change.window="courante = $event.detail"
+                                                 class="mb-2 mt-2 grid grid-cols-8 gap-1">
+                                                @foreach ($vignettes as $vignette)
+                                                    <button type="button" @click="$dispatch('diaporama-voir', {{ $vignette['index'] }}); menu = false"
+                                                            aria-label="{{ $vignette['titre'] }}" :aria-current="courante === {{ $vignette['index'] }}"
+                                                            class="aspect-square overflow-hidden border transition"
+                                                            :class="courante === {{ $vignette['index'] }} ? 'border-book-texte' : 'border-book-filet opacity-70 hover:opacity-100'">
+                                                        <img src="{{ $vignette['src'] }}" alt="" width="40" height="40" loading="lazy" decoding="async" class="size-full object-cover">
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </li>
                                 @endforeach
                             </ul>

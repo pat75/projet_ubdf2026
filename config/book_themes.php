@@ -1,5 +1,9 @@
 <?php
 
+use App\Services\Book\VueClassique2015;
+use App\Services\Book\VueResponsive2014;
+use App\Services\Book\VueZoom2016;
+
 /*
 |--------------------------------------------------------------------------
 | Themes des books
@@ -86,7 +90,7 @@ return [
         'assets' => 'responsive',
         // Pages rendues par les vues Blade/Tailwind/Alpine de
         // resources/views/book/responsive (App\Services\Book\VueResponsive2014).
-        'vue' => App\Services\Book\VueResponsive2014::class,
+        'vue' => VueResponsive2014::class,
         'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'colonne_legacy' => 'us_pf_conf2014_responsive',
         'defaut' => '{"data":{"accueil_contenu_aff":{"accueil_contenu_aff_c":"false"},"ub_menu_titre_accueil":{"form_text":"[accueil-noir]"},"ub_menu_titre_ptf":{"form_text":"Portfolio"},"ub_menu_titre_actu":{"form_text":"Bio"},".ub_font_menut":{"fontFamily":"Ruda","color":"rgb(184, 122, 46)"},".ub_font_menu_newsr":{"fontFamily":"Ruda","color":"#000000"},".ub_font_menu_newsp":{"fontFamily":"Ruda","color":"#787878"},".ub_font_ptf_titre":{"fontFamily":"Ruda","color":"#000000","fontSize":"14px"},".ub_font_ptf_legende":{"color":"#8f8f8f","fontFamily":"Ruda","fontSize":"11px"},"ptf_type_presentation":{"ptf_type_presentation":"slide"},"ptf_position_vign":{"ptf_position_vign":"bottom"},"ptf_type_vign":{"ptf_type_vign":"thumbs"},"ptf_titre_aff":{"ptf_titre_aff":"false"},".ub_couleur_fond":{"backgroundColor":"#fff"}}}',
@@ -96,6 +100,10 @@ return [
         'titre' => 'Modèle Classique 2015',
         'dossier' => 'classique2015',
         'gabarit' => 'ultrabook_2015_type',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de
+        // resources/views/book/classique2015 (mise en page de Responsive 2014).
+        'vue' => VueClassique2015::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'accueil' => 'pages',
         'contact' => 'page',
         'assets' => 'classique2015',
@@ -122,7 +130,7 @@ return [
         'assets' => 'zoom2016',
         // Pages rendues par les vues Blade/Tailwind/Alpine de
         // resources/views/book/zoom2016 (App\Services\Book\VueZoom2016).
-        'vue' => App\Services\Book\VueZoom2016::class,
+        'vue' => VueZoom2016::class,
         'vues' => ['accueil' => 'portfolio', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'colonne_legacy' => 'us_pf_conf2016_zoom',
         'defaut' => '{"data":{"link_accueil":{"form_text":"Portfolio"},"link_bio":{"form_text":"Bio"},"link_contact":{"form_text":"Contact"},"ptf_activer_contact":{"ptf_activer_contact":"true"},"ptf_activer_gmap":{"ptf_activer_gmap":"false"},"ptf_activer_sociaux":{"ptf_activer_sociaux":"true"},"ptf_activer_iso_category":{"ptf_activer_iso_category":"false"},".ub_couleur_fond":{"backgroundColor":"#ffffff"},".ub_couleur_nav":{"color":"#292929"}}}',

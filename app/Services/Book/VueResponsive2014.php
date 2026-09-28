@@ -262,6 +262,24 @@ class VueResponsive2014 extends VueBook
         ];
     }
 
+    /** Bandeau de visuels au-dessus de la page (Classique 2015). */
+    public function bandeau(): array
+    {
+        return [];
+    }
+
+    /** Vignettes de la rubrique courante dans la colonne (Classique 2015). */
+    public function vignettesColonne(): array
+    {
+        return [];
+    }
+
+    /** La colonne accompagne-t-elle l'accueil sur ordinateur ? */
+    public function colonneSurAccueil(): bool
+    {
+        return true;
+    }
+
     /** Polices des reglages et des textes libres. */
     public function urlPolicesBook(): ?string
     {

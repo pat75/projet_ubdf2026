@@ -112,7 +112,17 @@
     </div>
 </section>
 
-@foreach (['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false], 'ptf_vignette_aff' => [__('Vignettes sur l’accueil'), __('Une tuile par rubrique du portfolio.'), true]] as $cle => [$nom, $aide, $defaut])
+@php
+    $classique ??= false;
+    $interrupteurs = ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]];
+    if (! $classique) {
+        $interrupteurs['ptf_vignette_aff'] = [__('Vignettes sur l’accueil'), __('Une tuile par rubrique du portfolio.'), true];
+    }
+    $textes = $classique
+        ? ['cont_acceuil_bas' => __('Texte sous le visuel d’accueil'), 'cont_menu_gauche' => __('Texte en haut de la colonne'), 'cont_menu_gauche2' => __('Texte sous le menu')]
+        : ['cont_menu_gauche' => __('Texte sous le visuel'), 'cont_menu_gauche2' => __('Texte sous le menu')];
+@endphp
+@foreach ($interrupteurs as $cle => [$nom, $aide, $defaut])
     @php $actif = $vue->actif($cle, $defaut); @endphp
     <section>
         <div class="flex items-center justify-between gap-4">
@@ -127,7 +137,7 @@
     </section>
 @endforeach
 
-@foreach (['cont_menu_gauche' => __('Texte sous le visuel'), 'cont_menu_gauche2' => __('Texte sous le menu')] as $cle => $nom)
+@foreach ($textes as $cle => $nom)
 <section x-data="blocReglage('{{ $cle }}')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ $nom }}</span>
@@ -163,4 +173,4 @@
     </div>
 </section>
 
-<p class="text-gray-500">{{ __('Les titres « Portfolio » et « Bio » de la colonne se modifient aussi directement sur la page : cliquez dessus. Le visuel se change depuis l’habillage de votre espace.') }}</p>
+<p class="text-gray-500">{{ __('Les titres « Portfolio » et « Bio » de la colonne se modifient aussi directement sur la page : cliquez dessus.') }} {{ $classique ? __('Les visuels du bandeau et de l’accueil se changent depuis l’habillage de votre espace.') : __('Le visuel se change depuis l’habillage de votre espace.') }}</p>

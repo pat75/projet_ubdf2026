@@ -18,6 +18,11 @@ export default function diaporama(Alpine) {
             const n = parseInt(location.hash.slice(1), 10);
             if (n > 0 && n <= this.total) this.index = n - 1;
 
+            // Vignettes placees hors du diaporama (colonne du Classique 2015).
+            window.addEventListener('diaporama-voir', (e) => this.voir(e.detail));
+            this.$watch('index', (i) => window.dispatchEvent(new CustomEvent('diaporama-change', { detail: i })));
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('diaporama-change', { detail: this.index })));
+
             document.addEventListener('fullscreenchange', () => (this.pleinEcran = document.fullscreenElement === this.$root));
         },
 
