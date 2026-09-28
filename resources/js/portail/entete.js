@@ -24,16 +24,31 @@ function infobulle(Alpine) {
         const delaiMasquage = modifiers.includes('lent') ? 400 : 100;
         let minuterie = null;
 
-        // En `fixed` sur la fenetre, sous le declencheur.
+        /*
+         * En `fixed` sur la fenetre, centre sous le declencheur. En
+         * `!important` : core.css (2019) pose sur ces popups des marges et
+         * des positions forcees (.popup_memobook margin-left -100px,
+         * .popup_ptf 76px/16px, top/right sur mobile) qui les decalaient.
+         */
         const placer = () => {
             const cible = el.getBoundingClientRect();
-            Object.assign(popup.style, {
+            const largeur = popup.offsetWidth;
+            const gauche = Math.min(
+                Math.max(8, cible.left + cible.width / 2 - largeur / 2),
+                window.innerWidth - largeur - 8,
+            );
+            const styles = {
                 position: 'fixed',
-                top: `${cible.bottom + 8}px`,
-                left: `${Math.max(8, cible.left + cible.width / 2 - popup.offsetWidth / 2)}px`,
+                top: `${cible.bottom + 36}px`,
+                left: `${Math.max(8, gauche)}px`,
                 right: 'auto',
                 bottom: 'auto',
-            });
+                margin: '0',
+                transform: 'none',
+            };
+            for (const [propriete, valeur] of Object.entries(styles)) {
+                popup.style.setProperty(propriete, valeur, 'important');
+            }
         };
         const montrer = () => {
             clearTimeout(minuterie);

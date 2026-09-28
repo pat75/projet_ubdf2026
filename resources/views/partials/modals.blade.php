@@ -81,6 +81,9 @@
 				            </a>
         </div>
 
+        {{-- Bascule UB / DF (developpement seulement), a droite du logo. --}}
+        <x-dev.switch-marque />
+
         <div class="item logo_light">
 			                <img src="/img_front/UB-logo_2018_light.svg" alt="Ultra-book">
 			
@@ -125,8 +128,6 @@
                                 <span class="fonticon-heart_white fonticon_w22"></span>
                             </a>
                         </div>
-
-                        <x-dev.switch-marque />
 
                         <!-- bloc connexion-->
                         {{-- Connecte, le createur remplace les deux boutons

@@ -99,6 +99,19 @@
     padding-right: 3em;
 }
 
+/* Menu du haut : leger survol des icones filtre, recherche et memo book. */
+#menu-top-fixed .link_menu_top_ptf.icon_domaine svg,
+#menu-top-fixed .recherche_menu_top svg,
+#menu-top-fixed .memobook .fonticon-heart_white {
+    transition: transform .2s ease, opacity .2s ease;
+}
+#menu-top-fixed .link_menu_top_ptf.icon_domaine:hover svg,
+#menu-top-fixed .recherche_menu_top:hover svg,
+#menu-top-fixed .memobook:hover .fonticon-heart_white {
+    transform: translateY(-2px) scale(1.08);
+    opacity: .7;
+}
+
 /* /search : resultats estompes pendant la requete ajax (recherche.js). */
 #resultats_recherche {
     transition: opacity .2s;

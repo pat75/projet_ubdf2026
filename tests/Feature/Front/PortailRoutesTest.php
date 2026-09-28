@@ -143,7 +143,9 @@ it('reserve les blocs d accroche a l accueil', function () {
             ->assertDontSee('video_header', false)
             ->assertDontSee('bloc_accueil_entreprise2020', false)
             ->assertDontSee('bloc_accueil_ubsitepro', false)
-            ->assertDontSee('bloc_last_recherche', false);
+            // Le bloc des mots-cles de l'accueil — la classe seule
+            // bloc_last_recherche colore aussi les suggestions de recherche.
+            ->assertDontSee('container bloc_last_recherche mobile_hidden', false);
     }
 });
 

@@ -24,6 +24,11 @@
             <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="w-[84px] min-[900px]:w-[120px]">
         </a>
 
+        {{-- Bascule UB / DF (developpement seulement), a droite du logo. --}}
+        <div class="ml-4">
+            <x-dev.switch-marque />
+        </div>
+
         <div class="ml-auto flex items-center gap-2.5">
 
             {{-- Filtre par metiers : l'entonnoir evide du portail. --}}
@@ -45,8 +50,6 @@
                 <span class="fonticon-heart_white" aria-hidden="true"></span>
                 <span class="sr-only">{{ __('Mémo-book') }}</span>
             </a>
-
-            <x-dev.switch-marque />
 
             <x-barre.createur :creatif="$creatif" />
         </div>

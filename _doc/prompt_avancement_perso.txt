@@ -19,21 +19,6 @@
 
 
 
-
-
-+ menu top
-Reprendre les menus déroulant de filtre rechercher et mémo book qui ne sont pas positionnés juste en dessous des icônes
-Garder la même mise en forme des Tollip
-Déplacer le switch, UB, DF, à droite du logo Ultra-book
-
- 
-
-
-
-
-
-
-
 +++ étape de mise en production
 - Comparer la structure de la base de données initiales avec la structure de la nouvelle base de données et faire un fichier de conversion de la structure de l'ancienne base de données vers la nouvelle
 - créer un site qui permet de recréer l'arborescence des dossiers utilisateurs avec les trois premières lettres de l'identifiant
