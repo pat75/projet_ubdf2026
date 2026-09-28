@@ -49,7 +49,7 @@ class ReglageBookRequest extends FormRequest
             ...collect(VueUltra2020::RESEAUX)->mapWithKeys(fn ($r) => ["social_link.link_{$r}" => ['nullable', 'string', 'max:255']])->all(),
         ];
 
-        if (in_array($theme, ['mdl_2014_responsive', 'mdl_2015_classique'], true)) {
+        if (in_array($theme, ['mdl_2014_responsive', 'mdl_2015_classique', 'mdl_2013_pinter'], true)) {
             $interrupteur = ['required', Rule::in(['true', 'false'])];
             $intitule = ['nullable', 'string', 'max:40'];
 

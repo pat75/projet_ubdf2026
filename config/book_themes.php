@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Book\VueClassique2015;
+use App\Services\Book\VuePinter2013;
 use App\Services\Book\VueResponsive2014;
 use App\Services\Book\VueZoom2016;
 
@@ -72,6 +73,10 @@ return [
         'titre' => 'Modèle portfolio 2013-Pinter',
         'dossier' => 'pinter',
         'gabarit' => 'ultrabook_2012_type',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de
+        // resources/views/book/pinter (mise en page de Responsive 2014).
+        'vue' => VuePinter2013::class,
+        'vues' => ['accueil' => 'portfolio', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'accueil' => 'mosaique',
         'contact' => 'page',
         'portfolio_vers_accueil' => true,

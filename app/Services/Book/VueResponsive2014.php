@@ -132,13 +132,16 @@ class VueResponsive2014 extends VueBook
             return null;
         }
 
-        foreach ($this->b->gal_cont_accueil as $page) {
+        $pages = $this->b->gal_cont_accueil;
+        foreach ($pages as $page) {
             if ((string) ($page['img_id'] ?? '') === $id) {
                 return book_actu_txt($page['img_html'] ?? '');
             }
         }
 
-        return null;
+        // Page disparue : le legacy (recursive_array_search rend false,
+        // soit l'indice 0) affiche alors la premiere page d'accueil.
+        return isset($pages[0]) ? book_actu_txt($pages[0]['img_html'] ?? '') : null;
     }
 
     /**
@@ -164,6 +167,7 @@ class VueResponsive2014 extends VueBook
 
             $rubriques[] = [
                 'id' => (int) $rub['rub_id'],
+                'cle' => self::cle($k, $rub['rub_nom']),
                 'nom' => self::brut($rub['rub_nom']),
                 'url' => wd_remove_accents($rub['rub_nom']).'-p'.$rub['rub_id'],
                 'active' => (int) $rub['rub_id'] === (int) $this->b->rub_id && $this->b->page_type === 'portfolio',
@@ -278,6 +282,24 @@ class VueResponsive2014 extends VueBook
     public function colonneSurAccueil(): bool
     {
         return true;
+    }
+
+    /** La colonne filtre-t-elle la mosaique (Pinter) ? */
+    public function filtreColonne(): bool
+    {
+        return false;
+    }
+
+    /** Positions des pages d'accueil dans la colonne : [en haut, en bas]. */
+    public function blocsColonne(): array
+    {
+        return ['d', 'a'];
+    }
+
+    /** Couleur de la page encadree sur le fond (Pinter), ou null. */
+    public function couleurCadre(): ?string
+    {
+        return null;
     }
 
     /** Polices des reglages et des textes libres. */

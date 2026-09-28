@@ -31,6 +31,8 @@
     </div>
 </section>
 
+@php $pinter ??= false; @endphp
+@unless ($pinter)
 <section x-data="blocReglage('diaporama')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ __('Diaporama du portfolio') }}</span>
@@ -69,6 +71,8 @@
         </div>
     </div>
 </section>
+
+@endunless
 
 <section x-data="blocReglage('menu')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
@@ -114,8 +118,8 @@
 
 @php
     $classique ??= false;
-    $interrupteurs = ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]];
-    if (! $classique) {
+    $interrupteurs = $pinter ? [] : ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]];
+    if (! $classique && ! $pinter) {
         $interrupteurs['ptf_vignette_aff'] = [__('Vignettes sur l’accueil'), __('Une tuile par rubrique du portfolio.'), true];
     }
     $textes = $classique

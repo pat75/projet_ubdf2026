@@ -319,7 +319,6 @@ class VueBook
         return [];
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Reglages de typographie des modeles 2012 a 2015

@@ -10,6 +10,7 @@
 @source '../views/book/zoom2016';
 @source '../views/book/responsive';
 @source '../views/book/classique2015';
+@source '../views/book/pinter';
 @source '../views/book/commun';
 @source '../js/book';
 @source '../views/components/book';
@@ -108,6 +109,14 @@
 }
 @media (min-width: 1180px) {
     .mosaique.mosaique-zoom { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* Pinter 2013 : deux colonnes, trois sur ordinateur. */
+.mosaique.mosaique-pinter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+    .mosaique.mosaique-pinter { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Responsive 2014 : Ruda, police par defaut du modele (surchargee par .ub_font_*). */

@@ -22,6 +22,10 @@
     $vignettes = $vue->vignettesColonne();
     // Classique 2015 : l'accueil prend toute la largeur, la colonne reste le menu mobile.
     $pleineLargeur = $b->page_type === 'accueil' && ! $vue->colonneSurAccueil();
+    // Pinter : la colonne filtre la mosaique au lieu de changer de page.
+    $filtre = $vue->filtreColonne() && in_array($b->page_type, ['accueil', 'portfolio'], true);
+    [$blocHaut, $blocBas] = $vue->blocsColonne();
+    $cadre = $vue->couleurCadre();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -56,14 +60,17 @@
       class="{{ $vue->edition() ? 'mode-edition lg:pl-[24rem] max-lg:pt-12' : '' }} modele-responsive min-h-screen bg-book-fond bg-cover bg-fixed bg-center font-texte text-book-texte2 antialiased"
       style="{{ $vue->variables() }}{{ $fond ? ';background-image:url('.e($fond).')' : '' }}" id="{{ $b->page_type }}">
 
+    {{-- Pinter : page encadree, d'une autre couleur que le fond. --}}
+    <div @if ($cadre) class="mx-auto max-w-[1000px] shadow-[0_0_18px_rgba(0,0,0,.25)] lg:pb-2" style="background-color: {{ $cadre }}" @endif>
+
     @if (array_filter(array_column($bandeau, 'src')))
-        {{-- Classique 2015 : bandeau de trois visuels servant de menu (ex-ultrabook_menutop). --}}
+        {{-- Bandeau de visuels : trois servant de menu (Classique 2015) ou un seul (Pinter). --}}
         <nav aria-label="{{ __('Bandeau') }}" class="mx-auto flex max-w-[1280px] motion-safe:animate-apparition lg:px-10 lg:pt-4">
             @foreach ($bandeau as $case)
                 <a href="{{ $case['url'] }}" class="block min-w-0 overflow-hidden transition-opacity hover:opacity-85" style="flex: {{ $case['largeur'] }} 1 0%">
                     @if ($case['src'])
-                        <img src="{{ $case['src'] }}" alt="{{ $case['libelle'] }}" width="{{ $case['largeur'] }}" height="110" fetchpriority="high"
-                             style="aspect-ratio: {{ $case['largeur'] }} / 110" class="block h-auto w-full object-cover">
+                        <img src="{{ $case['src'] }}" alt="{{ $case['libelle'] }}" width="{{ $case['largeur'] }}" height="{{ $case['hauteur'] ?? 110 }}" fetchpriority="high"
+                             style="aspect-ratio: {{ $case['largeur'] }} / {{ $case['hauteur'] ?? 110 }}" class="block h-auto w-full object-cover">
                     @else
                         <span class="sr-only">{{ $case['libelle'] }}</span>
                     @endif
@@ -106,7 +113,7 @@
                     <div class="texte-libre mt-5 text-[14px] leading-snug">{!! $vue->texteLibre('cont_menu_gauche') !!}</div>
                 @endif
 
-                @if ($bloc = $vue->blocAccueil('d'))
+                @if ($bloc = $vue->blocAccueil($blocHaut))
                     <div class="contenu-page mt-5 text-[14px]">{!! $bloc !!}</div>
                 @endif
 
@@ -127,9 +134,16 @@
                             @if ($titrePtf)
                                 <p class="ub_menu_titre ub_font_menut mb-2"><x-book.texte-editable cle="ub_menu_titre_ptf" tag="span" :edition="$vue->edition()">{{ $titrePtf['texte'] ?? __('Portfolio') }}</x-book.texte-editable></p>
                             @endif
-                            <ul class="flex flex-col gap-1.5 pl-1">
+                            <ul class="flex flex-col gap-1.5 pl-1" @if ($filtre) x-data="{ filtre: 'all' }" @mosaique-change.window="filtre = $event.detail" @endif>
                                 @foreach ($rubriques as $rubrique)
                                     <li>
+                                        @if ($filtre)
+                                            <button type="button" @click="$dispatch('mosaique-filtrer', { cle: @js($rubrique['cle']), nom: @js($rubrique['nom']) }); menu = false"
+                                                    :aria-pressed="filtre === @js($rubrique['cle'])"
+                                                    class="ub_font_menu_newsr inline-block text-left opacity-80 transition-opacity hover:opacity-100"
+                                                    :class="filtre === @js($rubrique['cle']) && 'font-bold opacity-100!'">{{ $rubrique['nom'] }}</button>
+                                            @continue
+                                        @endif
                                         <a href="/{{ $rubrique['url'] }}" @if ($rubrique['active']) aria-current="page" @endif @class([
                                             'ub_font_menu_newsr inline-block transition-opacity hover:opacity-100',
                                             'font-bold opacity-100' => $rubrique['active'],
@@ -151,6 +165,13 @@
                                         @endif
                                     </li>
                                 @endforeach
+                                @if ($filtre && count($rubriques) > 1)
+                                    <li>
+                                        <button type="button" @click="$dispatch('mosaique-filtrer', { cle: 'all', nom: '' }); menu = false" :aria-pressed="filtre === 'all'"
+                                                class="ub_font_menu_newsr inline-block opacity-80 transition-opacity hover:opacity-100"
+                                                :class="filtre === 'all' && 'font-bold opacity-100!'">{{ __('Tout afficher') }}</button>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     @endif
@@ -192,7 +213,7 @@
                     <div class="texte-libre mt-8 text-[14px] leading-snug">{!! $vue->texteLibre('cont_menu_gauche2') !!}</div>
                 @endif
 
-                @if ($bloc = $vue->blocAccueil('a'))
+                @if ($bloc = $vue->blocAccueil($blocBas))
                     <div class="contenu-page mt-8 text-[14px]">{!! $bloc !!}</div>
                 @endif
 
@@ -225,6 +246,8 @@
                 @endif
             </footer>
         </div>
+    </div>
+
     </div>
 
     {{-- Retour en haut --}}

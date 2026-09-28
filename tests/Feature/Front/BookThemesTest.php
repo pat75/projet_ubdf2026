@@ -104,7 +104,7 @@ it('sert le gabarit non diffuse a un visiteur, le theme a son proprietaire', fun
 it('rend l accueil de Pinter en mosaique de tout le portfolio', function () {
     $this->book->bookSetting->update(['theme' => 'mdl_2013_pinter']);
 
-    $this->get(urlBook())->assertOk()->assertSee('v1.jpg', false)->assertSee('fancybox', false);
+    $this->get(urlBook())->assertOk()->assertSee('v1.jpg', false)->assertSee('mosaique-pinter', false)->assertDontSee('fancybox', false);
 });
 
 dataset('agents', [

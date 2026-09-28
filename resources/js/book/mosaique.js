@@ -35,6 +35,8 @@ export default function mosaique(Alpine) {
         init() {
             this.libelle = this.$refs.libelle?.textContent.trim() ?? '';
             this.items = [...this.$el.querySelectorAll('[data-visuel]')];
+            // Filtre pilote depuis l'exterieur (colonne de Pinter).
+            window.addEventListener('mosaique-filtrer', (e) => this.filtrer(e.detail.cle, e.detail.nom));
 
             this.mesure = new ResizeObserver((entrees) => entrees.forEach(({ target }) => this.etendre(target.parentElement)));
             this.vue = new IntersectionObserver((entrees) => entrees.forEach((e) => {
@@ -88,6 +90,7 @@ export default function mosaique(Alpine) {
         filtrer(cle, libelle) {
             this.filtre = cle;
             this.libelle = libelle;
+            window.dispatchEvent(new CustomEvent('mosaique-change', { detail: cle }));
             this.menu = false;
 
             this.items.forEach((item) => {
