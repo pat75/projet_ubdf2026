@@ -18,8 +18,13 @@ Propose deux solutions
 
 
 + Page d'accueil
-Supprimer le burger menu à gauche du logo Ultra-book
-Déplacer le switch, UB, DF, à droite du logo Ultra-book
+ + sur la page d'accueil, il y a une erreur avec Google Maps
+maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
+Corriger cela pour le moment, pas besoin de Google maps
+
+
+
+
 
 
 + Page recherché
@@ -32,10 +37,9 @@ Quand l'utilisateur aura lancé la recherche des résultats apparaîtront en Aja
 + menu top
 Reprendre les menus déroulant de filtre rechercher et mémo book qui ne sont pas positionnés juste en dessous des icônes
 Garder la même mise en forme des Tollip
+Déplacer le switch, UB, DF, à droite du logo Ultra-book
 
-
-À partir du burger, menu qui est à gauche du logo Ultra-book faire apparaître un fond noir sur l'ensemble de la page
-
+ 
 
 
 
@@ -88,9 +92,6 @@ Si un visiteur non connecté, essaye d'envoyer un message via la page contact d'
 Le fonctionnement de la page contact ne change pas par rapport à ce qu'il existe déjà
 
 
-+ sur la page d'accueil, il y a une erreur avec Google Maps
-maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-Corriger cela pour le moment, pas besoin de Google maps
 
 
 
