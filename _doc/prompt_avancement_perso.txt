@@ -17,12 +17,6 @@ Propose deux solutions
 
 
 
-+ Page d'accueil
- + sur la page d'accueil, il y a une erreur avec Google Maps
-maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
-Corriger cela pour le moment, pas besoin de Google maps
-
-
 
 
 

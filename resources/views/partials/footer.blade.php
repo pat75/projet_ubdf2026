@@ -25,8 +25,12 @@
     ];
 @endphp
 
-<footer class="pied-footer" style="background:#141414;color:#f2f0ed;border-top:1px solid #2a2928">
+<footer class="pied-footer" style="color:#f2f0ed;border-top:1px solid #2a2928">
     <style>
+        /* Fond #141414 inchange, degrade en diagonale : 10 % plus fonce
+           (#121212) en haut a gauche vers 10 % plus clair (#2c2c2c) en bas
+           a droite, la couleur de base au milieu. */
+        .pied-footer { background: linear-gradient(135deg, #121212 0%, #141414 50%, #2c2c2c 100%); }
         .pied-footer, .pied-footer * { box-sizing: border-box; font-family: 'Source Sans Pro', sans-serif; }
         .pied-footer a { color: #f2f0ed; text-decoration: none; }
         .pied-footer a:hover { color: #fff; }

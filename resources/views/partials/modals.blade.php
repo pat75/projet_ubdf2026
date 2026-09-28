@@ -746,8 +746,12 @@
 
 <!-- ex Google Analytics -->
 
-
-	<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}" type="text/javascript"></script>
+{{-- Google Maps n'est utilise par aucune vue servie (seuls les anciens
+     gabarits morts de book/model_old y faisaient appel) : ni cle
+     configuree, ni carte affichee. Charger ce script sur chaque page du
+     portail causait une erreur bloquee par les bloqueurs de pub
+     (gen_204?csp_test=true). A retirer completement une fois model_old
+     supprime, ou a reintroduire seulement sur la page qui en aura besoin. --}}
 
 
 
