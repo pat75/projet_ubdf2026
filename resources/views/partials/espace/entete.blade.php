@@ -13,23 +13,15 @@
 <header class="relative z-20 h-[85px] bg-white shadow-[0_7px_20px_rgba(0,0,0,0.2)]">
     <div class="mx-4 flex h-full items-center pl-1 pr-2.5 min-[768px]:mx-auto min-[768px]:w-[723px] min-[992px]:w-[933px] min-[1200px]:w-[1127px]">
 
-        {{-- Menu replie : il ouvre les rubriques du portail. Alpine tient
-             l'etat, rien ne part au serveur. --}}
-        <div x-data="{ ouvert: false }" class="relative">
-            <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert"
+        {{-- Burger : le menu plein ecran du portail, sur fond noir, comme
+             pour un visiteur (<x-portail.menu-plein-ecran>, layouts/espace). --}}
+        <div x-data>
+            <button type="button" @click="$store.menu.basculer()" :aria-expanded="$store.menu.ouvert"
                     class="w-[21px] cursor-pointer text-[24px] leading-none text-black" aria-label="{{ __('Menu') }}">☰</button>
-
-            <div x-show="ouvert" x-cloak x-transition.opacity @click.outside="ouvert = false"
-                 class="absolute left-0 top-full mt-5 w-56 rounded-ub bg-white py-2 shadow-ub">
-                <a href="{{ lien('home') }}" class="block px-4 py-1.5 hover:text-ub-accent-fonce">{{ __('Accueil') }}</a>
-                <a href="{{ lien('annuaire') }}" class="block px-4 py-1.5 hover:text-ub-accent-fonce">{{ __('Annuaire des books') }}</a>
-                <a href="{{ lien('recherche') }}" class="block px-4 py-1.5 hover:text-ub-accent-fonce">{{ __('Recherche') }}</a>
-                <a href="{{ $creatif->bookUrl() }}" target="_blank" rel="noopener" class="block px-4 py-1.5 hover:text-ub-accent-fonce">{{ __('Mon book') }}</a>
-            </div>
         </div>
 
         <a href="{{ lien('home') }}" class="ml-[11px] shrink-0" aria-label="{{ $marque->nom }}">
-            <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="w-[120px]">
+            <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="w-[84px] min-[900px]:w-[120px]">
         </a>
 
         <div class="ml-auto flex items-center gap-2.5">

@@ -43,20 +43,38 @@ it('ne distingue la formule payante que par sa pastille', function () {
 it('montre le fanion de selection quand le book est en page d accueil', function () {
     $creatif = User::factory()->create(['in_home_selection' => true]);
 
-    $this->actingAs($creatif)->get(route('espace'))->assertOk()->assertSee('Sélection');
+    // « ★ » : le menu plein ecran du portail contient « Sélectionnez… ».
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()->assertSee('★ Sélection', escape: false);
 
     $creatif->update(['in_home_selection' => false]);
 
-    $this->actingAs($creatif)->get(route('espace'))->assertOk()->assertDontSee('Sélection');
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()->assertDontSee('★ Sélection', escape: false);
+});
+
+it('ne propose pas de creer un portfolio dans le menu plein ecran', function () {
+    $creatif = User::factory()->create();
+
+    $this->actingAs($creatif)->get(route('espace'))->assertOk()->assertDontSee('Créer un portfolio');
 });
 
 it('marque la rubrique ouverte', function () {
     $creatif = User::factory()->create();
 
-    // La page courante porte `aria-current`, et elle seule.
+    // La page courante porte `aria-current`, et elle seule. Le menu est
+    // rendu deux fois : colonne de droite (desktop) et volet « Plus »
+    // (mobile) ; « Mon compte » n'a pas d'onglet dans la barre du bas.
     $reponse = $this->actingAs($creatif)->get(route('espace.compte'))->assertOk();
 
-    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(1);
+    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(2);
+});
+
+it('allume l onglet mobile de la rubrique ouverte', function () {
+    $creatif = User::factory()->create();
+
+    // Menu desktop, volet mobile et onglet « Messages » de la barre du bas.
+    $reponse = $this->actingAs($creatif)->get(route('espace.messages'))->assertOk();
+
+    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(3);
 });
 
 it('donne le lien du book et la deconnexion', function () {

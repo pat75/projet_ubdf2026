@@ -1,4 +1,5 @@
 import Sortable from 'sortablejs';
+import newsletter from './portail/newsletter';
 import './vendor/redactor/redactor.min.js';
 import './vendor/redactor/redactor.min.css';
 // Plugins charges apres le coeur : ils s'enregistrent sur le meme global
@@ -394,5 +395,16 @@ window.addEventListener('avatar-profil-modifie', ({ detail: { url, initiales, co
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('recadrageAvatar', recadrageAvatar);
     window.Alpine.data('champEditable', champEditable);
+
+    /* Menu plein ecran du portail (<x-portail.menu-plein-ecran>), ouvert
+       par le burger de l'entete sur mobile. Meme store que le portail,
+       sans les classes Semantic que ce dernier bascule en plus. */
+    window.Alpine.store('menu', {
+        ouvert: false,
+        basculer() {
+            this.ouvert = !this.ouvert;
+        },
+    });
+    newsletter(window.Alpine);
 });
 

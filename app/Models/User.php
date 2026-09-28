@@ -210,6 +210,18 @@ class User extends Authenticatable
         return $this->hasMany(Conversation::class);
     }
 
+    /**
+     * Demandes qui portent au moins un message non lu, ecrit par le
+     * client — celui du createur ne compte pas. Pastille du menu de l'espace.
+     */
+    public function conversationsNonLues(): int
+    {
+        return $this->conversations()
+            ->where('is_spam', false)
+            ->whereHas('messages', fn ($q) => $q->where('from_owner', false)->whereNull('read_at'))
+            ->count();
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);

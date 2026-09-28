@@ -1,12 +1,7 @@
 @php
     $creatif = auth()->user();
-
-    // Les demandes qui portent au moins un message non lu, ecrit par le
-    // client — celui du createur ne compte pas.
-    $messagesNonLus = $creatif->conversations()
-        ->where('is_spam', false)
-        ->whereHas('messages', fn ($q) => $q->where('from_owner', false)->whereNull('read_at'))
-        ->count();
+    // Calcule une fois par le layout, qui inclut aussi la barre mobile.
+    $messagesNonLus ??= $creatif->conversationsNonLues();
 @endphp
 
 {{-- Carte du createur : vignette, nom, lien vers le book, et ses deux

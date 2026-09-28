@@ -43,8 +43,10 @@
 
 @include('partials.espace.entete')
 
-{{-- Contenu a gauche, menu a droite ; sous 900 px environ le menu passe
-     dessous, par simple retour a la ligne. --}}
+@php($messagesNonLus = auth()->user()->conversationsNonLues())
+
+{{-- Contenu a gauche, menu a droite. Sous 900 px, le menu quitte la page
+     pour la barre d'onglets du bas (partials/espace/barre-mobile). --}}
 <main class="mx-auto flex max-w-[1140px] flex-wrap items-start gap-8 px-5 pb-18 pt-11">
 
     <div class="flex min-w-0 flex-[1_1_560px] flex-col gap-5">
@@ -55,12 +57,21 @@
         @yield('content')
     </div>
 
-    <aside class="sticky top-6 flex min-w-60 flex-[0_1_280px] flex-col gap-4">
+    <aside class="sticky top-6 hidden min-w-60 flex-[0_1_280px] flex-col gap-4 min-[900px]:flex">
         @include('partials.espace.menu')
     </aside>
 </main>
 
-@include('partials.espace.pied')
+{{-- Sur mobile, facon WebApp : pas de pied de page, la barre d'onglets
+     en tient lieu. --}}
+<div class="hidden min-[900px]:block">
+    @include('partials.espace.pied')
+</div>
+
+@include('partials.espace.barre-mobile')
+
+{{-- Menu plein ecran du portail, ouvert par le burger de l'entete. --}}
+<x-portail.menu-plein-ecran />
 
 @livewireScripts
 </body>

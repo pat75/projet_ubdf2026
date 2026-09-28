@@ -8,9 +8,7 @@
 
 
 
-+ version mobile de /espace/
-En version mobile, il faudrait traiter et afficher le menu de droite comme pour une WebApp
-Propose deux solutions
+
 
 - sur la page : /espace/formule supprimer supprimer le visuel à gauche à côté deux. Merci pour votre soutien.
 

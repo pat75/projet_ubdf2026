@@ -57,11 +57,15 @@
 
         <a href="/" aria-label="Ultra-book"><img src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book" class="block h-auto w-[130px] invert"></a>
 
+        {{-- Colonne conservee meme vide : la grille 1fr/auto/1fr garde le
+             logo centre. Un utilisateur connecte a deja son portfolio. --}}
         <div class="flex items-center gap-2.5 justify-self-end">
+            @guest
             <a href="{{ lien('inscription.page') }}" class="mpe-large items-center gap-2 rounded-full px-5 py-3 text-[14px] font-semibold" style="background:#f2f0ed;color:#141414">
                 <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 Créer un portfolio
             </a>
+            @endguest
         </div>
     </header>
 
