@@ -574,7 +574,7 @@ class ContexteBook
     public function versionMobile(): ?array
     {
         if ($this->navigateur_client === 'web'
-            || ! in_array($this->modele_book, ['mdl_classique', 'mdl_2012', 'mdl_2012_slide'], true)) {
+            || ! in_array($this->modele_book, ['mdl_classique'], true)) {
             return null;
         }
 

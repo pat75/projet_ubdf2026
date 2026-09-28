@@ -34,8 +34,10 @@
 @php
     $pinter ??= false;
     $grid ??= false;
+    $ancien ??= false;
+    $slide ??= false;
 @endphp
-@unless ($pinter || $grid)
+@unless ($pinter || $grid || ($ancien && ! $slide))
 <section x-data="blocReglage('diaporama')">
     <button type="button" @click="basculer()" :aria-expanded="ouvert" class="flex w-full items-center justify-between text-left font-semibold text-gray-900">
         <span>{{ __('Diaporama du portfolio') }}</span>
@@ -43,6 +45,7 @@
         <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-5 w-5 shrink-0" />
     </button>
     <div x-show="ouvert" x-cloak class="mt-2">
+        @unless ($ancien)
         <p class="mb-1.5 text-gray-600">{{ __('Présentation') }}</p>
         <div class="grid grid-cols-3 gap-2">
             @foreach ([
@@ -53,7 +56,8 @@
                 <button type="button" @click="regler('ptf_type_presentation', @js($valeur))" class="border px-2 py-2 {{ $choix($valeur, $vue->presentation()) }}">{{ $nom }}</button>
             @endforeach
         </div>
-        <p class="mb-1.5 mt-4 text-gray-600">{{ __('Navigation') }}</p>
+        @endunless
+        <p @class(['mb-1.5 text-gray-600', 'mt-4' => ! $ancien])>{{ __('Navigation') }}</p>
         <div class="grid grid-cols-3 gap-2">
             @foreach ([
             'thumbs' => __('Vignettes'),
@@ -127,7 +131,13 @@
     $interrupteurs = $grid
         ? ['accueil_ptf_vignette_aff' => [__('Tuiles du portfolio sur l’accueil'), __('Une grande tuile par rubrique.'), true]]
         : ($pinter ? [] : ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), false]]);
-    if (! $classique && ! $pinter && ! $grid) {
+    if ($ancien) {
+        $interrupteurs = ['ptf_titre_aff' => [__('Légendes des visuels'), __('Titre et description sous chaque image du diaporama.'), true],
+            'accueil_ptf_vignette_aff' => [__('Tuiles du portfolio sur l’accueil'), __('Une tuile par rubrique.'), true]];
+        if (! $slide) {
+            $interrupteurs['ptf_vignette_aff'] = [__('Vignettes du diaporama'), __('Les vignettes sous l’image du portfolio.'), true];
+        }
+    } elseif (! $classique && ! $pinter && ! $grid) {
         $interrupteurs['ptf_vignette_aff'] = [__('Vignettes sur l’accueil'), __('Une tuile par rubrique du portfolio.'), true];
     }
     $textes = $grid ? ['cont_menu_gauche' => __('Texte sous le menu')] : ($classique

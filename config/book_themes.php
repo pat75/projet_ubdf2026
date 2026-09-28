@@ -1,9 +1,11 @@
 <?php
 
+use App\Services\Book\VueBase2012;
 use App\Services\Book\VueClassique2015;
 use App\Services\Book\VueGrid2015;
 use App\Services\Book\VuePinter2013;
 use App\Services\Book\VueResponsive2014;
+use App\Services\Book\VueSlide2012;
 use App\Services\Book\VueZoom2016;
 
 /*
@@ -50,6 +52,9 @@ return [
         'titre' => 'Modèle portfolio 2012',
         'dossier' => 'base',
         'gabarit' => 'ultrabook_2012_type',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de resources/views/book/base.
+        'vue' => VueBase2012::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'accueil' => 'pages',
         'contact' => 'page',
         'portfolio_vers_accueil' => true,
@@ -62,6 +67,9 @@ return [
         'titre' => 'Modèle portfolio 2012-slide',
         'dossier' => 'slide',
         'gabarit' => 'ultrabook_2012_type',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de resources/views/book/slide.
+        'vue' => VueSlide2012::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'accueil' => 'pages',
         'contact' => 'page',
         'portfolio_vers_accueil' => true,

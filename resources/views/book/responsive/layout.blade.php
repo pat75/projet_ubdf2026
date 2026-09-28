@@ -21,7 +21,7 @@
     $bandeau = $vue->bandeau();
     $vignettes = $vue->vignettesColonne();
     // Classique 2015 : l'accueil prend toute la largeur, la colonne reste le menu mobile.
-    $pleineLargeur = $b->page_type === 'accueil' && ! $vue->colonneSurAccueil();
+    $pleineLargeur = ($b->page_type === 'accueil' && ! $vue->colonneSurAccueil()) || $vue->menuHorizontal();
     // Pinter : la colonne filtre la mosaique au lieu de changer de page.
     $filtre = $vue->filtreColonne() && in_array($b->page_type, ['accueil', 'portfolio'], true);
     [$blocHaut, $blocBas] = $vue->blocsColonne();
@@ -224,6 +224,39 @@
         </aside>
 
         <div class="flex min-h-screen min-w-0 flex-col px-4 pt-5 lg:px-0 lg:pt-10">
+            @if ($vue->menuHorizontal())
+                {{-- 2012-slide : menu en haut, rubriques et pages en menus deroulants (ex-mega-menu). --}}
+                <nav aria-label="{{ __('Menu du book') }}" class="mb-8 flex items-center gap-10 border-b border-book-filet pb-3 max-lg:hidden">
+                    @if ($accueil)
+                        <a href="/" class="ub_font_menut mr-auto" @if ($b->page_type === 'accueil') aria-current="page" @endif>
+                            @if ($accueil['type'] === 'maison')
+                                <svg @class(['size-5', 'text-white' => $accueil['clair'], 'text-black' => ! $accueil['clair']]) viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
+                                <span class="sr-only">{{ __('Accueil') }}</span>
+                            @else
+                                {{ $accueil['texte'] }}
+                            @endif
+                        </a>
+                    @endif
+                    @foreach (array_filter([
+                        $rubriques && $titrePtf ? ['cle' => 'ub_menu_titre_ptf', 'titre' => $titrePtf['texte'] ?? __('Portfolio'), 'liens' => array_map(fn ($r) => ['url' => $r['url'], 'nom' => $r['nom'], 'classe' => 'ub_font_menu_newsr'], $rubriques)] : null,
+                        $pages['rubriques'] && $titreBio ? ['cle' => 'ub_menu_titre_actu', 'titre' => $titreBio['texte'] ?? __('Bio'), 'liens' => collect($pages['rubriques'])->flatMap(fn ($r) => array_map(fn ($p) => ['url' => $p['url'], 'nom' => $p['titre'], 'classe' => 'ub_font_menu_newsp'], $r['pages']))->all()] : null,
+                    ]) as $groupe)
+                        <div x-data="{ ouvert: false }" @mouseenter="ouvert = true" @mouseleave="ouvert = false" @keydown.escape="ouvert = false" class="relative">
+                            <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert" class="ub_font_menut flex items-center gap-1.5">
+                                <x-book.texte-editable :cle="$groupe['cle']" tag="span" :edition="$vue->edition()">{{ $groupe['titre'] }}</x-book.texte-editable>
+                                <svg class="size-3.5 transition-transform" :class="ouvert && 'rotate-180'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                            </button>
+                            <ul x-show="ouvert" x-cloak x-transition.origin.top class="absolute right-0 top-full z-30 mt-2 flex min-w-56 flex-col gap-1 bg-book-fond p-4 shadow-lg">
+                                @foreach ($groupe['liens'] as $lien)
+                                    <li><a href="/{{ $lien['url'] }}" class="{{ $lien['classe'] }} block py-1 transition-opacity hover:opacity-70">{{ $lien['nom'] }}</a></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
+                    <a href="/contact" class="ub_font_menut" @if ($b->page_type === 'contact') aria-current="page" @endif>{{ __('Contact') }}</a>
+                </nav>
+            @endif
+
             <main class="flex-1">
                 @yield('contenu')
             </main>

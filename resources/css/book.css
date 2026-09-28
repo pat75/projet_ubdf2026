@@ -12,6 +12,8 @@
 @source '../views/book/classique2015';
 @source '../views/book/pinter';
 @source '../views/book/grid2015';
+@source '../views/book/base';
+@source '../views/book/slide';
 @source '../views/book/commun';
 @source '../js/book';
 @source '../views/components/book';

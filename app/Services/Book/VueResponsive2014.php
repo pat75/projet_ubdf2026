@@ -284,6 +284,12 @@ class VueResponsive2014 extends VueBook
         return true;
     }
 
+    /** Menu en haut de page au lieu de la colonne (2012-slide), sur ordinateur. */
+    public function menuHorizontal(): bool
+    {
+        return false;
+    }
+
     /** La colonne filtre-t-elle la mosaique (Pinter) ? */
     public function filtreColonne(): bool
     {

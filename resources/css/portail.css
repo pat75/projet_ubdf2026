@@ -65,7 +65,7 @@
     display: block;
     height: 36px;
     width: auto;
-    margin-bottom: 24px;
+    margin-bottom: 10px;
 }
 .creer_book .creer_book_titre {
     font-family: 'Source Sans Pro', sans-serif;
@@ -203,6 +203,13 @@
 .creer_book_google + .creer_book_ou {
     margin-top: 6.325%;
     font-size: 13px;
+}
+/* Creer un book : 5px de plus au-dessus et en dessous du separateur. */
+.creer_book .creer_book_google + .creer_book_ou {
+    margin-top: calc(6.325% + 5px);
+}
+.creer_book .creer_book_ou {
+    margin-bottom: calc(5.5% + 5px);
 }
 /* Connexion : 20px de plus au-dessus et en dessous du separateur. */
 .connexion .creer_book_google + .creer_book_ou {

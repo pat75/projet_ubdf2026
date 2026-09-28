@@ -6,5 +6,75 @@
 
 +   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner le bon éditeur
 
-+   
+
+
+
+
+
+
+
++ étape de mise en production
+- Comparer la structure de la base de données initiales avec la structure de la nouvelle base de données et faire un fichier de conversion de la structure de l'ancienne base de données vers la nouvelle
+- créer un site qui permet de recréer l'arborescence des dossiers utilisateurs avec les trois premières lettres de l'identifiant
+Car sur la première version initiale, il y avait que les deux premières lettres de l'identifiant.
+- le site sera testé dans un premier temps avec un nom de domaine spécifique exemple extra extra–book.com
+Le temps de vérifier si tout fonctionne bien sur le nouvel hébergement 
+
+
+
+
++ Memobook
+Il faut refondre tout le principe du mémo book, en effet le mémo book doit être enregistré sur une table ma SQL spécifique à chaque utilisateur.
+L'icône du mémo book ne doit plus être affiché sur le menu top, mais dans le menu utilisateur en dessous du menu mes messages
+Afficher un label avec le nombre de book sélectionné.
+Créer une page spécifique avec l'ensemble des books sélectionné et la possibilité de les désélectionner.
+Ajouter sur cette page un moteur de recherche pour faire une recherche par non sur le mémo book.
+
+
+
+
++   Rechercher
+L'icône dans le menu top, recherché
+
+
++   Message a partir du mini book et compte visiteurs
+pour envoyer un message à un créatif à partir du mini via le bouton contactez, le visiteur doit être connecté.
+Ainsi, si clique sur le bouton contacter afficher une page structurée sur deux colonnes (prendre le modèle de la page de connexion)
+Cette page affiche le message que le visiteur veut envoyer. Elle demande également son e-mail et un mot de passe pour créer son compte.
+Il faudra aussi un CAPChat pour éviter les spams.
+Si le visiteur rentre un e-mail qui est déjà dans la liste des utilisateurs. Alors il lui ai demandé de rentrer son mot de passe car son compte existe déjà proposé également le mot de passe oublié.
+
+Pour résumer un visiteur qui envoie un message à un créatif, passe automatiquement par une page de création de compte
+En même temps qu'il envoie son message. Si son mail existe déjà, il doit juste indiquer son mot de passe pour se connecter à son compte.
+
+Le compte des visiteurs contient juste dans le menu de gauche, un tableau de bord
+Le menu messages
+Le menu mémo book et le menu mon profil.
+
+si un visiteur utilise le bouton de connexion dans le menu top pour se connecter, il indiquera son e-mail et son mot de passe. Ainsi, il sera directement connecté sur son compte visiteur.
+Si un créatif utilise ce même bouton connexion dans le menu top pour se connecter, il indiquera son Logging où son e-mail et sera automatiquement connecté sur son compte créatif
+La page de connexion doit automatiquement différencier les comptes visiteurs des comptes créatifs
+Il faut ajouter cette spécification dans la table MySQL des utilisateurs.
+
+Si un visiteur non connecté, essaye d'envoyer un message via la page contact d'un book, il n'est pas obligé de créer un compte.
+Le fonctionnement de la page contact ne change pas par rapport à ce qu'il existe déjà
+
+
++ sur la page d'accueil, il y a une erreur avec Google Maps
+maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENT
+Corriger cela pour le moment, pas besoin de Google maps
+
+
+
+Model de book - OK
++ lister les modèles de de book qui n'ont pas été converti et aprés validation
++   convertir les autres, modèles de book en alpineJS. Et tailerwind
+Traiter des conversions, modèle par modèle, essayer d'optimiser d'affichage des images du portfolio.
+Optimiser l'affichage des portfolio en responsive, notamment pour du mobile.
+Ajouter des animations pour l'affichage du contenu.
+Optimiser également le référencement SOE,et GEO books
+
+
++ sur page d'accueil - OK
+Analyser et Optimiser également le référencement SOE,et GEO
 
