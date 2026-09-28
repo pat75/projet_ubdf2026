@@ -50,7 +50,7 @@ it('rend chacun des dix gabarits sans erreur', function () {
             $this->get(urlBook($page))->assertOk();
         }
     }
-})->skip(fn () => count(glob(resource_path('views/book/themes/*'), GLOB_ONLYDIR)) < 9, 'themes pas encore tous portes');
+})->skip(fn () => count(glob(resource_path('views/book/model_old/*'), GLOB_ONLYDIR)) < 9, 'themes pas encore tous portes');
 
 it('ordonne les visuels comme usbook2011_img_ordre', function () {
     $elements = [['img_id' => 10], ['img_id' => 20], ['img_id' => 30], ['img_id' => 40]];

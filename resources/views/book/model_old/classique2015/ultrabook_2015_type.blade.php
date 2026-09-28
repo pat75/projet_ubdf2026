@@ -68,7 +68,7 @@
 
 	<link rel="stylesheet" href="<?=$b->url_abs_site;?>/2012_web/<?=$b->url_mdl;?>/_/css/ub_style_classique2015.css" />
 	<!-- Icones -->
-	<link rel="stylesheet" href="https://www.ultra-book.fr/ub_com_asset/mfglabs-iconset-master/css/mfglabs_iconset.css">
+	<link rel="stylesheet" href="/html_pages_v2018/_/font/mfglabs-iconset-master/css/mfglabs_iconset.css">
 
 	<?php /*
 <!--

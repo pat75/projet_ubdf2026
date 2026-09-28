@@ -20,8 +20,8 @@ use Illuminate\Support\Facades\File;
  */
 class Gabarit
 {
-    /** Repertoire des vues des themes. */
-    public const RACINE = 'book/themes';
+    /** Repertoire des anciens gabarits (legacy), en attendant leur conversion en Blade/Tailwind/Alpine. */
+    public const RACINE = 'book/model_old';
 
     /** Gabarits qui vivaient a la racine de 2011_html_pages_v2/ (theme 2010). */
     public const DOSSIER_RACINE = '_racine';

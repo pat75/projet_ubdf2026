@@ -46,13 +46,13 @@
 
 
 		<!-- Icones -->
-		<link rel="stylesheet" href="https://www.ultra-book.fr/ub_com_asset/grid2015/grid_iconset.css">
+		<link rel="stylesheet" href="/2012_web/grid2015/__/css/fontello-8503d1b6/css/ub-grid-icons.css">
 
 
 	
 		<!-- js+css UB2015 -->	
 		<link rel="stylesheet" href="<?=$b->url_abs_site;?>/2012_web/<?=$b->url_mdl;?>/_/css/reset.css" />
-		<link rel="stylesheet" href="https://www.ultra-book.fr/ub_com_asset/mfglabs-iconset-master/css/mfglabs_iconset.css">
+		<link rel="stylesheet" href="/html_pages_v2018/_/font/mfglabs-iconset-master/css/mfglabs_iconset.css">
 	
 	
 		<!--Grid 2015 CSS-->

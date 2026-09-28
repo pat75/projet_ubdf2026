@@ -9,7 +9,7 @@ seul le code PHP est adapte. Voir _doc/11_phase4_books.md, lot 4d.
     python3 _outils/porter_gabarits.py zoom2016   # un theme
 
 La source est lue en lecture seule. Les vues produites vont dans
-resources/views/book/themes/<dossier>/ ; elles sont ensuite retouchees a la
+resources/views/book/model_old/<dossier>/ ; elles sont ensuite retouchees a la
 main la ou la conversion ne suffit pas, et ces retouches sont marquees
 `{{-- PORTAGE: ... --}}` pour survivre a une relecture.
 """
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 SOURCE = Path('/Users/pat/Sites_2019/_projet_ubdf_2020/2011_html_pages_v2')
-CIBLE = Path(__file__).resolve().parent.parent / 'resources/views/book/themes'
+CIBLE = Path(__file__).resolve().parent.parent / 'resources/views/book/model_old'
 
 # dossier source -> dossier cible ; '' = racine (theme classique 2010)
 DOSSIERS = {

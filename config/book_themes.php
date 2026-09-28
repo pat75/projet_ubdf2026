@@ -16,7 +16,7 @@
 | - `portfolio_vers_accueil` : /portfolio sans galerie rend l'accueil ;
 | - `contact` : `page` quand le theme n'a pas de gabarit contact — le
 |   formulaire est alors presente comme une page de rubrique ;
-| - `dossier` : repertoire des vues Blade (resources/views/book/themes/)
+| - `dossier` : repertoire des vues Blade (resources/views/book/model_old/)
 |   et, pour les themes 2012+, du gabarit Savant d origine
 |   (2011_html_pages_v2/<dossier>/) ;
 | - `assets` : repertoire des feuilles et scripts sous public/2012_web/ ;
