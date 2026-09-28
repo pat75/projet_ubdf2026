@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Book\VueBase2012;
+use App\Services\Book\VueClassique2010;
 use App\Services\Book\VueClassique2015;
 use App\Services\Book\VueGrid2015;
 use App\Services\Book\VuePinter2013;
@@ -40,9 +41,15 @@ use App\Services\Book\VueZoom2016;
 return [
     'mdl_classique' => [
         'titre' => 'Modèle classique',
-        'dossier' => '_racine',
+        'dossier' => 'classique2010',
         'gabarit' => 'ultrabook_type',
-        'accueil' => 'classique',
+        // Pages rendues par les vues Blade/Tailwind/Alpine de
+        // resources/views/book/classique2010 (mise en page de Responsive 2014),
+        // versions iPhone et iPad comprises.
+        'vue' => VueClassique2010::class,
+        'vues' => ['accueil' => 'accueil', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
+        'accueil' => 'pages',
+        'contact' => 'page',
         'assets' => null,
         'colonne_legacy' => null,
         'defaut' => null,

@@ -67,14 +67,15 @@
         {{-- Bandeau de visuels : trois servant de menu (Classique 2015) ou un seul (Pinter). --}}
         <nav aria-label="{{ __('Bandeau') }}" class="mx-auto flex max-w-[1280px] motion-safe:animate-apparition lg:px-10 lg:pt-4">
             @foreach ($bandeau as $case)
-                <a href="{{ $case['url'] }}" class="block min-w-0 overflow-hidden transition-opacity hover:opacity-85" style="flex: {{ $case['largeur'] }} 1 0%">
+                {{-- Une case sans adresse (fin du bandeau classique 2010) n'est pas un lien. --}}
+                <{{ $case['url'] ? 'a' : 'div' }} @if ($case['url']) href="{{ $case['url'] }}" @endif @class(['block min-w-0 overflow-hidden', 'transition-opacity hover:opacity-85' => $case['url']]) style="flex: {{ $case['largeur'] }} 1 0%">
                     @if ($case['src'])
                         <img src="{{ $case['src'] }}" alt="{{ $case['libelle'] }}" width="{{ $case['largeur'] }}" height="{{ $case['hauteur'] ?? 110 }}" fetchpriority="high"
                              style="aspect-ratio: {{ $case['largeur'] }} / {{ $case['hauteur'] ?? 110 }}" class="block h-auto w-full object-cover">
                     @else
                         <span class="sr-only">{{ $case['libelle'] }}</span>
                     @endif
-                </a>
+                </{{ $case['url'] ? 'a' : 'div' }}>
             @endforeach
         </nav>
     @endif
@@ -87,7 +88,7 @@
 
         {{-- Mobile : barre du haut --}}
         <div class="sticky top-0 z-40 flex items-center justify-between gap-4 in-[.mode-edition]:top-12 bg-book-texte px-4 py-3 text-book-fond lg:hidden">
-            <a href="/" class="truncate text-[15px] uppercase tracking-[.06em]">{{ $b->cont_book_titre ?: $vue->nomCreateur() }}</a>
+            <a href="/" class="truncate text-[15px] uppercase tracking-[.06em]">{{ html_entity_decode($b->cont_book_titre ?: $vue->nomCreateur(), ENT_QUOTES | ENT_HTML5) }}</a>
             <button type="button" @click="menu = ! menu" :aria-expanded="menu" aria-controls="colonne-book" aria-label="{{ __('Menu') }}" class="-mr-2 p-2">
                 <svg x-show="! menu" class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
                 <svg x-show="menu" x-cloak class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>

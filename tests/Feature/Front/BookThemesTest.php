@@ -118,18 +118,18 @@ it('sert la version web des themes responsives a tous les terminaux', function (
         ->assertOk()->assertSee('modele-zoom', false);
 })->with('agents');
 
-it('sert la version classique mobile a un iPhone sur un theme ancien', function () {
+it('sert au modele classique la meme page responsive sur iPhone, sans gabarit mobile legacy', function () {
     $this->book->bookSetting->update(['theme' => 'mdl_classique', 'legacy_payload' => ['us_pf_version_iphone' => 'Modèle classique mobile']]);
 
     $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')
-        ->get(urlBook())->assertOk()->assertSee('2011_iphone', false);
+        ->get(urlBook())->assertOk()->assertSee('modele-responsive', false)->assertDontSee('2011_iphone', false);
 });
 
 it('sert la version de bureau quand le reglage iPhone la demande', function () {
     $this->book->bookSetting->update(['theme' => 'mdl_2012', 'legacy_payload' => ['us_pf_version_iphone' => 'Modèle portfolio 2012 (poste fixe)']]);
 
     $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)')
-        ->get(urlBook())->assertOk()->assertSee('2012_web/base', false)->assertDontSee('2011_iphone', false);
+        ->get(urlBook())->assertOk()->assertSee('modele-responsive', false)->assertDontSee('2011_iphone', false);
 });
 
 it('laisse Android sur la version web, comme le legacy', function () {
@@ -137,4 +137,15 @@ it('laisse Android sur la version web, comme le legacy', function () {
 
     $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile')
         ->get(urlBook())->assertOk()->assertDontSee('2011_iphone', false);
+});
+
+it('sert le modele classique en Blade, avec son bandeau de cinq visuels', function () {
+    $this->book->bookSetting->update(['theme' => 'mdl_classique', 'legacy_payload' => [
+        'us_pf_img1' => 'bouton_accueil.png', 'us_pf_img3' => 'bouton_portfolio.png', 'us_pf_img5' => 'bouton_fin.png',
+    ]]);
+
+    $html = $this->get(urlBook())->assertOk()->assertSee('modele-responsive', false)->getContent();
+
+    expect($html)->toContain('bouton_accueil.png')->toContain('bouton_portfolio.png')->toContain('bouton_fin.png')
+        ->and($html)->toContain('href="/portfolio"');
 });

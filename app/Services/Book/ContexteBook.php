@@ -552,6 +552,9 @@ class ContexteBook
     |--------------------------------------------------------------------------
     */
 
+    /** Modeles servis en gabarits iPhone / iPad du legacy : plus aucun (voir versionMobile). */
+    private const VERSIONS_MOBILES_LEGACY = [];
+
     /**
      * Gabarit mobile, ou null pour la version web.
      *
@@ -573,8 +576,11 @@ class ContexteBook
      */
     public function versionMobile(): ?array
     {
+        // Le modele classique, seul concerne, est passe en Blade responsive
+        // (VueClassique2010) : il sert la meme page a tous les ecrans. Les
+        // gabarits iPhone / iPad du legacy ne sont plus proposes.
         if ($this->navigateur_client === 'web'
-            || ! in_array($this->modele_book, ['mdl_classique'], true)) {
+            || ! in_array($this->modele_book, self::VERSIONS_MOBILES_LEGACY, true)) {
             return null;
         }
 
