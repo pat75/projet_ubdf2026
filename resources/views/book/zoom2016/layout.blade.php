@@ -45,9 +45,7 @@
     <div x-data="{ menu: false }" class="flex min-h-screen flex-col">
 
         {{-- Bandeau : photo, presentation, menu --}}
-        <header @class(['relative bg-book-bandeau text-book-bandeau-texte',
-            // Bandeau de la couleur du fond : un filet les separe.
-            'border-b border-book-filet' => strtolower($vue->couleurBandeau()) === strtolower($vue->couleurFond())])>
+        <header class="relative bg-book-bandeau text-book-bandeau-texte">
             <div class="mx-auto flex max-w-[1200px] flex-col items-center px-4 pb-5 pt-5 text-center md:px-6 md:pb-0 md:pt-8">
 
                 <button type="button" class="absolute left-3 top-5 p-2 md:hidden" @click="menu = ! menu"
