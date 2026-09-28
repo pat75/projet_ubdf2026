@@ -167,6 +167,26 @@ it('rend les resultats de /search en fragment HTML pour l ajax', function () {
         ->and($reponse->json('total'))->toBe(2);
 });
 
+it('journalise les recherches par mots-cles, pas par nom', function () {
+    $this->get(url_portail('/search?q=Aquarelle'));
+    $this->get(url_portail('/search?q=hectorm&recherche=pseudo'));
+
+    expect(\App\Models\SearchQuery::pluck('q')->all())->toBe(['aquarelle']);
+});
+
+it('affiche les mots-cles les plus recherches sur 90 jours sur /search sans requete', function () {
+    foreach (['gravure', 'gravure', 'aquarelle'] as $q) {
+        \App\Models\SearchQuery::create(['q' => $q, 'brand' => 'ub']);
+    }
+    $ancienne = \App\Models\SearchQuery::create(['q' => 'tapisserie', 'brand' => 'ub']);
+    $ancienne->forceFill(['created_at' => now()->subDays(91)])->save();
+
+    $this->get(url_portail('/search'))
+        ->assertOk()
+        ->assertSeeInOrder(['Les recherches du moment', 'gravure', 'aquarelle'])
+        ->assertDontSee('tapisserie');
+});
+
 it('pointe la loupe du menu vers /search', function () {
     $this->get(url_portail('/accueil'))
         ->assertOk()

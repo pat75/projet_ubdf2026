@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\SearchQuery;
 use App\Repository\BookRepository;
 use App\Support\CarteLegacy;
 use App\Support\Recherche;
@@ -35,9 +36,15 @@ class RechercheController extends Controller
      */
     public function search(Request $request): View|JsonResponse
     {
-        $donnees = $this->donnees(Recherche::depuisRequete($request)) + ['ajax' => true];
+        $recherche = Recherche::depuisRequete($request);
+        $donnees = $this->donnees($recherche) + ['ajax' => true];
 
         if (! $request->ajax()) {
+            // Page d'accueil du moteur : les mots-cles en vogue sous le bloc.
+            if ($recherche->q === '') {
+                $donnees['populaires'] = $this->populaires($recherche->brand);
+            }
+
             return view('front.recherche', $donnees);
         }
 
@@ -48,9 +55,54 @@ class RechercheController extends Controller
         ]);
     }
 
+    /**
+     * Mots-cles les plus recherches sur 90 jours. Tant que le journal est
+     * vide (mise en service), les domaines metier en tiennent lieu.
+     *
+     * Chaque mot-cle porte son domaine (« illustration,jeunesse ») : il
+     * donne la couleur `coul_<domaine>` des etiquettes de l'accueil.
+     *
+     * @return list<array{q: string, mot: string, domaine: ?string}>
+     */
+    private function populaires(string $brand): array
+    {
+        $motcles = json_decode(file_get_contents(resource_path('js/portail/motcles.json')), true);
+        $domaines = array_keys($motcles[app()->getLocale() === 'en' ? 'en' : 'fr'] ?? []);
+
+        // Jusqu'a 48 mots-cles du journal, completes par 20 au plus tires au
+        // hasard parmi les mots-cles du moteur (motcles.json).
+        $populaires = SearchQuery::populaires($brand, limite: 48)->all();
+        $nombre = min(48, count($populaires)) + 20;
+
+        if (count($populaires) < $nombre) {
+            $catalogue = [];
+            foreach ($motcles[app()->getLocale() === 'en' ? 'en' : 'fr'] ?? [] as $domaine => $mots) {
+                $catalogue[] = $domaine;
+                foreach ($mots as $mot) {
+                    $catalogue[] = mb_strtolower($domaine.','.$mot);
+                }
+            }
+            $complement = collect(array_diff(array_unique($catalogue), $populaires))
+                ->shuffle()->take($nombre - count($populaires));
+            $populaires = [...$populaires, ...$complement];
+        }
+
+        return array_map(function (string $q) use ($domaines) {
+            [$tete, $mot] = str_contains($q, ',') ? array_map('trim', explode(',', $q, 2)) : [$q, $q];
+
+            return [
+                'q' => $q,
+                'mot' => $mot,
+                'domaine' => in_array($tete, $domaines, true) ? $tete : null,
+            ];
+        }, $populaires);
+    }
+
     /** @return array<string, mixed> */
     private function donnees(Recherche $recherche): array
     {
+        SearchQuery::journaliser($recherche);
+
         $total = $recherche->exploitable()
             ? $this->books->compterRecherche($recherche)
             : 0;
