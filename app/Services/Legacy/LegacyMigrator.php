@@ -907,7 +907,9 @@ final class LegacyMigrator
                 || str_starts_with($key, 'us_pf_clas')
                 || str_starts_with($key, 'us_pf_grid')
                 || str_starts_with($key, 'us_pf_zoom')
-                || str_starts_with($key, 'us_pf_version'))
+                || str_starts_with($key, 'us_pf_version')
+                // Modele classique : les cinq visuels du bandeau (us_pf_img1…5).
+                || preg_match('/^us_pf_img[1-5]$/', $key))
             ->reject(fn ($value) => $value === null || $value === '')
             ->map(fn ($value) => LegacyText::clean((string) $value))
             ->all();
