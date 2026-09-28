@@ -25,6 +25,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if ($vue->edition())
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+    @endif
     @include('book.commun._seo')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +43,8 @@
 
     @vite(['resources/css/book.css', 'resources/js/book.js'])
 </head>
-<body class="modele-zoom min-h-screen bg-book-fond font-texte text-book-texte2 antialiased" style="{{ $vue->variables() }}" id="{{ $b->page_type }}">
+<body @if ($vue->edition()) x-data :class="{ 'edition': $store.edition.actif, 'lg:!pl-0': $store.edition.cadre || ! $store.edition.actif }" @endif
+      class="{{ $vue->edition() ? 'lg:pl-[24rem]' : '' }} modele-zoom min-h-screen bg-book-fond font-texte text-book-texte2 antialiased" style="{{ $vue->variables() }}" id="{{ $b->page_type }}">
 
     <div x-data="{ menu: false }" class="flex min-h-screen flex-col">
 
@@ -119,10 +123,12 @@
         <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>
     </button>
 
-    @unless ($vue->edition())
+    @if ($vue->edition())
+        @include('book.commun._edition')
+    @else
         {{-- Pixel de statistiques du book (StatsBookController) : pas pour son createur. --}}
         <img src="/ubstats.gif?r={{ random_int(0, 9999) }}" width="1" height="1" alt="" class="hidden">
-    @endunless
+    @endif
 
     @if (! empty($b->cont_analytic))
         {{-- Mesure propre au createur, en GA4, s'il en a declare une. --}}

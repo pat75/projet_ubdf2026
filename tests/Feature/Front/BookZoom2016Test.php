@@ -126,3 +126,44 @@ it('masque le formulaire de contact quand le reglage le desactive', function () 
 
     $this->get(urlZoom('/contact'))->assertOk()->assertDontSee('x-data="contactBook"', false);
 });
+
+describe('mode edition', function () {
+    function reglerZoom($test, string $cle, string $valeur)
+    {
+        return $test->actingAs($test->book)->postJson(urlZoom('/reglages'), ['cle' => $cle, 'valeur' => $valeur]);
+    }
+
+    it('affiche le panneau de reglages Zoom au seul createur', function () {
+        $this->get(urlZoom())->assertDontSee('Réglages du book');
+        $this->actingAs($this->book)->get(urlZoom())->assertOk()
+            ->assertSee('Réglages du book')
+            ->assertSee('Portfolio groupé par rubrique')
+            ->assertSee('csrf-token', false);
+    });
+
+    it('enregistre les couleurs dans les cles du legacy', function () {
+        reglerZoom($this, 'couleur_bandeau', '#dc006b')->assertOk();
+        reglerZoom($this, 'couleur_fond', 'red;}')->assertStatus(422);
+
+        expect($this->book->bookSetting->fresh()->theme_settings['data']['.ub_couleur_nav']['color'])->toBe('#dc006b');
+        $this->get(urlZoom())->assertSee('--book-bandeau:#dc006b', false);
+    });
+
+    it('enregistre un interrupteur et un intitule du menu', function () {
+        reglerZoom($this, 'ptf_activer_iso_category', 'true')->assertOk();
+        reglerZoom($this, 'link_bio', 'Parcours')->assertOk();
+
+        $this->get(urlZoom())->assertSee('Parcours')->assertSeeInOrder(['<h2', 'Affiches'], false);
+    });
+
+    it('filtre le HTML des textes libres et les range dans les textes du theme', function () {
+        reglerZoom($this, 'texte.cont_menu_gauche', '<b>Illustratrice</b><script>alert(1)</script>')->assertOk();
+
+        expect($this->book->bookSetting->fresh()->theme_texts['mdl_2016_zoom']['cont_menu_gauche'])->not->toContain('<script');
+        $this->get(urlZoom())->assertSee('<b>Illustratrice</b>', false);
+    });
+
+    it('refuse les reglages d Ultra-frais sur un book Zoom', function () {
+        reglerZoom($this, 'theme', 'theme_black')->assertStatus(422);
+    });
+});

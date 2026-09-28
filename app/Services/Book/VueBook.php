@@ -32,6 +32,12 @@ class VueBook
         return auth()->check() && auth()->user()->login === $this->b->us_dir;
     }
 
+    /** Dossier des vues du modele (config book_themes.<modele>.dossier). */
+    public function dossier(): string
+    {
+        return (string) config('book_themes.'.$this->b->modele_book.'.dossier');
+    }
+
     /** Espace du createur, sur le portail de sa marque. */
     public function urlEspace(): string
     {

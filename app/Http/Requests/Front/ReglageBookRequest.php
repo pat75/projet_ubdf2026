@@ -9,15 +9,51 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 /**
- * Un reglage du book modifie depuis le mode edition (Ultra-frais,
- * Ultra-zen). Liste blanche : toute cle absente est refusee.
- * Les cles imbriquees du JSON s'ecrivent avec un point (nav_link.name_page).
+ * Un reglage du book modifie depuis le mode edition. Liste blanche par
+ * modele (celui du createur) : toute cle absente est refusee.
+ * Les cles imbriquees du JSON s'ecrivent avec un point (nav_link.name_page) ;
+ * CHEMINS donne l'emplacement des cles dont le nom JSON contient un point
+ * (`.ub_couleur_fond`). Les cles `texte.*` vont dans les textes libres du
+ * theme (theme_texts), pas dans sa configuration.
  */
 class ReglageBookRequest extends FormRequest
 {
-    /** Reglage => regles de sa valeur. */
-    public static function reglages(): array
+    /** Reglages Zoom 2016 : cle => emplacement dans le JSON du theme. */
+    public const CHEMINS = [
+        'couleur_fond' => ['.ub_couleur_fond', 'backgroundColor'],
+        'couleur_bandeau' => ['.ub_couleur_nav', 'color'],
+        'link_accueil' => ['link_accueil', 'form_text'],
+        'link_bio' => ['link_bio', 'form_text'],
+        'link_contact' => ['link_contact', 'form_text'],
+        'ptf_activer_sociaux' => ['ptf_activer_sociaux', 'ptf_activer_sociaux'],
+        'ptf_activer_contact' => ['ptf_activer_contact', 'ptf_activer_contact'],
+        'ptf_activer_gmap' => ['ptf_activer_gmap', 'ptf_activer_gmap'],
+        'ptf_activer_iso_category' => ['ptf_activer_iso_category', 'ptf_activer_iso_category'],
+    ];
+
+    /** Reglage => regles de sa valeur, pour le modele du book. */
+    public static function reglages(?string $theme = null): array
     {
+        if ($theme === 'mdl_2016_zoom') {
+            $couleur = ['required', 'string', 'regex:/^#[0-9a-f]{6}$/i'];
+            $interrupteur = ['required', Rule::in(['true', 'false'])];
+            $intitule = ['nullable', 'string', 'max:40'];
+
+            return [
+                'couleur_fond' => $couleur,
+                'couleur_bandeau' => $couleur,
+                'link_accueil' => $intitule,
+                'link_bio' => $intitule,
+                'link_contact' => $intitule,
+                'ptf_activer_sociaux' => $interrupteur,
+                'ptf_activer_contact' => $interrupteur,
+                'ptf_activer_gmap' => $interrupteur,
+                'ptf_activer_iso_category' => $interrupteur,
+                'texte.cont_menu_gauche' => ['nullable', 'string', 'max:5000'],
+                'texte.cont_menu_gauche2' => ['nullable', 'string', 'max:5000'],
+            ];
+        }
+
         $texteCourt = ['nullable', 'string', 'max:120'];
         $html = ['nullable', 'string', 'max:5000'];
         $lien = ['nullable', 'string', 'max:255'];
@@ -43,15 +79,21 @@ class ReglageBookRequest extends FormRequest
     }
 
     /** Reglages dont la valeur est du HTML, filtree avant enregistrement. */
-    public const HTML = ['footer', 'contact_footer'];
+    public const HTML = ['footer', 'contact_footer', 'texte.cont_menu_gauche', 'texte.cont_menu_gauche2'];
+
+    private function theme(): ?string
+    {
+        return $this->user()?->bookSetting?->theme;
+    }
 
     public function rules(): array
     {
         $cle = (string) $this->input('cle');
+        $reglages = self::reglages($this->theme());
 
         return [
-            'cle' => ['required', 'string', Rule::in(array_keys(self::reglages()))],
-            'valeur' => self::reglages()[$cle] ?? ['prohibited'],
+            'cle' => ['required', 'string', Rule::in(array_keys($reglages))],
+            'valeur' => $reglages[$cle] ?? ['prohibited'],
         ];
     }
 

@@ -9,14 +9,13 @@ use App\Services\Espace\NettoyeurHtml;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 /**
- * Mode edition des books Ultra-frais / Ultra-zen, ex-core_admin.js.
+ * Mode edition des books passes en Blade (Ultra-frais / Ultra-zen, Zoom), ex-core_admin.js.
  *
  * La session du portail ne couvre pas les sous-domaines des books
  * (SESSION_DOMAIN vide) : le createur y entre par un lien signe, emis
@@ -73,8 +72,28 @@ class EditionBookController extends Controller
         };
 
         $reglages = $creatif->bookSetting()->firstOrCreate([]);
+
+        // Textes libres du theme (presentation, contact...) : theme_texts.
+        if (str_starts_with($cle, 'texte.')) {
+            $textes = $reglages->theme_texts ?? [];
+            $textes[$reglages->theme][substr($cle, 6)] = $valeur;
+            $reglages->update(['theme_texts' => $textes]);
+
+            return response()->json(['valeur' => $valeur]);
+        }
+
         $conf = $reglages->theme_settings ?: json_decode(config('book_themes.'.$reglages->theme.'.defaut', '{}'), true);
-        Arr::set($conf, 'data.'.$cle, $valeur);
+        $chemin = ReglageBookRequest::CHEMINS[$cle] ?? explode('.', $cle);
+        // Pas d'Arr::set : les cles du legacy contiennent des points (.ub_couleur_fond).
+        $noeud = &$conf['data'];
+        foreach ($chemin as $partie) {
+            if (! isset($noeud[$partie]) || ! is_array($noeud[$partie])) {
+                $noeud[$partie] = [];
+            }
+            $noeud = &$noeud[$partie];
+        }
+        $noeud = $valeur;
+        unset($noeud);
         $reglages->update(['theme_settings' => $conf]);
 
         return response()->json(['valeur' => $valeur]);
