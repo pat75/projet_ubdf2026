@@ -81,12 +81,22 @@ https://{sousdomaines}.extra-book.com
 
 
 
-+ Memobook
++ Memobook et compte, visiteurs
 Il faut refondre tout le principe du mémo book, en effet le mémo book doit être enregistré sur une table ma SQL spécifique à chaque utilisateur.
 L'icône du mémo book ne doit plus être affiché sur le menu top, mais dans le menu utilisateur en dessous du menu mes messages
 Afficher un label avec le nombre de book sélectionné.
 Créer une page spécifique avec l'ensemble des books sélectionné et la possibilité de les désélectionner.
 Ajouter sur cette page un moteur de recherche pour faire une recherche par non sur le mémo book.
+
+Quand a visiteurs, clique sur un cœur pour incrémenter le mémo book, il faut lui proposer la possibilité d'indiquer son e-mail et un mot de passe pour qu'il puisse facilement retrouver ses book ou les exporter en PDF.
+Une fois que le visiteur a indiqué son e-mail et son mot de passe, son compte est automatiquement, créé en tant que visiteur.
+Et il sera directement connecté sur ce nouveau compte à la page mémo book.
+Par la suite, il pourra se connecter sur son compte via le menu, connexion.
+Au lieu d'indiquer son identifiant, il indiquera son e-mail (indiqué dans input, identifiants ou e-mail)
+Le système reconnaîtra automatiquement en fonction de la connexion si il s'agit d'un créatif ou d'un visiteur.
+Si un visiteur se connecte une page tableau de bord, lui permettra de visualiser ces derniers messages et les dernières visites des book qu'il a effectué ainsi que les book qu'il a enregistré (les mémo book)
+
+Analyser la demande posséder des questions et faire un plan de codage
 
 
 
