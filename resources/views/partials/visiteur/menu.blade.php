@@ -6,7 +6,7 @@
 <nav class="carte-espace flex flex-col gap-0.5 p-2.5 text-[15px]" aria-label="{{ __('Navigation du compte') }}">
     <x-espace.nav-groupe>{{ __('Mon compte visiteur') }}</x-espace.nav-groupe>
     <x-espace.nav-lien route="visiteur.tableau">{{ __('Tableau de bord') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémo book') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémoBook') }}</x-espace.nav-lien>
 
     <div class="mx-3 my-2.5 h-px bg-ub-filet"></div>
 

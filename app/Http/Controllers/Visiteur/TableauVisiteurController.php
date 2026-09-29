@@ -18,7 +18,7 @@ class TableauVisiteurController extends Controller
 
         return view('visiteur.tableau', [
             'visiteur' => $visiteur,
-            'messages' => $visiteur->demandes()
+            'messages' => $memo->conversations($visiteur)
                 ->with('user')
                 ->withCount(['messages as non_lus' => fn ($q) => $q->where('from_owner', true)->whereNull('read_at')])
                 ->orderByDesc('last_message_at')

@@ -112,7 +112,7 @@ it('affiche le memo d un visiteur et filtre par nom', function () {
     MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->autre->id]);
 
     $this->actingAs($visiteur, 'visitor')->get('/memobook')
-        ->assertOk()->assertSee('Mon mémo book')->assertSee('Le Gall')->assertSee('Martin');
+        ->assertOk()->assertSee('mémoBook')->assertSee('Le Gall')->assertSee('Martin');
 
     Livewire\Livewire::actingAs($visiteur, 'visitor')
         ->test(App\Livewire\Memo\Liste::class)
@@ -219,10 +219,10 @@ it('montre au visiteur ses messages une fois son adresse confirmee', function ()
     $this->actingAs($visiteur, 'visitor')->get('/visiteur')
         ->assertOk()->assertSee('Mes derniers messages')->assertSee('Le Gall');
 
-    $this->get('/visiteur/messages/'.$fil->id)->assertRedirect();
+    $this->get('/memobook/messages/'.$fil->id)->assertRedirect();
 
     $visiteur->forceFill(['email_verified_at' => null])->save();
-    $this->get('/visiteur/messages/'.$fil->id)->assertNotFound();
+    $this->get('/memobook/messages/'.$fil->id)->assertNotFound();
 });
 
 it('ne montre pas le fil d un autre', function () {
@@ -233,7 +233,7 @@ it('ne montre pas le fil d un autre', function () {
     ]);
 
     $this->actingAs(Visitor::factory()->create(), 'visitor')
-        ->get('/visiteur/messages/'.$fil->id)->assertNotFound();
+        ->get('/memobook/messages/'.$fil->id)->assertNotFound();
 });
 
 it('note les visites de books d un visiteur connecte seulement', function () {
@@ -270,4 +270,127 @@ it('passe au portail le memo d un visiteur connecte', function () {
     $this->actingAs($visiteur, 'visitor')->get('/')->assertOk()
         ->assertSee('"memo":{"connecte":true,"visiteur":true,"logins":["nolwenn"]}', false)
         ->assertDontSee('data-modale="memo-compte"', false);
+});
+
+it('compte les messages echanges avec un book et les montre dans la fenetre', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->autre->id]);
+
+    $fil = Conversation::create([
+        'user_id' => $this->book->id, 'channel' => 'portail', 'subject' => 'contact',
+        'sender_name' => 'Léa', 'sender_email' => 'lea@example.com',
+        'selector' => str_repeat('c', 24), 'last_message_at' => now(),
+    ]);
+    $fil->messages()->createMany([
+        ['from_owner' => false, 'body' => 'Bonjour Nolwenn'],
+        ['from_owner' => true, 'body' => 'Bonjour Léa, avec plaisir'],
+        ['from_owner' => false, 'body' => 'Merci !'],
+    ]);
+
+    expect(app(App\Services\Memo\MemoBooks::class)->compteursMessages($visiteur, [$this->book->id, $this->autre->id]))
+        ->toBe([$this->book->id => ['recus' => 1, 'envoyes' => 2]]);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Memo\Liste::class)
+        ->assertSee('1 reçu')->assertSee('2 envoyés')
+        ->call('ouvrirMessages', 'nolwenn')
+        ->assertSee('Messages échangés avec')->assertSee('Bonjour Léa, avec plaisir')
+        ->call('fermerMessages')
+        ->assertDontSee('Bonjour Léa, avec plaisir');
+
+    expect($fil->messages()->where('from_owner', true)->whereNull('read_at')->count())->toBe(0);
+});
+
+it('range les books par annee et par mois de memorisation', function () {
+    $visiteur = Visitor::factory()->create();
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id, 'created_at' => '2026-09-10']);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->autre->id, 'created_at' => '2025-03-02']);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Memo\Liste::class)
+        ->assertSeeInOrder(['2026', 'septembre', 'Le Gall', '2025', 'mars', 'Martin']);
+});
+
+it('ajoute les codes QR au pdf sur demande', function () {
+    $visiteur = Visitor::factory()->create();
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+
+    $sans = $this->actingAs($visiteur, 'visitor')->get('/memobook/pdf')->assertOk()->getContent();
+    $avec = $this->get('/memobook/pdf?qr=1')->assertOk()->getContent();
+
+    expect(strlen($avec))->toBeGreaterThan(strlen($sans));
+});
+
+it('partage publiquement le memo en lecture seule', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+    $fil = Conversation::create([
+        'user_id' => $this->book->id, 'channel' => 'portail', 'subject' => 'contact',
+        'sender_name' => 'Léa', 'sender_email' => 'lea@example.com',
+        'selector' => str_repeat('d', 24), 'last_message_at' => now(),
+    ]);
+    $fil->messages()->create(['from_owner' => true, 'body' => 'Réponse privée']);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Memo\Liste::class)
+        ->assertDontSee('memobook/partage/')
+        ->call('basculerPartage')
+        ->assertSee('memobook/partage/')->assertSee('Afficher le QR code');
+
+    $partage = App\Models\MemoPartage::firstWhere('visitor_id', $visiteur->id);
+    auth('visitor')->logout();
+
+    $this->get($partage->url())->assertOk()
+        ->assertSee('Le Gall')->assertDontSee('Partagé par')->assertDontSee('lea@example.com')->assertDontSee('1 reçu')->assertDontSee('Retirer')->assertDontSee('Réponse privée');
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')->test(App\Livewire\Memo\Liste::class)->call('basculerPartage');
+    auth('visitor')->logout();
+
+    $this->get($partage->url())->assertNotFound();
+});
+
+it('montre sur la page publique le createur qui partage', function () {
+    $creatif = User::factory()->create(['firstname' => 'Adolie', 'lastname' => 'Day']);
+    MemoBook::create(['user_id' => $creatif->id, 'book_id' => $this->book->id]);
+    $partage = app(App\Services\Memo\MemoBooks::class)->basculerPartage($creatif);
+
+    $this->get($partage->url())->assertOk()->assertSee('Partagé par')->assertSee('Adolie Day');
+});
+
+it('envoie un message a un book du memo', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Memo\Liste::class)
+        ->call('ouvrirEcriture', 'nolwenn')
+        ->assertSee('Envoyer un message à')
+        ->set('nomExpediteur', 'Léa Martin')
+        ->set('messageTexte', 'court')
+        ->call('envoyerMessage')
+        ->assertHasErrors('messageTexte')
+        ->set('messageTexte', 'Bonjour, votre travail me plaît beaucoup.')
+        ->call('envoyerMessage')
+        ->assertHasNoErrors()
+        ->assertSee('Message envoyé');
+
+    $fil = Conversation::firstWhere('user_id', $this->book->id);
+    expect($fil->sender_email)->toBe('lea@example.com')
+        ->and($fil->sender_name)->toBe('Léa Martin')
+        ->and($fil->messages()->first()->body)->toBe('Bonjour, votre travail me plaît beaucoup.');
+
+    Mail::assertSent(App\Mail\DemandeRecue::class);
+});
+
+it('exporte en pdf la version publique d un memo partage', function () {
+    $creatif = User::factory()->create();
+    MemoBook::create(['user_id' => $creatif->id, 'book_id' => $this->book->id]);
+    $partage = app(App\Services\Memo\MemoBooks::class)->basculerPartage($creatif);
+
+    $this->get($partage->url())->assertSee('Exporter en PDF');
+    $this->get($partage->url().'/pdf?qr=1')->assertOk()->assertHeader('Content-Type', 'application/pdf');
+
+    app(App\Services\Memo\MemoBooks::class)->basculerPartage($creatif);
+    $this->get($partage->url().'/pdf')->assertNotFound();
 });

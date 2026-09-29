@@ -2,7 +2,7 @@
      pour un visiteur (layout visiteur). --}}
 @extends(auth('web')->check() ? 'layouts.espace' : 'layouts.visiteur')
 
-@section('title', __('Mon mémo book'))
+@section('title', __('mémoBook'))
 
 @section('content')
     <livewire:memo.liste />

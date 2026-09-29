@@ -37,7 +37,7 @@
     <x-espace.nav-lien route="espace.compte">{{ __('Mon compte') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.formule">{{ __('Ma formule') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.messages" :pastille="$messagesNonLus">{{ __('Mes messages') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémo book') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémoBook') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.aide">{{ __('Aide') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Mon portfolio') }}</x-espace.nav-groupe>

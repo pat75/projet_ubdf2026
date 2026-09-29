@@ -23,7 +23,7 @@
     @endunless
 
     {{-- Memo book --}}
-    <x-espace.carte :titre="__('Mon mémo book')" :sous-titre="trans_choice(':n book enregistré|:n books enregistrés', $memoTotal, ['n' => $memoTotal])">
+    <x-espace.carte :titre="__('Mon mémoBook')" :sous-titre="trans_choice(':n book enregistré|:n books enregistrés', $memoTotal, ['n' => $memoTotal])">
         @if ($memo->isEmpty())
             <p class="text-[15px] text-ub-texte3">{{ __('Cliquez sur le cœur d’un book, sur le portail, pour le garder ici.') }}</p>
         @else
@@ -46,7 +46,7 @@
         @endif
 
         <div class="mt-5">
-            <a href="{{ lien('memobook') }}" class="bouton-espace bouton-espace-grand px-6">{{ __('Voir mon mémo book') }}</a>
+            <a href="{{ lien('memobook') }}" class="bouton-espace bouton-espace-grand px-6">{{ __('Voir mon mémoBook') }}</a>
         </div>
     </x-espace.carte>
 
@@ -60,7 +60,7 @@
             <ul>
                 @foreach ($messages as $fil)
                     <li class="border-b border-ub-filet last:border-b-0">
-                        <a href="{{ lien('visiteur.message', ['conversation' => $fil->id]) }}" class="flex items-center gap-3 py-3">
+                        <a href="{{ lien('memobook.message', ['conversation' => $fil->id]) }}" class="flex items-center gap-3 py-3">
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-[15px] font-semibold text-ub-texte">{{ $fil->user?->fullName() }}</span>
                                 <span class="block truncate text-[13px] text-ub-texte3">{{ $fil->objet() }} · {{ $fil->last_message_at?->translatedFormat('j F Y') }}</span>

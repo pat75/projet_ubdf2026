@@ -19,7 +19,7 @@ class BienvenueVisiteur extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: __('Votre mémo book est enregistré'));
+        return new Envelope(subject: __('Votre mémoBook est enregistré'));
     }
 
     public function content(): Content

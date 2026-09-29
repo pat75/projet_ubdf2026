@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\URL;
  *
  * La confirmation ne bloque rien : le memo est utilisable tout de suite.
  * Elle ne conditionne que l'affichage des messages envoyes avec cette
- * adresse (Visitor::demandes()).
+ * adresse (MemoBooks::conversations()).
  */
 class CreerCompteVisiteur
 {

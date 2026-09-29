@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,19 +40,6 @@ class Visitor extends Authenticatable
         return $this->belongsToMany(User::class, 'visitor_book_visits', 'visitor_id', 'book_id')
             ->withPivot('visited_at')
             ->orderByPivot('visited_at', 'desc');
-    }
-
-    /**
-     * Demandes envoyees depuis le portail avec son adresse.
-     *
-     * Seulement une fois l'adresse confirmee : sans cela, n'importe qui
-     * ouvrirait un compte au nom d'un tiers pour lire ses echanges.
-     */
-    public function demandes(): Builder
-    {
-        return Conversation::query()
-            ->where('sender_email', $this->email_verified_at ? $this->email : '')
-            ->where('is_spam', false);
     }
 
     public function sendPasswordResetNotification($token): void

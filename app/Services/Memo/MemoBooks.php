@@ -2,11 +2,15 @@
 
 namespace App\Services\Memo;
 
+use App\Models\Conversation;
 use App\Models\MemoBook;
+use App\Models\MemoPartage;
+use App\Models\Message;
 use App\Models\User;
 use App\Models\Visitor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Memo book : les books mis de cote d'un clic sur le coeur.
@@ -91,7 +95,7 @@ class MemoBooks
                         ->orWhere('users.login', 'like', $motif));
                 }
             })
-            ->with(['category', 'media' => fn ($q) => $q->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(1)])
+            ->with(['category', 'bookSetting', 'media' => fn ($q) => $q->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(1)])
             ->orderByDesc('memo_books.created_at')
             ->orderByDesc('memo_books.id')
             ->when($limite, fn (Builder $q) => $q->limit($limite))
@@ -112,6 +116,67 @@ class MemoBooks
 
         User::query()->whereIn('login', $logins)->get()
             ->each(fn (User $book) => $this->ajouter($proprietaire, $book));
+    }
+
+    /**
+     * Demandes envoyees depuis l'adresse du proprietaire, a n'importe quel
+     * creatif.
+     *
+     * Seulement une fois l'adresse confirmee : sans cela, n'importe qui
+     * ouvrirait un compte au nom d'un tiers pour lire ses echanges.
+     */
+    public function conversations(User|Visitor $proprietaire): Builder
+    {
+        $adresse = $proprietaire->email_verified_at ? mb_strtolower((string) $proprietaire->email) : '';
+
+        return Conversation::query()
+            ->where('sender_email', $adresse)
+            ->where('is_spam', false);
+    }
+
+    /**
+     * Messages echanges avec chaque book : recus (ecrits par le createur
+     * du book) et envoyes (par le proprietaire du memo).
+     *
+     * @param  list<int>  $bookIds
+     * @return array<int, array{recus: int, envoyes: int}> indexe par id de book
+     */
+    public function compteursMessages(User|Visitor $proprietaire, array $bookIds): array
+    {
+        if ($bookIds === []) {
+            return [];
+        }
+
+        return Message::query()
+            ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+            ->whereIn('messages.conversation_id', $this->conversations($proprietaire)->whereIn('user_id', $bookIds)->select('id'))
+            ->groupBy('conversations.user_id')
+            ->selectRaw('conversations.user_id as book_id')
+            ->selectRaw('sum(case when messages.from_owner = 1 then 1 else 0 end) as recus')
+            ->selectRaw('sum(case when messages.from_owner = 1 then 0 else 1 end) as envoyes')
+            ->get()
+            ->mapWithKeys(fn ($l) => [(int) $l->book_id => ['recus' => (int) $l->recus, 'envoyes' => (int) $l->envoyes]])
+            ->all();
+    }
+
+    /** Le partage public du memo, s'il a deja ete ouvert une fois. */
+    public function partage(User|Visitor $proprietaire): ?MemoPartage
+    {
+        return MemoPartage::query()->where($this->colonne($proprietaire), $proprietaire->id)->first();
+    }
+
+    /** Active ou coupe le partage public ; le jeton est cree au premier usage puis garde. */
+    public function basculerPartage(User|Visitor $proprietaire): MemoPartage
+    {
+        $partage = $this->partage($proprietaire) ?? new MemoPartage([
+            $this->colonne($proprietaire) => $proprietaire->id,
+            'jeton' => Str::random(32),
+        ]);
+
+        $partage->actif = ! $partage->actif;
+        $partage->save();
+
+        return $partage;
     }
 
     private function requete(User|Visitor $proprietaire): Builder

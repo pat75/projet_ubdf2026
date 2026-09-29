@@ -81,7 +81,7 @@ https://{sousdomaines}.extra-book.com
 
 
 
-+ Memobook et compte, visiteurs
++ Memobook et compte, visiteurs + ok
 Il faut refondre tout le principe du mémo book, en effet le mémo book doit être enregistré sur une table ma SQL spécifique à chaque utilisateur.
 L'icône du mémo book ne doit plus être affiché sur le menu top, mais dans le menu utilisateur en dessous du menu mes messages
 Afficher un label avec le nombre de book sélectionné.

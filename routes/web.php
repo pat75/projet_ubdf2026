@@ -8,10 +8,11 @@ use App\Http\Controllers\Front\BookController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
+use App\Http\Controllers\Memo\FilMemoController;
 use App\Http\Controllers\Memo\MemoController;
+use App\Http\Controllers\Memo\MemoPublicController;
 use App\Http\Controllers\Memo\PdfMemoController;
 use App\Http\Controllers\Visiteur\InscriptionVisiteurController;
-use App\Http\Controllers\Visiteur\MessageVisiteurController;
 use App\Http\Controllers\Visiteur\MotDePasseVisiteurController;
 use App\Http\Controllers\Visiteur\TableauVisiteurController;
 use App\Http\Controllers\Visiteur\VisiteBookController;
@@ -385,11 +386,17 @@ $portail = function (?string $langue = null) {
     Route::middleware('auth:web,visitor')->group(function () {
         Route::view('/memobook', 'memo.index')->name('memobook');
         Route::get('/memobook/pdf', PdfMemoController::class)->middleware('throttle:10,1')->name('memobook.pdf');
+        Route::get('/memobook/messages/{conversation}', FilMemoController::class)->whereNumber('conversation')->name('memobook.message');
     });
+
+    // Version publique d'un memoBook partage (lecture seule).
+    Route::get('/memobook/partage/{jeton}', [MemoPublicController::class, 'page'])
+        ->where('jeton', '[A-Za-z0-9]{32}')->name('memobook.public');
+    Route::get('/memobook/partage/{jeton}/pdf', [MemoPublicController::class, 'pdf'])
+        ->where('jeton', '[A-Za-z0-9]{32}')->middleware('throttle:10,1')->name('memobook.public.pdf');
 
     Route::middleware('auth:visitor')->prefix('visiteur')->name('visiteur.')->group(function () {
         Route::get('/', TableauVisiteurController::class)->name('tableau');
-        Route::get('/messages/{conversation}', MessageVisiteurController::class)->whereNumber('conversation')->name('message');
         Route::post('/confirmation', [InscriptionVisiteurController::class, 'renvoyer'])
             ->middleware('throttle:3,10')->name('confirmation');
     });

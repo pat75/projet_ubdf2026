@@ -10,7 +10,7 @@ class MemoBook extends Model
 {
     public const UPDATED_AT = null;
 
-    protected $fillable = ['visitor_id', 'user_id', 'book_id'];
+    protected $fillable = ['visitor_id', 'user_id', 'book_id', 'created_at'];
 
     public function book(): BelongsTo
     {

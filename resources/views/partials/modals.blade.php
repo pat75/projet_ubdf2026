@@ -566,7 +566,7 @@
         <div class="connexion_panneau">
             <div class="connexion_colonne">
                 <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
-                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémo book') }}</p>
+                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémoBook') }}</p>
                 <p class="connexion_accroche">{{ __('Book ajouté à votre sélection. Indiquez votre e-mail et un mot de passe pour la retrouver sur tous vos appareils et l’exporter en PDF.') }}</p>
 
                 <div class="ui negative message connexion_alerte" role="alert" x-show="erreur" x-cloak>
@@ -589,7 +589,7 @@
                         </div>
                     </div>
                     <div class="connexion_actions">
-                        <button class="ui black button" type="submit" :class="{ loading: envoi }" :disabled="envoi">{{ __('Enregistrer mon mémo book') }}</button>
+                        <button class="ui black button" type="submit" :class="{ loading: envoi }" :disabled="envoi">{{ __('Enregistrer mon mémoBook') }}</button>
                         <a href="#" @click.prevent="$store.modale.fermer()">{{ __('Plus tard') }}</a>
                     </div>
                 </form>

@@ -109,11 +109,15 @@
         </div>
     </div>
 
-    {{-- Les visites : le total, puis leur repartition par support. --}}
-    <section class="carte-espace mt-6 p-7">
+    {{-- Les visites : le total, puis leur repartition par support. Toute la
+         carte mene au detail (Mes statistiques). --}}
+    <a href="{{ route('espace.statistiques') }}" class="carte-espace group mt-6 block p-7 no-underline transition-shadow hover:shadow-md">
         <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
-                <h2 class="font-titre text-[24px] font-light text-ub-texte">{{ __('Statistiques') }}</h2>
+                <h2 class="flex items-center gap-1.5 font-titre text-[24px] font-light text-ub-texte">
+                    {{ __('Statistiques') }}
+                    <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte transition-transform group-hover:translate-x-0.5" />
+                </h2>
                 <p class="mt-1 text-[14px] text-ub-texte3">{{ __('Nombre total de visites, tous formats confondus') }}</p>
             </div>
 
@@ -121,7 +125,7 @@
         </div>
 
         <x-espace.anneau :parts="$visites['parts']" class="mt-7" />
-    </section>
+    </a>
 
     {{-- Les deux entrees en matiere : charger des images, personnaliser le
          portfolio. Ce sont les deux gestes que le createur vient faire,
