@@ -55,7 +55,7 @@
             <span class="mpe-large">Fermer</span>
         </button>
 
-        <a href="/" aria-label="Ultra-book"><img src="/img_front/ultra-book_logo_nb.svg" alt="Ultra-book" class="block h-auto w-[130px] invert"></a>
+        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="block h-auto w-[130px] invert"></a>
 
         {{-- Colonne conservee meme vide : la grille 1fr/auto/1fr garde le
              logo centre. Un utilisateur connecte a deja son portfolio. --}}
@@ -123,7 +123,7 @@
 
                 <section class="flex flex-col gap-3">
                     <p class="m-0 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#8a8784]">Contact / Aide</p>
-                    <a href="mailto:contact2019&#64;ultra-book.net?subject=Aide Ultra-book" class="break-all text-[17px] font-semibold">contact2019&#64;ultra-book.net</a>
+                    <a href="mailto:{{ $marque->email }}?subject={{ rawurlencode(__('Aide').' '.$marque->nom) }}" class="break-all text-[17px] font-semibold">{{ $marque->email }}</a>
                     <div class="flex flex-wrap gap-x-5 gap-y-2 text-[15px]">
                         <a href="/doc/les-formules-ultra-book" class="mpe-lien underline underline-offset-[3px]">Tarifs</a>
                         <a href="/doc/mentions-legales" class="mpe-lien underline underline-offset-[3px]">Mentions légales</a>

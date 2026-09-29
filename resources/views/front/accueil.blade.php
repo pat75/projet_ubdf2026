@@ -25,7 +25,7 @@
                 'position' => $i + 1,
                 'name' => App\Support\Metier::titreBloc($bloc['slug']),
                 'description' => App\Support\Metier::sousTitre($bloc['slug']),
-                'url' => $racine.parse_url(lien('categorie', ['categorie' => $bloc['slug']]), PHP_URL_PATH),
+                'url' => $racine.parse_url(lien_metier($bloc['slug']), PHP_URL_PATH),
             ])->all(),
         ],
     ];

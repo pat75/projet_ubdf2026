@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
-@section('title', $actualite->title.' | Ultra-book')
+@section('title', texte_seo($actualite->title).' | '.$marque->nom)
+@section('description', texte_seo($actualite->excerpt ?: $actualite->body, 155))
 @section('body_class', 'page_actu')
 
 @section('content')

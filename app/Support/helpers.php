@@ -134,3 +134,40 @@ if (! function_exists('book_actu_txt')) {
         return urls_medias_book(htmlspecialchars_decode((string) $tmp_txt, ENT_QUOTES));
     }
 }
+
+if (! function_exists('texte_seo')) {
+    /**
+     * Texte brut pour une balise <title> ou <meta description>.
+     *
+     * Les titres et textes repris du legacy sont stockes deja encodes
+     * (« d&#039;utilisation ») : Blade les encodait une seconde fois et la
+     * page affichait « d&amp;#039; ». On decode, on retire le HTML, on
+     * resserre les espaces, et on coupe au mot si une longueur est donnee
+     * (155 pour une description : Google tronque vers 160).
+     */
+    function texte_seo(?string $texte, ?int $longueur = null): string
+    {
+        $texte = html_entity_decode(strip_tags((string) $texte), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $texte = trim(preg_replace('/\s+/u', ' ', $texte) ?? '');
+
+        if ($longueur === null || mb_strlen($texte) <= $longueur) {
+            return $texte;
+        }
+
+        $coupe = mb_substr($texte, 0, $longueur);
+        $espace = mb_strrpos($coupe, ' ');
+
+        return rtrim($espace ? mb_substr($coupe, 0, $espace) : $coupe, " ,;:.-").'…';
+    }
+}
+
+if (! function_exists('lien_metier')) {
+    /**
+     * Adresse d'une page metier, avec le segment de la langue courante
+     * (/en/illustrator sur Dustfolio anglais, /illustrateur ailleurs).
+     */
+    function lien_metier(string $slug, bool $absolu = true): string
+    {
+        return lien('categorie', ['categorie' => App\Support\Metier::slugUrl($slug)], $absolu);
+    }
+}

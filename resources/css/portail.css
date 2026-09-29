@@ -679,6 +679,15 @@
 .container.bloc_portfolios .bloc_titre a h2.metier_group:hover { color: #545454; }
 
 /*
+ | Accueil : ecart entre les mots-cles et « Creer votre portfolio »
+ | reduit (40px de padding + 80px de marge dans core.css : 120px ->
+ | 60px, puis -30 % -> 42px). Seulement quand les mots-cles le precedent.
+ */
+.bloc_last_recherche ~ .bloc_accueil_modele2020:not(.creatifs_ub) {
+    margin-top: 2px;
+}
+
+/*
  | Visionneuse d'un book (partials/visionneuse) : le bandeau d'en-tete
  | (#book_open .ui.container) n'est pas positionne dans core.css
  | (non versionne) — #swipebox-slider, lui, est en position absolue avec
@@ -850,4 +859,37 @@
         background-size: contain !important;
         background-position: center !important;
     }
+}
+
+/* Pages metier : introduction et questions frequentes (SEO / GEO). */
+.bloc_titre .metier_intro {
+    max-width: 760px;
+    margin: 12px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #555;
+}
+.metier_faq {
+    max-width: 760px;
+    margin: 48px auto 32px;
+    padding: 0 16px;
+}
+.metier_faq h2 {
+    font-size: 22px;
+    font-weight: 300;
+    margin-bottom: 16px;
+}
+.metier_faq details {
+    border-bottom: 1px solid #e4e4e2;
+    padding: 14px 0;
+}
+.metier_faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #2b2b2b;
+}
+.metier_faq details p {
+    margin: 10px 0 0;
+    line-height: 1.6;
+    color: #555;
 }

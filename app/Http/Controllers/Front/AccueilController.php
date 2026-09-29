@@ -53,10 +53,15 @@ class AccueilController extends Controller
      */
     public function categorie(Request $request, string $categorie): View
     {
+        // Segment d'URL (« illustrator » en anglais) -> slug interne.
+        $categorie = Metier::depuisSlugUrl($categorie);
+
         $brand = $request->attributes->get('brand', 'ub');
 
         return view('front.categorie', [
             'categorie' => $categorie,
+            // Page d'accroche SEO (config/seo_contenus.php), sinon null.
+            'landing' => $request->route('landing') ? config('seo_contenus.landings.'.$request->route('landing')) : null,
             'books' => $this->books->portfolios('sel', $categorie, 0, $brand),
             'total' => $this->books->count($categorie, $brand),
             'ubdf' => [

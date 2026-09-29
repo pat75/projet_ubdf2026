@@ -33,3 +33,15 @@ Les trois atteignent bien `public/index.php` avec le bon `HTTP_HOST`. **Validé 
 ## Attention
 
 `valet link`, `valet secure` ou `valet unsecure` sur ce site **régénèrent** le fichier et écrasent le correctif. Le cas échéant, réappliquer depuis `_doc/valet/nginx-ubdf2026.ultra-book.name.conf`.
+
+## robots.txt
+
+Le bloc serveur de Valet (comme celui de Forge) contient
+`location = /robots.txt { access_log off; log_not_found off; }` : nginx sert
+le fichier statique et ne passe jamais la main à Laravel (404 s'il manque).
+
+Plutôt que de modifier nginx, `public/robots.txt` est écrit par la commande
+`ubdf:robots` (contenu : `App\Support\Robots`), planifiée chaque nuit dans
+`routes/console.php`. **À lancer aussi après chaque déploiement.** Le
+fichier sert les deux marques : il annonce les sitemaps d'Ultra-book et de
+Dustfolio.

@@ -85,7 +85,8 @@
         <x-dev.switch-marque />
 
         <div class="item logo_light">
-			                <img src="/img_front/UB-logo_2018_light.svg" alt="Ultra-book">
+			                {{-- Charte : sur fond sombre, meme logo que partout, inverse. --}}
+			                <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="filter: invert(1)">
 			
         </div>
 

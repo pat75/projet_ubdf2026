@@ -420,16 +420,32 @@ $portail = function (?string $langue = null) {
     Route::get('/portfolio/{login}/{slug}', [PortfolioController::class, 'show'])
         ->where('login', '[-a-zA-Z0-9]+')->name('portfolio.show');
 
-    // Categories metier.
+    /*
+     | Categories metier. Le segment suit la langue (App\Support\Metier::slugUrl) :
+     | /illustrateur, /en/illustrator. En anglais, l'ancien segment francais
+     | redirige (301) vers le nouveau.
+     */
     Route::get('/{categorie}', [AccueilController::class, 'categorie'])
-        ->where('categorie', implode('|', array_column(config('categories.list'), 'slug')))
+        ->where('categorie', implode('|', App\Support\Metier::slugsUrl($langue)))
         ->name('categorie');
 
-    // Landings SEO : meme contenu qu'une categorie, titre different.
-    foreach (config('seo_routes.landings') as $url => $landing) {
-        Route::get('/'.$url, [AccueilController::class, 'categorie'])
-            ->defaults('categorie', $landing['categorie'])
-            ->name('landing.'.$url);
+    if ($langue === 'en') {
+        foreach (config('categories.list') as $metier) {
+            if (($metier['slug_en'] ?? $metier['slug']) !== $metier['slug']) {
+                Route::get('/'.$metier['slug'], fn () => redirect()->to(lien_metier($metier['slug']), 301));
+            }
+        }
+    }
+
+    // Landings SEO : meme contenu qu'une categorie, titre different. Leurs
+    // adresses et leurs textes sont francais : absentes de la version anglaise.
+    if ($langue === null || $langue === 'fr') {
+        foreach (config('seo_routes.landings') as $url => $landing) {
+            Route::get('/'.$url, [AccueilController::class, 'categorie'])
+                ->defaults('categorie', $landing['categorie'])
+                ->defaults('landing', $url)
+                ->name('landing.'.$url);
+        }
     }
 
     /*

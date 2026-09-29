@@ -21,6 +21,20 @@ Ultra-book est une plateforme de portfolios en ligne pour les créatifs freelanc
 @endforeach
 
 @if ($marque->estDefaut())
+## Questions fréquentes
+
+@foreach ($faq as $entree)
+### {!! $entree['question'] !!}
+
+{!! $entree['reponse'] !!}
+
+@endforeach
+## Pages thématiques
+
+@foreach ($thematiques as $page)
+- [{!! $page['titre'] !!}]({!! $page['url'] !!}): {!! $page['description'] !!}
+@endforeach
+
 ## Pages utiles
 
 - [Tarifs et formules]({!! $racine !!}/doc/les-formules-ultra-book)

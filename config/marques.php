@@ -41,6 +41,8 @@ return [
 
             // Version claire, pour les fonds sombres (pied de page).
             'logo_clair' => '/img_front/ultra-book_logo_nb_inverse.svg',
+            // Image de partage par defaut (Open Graph / X), 1200 x 630.
+            'image_partage' => '/img_front/partage/ultra-book.png',
 
             // Domaine canonique en production : c'est lui qui sert a
             // construire les URL absolues (courriels, sitemap, og:url).
@@ -49,7 +51,8 @@ return [
             // Titre et description par defaut. Ultra-book etant monolingue,
             // ils sont ecrits en francais, sans passer par __().
             'titre' => 'Portfolios freelance, illustrateur, graphiste, créer son book | Ultra-book',
-            'description' => 'Vous recherchez un créatif freelance ? Ultra-book vous permet de sélectionner et travailler avec les meilleurs indépendants freelance : illustrateurs, graphistes, développeurs.',
+            // 160 caracteres au plus : au-dela, Google tronque l'extrait.
+            'description' => 'Portfolios de créatifs freelance : illustrateurs, graphistes, photographes, directeurs artistiques. Trouvez et contactez le bon indépendant sur Ultra-book.',
 
             // Hotes reconnus. Le prefixe « www. » est retire avant
             // comparaison : www.ultra-book.com et ultra-book.com sont le
@@ -81,6 +84,7 @@ return [
             'assets' => '_df',
             'logo' => '/img_front_df/dustfolio.svg',
             'logo_clair' => '/img_front_df/dustfolio_b.svg',
+            'image_partage' => '/img_front/partage/dustfolio.png',
 
             'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
 

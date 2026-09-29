@@ -3,7 +3,7 @@
 @props(['slug', 'books', 'total'])
 
 @php
-    $url = lien('categorie', ['categorie' => $slug]);
+    $url = lien_metier($slug);
     $pluriel = App\Support\Metier::pluriel($slug);
 @endphp
 

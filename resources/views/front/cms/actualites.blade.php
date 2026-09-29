@@ -1,6 +1,6 @@
 @extends('layouts.portail')
 
-@section('title', 'Actualités | Ultra-book')
+@section('title', __('Actualités').' | '.$marque->nom)
 @section('body_class', 'page_actus')
 
 @section('content')

@@ -8,6 +8,7 @@ use App\Models\CmsPage;
 use App\Models\CmsPost;
 use App\Models\User;
 use App\Support\Marque;
+use App\Support\Metier;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -47,17 +48,23 @@ class SitemapController extends Controller
 
         $xml = Cache::remember('sitemap:pages:'.$marque->code.':'.app()->getLocale(), now()->addHours(self::CACHE_HEURES),
             function () use ($marque) {
-                $urls = [['loc' => $this->url($marque, '/accueil'), 'priorite' => '1.00']];
+                // L'accueil a pour adresse canonique la racine, pas /accueil.
+                $accueil = rtrim($marque->canonique, '/').($marque->multilingue() ? '/'.app()->getLocale() : '/');
+                $urls = [['loc' => $accueil, 'priorite' => '1.00']];
 
                 foreach (Category::where('is_active', true)->orderBy('position')->pluck('slug') as $slug) {
-                    $urls[] = ['loc' => $this->url($marque, '/'.$slug), 'priorite' => '0.80'];
+                    $urls[] = ['loc' => $this->url($marque, '/'.Metier::slugUrl($slug)), 'priorite' => '0.80'];
                 }
 
-                foreach (array_keys(config('seo_routes.landings')) as $chemin) {
+                // Landings : francaises, absentes de la version anglaise.
+                foreach (app()->getLocale() === 'fr' ? array_keys(config('seo_routes.landings')) : [] as $chemin) {
                     $urls[] = ['loc' => $this->url($marque, '/'.$chemin), 'priorite' => '0.60'];
                 }
 
-                foreach (CmsPage::query()->pluck('slug') as $slug) {
+                // Pages dans la langue servie seulement : les pages anglaises
+                // n'ont rien a faire dans le sitemap francais d'Ultra-book. Publiees
+                // seulement : une page non publiee repond 404.
+                foreach (CmsPage::publiees()->where('locale', app()->getLocale())->pluck('slug')->unique() as $slug) {
                     $urls[] = ['loc' => $this->url($marque, '/doc/'.$slug), 'priorite' => '0.50'];
                 }
 

@@ -112,7 +112,7 @@ it('ignore une langue que la marque ne sert pas', function () {
 });
 
 it('traduit les chaines du catalogue repris', function () {
-    $this->get(df('/en/illustrateur'))->assertOk()->assertSee('Loading...', false);
+    $this->get(df('/en/illustrator'))->assertOk()->assertSee('Loading...', false);
     $this->get(df('/fr/illustrateur'))->assertOk()->assertSee('Chargement...', false);
 });
 

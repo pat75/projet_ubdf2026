@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
 @section('title', __('Créer un book gratuitement').' | '.$marque->nom)
+@section('description', __('Créez gratuitement votre portfolio de créatif freelance sur :marque : en ligne en quelques minutes, diffusé auprès des agences, éditeurs et entreprises.', ['marque' => $marque->nom]))
 @section('body_class', 'page_creer_book')
 @section('plein_ecran', '1')
 

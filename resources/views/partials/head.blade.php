@@ -8,10 +8,17 @@
      | sur le domaine de production de la marque (et non sur l'hote servi),
      | sans parametre de requete ; une page peut la fixer (@section('canonical')).
      */
-    $canonique = trim($__env->yieldContent('canonical')) ?: rtrim($marque->canonique, '/').request()->getPathInfo();
-    $titrePage = trim($__env->yieldContent('title')) ?: $marque->titre();
-    $descriptionPage = trim($__env->yieldContent('description')) ?: $marque->description();
-    $imagePartage = trim($__env->yieldContent('og_image')) ?: rtrim($marque->canonique, '/').'/img_front/favicon/android-icon-192x192.png';
+    // @section('title', $x) echappe deja $x : on decode avant de l'echapper
+    // une seule fois a l'affichage, sinon « d'utilisation » sortait en
+    // « d&amp;#039;utilisation » et « Digital & » en « Digital &amp;amp; ».
+    $section = fn (string $nom) => html_entity_decode(trim($__env->yieldContent($nom)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $canonique = $section('canonical') ?: rtrim($marque->canonique, '/').request()->getPathInfo();
+    $titrePage = $section('title') ?: $marque->titre();
+    $descriptionPage = $section('description') ?: $marque->description();
+    // Image de partage : celle de la page, sinon l'image 1200 x 630 de la marque.
+    $imageParDefaut = config('marques.marques.'.$marque->code.'.image_partage');
+    $imagePartage = $section('og_image') ?: rtrim($marque->canonique, '/').($imageParDefaut ?: '/img_front/favicon/android-icon-192x192.png');
+    $imageGrande = $section('og_image') !== '' || $imageParDefaut;
 @endphp
 <meta charset="UTF-8">
 {{-- Zoom autorise : user-scalable=no penalise l'accessibilite (et Lighthouse). --}}
@@ -23,7 +30,15 @@
     <link rel="canonical" href="{{ $canonique }}">
     {{-- L'espace creatif est prive : jamais indexe, meme s'il est lie. --}}
     <meta name="robots" content="@yield('robots', request()->is('espace', 'espace/*', '*/espace', '*/espace/*') ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')">
-    @yield('hreflang')
+    {{-- Versions dans les autres langues (Dustfolio) : une page peut fixer
+         les siennes (@section('hreflang')), sinon elles se deduisent de la route. --}}
+    @hasSection('hreflang')
+        @yield('hreflang')
+    @else
+        @foreach (App\Support\VersionsLangue::pour($marque) as $langue => $url)
+            <link rel="alternate" hreflang="{{ $langue }}" href="{{ $url }}">
+        @endforeach
+    @endif
 
 
 
@@ -38,8 +53,12 @@
 <meta property='og:site_name'		content='{{ $marque->nom }}'/>
 <meta property='og:description' 	content='{{ $descriptionPage }}'/>
 <meta property='og:image' 			content='{{ $imagePartage }}'/>
+@if ($imageParDefaut && $section('og_image') === '')
+<meta property='og:image:width' 		content='1200'/>
+<meta property='og:image:height' 		content='630'/>
+@endif
 
-<meta name="twitter:card" 			content="summary" />
+<meta name="twitter:card" 			content="{{ $imageGrande ? 'summary_large_image' : 'summary' }}" />
 <meta name="twitter:site" 			content="&#64;ultra_book" />
 <meta name="twitter:title" 		    content="{{ $titrePage }}" />
 <meta name="twitter:description"    content="{{ $descriptionPage }}"/>

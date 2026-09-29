@@ -1,2 +1,11 @@
+User-agent: ia_archiver
+Disallow: /
+
 User-agent: *
-Disallow:
+Disallow: /espace
+Disallow: /admin
+Disallow: /messages/
+Disallow: /newsletter/desabonnement/
+
+Sitemap: https://www.ultra-book.com/sitemap.xml
+Sitemap: https://www.dustfolio.com/sitemap.xml

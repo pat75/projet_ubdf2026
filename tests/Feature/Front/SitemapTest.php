@@ -26,8 +26,20 @@ it('sert un index de sitemap', function () {
 
 it('liste les pages du portail', function () {
     $this->get('/sitemap-pages.xml')->assertOk()
-        ->assertSee('/accueil')
+        ->assertSee('<loc>'.rtrim(config('marques.marques.ub.canonique'), '/').'/</loc>', false)
+        ->assertDontSee('/accueil</loc>', false)
         ->assertSee('/meilleurs-graphistes');
+});
+
+it('ne liste que les pages statiques de la langue servie, sans doublon', function () {
+    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'fr', 'title' => 'Doc', 'published_at' => now()]);
+    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'en', 'title' => 'Doc', 'published_at' => now()]);
+    App\Models\CmsPage::query()->create(['slug' => 'legal-notice', 'locale' => 'en', 'title' => 'Legal notice', 'published_at' => now()]);
+
+    $xml = $this->get('/sitemap-pages.xml')->assertOk()->getContent();
+
+    expect(substr_count($xml, '/doc/doc</loc>'))->toBe(1)
+        ->and($xml)->not->toContain('/doc/legal-notice');
 });
 
 it('ne liste que les books diffuses', function () {
@@ -47,4 +59,21 @@ it('sert un robots.txt qui ferme l espace et le back-office', function () {
         ->assertSee('Disallow: /espace')
         ->assertSee('Disallow: /admin')
         ->assertSee('Sitemap: ');
+});
+
+it('ecrit public/robots.txt avec les sitemaps des deux marques', function () {
+    $chemin = public_path('robots.txt');
+    $avant = file_exists($chemin) ? file_get_contents($chemin) : null;
+
+    try {
+        @unlink($chemin);
+        $this->artisan('ubdf:robots')->assertSuccessful();
+
+        expect(file_get_contents($chemin))
+            ->toContain('Disallow: /espace')
+            ->toContain('Sitemap: '.rtrim(config('marques.marques.ub.canonique'), '/').'/sitemap.xml')
+            ->toContain('Sitemap: '.rtrim(config('marques.marques.df.canonique'), '/').'/sitemap.xml');
+    } finally {
+        $avant === null ? @unlink($chemin) : file_put_contents($chemin, $avant);
+    }
 });

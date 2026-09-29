@@ -209,9 +209,34 @@ class VueBook
         return trim(ucfirst($this->b->prenom).' '.ucfirst($this->b->nom));
     }
 
+    /**
+     * Titre de la page. Un titre de book generique herite du legacy
+     * (« Ultra-book de monlogin », « Book de alicia ») est remplace par le
+     * nom du createur et son metier, qui sont ce que l'on cherche. La marque
+     * n'apparait qu'une fois (le suffixe « : Ultra-book » des books gratuits
+     * doublait un titre qui la contenait deja).
+     */
     public function titrePage(): string
     {
-        return trim(self::brut(ucfirst($this->b->cont_page_titre)), " :\t\n");
+        $marque = $this->b->inc_site_name;
+        $titre = trim(self::brut(ucfirst($this->b->cont_page_titre)), " :\t\n");
+        $suffixe = ' : '.$marque;
+        $avecSuffixe = str_ends_with($titre, $suffixe);
+        $corps = $avecSuffixe ? mb_substr($titre, 0, -mb_strlen($suffixe)) : $titre;
+
+        $generique = '/^(?:'.preg_quote($marque, '/').'|book)\s+(?:de|d\')\s*'.preg_quote($this->b->us_dir, '/').'$/iu';
+        if ($corps === '' || preg_match($generique, $corps) === 1 || preg_match('/^(?:book|portfolio)\s+de\s+\S+$/iu', $corps) === 1) {
+            $corps = trim(implode(' — ', array_filter([
+                $this->nomCreateur() ?: $this->b->us_dir,
+                $this->b->us_type,
+            ])));
+        }
+
+        if ($avecSuffixe && mb_stripos($corps, $marque) === false) {
+            $corps .= $suffixe;
+        }
+
+        return $corps;
     }
 
     /**
@@ -283,6 +308,12 @@ class VueBook
                 'description' => $this->descriptionPage(),
                 'inLanguage' => str_replace('_', '-', app()->getLocale()),
                 'mainEntity' => ['@id' => $racine.'#createur'],
+                // Le book appartient a la plateforme : lien vers son site.
+                'isPartOf' => [
+                    '@type' => 'WebSite',
+                    'name' => $this->b->inc_site_name,
+                    'url' => rtrim($this->b->marque->canonique, '/').'/',
+                ],
             ],
         ];
 
@@ -295,12 +326,16 @@ class VueBook
                     '@type' => 'ImageObject',
                     'contentUrl' => url($v['grand']),
                     'thumbnailUrl' => url($v['moyen']),
-                    'name' => $v['titre'] ?: null,
+                    // Titre sans extension : « note book vert.jpg » -> « note book vert ».
+                    'name' => $v['titre'] ? (texte_seo(preg_replace('/\.(jpe?g|png|gif|webp)$/i', '', $v['titre'])) ?: null) : null,
                     'description' => $v['description'] ?: null,
                     'genre' => $v['nom_rubrique'] ?: null,
                     'width' => $v['largeur'] ?: null,
                     'height' => $v['hauteur'] ?: null,
                     'creator' => ['@id' => $racine.'#createur'],
+                    // Mentions lues par Google Images (credit et droits d'auteur).
+                    'creditText' => $this->nomCreateur() ?: null,
+                    'copyrightNotice' => $this->nomCreateur() ? '© '.$this->nomCreateur() : null,
                 ]), array_slice($this->visuels(), 0, 30)),
             ];
         }

@@ -24,3 +24,7 @@ Schedule::command('ubdf:purger-exports')->dailyAt('04:00')->timezone('Europe/Par
 Schedule::command('backup:clean')->dailyAt('02:30')->timezone('Europe/Paris');
 Schedule::command('backup:run')->dailyAt('03:00')->timezone('Europe/Paris');
 Schedule::command('backup:monitor')->dailyAt('08:00')->timezone('Europe/Paris');
+
+// robots.txt : le serveur web le sert comme un fichier statique, sans
+// passer par Laravel. On l'ecrit donc (App\Support\Robots) chaque nuit.
+Schedule::command('ubdf:robots')->dailyAt('04:30')->timezone('Europe/Paris');

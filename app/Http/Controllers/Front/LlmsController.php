@@ -47,10 +47,22 @@ class LlmsController extends Controller
             'metiers' => Metier::blocsAccueil()->map(fn (array $metier) => [
                 'titre' => Metier::titreBloc($metier['slug']),
                 'description' => Metier::sousTitre($metier['slug']),
-                'url' => $absolu(lien('categorie', ['categorie' => $metier['slug']])),
+                'url' => $absolu(lien_metier($metier['slug'])),
                 'total' => $comptes[$metier['slug']] ?? 0,
             ])->filter(fn (array $metier) => $metier['total'] > 0)->values(),
             'recherche' => $absolu(lien('recherche')),
+            // Questions frequentes des pages metier, formulees pour tous les
+            // createurs, et pages thematiques (config/seo_contenus.php).
+            'faq' => collect(config('seo_contenus.faq', []))->map(fn (array $entree) => [
+                'question' => __($entree['question'], ['metier' => __('créatif'), 'metiers' => __('créatifs'), 'marque' => $marque->nom]),
+                'reponse' => __($entree['reponse'], ['metier' => __('créatif'), 'metiers' => __('créatifs'), 'marque' => $marque->nom]),
+            ])->all(),
+            'thematiques' => collect(config('seo_contenus.landings', []))
+                ->map(fn (array $page, string $chemin) => [
+                    'titre' => __($page['titre']),
+                    'description' => __($page['description']),
+                    'url' => $absolu(lien('landing.'.$chemin)),
+                ])->values()->all(),
             'inscription' => $absolu(lien('inscription.page')),
         ];
     }

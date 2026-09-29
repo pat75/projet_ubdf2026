@@ -3,6 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>{{ $creatif->fullName() }} | {{ $marque->nom }}</title>
+    {{-- Widget integre dans des sites tiers : contenu duplique du book,
+         jamais indexe ; les moteurs sont renvoyes vers le book lui-meme. --}}
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="{{ $creatif->bookUrl() }}">
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Arial, sans-serif; font-size: 12px; color: #eee; background: #222; }
