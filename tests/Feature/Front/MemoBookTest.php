@@ -334,11 +334,12 @@ it('partage publiquement le memo en lecture seule', function () {
 
     Livewire\Livewire::actingAs($visiteur, 'visitor')
         ->test(App\Livewire\Memo\Liste::class)
-        ->assertDontSee('memobook/partage/')
+        ->assertDontSee('Afficher le QR code')
         ->call('basculerPartage')
-        ->assertSee('memobook/partage/')->assertSee('Afficher le QR code');
+        ->assertSee('Afficher le QR code');
 
     $partage = App\Models\MemoPartage::firstWhere('visitor_id', $visiteur->id);
+    expect($partage->url())->toMatch('#/memobook/[A-Za-z0-9]{10}$#');
     auth('visitor')->logout();
 
     $this->get($partage->url())->assertOk()
@@ -393,4 +394,71 @@ it('exporte en pdf la version publique d un memo partage', function () {
 
     app(App\Services\Memo\MemoBooks::class)->basculerPartage($creatif);
     $this->get($partage->url().'/pdf')->assertNotFound();
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mon compte (visiteur)
+|--------------------------------------------------------------------------
+*/
+
+it('affiche la page mon compte du visiteur', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+
+    $this->actingAs($visiteur, 'visitor')->get('/visiteur/compte')
+        ->assertOk()->assertSee('Mes informations')->assertSee('lea@example.com')->assertSee('Supprimer mon compte');
+});
+
+it('modifie nom, prenom et mot de passe du visiteur', function () {
+    $visiteur = Visitor::factory()->create();
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Visiteur\Compte::class)
+        ->call('enregistrerChamp', 'firstname', 'Léa')->assertReturned(['ok' => true])
+        ->call('enregistrerChamp', 'lastname', 'Martin')
+        ->call('enregistrerChamp', 'motDePasse', 'court')->assertReturned(fn ($r) => isset($r['erreur']))
+        ->call('enregistrerChamp', 'motDePasse', 'nouveau-2026');
+
+    $visiteur->refresh();
+    expect($visiteur->fullName())->toBe('Léa Martin')
+        ->and(Hash::check('nouveau-2026', $visiteur->password))->toBeTrue();
+});
+
+it('change l adresse du visiteur et la repasse non confirmee', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+    App\Models\NewsletterMail::create(['email' => 'lea@example.com']);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')
+        ->test(App\Livewire\Visiteur\Compte::class)
+        ->call('enregistrerChamp', 'email', $this->book->email)->assertReturned(fn ($r) => isset($r['erreur']))
+        ->call('enregistrerChamp', 'email', 'Lea.Nouvelle@example.com')->assertReturned(['ok' => true]);
+
+    $visiteur->refresh();
+    expect($visiteur->email)->toBe('lea.nouvelle@example.com')
+        ->and($visiteur->email_verified_at)->toBeNull()
+        ->and(App\Models\NewsletterMail::where('email', 'lea.nouvelle@example.com')->exists())->toBeTrue();
+    Mail::assertSent(BienvenueVisiteur::class, fn ($m) => $m->hasTo('lea.nouvelle@example.com'));
+});
+
+it('inscrit et desinscrit le visiteur de la newsletter', function () {
+    $visiteur = Visitor::factory()->create(['email' => 'lea@example.com']);
+
+    $composant = Livewire\Livewire::actingAs($visiteur, 'visitor')->test(App\Livewire\Visiteur\Compte::class)
+        ->assertSet('newsletter', false)->set('newsletter', true);
+    expect(App\Models\NewsletterMail::where('email', 'lea@example.com')->exists())->toBeTrue();
+
+    $composant->set('newsletter', false);
+    expect(App\Models\NewsletterMail::where('email', 'lea@example.com')->exists())->toBeFalse();
+});
+
+it('supprime le compte visiteur apres le mot de passe actuel', function () {
+    $visiteur = Visitor::factory()->create(['password' => Hash::make('secret-2026')]);
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+
+    Livewire\Livewire::actingAs($visiteur, 'visitor')->test(App\Livewire\Visiteur\Compte::class)
+        ->set('motDePasseActuel', 'faux')->call('supprimerCompte')->assertHasErrors('motDePasseActuel')
+        ->set('motDePasseActuel', 'secret-2026')->call('supprimerCompte')->assertRedirect(route('home'));
+
+    expect(Visitor::withTrashed()->find($visiteur->id))->toBeNull()
+        ->and(MemoBook::where('visitor_id', $visiteur->id)->count())->toBe(0);
 });

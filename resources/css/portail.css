@@ -901,3 +901,49 @@
     line-height: 1.6;
     color: #555;
 }
+
+/* Visionneuse : « Memoriser », coeur et mot a droite du nom du createur. */
+#book_open .memo_nom {
+    display: inline-flex; align-items: center; gap: 6px; margin-left: 34px; padding: 0;
+    background: none; border: 0; color: #fff; font: inherit; font-size: 15px; font-weight: 400;
+    vertical-align: middle; cursor: pointer; opacity: .85; transition: opacity .2s;
+    /* core.css coupe les evenements souris dans la visionneuse : les retablir
+       ici, au-dessus du diaporama. */
+    position: relative; z-index: 5; pointer-events: auto;
+}
+#book_open .memo_nom * { pointer-events: auto; }
+#book_open .memo_nom:hover { opacity: 1; }
+#book_open .memo_nom svg { width: 20px; height: 20px; fill: none; stroke: currentColor; }
+#book_open .memo_nom.memorise { color: #db2828; opacity: 1; }
+#book_open .memo_nom.memorise svg { fill: #db2828; stroke: #db2828; }
+
+/*
+ | Visionneuse : core.css coupe les evenements souris sur tout l'en-tete
+ | (nom, ville, Book complet, Contacter, Memoriser). Seuls les boutons les
+ | recevaient : un clic a quelques pixels a cote tombait sur le diaporama
+ | plein ecran, qui passe a l'image suivante (curseur main). Le bloc
+ | d'informations recoit desormais les clics, avec un curseur normal ; il
+ | n'avance plus l'image.
+ */
+#book_open .ui.header > .content,
+#book_open .ui.header > .ui.circular.image,
+#book_open .ui.header .ui.list,
+#book_open .ui.header .ui.list * {
+    pointer-events: auto;
+}
+#book_open .ui.header > .content,
+#book_open .ui.header .ui.list {
+    position: relative;
+    z-index: 4;
+    cursor: default;
+}
+/* Marge de securite de 12 px autour des liens : un calque invisible,
+   derriere eux, qui ne touche pas a la mise en page. */
+#book_open .ui.header > .content::before,
+#book_open .ui.header .ui.list::before {
+    content: "";
+    position: absolute;
+    inset: -12px -16px;
+    z-index: -1;
+    pointer-events: auto;
+}

@@ -50,6 +50,17 @@
                          x-show="$store.visionneuse.avatar">
                     <div class="content">
                         <span x-text="$store.visionneuse.fiche.book_prenom_nom"></span>
+                        {{-- Memoriser le book (store Alpine `memo`) : un coeur et un
+                             mot, a droite du nom. Un second clic le retire. --}}
+                        <button type="button" class="memo_nom cursor_effect"
+                                :class="{ memorise: $store.memo.contient($store.visionneuse.login) }"
+                                :title="$store.memo.contient($store.visionneuse.login) ? @js(__('Retirer du mémoBook')) : @js(__('Ajouter au mémoBook'))"
+                                @click="$store.memo.contient($store.visionneuse.login) ? $store.visionneuse.oublier() : $store.visionneuse.memoriser()">
+                            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
+                            </svg>
+                            <span x-text="$store.memo.contient($store.visionneuse.login) ? @js(__('Mémorisé')) : @js(__('Mémoriser'))">{{ __('Mémoriser') }}</span>
+                        </button>
                         <div class="sub header">
                             <span x-text="$store.visionneuse.fiche.book_type"></span>
                         </div>
@@ -81,26 +92,6 @@
                     </div>
 
                 </h2>
-
-                <div class="actions" x-show="! $store.visionneuse.contactOuvert">
-                    <div class="ui horizontal list">
-                        <div class="item">
-                            <div class="memobook_add sans_cadre cursor_effect" title="{{ __('Ajouter au mémoBook') }}"
-                                 x-show="! $store.memo.contient($store.visionneuse.login)"
-                                 @click="$store.visionneuse.memoriser()">
-                                <svg class="icone_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
-                                </svg>
-                            </div>
-                            <div class="no_button sans_cadre cursor_effect" x-show="$store.memo.contient($store.visionneuse.login)" x-cloak
-                                 @click="$store.visionneuse.oublier()" title="{{ __('Retirer du mémoBook') }}">
-                                <svg class="icone_svg" viewBox="0 0 24 24" fill="#db2828" stroke="#db2828" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="ub_img_action" x-show="! $store.visionneuse.contactOuvert">
                     <div class="ub_icone precedent mfp-btn_prev cursor_effect" @click="$store.visionneuse.precedente()"></div>

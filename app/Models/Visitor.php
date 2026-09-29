@@ -18,7 +18,7 @@ class Visitor extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    protected $fillable = ['email', 'password', 'brand', 'locale', 'signup_ip'];
+    protected $fillable = ['email', 'firstname', 'lastname', 'password', 'brand', 'locale', 'signup_ip'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -28,6 +28,14 @@ class Visitor extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /** « Prenom Nom », ou null si le visiteur ne les a pas donnes. */
+    public function fullName(): ?string
+    {
+        $nom = trim($this->firstname.' '.$this->lastname);
+
+        return $nom === '' ? null : $nom;
     }
 
     public function memoBooks(): HasMany

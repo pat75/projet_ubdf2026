@@ -104,18 +104,21 @@ Analyser la demande posséder des questions et faire un plan de codage
 
 
 +   Message a partir du mini book et compte visiteurs
-pour envoyer un message à un créatif à partir du mini via le bouton contactez, le visiteur doit être connecté.
-Ainsi, si clique sur le bouton contacter afficher une page structurée sur deux colonnes (prendre le modèle de la page de connexion)
-Cette page affiche le message que le visiteur veut envoyer. Elle demande également son e-mail et un mot de passe pour créer son compte.
-Il faudra aussi un CAPChat pour éviter les spams.
-Si le visiteur rentre un e-mail qui est déjà dans la liste des utilisateurs. Alors il lui ai demandé de rentrer son mot de passe car son compte existe déjà proposé également le mot de passe oublié.
+pour envoyer un message à un créatif à partir du mini book via le bouton contactez,
+ le visiteur doit être connecté.
+Ainsi, s il clique sur le bouton contacter, le formulaire de contacts s'affiche avec une case. Cocher pour créer un compte quand l'utilisateur coche cette case.
+Un nouvel input apparaît avec mot de passe.
+Une fois que tout est indiqué par l'utilisateur, celui-ci peut envoyer le message.
+Il recevra un e-mail de validation d'ouverture de son compte visiteur.
+Il s'agit ici de mettre en place le même système que pour mémo book
+ de façon à créer des comptes, visiteurs, utiliser la même table visitors
+ 
+L les compte créé via Nemo book sont identiques au compte, créé lors des envois de messages par des visiteurs
 
 Pour résumer un visiteur qui envoie un message à un créatif, passe automatiquement par une page de création de compte
 En même temps qu'il envoie son message. Si son mail existe déjà, il doit juste indiquer son mot de passe pour se connecter à son compte.
 
-Le compte des visiteurs contient juste dans le menu de gauche, un tableau de bord
-Le menu messages
-Le menu mémo book et le menu mon profil.
+ 
 
 si un visiteur utilise le bouton de connexion dans le menu top pour se connecter, il indiquera son e-mail et son mot de passe. Ainsi, il sera directement connecté sur son compte visiteur.
 Si un créatif utilise ce même bouton connexion dans le menu top pour se connecter, il indiquera son Logging où son e-mail et sera automatiquement connecté sur son compte créatif

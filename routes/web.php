@@ -390,13 +390,15 @@ $portail = function (?string $langue = null) {
     });
 
     // Version publique d'un memoBook partage (lecture seule).
-    Route::get('/memobook/partage/{jeton}', [MemoPublicController::class, 'page'])
-        ->where('jeton', '[A-Za-z0-9]{32}')->name('memobook.public');
-    Route::get('/memobook/partage/{jeton}/pdf', [MemoPublicController::class, 'pdf'])
-        ->where('jeton', '[A-Za-z0-9]{32}')->middleware('throttle:10,1')->name('memobook.public.pdf');
+    // Jeton de 10 caracteres exactement : ne peut pas capter /memobook/pdf.
+    Route::get('/memobook/{jeton}', [MemoPublicController::class, 'page'])
+        ->where('jeton', '[A-Za-z0-9]{10}')->name('memobook.public');
+    Route::get('/memobook/{jeton}/pdf', [MemoPublicController::class, 'pdf'])
+        ->where('jeton', '[A-Za-z0-9]{10}')->middleware('throttle:10,1')->name('memobook.public.pdf');
 
     Route::middleware('auth:visitor')->prefix('visiteur')->name('visiteur.')->group(function () {
         Route::get('/', TableauVisiteurController::class)->name('tableau');
+        Route::view('/compte', 'visiteur.compte')->name('compte');
         Route::post('/confirmation', [InscriptionVisiteurController::class, 'renvoyer'])
             ->middleware('throttle:3,10')->name('confirmation');
     });

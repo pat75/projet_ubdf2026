@@ -25,7 +25,7 @@ class MemoPublicController extends Controller
         return view('memo.public', [
             'partage' => $partage,
             'books' => $memo->books($proprietaire),
-            'auteur' => $proprietaire instanceof User ? $proprietaire->fullName() : null,
+            'auteur' => $proprietaire->fullName(),
             'createur' => $proprietaire instanceof User ? $proprietaire : null,
         ]);
     }
@@ -35,7 +35,7 @@ class MemoPublicController extends Controller
     {
         [, $proprietaire] = $this->partage($jeton);
 
-        $titre = $proprietaire instanceof User
+        $titre = $proprietaire->fullName()
             ? __('La sélection de :nom', ['nom' => $proprietaire->fullName()])
             : __('Une sélection de books');
 

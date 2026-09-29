@@ -63,7 +63,8 @@ class Liste extends Component
         $this->messageEnvoye = false;
         $this->nomExpediteur = $proprietaire instanceof User
             ? $proprietaire->fullName()
-            : (string) Conversation::query()->where('sender_email', $proprietaire->email)->latest('id')->value('sender_name');
+            : ($proprietaire->fullName()
+                ?? (string) Conversation::query()->where('sender_email', $proprietaire->email)->latest('id')->value('sender_name'));
     }
 
     /** Depose la demande comme le formulaire de contact du portail (DepotDemande). */

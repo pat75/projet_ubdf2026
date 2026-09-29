@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /*
 | Partage public d'un memoBook (App\Models\MemoPartage) : un lien
-| /memobook/partage/<jeton> qui montre la liste des books, sans messages
+| /memobook/<jeton> qui montre la liste des books, sans messages
 | ni retrait. Un par proprietaire (visiteur ou creatif). Desactive, le
 | jeton est garde : reactiver redonne la meme adresse.
 */

@@ -170,13 +170,26 @@ class MemoBooks
     {
         $partage = $this->partage($proprietaire) ?? new MemoPartage([
             $this->colonne($proprietaire) => $proprietaire->id,
-            'jeton' => Str::random(32),
+            'jeton' => $this->nouveauJeton(),
         ]);
 
         $partage->actif = ! $partage->actif;
         $partage->save();
 
         return $partage;
+    }
+
+    /**
+     * Jeton court de l'adresse publique (/memobook/<jeton>) : 10 caracteres
+     * alphanumeriques, 62^10 combinaisons, impossible a deviner.
+     */
+    private function nouveauJeton(): string
+    {
+        do {
+            $jeton = Str::random(10);
+        } while (MemoPartage::query()->where('jeton', $jeton)->exists());
+
+        return $jeton;
     }
 
     private function requete(User|Visitor $proprietaire): Builder
