@@ -4,7 +4,6 @@ namespace App\Livewire\Espace;
 
 use App\Jobs\GenererExportCompte;
 use App\Models\DataExport;
-use App\Services\Espace\PdfBook;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -65,7 +64,6 @@ class Exporter extends Component
         return view('livewire.espace.exporter', [
             'archive' => $this->derniere(),
             'prochaine' => $this->prochaineDemande(),
-            'pagesMax' => PdfBook::pagesMax($creatif),
             'payant' => (bool) $creatif->plan,
             'developpement' => app()->environment('local', 'development'),
             // Les requetes Livewire ne passent pas par ResoudreMarque : la marque du compte.

@@ -44,24 +44,29 @@
             <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                 <span class="text-[16px] font-bold text-ub-texte">{{ __('Exporter mon book en PDF') }}</span>
                 <span class="text-[13px] text-ub-texte2 text-pretty">
-                    {{ __('Une couverture avec votre visuel de profil, puis vos portfolios dans l’ordre du book. Les visuels sont mis en page selon leur format : pleine page, deux par page, une grande et deux petites, ou quatre en carré.') }}
+                    {{ __('Votre visuel de profil en couverture, puis vos portfolios mis en page selon le format des visuels.') }}
                 </span>
-                <span class="text-[13px] font-semibold text-ub-texte">
-                    {{ trans_choice('Jusqu’à :n page de visuels.|Jusqu’à :n pages de visuels.', $pagesMax, ['n' => $pagesMax]) }}
-                </span>
-                {{-- Options du PDF, sur une ligne : dessin de <x-espace.interrupteur>
-                     reduit de moitie (23 x 13), l'etat tenu par Alpine. --}}
-                <div class="mt-1.5 flex flex-wrap items-center gap-x-6 gap-y-2">
-                    @foreach (['titres' => __('Afficher le nom des rubriques'), 'legendes' => __('Afficher les titres des visuels')] as $option => $libelle)
-                        <label class="inline-flex cursor-pointer items-center gap-2 text-[13px] font-semibold text-ub-texte">
-                            <button type="button" role="switch" :aria-pressed="{{ $option }}" @click="{{ $option }} = ! {{ $option }}"
-                                    class="flex h-[13px] w-[23px] shrink-0 cursor-pointer rounded-[7px] p-[1.5px] transition-colors duration-200"
-                                    :class="{{ $option }} ? 'justify-end bg-ub-accent' : 'justify-start bg-[#d6d6d3]'">
-                                <span class="h-2.5 w-2.5 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.2)]"></span>
-                            </button>
-                            <span>{{ $libelle }}</span>
-                        </label>
-                    @endforeach
+                {{-- Options du PDF, repliees sous « Options de presentation » :
+                     dessin de <x-espace.interrupteur> reduit (28 x 16), l'etat tenu par Alpine. --}}
+                <div x-data="{ ouvert: false }" class="mt-1.5">
+                    <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert"
+                            class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ub-texte">
+                        <span>{{ __('Options de présentation') }}</span>
+                        <x-espace.picto nom="angle-droite" x-show="! ouvert" class="h-4 w-4 shrink-0 text-ub-texte" />
+                        <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-4 w-4 shrink-0 text-ub-texte" />
+                    </button>
+                    <div x-show="ouvert" x-cloak class="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2.5">
+                        @foreach (['titres' => __('Afficher le nom des rubriques'), 'legendes' => __('Afficher les titres des visuels')] as $option => $libelle)
+                            <label class="inline-flex cursor-pointer items-center gap-2.5 text-[15.5px] font-semibold text-ub-texte">
+                                <button type="button" role="switch" :aria-pressed="{{ $option }}" @click="{{ $option }} = ! {{ $option }}"
+                                        class="flex h-4 w-7 shrink-0 cursor-pointer rounded-lg p-0.5 transition-colors duration-200"
+                                        :class="{{ $option }} ? 'justify-end bg-ub-accent' : 'justify-start bg-[#d6d6d3]'">
+                                    <span class="h-3 w-3 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.2)]"></span>
+                                </button>
+                                <span>{{ $libelle }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
                 <span x-show="erreur" x-cloak class="text-[13px] text-ub-danger">{{ __('La génération a échoué. Réessayez dans un instant.') }}</span>
             </div>
@@ -90,7 +95,7 @@
                 <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                     <span class="text-[16px] font-bold text-ub-texte">{{ __('Télécharger une copie de mes informations') }}</span>
                     <span class="text-[13px] text-ub-texte2 text-pretty">
-                        {{ __('Une archive ZIP avec votre compte, vos portfolios, vos pages, vos messages et vos factures au format JSON, toutes vos images en haute définition et votre visuel de profil. Un fichier index.html permet de tout parcourir dans un navigateur.') }}
+                        {{ __('Une archive ZIP de votre compte, portfolios, messages et factures, avec vos images en haute définition, à parcourir dans un navigateur.') }}
                     </span>
                 </div>
 
@@ -159,8 +164,8 @@
             </div>
             <div class="grid grid-cols-[1.4fr_1fr_1fr] border-b border-ub-filet px-5 py-3">
                 <span class="text-ub-texte2">{{ __('Archive de mes données') }}</span>
-                <span>{{ __('1 par 24 h') }}</span>
-                <span>{{ __('1 par 24 h') }}</span>
+                <span>{{ __('1 par :n h', ['n' => \App\Models\DataExport::DELAI_HEURES]) }}</span>
+                <span>{{ __('1 par :n h', ['n' => \App\Models\DataExport::DELAI_HEURES]) }}</span>
             </div>
             <div class="grid grid-cols-[1.4fr_1fr_1fr] px-5 py-3">
                 <span class="text-ub-texte2">{{ __('Conservation de l’archive') }}</span>

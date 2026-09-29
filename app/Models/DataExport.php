@@ -28,7 +28,7 @@ class DataExport extends Model
     public const DOSSIER = 'exports';
 
     /** Une demande par periode, echecs non compris. */
-    public const DELAI_HEURES = 24;
+    public const DELAI_HEURES = 72;
 
     /** Duree de conservation d'une archive prete. */
     public const CONSERVATION_JOURS = 7;

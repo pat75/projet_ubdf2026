@@ -26,7 +26,7 @@ class PdfBook
 
     public const PAGES_GRATUITE = 6;
 
-    public const PAGES_PAYANTE = 80;
+    public const PAGES_PAYANTE = 60;
 
     public const PAGES_DEVELOPPEMENT = 8;
 
