@@ -74,9 +74,9 @@ it('refuse une selection inconnue dans l URL de defilement', function () {
     $this->get(portail('/accueil__0__nimporte__all'))->assertNotFound();
 });
 
-it('redirige un slug de portfolio errone vers l URL canonique', function () {
+it('redirige une ancienne fiche portfolio vers le book', function () {
     $this->get(portail('/portfolio/pat10/mauvais-slug'))
-        ->assertRedirect($this->book->portfolioUrl());
+        ->assertRedirect($this->book->bookUrl());
 });
 
 it('rend une image par defaut quand le visuel a disparu du disque', function () {

@@ -31,7 +31,13 @@ final class LegacyUserResolver
     /** @var Collection<string, int> tous les logins de ub2020 */
     private Collection $legacyLogins;
 
-    public function __construct()
+    /** @var array<int, int>|null us_id du paquet en cours, null = tous */
+    private ?array $paquet = null;
+
+    /**
+     * @param  LegacyLogins|null  $logins  pour resoudre un ancien login renomme (a_menguy -> a-menguy)
+     */
+    public function __construct(private readonly ?LegacyLogins $logins = null)
     {
         $users = User::query()->select('id', 'login', 'legacy_id')->get();
 
@@ -52,6 +58,7 @@ final class LegacyUserResolver
         }
 
         $id = $this->byLogin->get(mb_strtolower($reference))
+            ?? $this->byLogin->get((string) $this->logins?->nouveau($reference))
             ?? (ctype_digit($reference) ? $this->byLegacyId->get((int) $reference) : null);
 
         if ($id === null) {
@@ -69,10 +76,29 @@ final class LegacyUserResolver
         return $legacyId === null ? null : $this->byLegacyId->get($legacyId);
     }
 
-    /** @return array<int, int> les us_id legacy repris */
+    /**
+     * Restreint legacyIds() aux comptes d'un paquet : les etapes par compte
+     * ne traitent alors que ceux-la (reprise par paquets successifs).
+     *
+     * @param  array<int, int>  $legacyIds
+     */
+    public function limiterAuPaquet(array $legacyIds): self
+    {
+        $this->paquet = $legacyIds;
+
+        return $this;
+    }
+
+    /** @return array<int, int> les us_id legacy repris (du paquet en cours s'il y en a un) */
     public function legacyIds(): array
     {
-        return $this->byLegacyId->keys()->all();
+        return $this->paquet ?? $this->byLegacyId->keys()->all();
+    }
+
+    /** @return array<int, int> ids locaux des comptes de legacyIds() */
+    public function localIds(): array
+    {
+        return array_values(array_filter(array_map(fn ($id) => $this->byLegacyId->get($id), $this->legacyIds())));
     }
 
     /** References pointant vers un compte reel, non repris en developpement. */

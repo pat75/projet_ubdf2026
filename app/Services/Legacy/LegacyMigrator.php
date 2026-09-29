@@ -9,20 +9,23 @@ use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\Gallery;
 use App\Models\Invoice;
+use App\Models\MarketingOffer;
 use App\Models\Media;
 use App\Models\Message;
-use App\Models\User;
-use App\Models\MarketingOffer;
 use App\Models\PromoCode;
 use App\Models\Referral;
+use App\Models\User;
 use App\Models\VisitStat;
 use App\Support\LegacyPassword;
 use App\Support\LegacyText;
 use App\Support\MotsCles;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -45,9 +48,36 @@ final class LegacyMigrator
     /** Mots de passe illisibles, remplaces par une valeur aleatoire. */
     private int $lostPasswords = 0;
 
-    public function __construct(private readonly LegacySampler $sampler)
-    {
+    /** Taille des listes d'identifiants passees a un whereIn. */
+    private const LOT = 1000;
+
+    /** @var array<string, array<string, int>> table => colonne texte => longueur max */
+    private static array $longueurs = [];
+
+    private static bool $ecoute = false;
+
+    /** Valeurs coupees a la longueur de leur colonne, toutes instances confondues. */
+    private static int $tronquees = 0;
+
+    /**
+     * @param  LegacyLogins|null  $logins  conversion des logins a « _ » / « . » (mise en production)
+     */
+    public function __construct(
+        private readonly LegacySampler $sampler,
+        private readonly ?LegacyLogins $logins = null,
+    ) {
         $this->categories = Category::pluck('id', 'slug');
+
+        /*
+         | Le legacy n'imposait aucune longueur (« +33 6 … / +49 1 … » dans
+         | un telephone) : sur les 60 000 comptes, une seule valeur trop
+         | longue arretait la reprise. Toute chaine plus longue que sa
+         | colonne est coupee avant ecriture, et comptee.
+         */
+        if (! self::$ecoute) {
+            self::$ecoute = true;
+            Event::listen('eloquent.saving: *', fn (string $evenement, array $donnees) => self::ajuster($donnees[0]));
+        }
     }
 
     /** @return array<string, int> */
@@ -56,15 +86,50 @@ final class LegacyMigrator
         return $this->counts + ['mots_de_passe_perdus' => $this->lostPasswords];
     }
 
+    public static function valeursTronquees(): int
+    {
+        return self::$tronquees;
+    }
+
+    private static function ajuster(Model $modele): void
+    {
+        $table = $modele->getTable();
+
+        self::$longueurs[$table] ??= collect(Schema::getColumns($table))
+            ->filter(fn (array $c) => preg_match('/^(var)?char\(\d+\)/', $c['type']))
+            ->mapWithKeys(fn (array $c) => [$c['name'] => (int) preg_replace('/\D/', '', $c['type'])])
+            ->all();
+
+        foreach (self::$longueurs[$table] as $colonne => $max) {
+            $valeur = $modele->getAttributes()[$colonne] ?? null;
+
+            if (is_string($valeur) && mb_strlen($valeur) > $max) {
+                $modele->setAttribute($colonne, rtrim(mb_substr($valeur, 0, $max)));
+                self::$tronquees++;
+            }
+        }
+    }
+
     public function migrateUsers(): Collection
     {
         $rows = $this->sampler->pick();
 
+        $repris = 0;
+
         foreach ($rows as $row) {
+            $login = $this->logins
+                ? $this->logins->nouveau($row->us_login)
+                : mb_strtolower(trim($row->us_login));
+
+            // Login sans conversion possible : signale par LegacyLogins.
+            if ($login === null) {
+                continue;
+            }
+
             $user = User::updateOrCreate(
                 ['legacy_id' => $row->us_id],
                 [
-                    'login' => mb_strtolower(trim($row->us_login)),
+                    'login' => $login,
                     'email' => $this->email($row),
                     'password' => $this->password($row),
                     'category_id' => $this->categoryId($row->us_type),
@@ -123,9 +188,10 @@ final class LegacyMigrator
                 'email_verified_at' => $row->us_confirm_mail === 'true' ? ($user->email_verified_at ?? now()) : null,
             ]);
             $user->save();
+            $repris++;
         }
 
-        $this->counts['users'] = $rows->count();
+        $this->counts['users'] = $repris;
 
         return $rows;
     }
@@ -263,8 +329,9 @@ final class LegacyMigrator
 
     public function migrateMedia(LegacyUserResolver $resolver): void
     {
-        $galleries = Gallery::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
-        $sectionsDePages = BookSection::where('legacy_source', 'ub2_gal_rub')->pluck('id', 'legacy_id');
+        // Restreint au paquet : 239 000 rubriques en production.
+        $galleries = Gallery::whereNotNull('legacy_id')->whereIn('user_id', $resolver->localIds())->pluck('id', 'legacy_id');
+        $sectionsDePages = BookSection::where('legacy_source', 'ub2_gal_rub')->whereIn('user_id', $resolver->localIds())->pluck('id', 'legacy_id');
         $count = 0;
         $pages = 0;
 
@@ -374,39 +441,44 @@ final class LegacyMigrator
 
         $this->linkSectionParents($resolver);
 
-        // Le corps des articles vit dans une table separee.
-        $bodies = DB::connection('legacy')->table('bn_ultrabook_art_portefolio')
-            ->pluck('art_texte', 'id_art');
-
-        $sectionIds = BookSection::where('legacy_source', 'bn_ultranews_rub')->pluck('id', 'legacy_id');
+        $sectionIds = BookSection::where('legacy_source', 'bn_ultranews_rub')
+            ->whereIn('user_id', $resolver->localIds())->pluck('id', 'legacy_id');
         $articles = 0;
 
-        foreach ($this->legacyChunks('bn_ultranews_art', 'id_util', $resolver->legacyIds()) as $row) {
-            $userId = $resolver->fromLegacyId((int) $row->id_util);
+        foreach ($this->parLots($this->legacyChunks('bn_ultranews_art', 'id_util', $resolver->legacyIds())) as $lot) {
+            // Le corps des articles vit dans une table separee (694 000
+            // lignes) : lu par lot, jamais en entier.
+            $bodies = DB::connection('legacy')->table('bn_ultrabook_art_portefolio')
+                ->whereIn('id_art', array_map(fn ($row) => $row->id, $lot))
+                ->pluck('art_texte', 'id_art');
 
-            if ($userId === null) {
-                continue;
+            foreach ($lot as $row) {
+                $userId = $resolver->fromLegacyId((int) $row->id_util);
+
+                if ($userId === null) {
+                    continue;
+                }
+
+                BookArticle::updateOrCreate(
+                    ['legacy_source' => 'bn_ultranews_art', 'legacy_id' => $row->id],
+                    [
+                        'user_id' => $userId,
+                        'book_section_id' => $sectionIds->get((int) $row->id_rub),
+                        'title' => LegacyText::clean($row->art_titre) ?: 'Sans titre',
+                        'slug' => Str::slug(LegacyText::clean($row->art_titre) ?? '') ?: null,
+                        'body' => $this->reecrireChemins(LegacyText::clean($bodies->get($row->id))),
+                        'status' => match ($row->art_pub) {
+                            'on' => 'published',
+                            'arch' => 'archived',
+                            default => 'draft',
+                        },
+                        'position' => max(0, (int) $row->art_ordre),
+                        'published_at' => $this->date($row->art_date),
+                    ],
+                );
+
+                $articles++;
             }
-
-            BookArticle::updateOrCreate(
-                ['legacy_source' => 'bn_ultranews_art', 'legacy_id' => $row->id],
-                [
-                    'user_id' => $userId,
-                    'book_section_id' => $sectionIds->get((int) $row->id_rub),
-                    'title' => LegacyText::clean($row->art_titre) ?: 'Sans titre',
-                    'slug' => Str::slug(LegacyText::clean($row->art_titre) ?? '') ?: null,
-                    'body' => LegacyText::clean($bodies->get($row->id)),
-                    'status' => match ($row->art_pub) {
-                        'on' => 'published',
-                        'arch' => 'archived',
-                        default => 'draft',
-                    },
-                    'position' => max(0, (int) $row->art_ordre),
-                    'published_at' => $this->date($row->art_date),
-                ],
-            );
-
-            $articles++;
         }
 
         $this->counts['book_sections'] = $sections;
@@ -422,28 +494,41 @@ final class LegacyMigrator
      */
     public function migrateThemeTexts(LegacyUserResolver $resolver): void
     {
-        $logins = User::whereNotNull('legacy_id')->pluck('id', 'login')
-            ->mapWithKeys(fn ($id, $login) => [mb_strtolower($login) => $id]);
+        // Cle : l'ANCIEN login (ed_us_login), qui peut differer du nouveau
+        // (a_menguy -> a-menguy).
+        $logins = collect();
+
+        foreach (array_chunk($resolver->legacyIds(), self::LOT) as $ids) {
+            DB::connection('legacy')->table('inc_user')->whereIn('us_id', $ids)
+                ->pluck('us_login', 'us_id')
+                ->each(function ($login, $usId) use ($logins, $resolver) {
+                    if ($userId = $resolver->fromLegacyId((int) $usId)) {
+                        $logins->put(mb_strtolower($login), $userId);
+                    }
+                });
+        }
 
         $textes = [];
 
-        DB::connection('legacy')->table('ub2_edit_txt')
-            ->whereIn('ed_us_login', $logins->keys())
-            ->orderBy('id')
-            ->each(function ($row) use (&$textes, $logins) {
-                $userId = $logins->get(mb_strtolower((string) $row->ed_us_login));
-                $blocs = json_decode((string) $row->ed_dom_txt, true);
+        foreach ($logins->keys()->chunk(self::LOT) as $lot) {
+            DB::connection('legacy')->table('ub2_edit_txt')
+                ->whereIn('ed_us_login', $lot->values())
+                ->orderBy('id')
+                ->each(function ($row) use (&$textes, $logins) {
+                    $userId = $logins->get(mb_strtolower((string) $row->ed_us_login));
+                    $blocs = json_decode((string) $row->ed_dom_txt, true);
 
-                if ($userId && is_array($blocs)) {
-                    // Les blocs sont stockes encodes en entites HTML ; le
-                    // legacy les decodait a l'affichage
-                    // (mod_ptf_2014_ed_champs_modif).
-                    $textes[$userId][$row->ed_mdl] = array_map(
-                        fn ($valeur) => is_string($valeur) ? html_entity_decode($valeur, ENT_QUOTES, 'UTF-8') : $valeur,
-                        $blocs,
-                    );
-                }
-            });
+                    if ($userId && is_array($blocs)) {
+                        // Les blocs sont stockes encodes en entites HTML ; le
+                        // legacy les decodait a l'affichage
+                        // (mod_ptf_2014_ed_champs_modif).
+                        $textes[$userId][$row->ed_mdl] = array_map(
+                            fn ($valeur) => is_string($valeur) ? html_entity_decode($valeur, ENT_QUOTES, 'UTF-8') : $valeur,
+                            $blocs,
+                        );
+                    }
+                });
+        }
 
         foreach ($textes as $userId => $parTheme) {
             BookSetting::where('user_id', $userId)->update(['theme_texts' => json_encode($parTheme)]);
@@ -717,11 +802,13 @@ final class LegacyMigrator
     {
         $count = 0;
 
-        $dernieres = DB::connection('legacy')->table('inc_marketing')
-            ->where('us_type', MarketingOffer::PROMO_6_MOIS)
-            ->whereIn('us_id', $resolver->legacyIds())
-            ->selectRaw('MAX(id) AS id, us_id, MAX(us_date) AS us_date')
-            ->groupBy('us_id')->get();
+        $dernieres = collect(array_chunk($resolver->legacyIds(), self::LOT))->flatMap(
+            fn (array $ids) => DB::connection('legacy')->table('inc_marketing')
+                ->where('us_type', MarketingOffer::PROMO_6_MOIS)
+                ->whereIn('us_id', $ids)
+                ->selectRaw('MAX(id) AS id, us_id, MAX(us_date) AS us_date')
+                ->groupBy('us_id')->get()
+        );
 
         foreach ($dernieres as $row) {
             $userId = $resolver->fromLegacyId((int) $row->us_id);
@@ -744,14 +831,46 @@ final class LegacyMigrator
 
     // ---------------------------------------------------------------- outils
 
-    /** Parcourt une table legacy restreinte aux comptes repris. */
+    /**
+     * Parcourt une table legacy restreinte aux comptes repris, par lots
+     * d'identifiants : un whereIn sur 60 000 comptes depasserait la limite
+     * de 65 535 parametres de MySQL.
+     */
     private function legacyChunks(string $table, string $userColumn, array $legacyIds): \Generator
     {
-        $query = DB::connection('legacy')->table($table)->whereIn($userColumn, $legacyIds);
-
-        foreach ($query->cursor() as $row) {
-            yield $row;
+        foreach (array_chunk($legacyIds, self::LOT) as $ids) {
+            foreach (DB::connection('legacy')->table($table)->whereIn($userColumn, $ids)->cursor() as $row) {
+                yield $row;
+            }
         }
+    }
+
+    /**
+     * Regroupe un flux de lignes en lots de self::LOT.
+     *
+     * @return \Generator<int, list<object>>
+     */
+    private function parLots(iterable $lignes): \Generator
+    {
+        $lot = [];
+
+        foreach ($lignes as $ligne) {
+            $lot[] = $ligne;
+
+            if (count($lot) === self::LOT) {
+                yield $lot;
+                $lot = [];
+            }
+        }
+
+        if ($lot !== []) {
+            yield $lot;
+        }
+    }
+
+    private function reecrireChemins(?string $html): ?string
+    {
+        return $this->logins ? $this->logins->reecrireChemins($html) : $html;
     }
 
     private function rows(string $table): Collection
@@ -761,32 +880,38 @@ final class LegacyMigrator
 
     private function linkGalleryParents(LegacyUserResolver $resolver): void
     {
-        $map = Gallery::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        // Parent et enfant appartiennent au meme compte : le paquet suffit.
+        $map = Gallery::whereNotNull('legacy_id')->whereIn('user_id', $resolver->localIds())->pluck('id', 'legacy_id');
 
-        DB::connection('legacy')->table('ub2_gal_rub')
-            ->whereIn('rub_id', $map->keys())
-            ->where('rub_id_parent', '>', 0)
-            ->orderBy('rub_id')
-            ->each(function ($row) use ($map) {
-                if ($parent = $map->get((int) $row->rub_id_parent)) {
-                    Gallery::where('legacy_id', $row->rub_id)->update(['parent_id' => $parent]);
-                }
-            });
+        foreach ($map->keys()->chunk(self::LOT) as $lot) {
+            DB::connection('legacy')->table('ub2_gal_rub')
+                ->whereIn('rub_id', $lot->values())
+                ->where('rub_id_parent', '>', 0)
+                ->orderBy('rub_id')
+                ->each(function ($row) use ($map) {
+                    if ($parent = $map->get((int) $row->rub_id_parent)) {
+                        Gallery::where('legacy_id', $row->rub_id)->update(['parent_id' => $parent]);
+                    }
+                });
+        }
     }
 
     private function linkSectionParents(LegacyUserResolver $resolver): void
     {
-        $map = BookSection::where('legacy_source', 'bn_ultranews_rub')->pluck('id', 'legacy_id');
+        $map = BookSection::where('legacy_source', 'bn_ultranews_rub')
+            ->whereIn('user_id', $resolver->localIds())->pluck('id', 'legacy_id');
 
-        DB::connection('legacy')->table('bn_ultranews_rub')
-            ->whereIn('id', $map->keys())
-            ->where('id_parent', '>', 0)
-            ->orderBy('id')
-            ->each(function ($row) use ($map) {
-                if ($parent = $map->get((int) $row->id_parent)) {
-                    BookSection::where('legacy_source', 'bn_ultranews_rub')->where('legacy_id', $row->id)->update(['parent_id' => $parent]);
-                }
-            });
+        foreach ($map->keys()->chunk(self::LOT) as $lot) {
+            DB::connection('legacy')->table('bn_ultranews_rub')
+                ->whereIn('id', $lot->values())
+                ->where('id_parent', '>', 0)
+                ->orderBy('id')
+                ->each(function ($row) use ($map) {
+                    if ($parent = $map->get((int) $row->id_parent)) {
+                        BookSection::where('legacy_source', 'bn_ultranews_rub')->where('legacy_id', $row->id)->update(['parent_id' => $parent]);
+                    }
+                });
+        }
     }
 
     /** Un compte sans adresse valide recoit une adresse locale inexploitable. */

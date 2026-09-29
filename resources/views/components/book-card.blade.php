@@ -45,7 +45,7 @@
         <div class="header">{{ $name }}</div>
         <div class="meta">
             <a class="group coul_{{ $category }}"
-               href="{{ $book->portfolioUrl() }}"
+               href="{{ $book->bookUrl() }}"
                title="{{ $category }}">{{ $book->category?->name }}</a>
         </div>
     </div>

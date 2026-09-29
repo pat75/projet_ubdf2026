@@ -40,7 +40,20 @@ final class LegacyFiles
 
     public function copyFor(User $user): void
     {
-        $source = $this->bookPath($user->login);
+        $this->copyLogin($user->login);
+    }
+
+    /**
+     * Copie les originaux d'un book vers son dossier segmente sur trois
+     * lettres (DossierBook). Un fichier deja present n'est pas recopie :
+     * relancer ne copie que ce qui manque.
+     *
+     * $ancien situe le dossier legacy (users_2/a/_/a_menguy), $nouveau le
+     * dossier cible quand le login a ete converti (books/a/-/m/a-menguy).
+     */
+    public function copyLogin(string $ancien, ?string $nouveau = null): void
+    {
+        $source = $this->bookPath($ancien);
 
         if ($source === null || ! is_dir($source)) {
             $this->missingBooks++;
@@ -48,7 +61,7 @@ final class LegacyFiles
             return;
         }
 
-        $target = DossierBook::chemin($user->login);
+        $target = DossierBook::chemin($nouveau ?? $ancien);
         File::ensureDirectoryExists($target);
 
         foreach ([...self::SOURCE_DIRS, ...self::EXTRA_DIRS] as $dir) {

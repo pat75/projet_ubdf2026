@@ -41,30 +41,14 @@
 
     <section class="mt-7 grid gap-5 md:grid-cols-2">
         <div class="flex flex-col gap-3.5">
-            <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Promouvoir') }}</h2>
-
-            <div class="carte-espace flex flex-1 flex-wrap items-center gap-4 p-5">
-                <div class="flex min-w-0 flex-[1_1_200px] flex-col gap-1">
-                    <span class="text-[16px] font-bold text-ub-texte">{{ __('Disponibilité') }}</span>
-                    <span class="text-[13px] text-ub-texte2 text-pretty">
-                        {{ $disponible
-                            ? __('Un badge indique aux visiteurs que vous êtes disponible pour de nouveaux projets.')
-                            : __('Activez pour signaler que vous acceptez de nouveaux projets.') }}
-                    </span>
-                </div>
-                <div class="flex shrink-0 items-center gap-2.5">
-                    <span class="text-[13px] font-bold {{ $disponible ? 'text-ub-accent-texte' : 'text-ub-texte3' }}">
-                        {{ $disponible ? __('Disponible') : __('Indisponible') }}
-                    </span>
-                    <x-espace.interrupteur wire:click="basculer('disponible')" :actif="$disponible" :libelle="__('Disponibilité')" />
-                </div>
-            </div>
-        </div>
-
-        <div class="flex flex-col gap-3.5">
             <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Version PDF') }}</h2>
 
             <a href="{{ route('espace.exporter') }}" class="carte-espace group flex flex-1 items-center gap-4 p-5 text-ub-texte">
+                <svg class="h-10 w-10 shrink-0 text-ub-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2.5H6.5a1 1 0 0 0-1 1v17a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V7z"/>
+                    <path d="M14 2.5V7h4.5"/>
+                    <text x="12" y="16.5" text-anchor="middle" font-size="5" font-weight="600" fill="currentColor" stroke="none" font-family="inherit">PDF</text>
+                </svg>
                 <div class="flex min-w-0 flex-1 flex-col gap-1">
                     <span class="text-[16px] font-bold group-hover:underline">{{ __('Générer mon book en PDF') }}</span>
                     <span class="text-[13px] text-ub-texte2 text-pretty">{{ __('Une version à imprimer ou à joindre à vos candidatures.') }}</span>

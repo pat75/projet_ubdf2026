@@ -18,7 +18,7 @@
         <div class="ui three column grid annuaire_liste">
             @foreach ($creatifs as $creatif)
                 <div class="column">
-                    <a href="{{ $creatif->portfolioUrl() }}" class="coul_{{ $creatif->category?->slug }}">
+                    <a href="{{ $creatif->bookUrl() }}" class="coul_{{ $creatif->category?->slug }}">
                         {{ $creatif->fullName() }}
                     </a>
                     <span class="meta">{{ $creatif->category?->name }}</span>

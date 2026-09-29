@@ -19,6 +19,8 @@ final class LegacySampler
     public function __construct(
         private readonly int $limit = 100,
         private readonly ?LegacyFiles $files = null,
+        private readonly bool $tous = false,
+        private readonly int $depuis = 0,
     ) {}
 
     /**
@@ -26,6 +28,10 @@ final class LegacySampler
      */
     public function pick(): Collection
     {
+        if ($this->tous) {
+            return $this->tousLesComptes();
+        }
+
         $selected = collect();
 
         // 1. Au moins un compte par categorie metier, book rempli et publie.
@@ -69,6 +75,24 @@ final class LegacySampler
             });
 
         return $selected->take($this->limit)->values();
+    }
+
+    /**
+     * Mise en production : un paquet de `limit` comptes vivants, a partir
+     * de us_id > `depuis`, sans seuil de visuels ni verification du disque.
+     * Les logins a « _ » ou « . » sont pris : LegacyLogins les convertit.
+     *
+     * @return Collection<int, object>
+     */
+    private function tousLesComptes(): Collection
+    {
+        return DB::connection('legacy')->table('inc_user')
+            ->where('us_delete', 'false')
+            ->whereRaw("LOWER(us_login) REGEXP '".LegacyLogins::SOURCE."'")
+            ->where('us_id', '>', $this->depuis)
+            ->orderBy('us_id')
+            ->limit($this->limit)
+            ->get();
     }
 
     /**

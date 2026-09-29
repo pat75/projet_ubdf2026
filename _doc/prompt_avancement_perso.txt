@@ -63,9 +63,11 @@ Afficher les limitations, les formules.
 
 
 
-+++ étape de mise en production
-- Comparer la structure de la base de données initiales avec la structure de la nouvelle base de données et faire un fichier de conversion de la structure de l'ancienne base de données vers la nouvelle
-- créer un site qui permet de recréer l'arborescence des dossiers utilisateurs avec les trois premières lettres de l'identifiant
++++ étape de mise en production -ok
+Créer un dossier spécifique mise en production qui contient un tutoriel de configuration de O2switch et des sripts de conversion et transformation des bases de données et des comptes utilisateurs suivant les nouvelles spécifications du site par rapport aux anciennes
+
+- créer un script t'y permet de créer un fichier MySQL pour Comparer la structure de la base de données initiales avec la structure de la nouvelle base de données et faire un fichier de conversion de la structure de l'ancienne base de données vers la nouvelle
+- créer un script qui permet de recréer l'arborescence des dossiers utilisateurs avec les trois premières lettres de l'identifiant
 Car sur la première version initiale, il y avait que les deux premières lettres de l'identifiant.
 - le site sera testé dans un premier temps avec un nom de domaine spécifique exemple extra extra–book.com
 Le temps de vérifier si tout fonctionne bien sur le nouvel hébergement 

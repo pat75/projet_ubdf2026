@@ -6,18 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Marque;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 
 class PortfolioController extends Controller
 {
     /**
-     * Fiche d'un book sur le portail : /portfolio/<login>/<slug>.
+     * Ancienne fiche d'un book sur le portail : /portfolio/<login>/<slug>.
      *
-     * Le slug ne sert qu'au referencement. S'il ne correspond pas a celui
-     * attendu, on redirige vers l'URL canonique plutot que d'accepter des
-     * variantes qui dupliqueraient le contenu aux yeux des moteurs.
+     * La fiche n'est plus affichee : l'URL historique (liens entrants,
+     * referencement) redirige en 301 vers le book lui-meme.
      */
-    public function show(string $login, string $slug): View|RedirectResponse
+    public function show(string $login, string $slug): RedirectResponse
     {
         $marque = request()->attributes->get('marque') ?? Marque::defaut();
 
@@ -36,10 +34,6 @@ class PortfolioController extends Controller
                 ->where('diffuse_ub', true))
             ->firstOrFail();
 
-        if (! str_ends_with($book->portfolioUrl(), $slug)) {
-            return redirect($book->portfolioUrl(), 301);
-        }
-
-        return view('front.portfolio', ['book' => $book]);
+        return redirect()->away($book->bookUrl(), 301);
     }
 }

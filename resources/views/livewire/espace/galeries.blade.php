@@ -5,7 +5,7 @@
             <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Les portfolios') }}</h1>
         </div>
 
-        <a href="{{ auth()->user()->portfolioUrl() }}" target="_blank" rel="noopener"
+        <a href="{{ auth()->user()->bookUrl() }}" target="_blank" rel="noopener"
            class="bouton-espace bouton-espace-grand px-4.5">{{ __('Voir mon book ↗') }}</a>
     </div>
 

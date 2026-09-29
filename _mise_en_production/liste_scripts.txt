@@ -1,0 +1,29 @@
+Scripts de mise en production — Ultra-book 2026
+(a lancer depuis la racine du projet : php artisan <commande>)
+
+ubdf:prod:comparer-structures
+    Compare la structure de l'ancienne base ub2020 a celle de la nouvelle et ecrit deux fichiers SQL dans _mise_en_production/sql/ : le rapport de comparaison et le script de conversion de structure.
+
+ubdf:migrate-legacy --tous
+    Convertit les donnees de tous les comptes vivants de ub2020 vers la nouvelle base, par paquets successifs, avec reprise possible apres interruption (--depuis).
+
+ubdf:prod:dossiers-books
+    Recree l'arborescence des dossiers utilisateurs sur les trois premieres lettres du login (users_2/a/d/login -> books/a/d/o/login), en convertissant les logins a « _ » ou « . ».
+
+ubdf:segmenter-books
+    Range sur trois lettres les dossiers de books encore stockes a plat (books/login -> books/a/d/o/login).
+
+ubdf:import-cms
+    Importe les pages et actualites de l'ancien WordPress du magazine.
+
+ubdf:import-langues
+    Importe les catalogues de traduction (.po) du site 2019 en JSON.
+
+ubdf:install-front-assets
+    Copie les assets du front 2019 dans public/ et y applique les retouches.
+
+ubdf:robots
+    Ecrit public/robots.txt (sitemaps des marques, espace ferme aux robots).
+
+ubdf:verifier-urls
+    Confronte les anciennes URL du .htaccess du legacy aux routes du nouveau site.
