@@ -38,7 +38,7 @@
             <span>https://</span>
             <input name="us_login" type="text" id="us_login" autocomplete="off" placeholder="{{ __('adresse-de-votre-book') }}" aria-label="{{ __('Adresse de votre book') }}"
                    x-model="login" @input.debounce.400ms="erreurs.us_login = ''; verifierLogin()">
-            <span>.{{ config('ubdf.book_domain') }}</span>
+            <span>.{{ $marque->domaineBooks }}</span>
         </div>
         <div class="creer_book_erreur" x-show="erreurs.us_login" x-text="erreurs.us_login"></div>
         <div class="creer_book_aide" x-show="! erreurs.us_login && loginLibre === true" x-cloak>{{ __('Adresse disponible') }}</div>

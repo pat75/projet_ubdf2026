@@ -154,7 +154,7 @@ class RechercheController extends Controller
                     'flt_sel' => $recherche->selection ? 'true' : 'false',
                     'flt_pro' => $recherche->abonnes ? 'true' : 'false',
                 ],
-                'book_domain' => config('ubdf.book_domain'),
+                'book_domain' => (\App\Support\Marque::depuisCode(request()->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ];
     }

@@ -93,7 +93,9 @@ class User extends Authenticatable
     /** URL publique du book, sur son sous-domaine. */
     public function bookUrl(): string
     {
-        return 'https://'.$this->login.'.'.config('ubdf.book_domain');
+        // Domaine des books de la marque du compte : un book Dustfolio n'a
+        // qu'une adresse, sur le domaine Dustfolio.
+        return 'https://'.$this->login.'.'.\App\Support\Marque::depuisCode((string) $this->brand)->domaineBooks;
     }
 
     public function fullName(): string

@@ -89,3 +89,40 @@ describe('portfolio protege', function () {
         $this->actingAs($this->book)->get($this->url)->assertOk()->assertDontSee('Ce portfolio est protégé');
     });
 });
+
+describe('domaine des books selon la marque du compte', function () {
+    beforeEach(function () {
+        config([
+            'marques.marques.ub.domaine_books' => 'ultra-book.test',
+            'marques.marques.df.domaine_books' => 'dustfolio.test',
+        ]);
+        // Les routes de domaine sont compilees au demarrage : on les recharge.
+        app('router')->setRoutes(new Illuminate\Routing\RouteCollection);
+        require base_path('routes/web.php');
+        app('router')->getRoutes()->refreshNameLookups();
+    });
+
+    it('sert un book Ultra-book sur le domaine Ultra-book', function () {
+        $this->book->update(['brand' => 'ub']);
+
+        $this->get('https://aurelie-b.ultra-book.test/')->assertOk();
+        expect($this->book->fresh()->bookUrl())->toBe('https://aurelie-b.ultra-book.test');
+    });
+
+    it('renvoie un book Ultra-book demande sur Dustfolio, chemin et parametres conserves', function () {
+        $this->book->update(['brand' => 'ub']);
+
+        $this->get('https://aurelie-b.dustfolio.test/contact?x=1')
+            ->assertStatus(301)
+            ->assertRedirect('https://aurelie-b.ultra-book.test/contact?x=1');
+    });
+
+    it('renvoie un book Dustfolio demande sur Ultra-book', function () {
+        $this->book->update(['brand' => 'df']);
+
+        $this->get('https://aurelie-b.ultra-book.test/')
+            ->assertStatus(301)
+            ->assertRedirect('https://aurelie-b.dustfolio.test/');
+        expect($this->book->fresh()->bookUrl())->toBe('https://aurelie-b.dustfolio.test');
+    });
+});

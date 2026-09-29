@@ -688,6 +688,16 @@
 }
 
 /*
+ | Bas de l'accueil : l'espace (60px) entre le dernier book et le pied de
+ | page laissait voir le fond du body (#ebebeb) sous la grille, de fond
+ | #e4e4e1. On le conserve, dans la couleur de la grille : l'ombre decalee
+ | prolonge le fond vers le bas, le pied de page la recouvre au-dela.
+ */
+.bloc_portfolios_ {
+    box-shadow: 0 120px 0 0 #e4e4e1;
+}
+
+/*
  | Visionneuse d'un book (partials/visionneuse) : le bandeau d'en-tete
  | (#book_open .ui.container) n'est pas positionne dans core.css
  | (non versionne) — #swipebox-slider, lui, est en position absolue avec

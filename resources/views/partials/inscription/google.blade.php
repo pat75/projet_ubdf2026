@@ -7,7 +7,7 @@
             <div class="ui label us_login_affhttp"> https://</div>
             <input name="us_login" type="text" autocomplete="username" required
                    placeholder="{{ __('Identifiant') }}" value="{{ old('us_login') }}">
-            <div class="ui label us_login_affub">.{{ config('ubdf.book_domain') }}</div>
+            <div class="ui label us_login_affub">.{{ $marque->domaineBooks }}</div>
         </div>
         @error('us_login') <div class="ui basic red pointing prompt label show">{{ $message }}</div> @enderror
     </div>

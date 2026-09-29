@@ -20,7 +20,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\RateLimiter;
 
 /**
- * Book public, servi sur <login>.<book_domain>, dans son theme d'origine.
+ * Book public, servi sur <login>.<domaine des books de sa marque>, dans son
+ * theme d'origine (BookSurSonDomaine redirige depuis l'autre marque).
  *
  * Les onze habillages du legacy sont portes tels quels (lot 4d, voir
  * _doc/11_phase4_books.md). Ce controleur tient le role de

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\ReglageBookRequest;
 use App\Models\User;
 use App\Services\Espace\NettoyeurHtml;
+use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,8 @@ class EditionBookController extends Controller
 
         return redirect()->away(URL::temporarySignedRoute('book.edition.entrer', now()->addSeconds(self::DUREE), [
             'login' => $creatif->login,
+            // Domaine des books de la marque du compte (BookSurSonDomaine).
+            'domaineBooks' => Marque::depuisCode((string) $creatif->brand)->domaineBooks,
             'jeton' => $jeton,
         ]));
     }

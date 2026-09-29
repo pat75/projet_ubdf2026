@@ -26,6 +26,8 @@ final class Marque
         public readonly string $canonique,
         public readonly string $titre,
         public readonly string $description,
+        /** Domaine des books de la marque : <login>.<domaineBooks>. */
+        public readonly string $domaineBooks = '',
     ) {}
 
     /**
@@ -73,6 +75,7 @@ final class Marque
             canonique: $marque['canonique'],
             titre: $marque['titre'],
             description: $marque['description'],
+            domaineBooks: $marque['domaine_books'] ?? (string) config('ubdf.book_domain'),
         );
     }
 
@@ -167,5 +170,29 @@ final class Marque
     public static function sousDomaineReserve(string $label): bool
     {
         return in_array(Str::lower($label), config('marques.sous_domaines_reserves', []), true);
+    }
+
+    /**
+     * Marque dont `$domaine` est le domaine des books, ou null.
+     */
+    public static function depuisDomaineBooks(string $domaine): ?self
+    {
+        foreach (array_keys(config('marques.marques')) as $code) {
+            $marque = self::depuisCode($code);
+            if (Str::lower($marque->domaineBooks) === Str::lower($domaine)) {
+                return $marque;
+            }
+        }
+
+        return null;
+    }
+
+    /** @return list<string> domaines des books de toutes les marques */
+    public static function domainesBooks(): array
+    {
+        return array_values(array_unique(array_filter(array_map(
+            fn (string $code) => self::depuisCode($code)->domaineBooks,
+            array_keys(config('marques.marques')),
+        ))));
     }
 }

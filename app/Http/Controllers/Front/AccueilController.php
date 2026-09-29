@@ -42,7 +42,7 @@ class AccueilController extends Controller
             'accueilBlocs' => AccueilBloc::etats(),
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
-                'book_domain' => config('ubdf.book_domain'),
+                'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ]);
     }
@@ -69,7 +69,7 @@ class AccueilController extends Controller
                 'total' => $this->books->count($categorie, $brand),
                 'cartes_url' => '/cartes/'.$categorie,
                 'cartes_params' => ['selection' => 'sel'],
-                'book_domain' => config('ubdf.book_domain'),
+                'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ]);
     }

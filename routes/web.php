@@ -38,7 +38,6 @@ use App\Http\Middleware\ResoudreLangue;
 use App\Services\Images\Declinaison;
 use Illuminate\Support\Facades\Route;
 
-$bookDomain = config('ubdf.book_domain');
 
 /*
 | Etiquettes de sous-domaine qui ne peuvent pas designer un book : elles
@@ -58,13 +57,23 @@ $loginPattern = '(?!(?:'.$reserves.')(?![-a-zA-Z0-9]))[-a-zA-Z0-9]+';
 
 /*
 |--------------------------------------------------------------------------
-| Books creatifs — sous-domaine <login>.<book_domain>
+| Books creatifs — sous-domaine <login>.<domaine des books de la marque>
 |--------------------------------------------------------------------------
 | Declare avant le portail : celui-ci repond sur tous les hotes et capterait
 | aussi les sous-domaines.
 */
-Route::domain('{login}.'.$bookDomain)
-    ->where(['login' => $loginPattern])
+/*
+| Un seul groupe pour les books des deux marques : le domaine est un
+| parametre, limite aux domaines de books declares (config/marques.php).
+| BookSurSonDomaine renvoie un book demande sur le domaine de l'autre
+| marque vers le sien.
+*/
+Route::domain('{login}.{domaineBooks}')
+    ->where([
+        'login' => $loginPattern,
+        'domaineBooks' => implode('|', array_map(fn (string $d) => preg_quote($d, '/'), App\Support\Marque::domainesBooks())),
+    ])
+    ->middleware(App\Http\Middleware\BookSurSonDomaine::class)
     ->group(function () {
         /*
          | URL du legacy, conservees a l'identique : elles sont indexees.

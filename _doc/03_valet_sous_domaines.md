@@ -30,6 +30,25 @@ curl -sk https://xyz-test.ubdf2026.ultra-book.name/ # book inexistant -> 404 app
 ```
 Les trois atteignent bien `public/index.php` avec le bon `HTTP_HOST`. **Validé le 2026-09-15.**
 
+## Books Dustfolio : `<login>.ubdf-dust-2026.ultra-book.name`
+
+Chaque marque a son domaine de books (`domaine_books` dans
+`config/marques.php`, surchargé par `BOOK_DOMAIN` et `DF_BOOK_DOMAIN`). Un
+book n'est servi que sur le domaine de la marque de son compte
+(`users.brand`) ; sur l'autre, `BookSurSonDomaine` redirige (301), chemin
+et paramètres conservés.
+
+| `.env` | Test | Production |
+|---|---|---|
+| `BOOK_DOMAIN` | `extra-book.com` | `ultra-book.com` |
+| `DF_BOOK_DOMAIN` | `extra-book.biz` | `dustfolio.com` |
+
+DNS et certificat : joker `*.<domaine>` pour chacun.
+
+Même correctif appliqué au bloc `~/.config/valet/Nginx/ubdf-dust-2026.ultra-book.name`
+(sauvegarde : `.bak.valet`, copie de référence :
+`_doc/valet/nginx-ubdf-dust-2026.ultra-book.name.conf`). **Validé le 2026-09-29.**
+
 ## Attention
 
 `valet link`, `valet secure` ou `valet unsecure` sur ce site **régénèrent** le fichier et écrasent le correctif. Le cas échéant, réappliquer depuis `_doc/valet/nginx-ubdf2026.ultra-book.name.conf`.

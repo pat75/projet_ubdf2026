@@ -44,6 +44,11 @@ return [
             // Image de partage par defaut (Open Graph / X), 1200 x 630.
             'image_partage' => '/img_front/partage/ultra-book.png',
 
+            // Domaine des books : <login>.<domaine_books>. Un book n'est servi
+            // que sur le domaine de la marque de son compte (users.brand) ;
+            // sur celui de l'autre marque, il y redirige (301).
+            'domaine_books' => env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
+
             // Domaine canonique en production : c'est lui qui sert a
             // construire les URL absolues (courriels, sitemap, og:url).
             'canonique' => env('UB_CANONIQUE', 'https://www.ultra-book.com'),
@@ -60,7 +65,8 @@ return [
             'hotes' => array_filter([
                 env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
                 'ultra-book.com',
-                'ultrabook.pro',
+                // Domaine de test de la mise en production.
+                'extra-book.com',
                 'extra-book.net',
                 'extra-book.info',
                 'extra-book.be',
@@ -85,6 +91,7 @@ return [
             'logo' => '/img_front_df/dustfolio.svg',
             'logo_clair' => '/img_front_df/dustfolio_b.svg',
             'image_partage' => '/img_front/partage/dustfolio.png',
+            'domaine_books' => env('DF_BOOK_DOMAIN', 'ubdf-dust-2026.ultra-book.name'),
 
             'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
 
