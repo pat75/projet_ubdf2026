@@ -25,10 +25,11 @@ le bon éditeur
 
 Quand tu auras terminé la dernière demande et fais-le comit - OK
 
-+ page exporter
++ page exporter - ok
 sur https://ubdf2026.ultra-book.name/espace/exporter 
 
 + Supprimer le bloc iframe
+
 
 + Export Mon compte et images
 Proposer à l'utilisateur d'exporter l'ensemble des informations de son compte ainsi que l'ensemble de ses portfolio, contenu base de données et images en Json.

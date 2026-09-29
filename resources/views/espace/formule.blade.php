@@ -289,7 +289,7 @@
     <livewire:espace.parrainage />
 
     <div class="mt-10">
-        <x-espace.section-pliante :titre="__('Factures')" icone="factures">
+        <x-espace.section-pliante :titre="__('Factures')" icone="factures" cartouche clair>
             @forelse ($factures as $f)
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ub-gris-clair py-2 text-[14px] last:border-b-0">
                     <span class="w-24">{{ $f->numero() }}</span>
@@ -308,7 +308,7 @@
              depliant : son code et ses filleuls. La saisie, elle, est
              dans le bloc d'activation ci-dessus — un seul champ sert aux
              deux sortes de codes. --}}
-        <x-espace.section-pliante :titre="__('Parrainage')">
+        <x-espace.section-pliante :titre="__('Parrainage')" cartouche>
             <p class="text-[15px] text-ub-texte2">
                 {{ __('Votre code de parrainage :') }}
                 <strong class="font-mono text-ub-texte">{{ $monCodeParrain }}</strong>.
@@ -325,7 +325,7 @@
             @endif
         </x-espace.section-pliante>
 
-        <x-espace.section-pliante :titre="__('Conditions générales de vente')">
+        <x-espace.section-pliante :titre="__('Conditions générales de vente')" cartouche>
             <p class="text-[14px]">
                 <a href="{{ asset('pdf/Conditions_generales_de_vente_'.$marque->nom.'.pdf') }}" target="_blank" rel="noopener" class="underline">
                     <strong>{{ __('Conditions générales de vente :marque', ['marque' => $marque->nom]) }}</strong> (PDF)
@@ -333,7 +333,7 @@
             </p>
         </x-espace.section-pliante>
 
-        <x-espace.section-pliante :titre="__('Certification et sécurité des paiements sur :marque', ['marque' => $marque->nom])">
+        <x-espace.section-pliante :titre="__('Certification et sécurité des paiements sur :marque', ['marque' => $marque->nom])" cartouche>
             <div class="grid gap-8 text-[14px] md:grid-cols-3">
                 <div class="space-y-4">
                     <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="w-[100px]">

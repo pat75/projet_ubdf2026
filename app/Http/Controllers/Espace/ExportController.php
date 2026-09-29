@@ -19,6 +19,9 @@ class ExportController extends Controller
         $nom = ($export->user->brand === 'df' ? 'dustfolio' : 'ultra-book')
             .'_'.$export->user->login.'_donnees_'.$export->termine_at->format('Y-m-d').'.zip';
 
-        return Storage::disk(DataExport::DISQUE)->download($export->fichier, $nom);
+        return Storage::disk(DataExport::DISQUE)->download($export->fichier, $nom, [
+            // Donnees personnelles : aucun proxy ni navigateur ne doit les garder en cache.
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 }

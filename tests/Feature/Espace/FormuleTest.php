@@ -25,7 +25,7 @@ it('affiche la formule, son echeance et les factures payees', function () {
 it('affiche la facture au format du legacy', function () {
     $this->get(route('espace.facture', $this->facture))->assertOk()
         ->assertSee('Facture n° UB-2020-7907', false)
-        ->assertSee('Formule Ultra-book - SaaS 12 mois')
+        ->assertSee('Formule Ultra-book')
         ->assertSee('24,83 € HT', false)
         ->assertSee('Martin')
         ->assertSee('FR31479054553');

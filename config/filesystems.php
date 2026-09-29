@@ -38,6 +38,21 @@ return [
             'report' => false,
         ],
 
+        // Archives « Mes donnees » : hors du web, jamais servies en direct
+        // (pas de `serve`), lisibles par le seul utilisateur systeme de PHP.
+        // Seule sortie : ExportController, apres controle du proprietaire.
+        'exports' => [
+            'driver' => 'local',
+            'root' => storage_path('app/exports'),
+            'visibility' => 'private',
+            'permissions' => [
+                'file' => ['public' => 0600, 'private' => 0600],
+                'dir' => ['public' => 0700, 'private' => 0700],
+            ],
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -166,8 +166,21 @@ it('construit l archive des donnees, images HD comprises, sans secret', function
         && str_contains($mail->lien, '/espace/exporter'));
 
     $this->actingAs($this->creatif)->get(route('espace.export.telecharger', $export))->assertOk()
-        ->assertDownload();
+        ->assertDownload()->assertHeader('Cache-Control', 'no-store, private');
     $this->actingAs(User::factory()->create())->get(route('espace.export.telecharger', $export))->assertForbidden();
+});
+
+it('range l archive sur un disque dedie, hors du web, lisible du seul proprietaire', function () {
+    expect(config('filesystems.disks.exports'))->not->toHaveKey('serve')
+        ->and(config('filesystems.disks.exports.root'))->not->toStartWith(public_path());
+
+    $fichier = app(App\Services\Espace\ExportCompte::class)->construire($this->creatif);
+    $chemin = Storage::disk(DataExport::DISQUE)->path($fichier);
+
+    expect($fichier)->toStartWith('exports/'.$this->creatif->id.'/')
+        ->and(fileperms($chemin) & 0777)->toBe(0600);
+
+    Storage::disk(DataExport::DISQUE)->deleteDirectory('exports/'.$this->creatif->id);
 });
 
 it('masque le nom des rubriques du PDF sur demande', function () {

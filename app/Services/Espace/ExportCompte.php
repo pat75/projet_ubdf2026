@@ -42,9 +42,11 @@ final class ExportCompte
     /** Chemin de l'archive, relatif au disque DataExport::DISQUE. */
     public function construire(User $creatif): string
     {
-        $relatif = DataExport::DOSSIER.'/'.$creatif->login.'_'.now()->format('Ymd_His').'_'.Str::lower(Str::random(8)).'.zip';
+        // Un dossier par createur (son id : le login peut changer), nom non devinable.
+        $dossier = DataExport::DOSSIER.'/'.$creatif->id;
+        $relatif = $dossier.'/'.$creatif->login.'_'.now()->format('Ymd_His').'_'.Str::lower(Str::random(16)).'.zip';
         $disque = Storage::disk(DataExport::DISQUE);
-        $disque->makeDirectory(DataExport::DOSSIER);
+        $disque->makeDirectory($dossier);
         $chemin = $disque->path($relatif);
 
         $zip = new ZipArchive;
@@ -79,6 +81,9 @@ final class ExportCompte
             @unlink($chemin);
             throw new RuntimeException("Archive incomplete : {$chemin}");
         }
+
+        // ZipArchive ecrit sans passer par le disque : droits du disque reappliques.
+        @chmod($chemin, 0600);
 
         return $relatif;
     }

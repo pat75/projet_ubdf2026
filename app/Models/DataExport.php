@@ -22,8 +22,8 @@ class DataExport extends Model
 
     public const EXPIRE = 'expire';
 
-    /** Disque prive : les archives ne sont jamais servies en direct. */
-    public const DISQUE = 'local';
+    /** Disque dedie (config/filesystems.php) : jamais servi en direct. */
+    public const DISQUE = 'exports';
 
     public const DOSSIER = 'exports';
 

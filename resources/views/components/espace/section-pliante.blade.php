@@ -1,8 +1,15 @@
-@props(['titre', 'ouvert' => false, 'icone' => null])
+@props(['titre', 'ouvert' => false, 'icone' => null, 'cartouche' => false, 'clair' => false])
 
 {{-- Les sections depliables de la fiche du compte. Alpine tient l'etat :
-     rien ne part au serveur pour ouvrir ou fermer un volet. --}}
-<section x-data="{ ouvert: @js($ouvert) }" class="border-b border-ub-gris-clair">
+     rien ne part au serveur pour ouvrir ou fermer un volet. `cartouche` :
+     volet isole dans un cartouche gris clair arrondi plutot que separe
+     par un filet ; `clair` l'eclaircit encore (bloc mis en avant). --}}
+<section x-data="{ ouvert: @js($ouvert) }" @class([
+    'mt-3 rounded-ub-carte px-6 first:mt-0' => $cartouche,
+    'bg-[#f3f3f1]' => $cartouche && ! $clair,
+    'bg-[#f5f5f4]' => $cartouche && $clair,
+    'border-b border-ub-gris-clair' => ! $cartouche,
+])>
     <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert"
             class="flex w-full items-center justify-between py-4 text-left">
         <span class="flex items-center gap-2 font-titre text-[20px] font-light text-[#070707]">

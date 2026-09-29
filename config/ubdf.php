@@ -48,7 +48,7 @@ return [
     'editeur' => [
         'raison_sociale' => 'POLYGUN',
         'adresse' => "51 rue d'Hauteville\n75010 Paris",
-        'mentions' => 'SARL au capital de 1 000 EUR - SIRET 479 054 553 00017 - APE 722 C - R.C.S Paris B 479 054 553',
+        'mentions' => 'SIRET 479 054 553 00017 - APE 722 C - R.C.S Paris B 479 054 553',
         'tva_intra' => 'FR31479054553',
     ],
 ];
