@@ -125,7 +125,7 @@
                     <p class="m-0 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#8a8784]">Contact / Aide</p>
                     <a href="mailto:{{ $marque->email }}?subject={{ rawurlencode(__('Aide').' '.$marque->nom) }}" class="break-all text-[17px] font-semibold">{{ $marque->email }}</a>
                     <div class="flex flex-wrap gap-x-5 gap-y-2 text-[15px]">
-                        <a href="/doc/les-formules-ultra-book" class="mpe-lien underline underline-offset-[3px]">Tarifs</a>
+                        <a href="/doc/les-formules-ultra-book" class="mpe-lien underline underline-offset-[3px]">Formules et tarifs</a>
                         <a href="/doc/mentions-legales" class="mpe-lien underline underline-offset-[3px]">Mentions légales</a>
                     </div>
                 </section>

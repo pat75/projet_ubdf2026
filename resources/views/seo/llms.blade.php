@@ -37,10 +37,9 @@ Ultra-book est une plateforme de portfolios en ligne pour les créatifs freelanc
 
 ## Pages utiles
 
-- [Tarifs et formules]({!! $racine !!}/doc/les-formules-ultra-book)
+- [Formules et tarifs]({!! $racine !!}/doc/les-formules-ultra-book)
 - [Questions fréquentes]({!! $racine !!}/doc/questions-frequentes-2)
-- [Documentation et tutoriels]({!! $racine !!}/doc/)
-- [Qui sommes-nous ?]({!! $racine !!}/doc/qui-sommes-nous)
+- [Documentation]({!! $racine !!}/doc/doc)
 - [Mentions légales]({!! $racine !!}/doc/mentions-legales)
 - [Illustrateurs disponibles](https://www.les-illustrateurs.com): les illustrateurs et illustratrices disponibles aujourd'hui (UB-diffusion)
 

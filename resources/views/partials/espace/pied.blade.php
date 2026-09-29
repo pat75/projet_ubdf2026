@@ -21,10 +21,9 @@
                 <h2 class="mb-1.5 text-[13px] font-bold uppercase tracking-[1.2px] text-ub-pied-titre">{{ __('Plateforme portfolio') }}</h2>
                 <ul class="space-y-1.5 text-[#ddd]">
                     <li><a class="hover:text-white" href="mailto:{{ $marque->email }}?subject={{ rawurlencode('Aide '.$marque->nom) }}">{{ __('Contact/aide') }}<br>{{ $marque->email }}</a></li>
-                    <li><a class="hover:text-white" href="/doc/">{{ __('Documentation / Tuto') }}</a></li>
-                    <li><a class="hover:text-white" href="/doc/les-formules-ultra-book">{{ __('Tarifs') }}</a></li>
+                    <li><a class="hover:text-white" href="/doc/doc">{{ __('Documentation') }}</a></li>
+                    <li><a class="hover:text-white" href="/doc/les-formules-ultra-book">{{ __('Formules et tarifs') }}</a></li>
                     <li><a class="hover:text-white" href="/doc/questions-frequentes-2">{{ __('Questions fréquentes') }}</a></li>
-                    <li><a class="hover:text-white" href="/doc/qui-sommes-nous">{{ __('Qui sommes nous ?') }}</a></li>
                     <li><a class="hover:text-white" href="/doc/mentions-legales">{{ __('Mentions légales') }}</a></li>
                 </ul>
             </div>

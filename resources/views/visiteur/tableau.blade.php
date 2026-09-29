@@ -22,6 +22,9 @@
         </div>
     @endunless
 
+    {{-- Les actualites redigees au back-office. --}}
+    <x-espace.actualites emplacement="visiteur" />
+
     {{-- Memo book --}}
     <x-espace.carte :titre="__('Memo Books')" :sous-titre="trans_choice(':n book enregistré|:n books enregistrés', $memoTotal, ['n' => $memoTotal])">
         <x-slot:action>

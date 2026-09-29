@@ -37,6 +37,9 @@
         @endif
     </div>
 
+    {{-- Les actualites redigees au back-office, en tete de tableau. --}}
+    <x-espace.actualites emplacement="creatif" />
+
     {{-- La carte du book, puis les deux liens a partager, chacun avec son
          code QR : celui du mini-book sur le portail, celui du book sur
          son sous-domaine. --}}

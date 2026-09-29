@@ -65,7 +65,7 @@
 {{-- Sur mobile, facon WebApp : pas de pied de page, la barre d'onglets
      en tient lieu. --}}
 <div class="hidden min-[900px]:block">
-    @include('partials.espace.pied')
+    @include('partials.pied-commun')
 </div>
 
 @include('partials.espace.barre-mobile')

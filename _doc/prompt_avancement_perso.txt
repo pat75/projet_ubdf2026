@@ -13,11 +13,35 @@ le bon éditeur
 
 
 
+
++ Quota
+sur les comptes, créatifs, vérifier le système de comptabilité des images
+Avec notamment le quota empois et le quota en nombre d'images
+Vérifier le bon fonctionnement du système et sa cohérence par rapport à l'ensemble du site
+
+
+
+
+
  
 
 
 
 ================ ok
+
++ Newsletter - ok
+ajouter dans l'administration, une rubrique newsletter pour concevoir et envoyer une newsletter
+Cette newsletter pourra être envoyé uniquement à un mail de test et aussi à l'ensemble des visiteurs ou des créatifs. Il est possible d'envoyer la newsletter aux deux faire des cases à cocher dans chaque catégorie.
+Prévoir une sauvegarde des newsletter avec des onglets brouillon. Envoyer
+Analyser la demande poser des questions et faire un plan de codage
+
+
++ Actu sur les comptes, visiteurs et créatifs - OK
+Il faut ajouter un principe d'actualité administrant identique à ce qui a été fait sur le projet. Ultra-book diffusion.
+Une. Rubrique dans l'administration permet de modifier le contenu des actualités.
+Il faut utiliser ce qui a été fait sur le projet Ultra-book diffusion aussi bien pour l'administration que pour l'affichage des actualités dans les comptes, visiteurs et créatif
+/Users/pat/Sites_2023/projet_ubdf_dispo/messagerie2_2026/ubdiff_www
+Analyser la demande poser des questions et faire un plan de codage
 
 
 Quand tu auras terminé la dernière demande et fais-le comit - OK

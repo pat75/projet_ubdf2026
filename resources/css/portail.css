@@ -976,3 +976,167 @@
     margin: 0 -4.5px;
     color: #444;
 }
+
+/* Actualites : detachees de la barre du haut, colonne de lecture bornee. */
+.page_actu .bloc_cms { padding-top: 56px; padding-bottom: 80px; }
+.page_actu .bloc_cms h1 { margin: 0 0 28px; font-size: 34px; font-weight: 300; line-height: 1.2; color: #222; }
+.page_actu .contenu_cms { max-width: 780px; font-size: 16px; line-height: 1.7; color: #333; }
+@media (max-width: 767px) {
+    .page_actu .bloc_cms { padding-top: 32px; padding-bottom: 48px; }
+    .page_actu .bloc_cms h1 { font-size: 26px; }
+}
+
+/* Documentation (/doc/*) : mise en page du mini-guide Tesli
+   (tesli_www info/infodomainekeyword), aux couleurs du portail. */
+.page_cms .ubg { max-width: 1328px; margin: 0 auto; padding: 56px 24px 80px; color: #1b1b1b; font-family: 'Source Sans Pro', 'Lato', system-ui, sans-serif; }
+.page_cms .ubg a { color: inherit; text-decoration: none; }
+.page_cms .ubg_grille { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 48px; align-items: start; }
+.page_cms .ubg_mono { font: 400 11px/1.3 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a; }
+
+.page_cms .ubg_nav { position: sticky; top: 110px; padding: 26px 22px 22px; border-radius: 26px; background: #fff; }
+.page_cms .ubg_nav_entete { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.page_cms .ubg_nav_titre { margin-bottom: 18px; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+.page_cms .ubg_nav nav { display: flex; flex-direction: column; gap: 2px; }
+.page_cms .ubg_nav_lien { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; padding: 12px 15px; border-radius: 14px; font-size: 15px; line-height: 1.35; color: #4b4b4b; transition: background .15s ease; }
+.page_cms .ubg_nav_lien .ubg_mono { padding-top: 3px; letter-spacing: .04em; }
+.page_cms .ubg_nav_lien:hover { background: #ebebeb; }
+.page_cms .ubg_nav_lien.actif { background: #000; color: #fff; font-weight: 600; }
+.page_cms .ubg_nav_lien.actif .ubg_mono { color: #8a8a8a; }
+.page_cms .ubg_nav_pied { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,.09); font-size: 14px; line-height: 1.4; color: #4b4b4b; }
+.page_cms .ubg_nav_pied span { flex: 1; }
+.page_cms .ubg .ubg_nav_pied a { padding: 10px 16px; border-radius: 999px; background: #000; color: #fff; font-weight: 600; white-space: nowrap; }
+
+.page_cms .ubg_article { min-width: 0; }
+.page_cms .ubg_meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 18px; color: #4b4b4b; }
+.page_cms .ubg_trait { display: block; width: 22px; height: 1px; background: rgba(0,0,0,.2); }
+.page_cms .ubg_article h1 { max-width: 24ch; margin: 0 0 22px; font-family: inherit; font-size: 46px; font-weight: 700; line-height: 1.08; letter-spacing: -.03em; color: #1b1b1b; }
+.page_cms .ubg_chapo { max-width: 56ch; margin: 0 0 40px; font-size: 21px; line-height: 1.5; color: #4b4b4b; }
+
+.page_cms .ubg_contenu.avec_sommaire { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 48px; align-items: start; }
+.page_cms .contenu_cms { max-width: 72ch; font-size: 18px; line-height: 1.62; color: #2e2e2e; }
+.page_cms .contenu_cms h2 { margin: 40px 0 14px; font-family: inherit; font-size: 27px; font-weight: 700; line-height: 1.28; letter-spacing: -.02em; color: #1b1b1b; scroll-margin-top: 110px; }
+.page_cms .contenu_cms h2:first-child { margin-top: 0; }
+.page_cms .contenu_cms h3 { margin: 28px 0 12px; font-family: inherit; font-size: 20px; font-weight: 700; line-height: 1.3; color: #1b1b1b; }
+.page_cms .contenu_cms p { margin: 0 0 22px; }
+.page_cms .contenu_cms ul, .page_cms .contenu_cms ol { margin: 0 0 22px; padding-left: 22px; }
+.page_cms .contenu_cms li { margin-bottom: 8px; }
+.page_cms .contenu_cms a { text-decoration: underline; text-underline-offset: 3px; }
+.page_cms .contenu_cms img { max-width: 100%; height: auto; border-radius: 18px; }
+.page_cms .ubg_sommaire { position: sticky; top: 110px; display: flex; flex-direction: column; gap: 11px; padding-left: 24px; border-left: 1px solid rgba(0,0,0,.12); font-size: 14px; line-height: 1.3; }
+.page_cms .ubg_sommaire .ubg_mono { margin-bottom: 3px; color: #4b4b4b; }
+.page_cms .ubg_sommaire a { color: #4b4b4b; }
+.page_cms .ubg_sommaire a:hover { color: #000; }
+
+.page_cms .ubg_cta { display: flex; align-items: center; gap: 40px; margin-top: 56px; padding: 38px 42px; border-radius: 26px; background: #22292f; }
+.page_cms .ubg_cta > div { flex: 1; min-width: 240px; }
+.page_cms .ubg_cta_titre { margin-bottom: 8px; font-size: 26px; font-weight: 700; line-height: 1.2; color: #fff; }
+.page_cms .ubg_cta_texte { font-size: 17px; line-height: 1.45; color: #b9c0c6; }
+.page_cms .ubg .ubg_cta a { padding: 16px 30px; border-radius: 999px; background: #16a6d9; color: #fff; font-size: 16px; font-weight: 600; white-space: nowrap; }
+.page_cms .ubg .ubg_cta a:hover { background: #1293c1; }
+
+.page_cms .ubg_suite { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+.page_cms .ubg_carte { display: flex; flex-direction: column; gap: 10px; padding: 22px 24px; border-radius: 22px; background: #fff; transition: box-shadow .15s ease; }
+.page_cms .ubg_carte + .ubg_carte { text-align: right; }
+.page_cms a.ubg_carte:hover { box-shadow: 0 10px 24px -14px rgba(0,0,0,.35); }
+.page_cms .ubg_carte_titre { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.page_cms .ubg_carte.vide .ubg_carte_titre { color: #9a9a9a; }
+
+@media (max-width: 1100px) {
+    .page_cms .ubg_contenu.avec_sommaire { grid-template-columns: 1fr; }
+    .page_cms .ubg_sommaire { display: none; }
+}
+@media (max-width: 960px) {
+    .page_cms .ubg_grille { grid-template-columns: 1fr; }
+    .page_cms .ubg_nav { position: static; }
+}
+@media (max-width: 640px) {
+    .page_cms .ubg { padding: 32px 16px 48px; }
+    .page_cms .ubg_article h1 { font-size: 32px; }
+    .page_cms .ubg_chapo { font-size: 18px; }
+    .page_cms .ubg_suite { grid-template-columns: 1fr; }
+    .page_cms .ubg_carte + .ubg_carte { text-align: left; }
+    .page_cms .ubg_cta { flex-direction: column; align-items: flex-start; gap: 20px; padding: 28px; }
+}
+
+/* Grille tarifaire publique (front/cms/tarifs), d'apres « Ma formule ». */
+.tarifs_cms { margin-top: 40px; }
+.tarifs_cms h2 { margin: 0 0 24px; font-size: 24px; font-weight: 400; }
+.tarifs_grille { display: grid; gap: 20px; align-items: stretch; }
+@media (min-width: 900px) { .tarifs_grille { grid-template-columns: 4fr 5fr 5fr; } }
+.tarif { position: relative; display: flex; flex-direction: column; padding: 32px 28px; border-radius: 20px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.08); color: #333; }
+.tarif h3 { margin: 0; font-size: 20px; font-weight: 600; }
+.tarif .tarif_duree { margin: 2px 0 0; font-weight: 600; color: #16a6d9; }
+.tarif .tarif_prix { margin: 16px 0 0; font-size: 38px; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+.tarif .tarif_prix small { font-size: 16px; font-weight: 400; color: #16a6d9; }
+.tarif .tarif_total { margin: 8px 0 0; font-size: 14px; color: #666; }
+.tarif ul { flex: 1; margin: 20px 0 24px; padding: 0; list-style: none; font-size: 15px; }
+.tarif li { position: relative; padding-left: 22px; margin-bottom: 8px; }
+.tarif li::before { content: "✓"; position: absolute; left: 0; color: #16a6d9; font-weight: 700; }
+.tarif .tarif_bouton { display: block; padding: 12px 16px; background: #000; color: #fff; text-align: center; font-size: 15px; }
+.tarif .tarif_bouton:hover { background: #333; color: #fff; }
+.tarif_gratuit { background: #e4e4e1; box-shadow: none; }
+.tarif_gratuit .tarif_duree { color: #777; }
+.tarif_vedette { background: #22292f; color: #fff; }
+.tarif_vedette .tarif_total { color: rgba(255,255,255,.7); }
+.tarif_vedette .tarif_bouton { box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+.tarif_etiquette { position: absolute; top: -13px; right: 24px; padding: 5px 14px; border-radius: 999px; background: #16a6d9; color: #fff; font-size: 13px; font-weight: 600; }
+.tarifs_note { max-width: 780px; margin-top: 16px; font-size: 13px; color: #666; }
+.tarif_visiteur { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; margin-top: 28px; padding: 28px; border-radius: 20px; background: #fff; border: 1px solid #ddd; }
+.tarif_visiteur > div { flex: 1 1 420px; }
+.tarif_visiteur h3 { margin: 0 0 8px; font-size: 20px; font-weight: 600; }
+.tarif_visiteur p { margin: 0; font-size: 15px; line-height: 1.6; color: #555; }
+.tarif_visiteur .tarif_bouton { display: inline-block; padding: 12px 22px; border: 0; background: #000; color: #fff; font-size: 15px; cursor: pointer; }
+.tarif_visiteur .tarif_bouton:hover { background: #333; color: #fff; }
+.page_cms .ubg .tarif .tarif_bouton,
+.page_cms .ubg .tarif_visiteur .tarif_bouton { color: #fff; text-decoration: none; font-family: inherit; }
+.page_cms .ubg .tarif_vedette h3,
+.page_cms .ubg .tarif_vedette .tarif_prix { color: #fff; }
+.page_cms .tarifs_cms h2 { font-size: 27px; font-weight: 700; letter-spacing: -.02em; }
+.page_cms .ubg .tarif_lien { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Questions frequentes depliables (<details>) : question en gras, fleche a droite. */
+.page_cms .ubg_faq { border-bottom: 1px solid rgba(0,0,0,.12); }
+.page_cms .ubg_faq summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 15px 0; cursor: pointer; list-style: none; }
+.page_cms .ubg_faq summary::-webkit-details-marker { display: none; }
+.page_cms .contenu_cms .ubg_faq summary h3 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.35; }
+.page_cms .ubg_faq summary:hover h3 { color: #000; }
+.page_cms .ubg_faq_fleche { flex-shrink: 0; width: 16px; height: 16px; color: #1b1b1b; }
+.page_cms .ubg_faq .ubg_faq_fleche.ouvert,
+.page_cms .ubg_faq[open] .ubg_faq_fleche.ferme { display: none; }
+.page_cms .ubg_faq[open] .ubg_faq_fleche.ouvert { display: block; }
+.page_cms .ubg_faq_reponse { padding: 0 40px 18px 0; }
+.page_cms .ubg_faq_reponse > :last-child { margin-bottom: 0; }
+.page_cms .contenu_cms h2 + .ubg_faq { border-top: 1px solid rgba(0,0,0,.12); }
+.page_cms .ubg_visuel { margin: 0 0 44px; }
+.page_cms .ubg_visuel img { display: block; width: 100%; height: 360px; object-fit: cover; border-radius: 26px; }
+@media (max-width: 640px) { .page_cms .ubg_visuel img { height: 220px; } }
+.page_cms .ubg_capture { margin: 8px 0 28px; }
+.page_cms .contenu_cms .ubg_capture img { display: block; width: 100%; border-radius: 14px; box-shadow: 0 12px 30px -16px rgba(0,0,0,.35); }
+.page_cms .ubg_capture figcaption { margin-top: 10px; font-size: 14px; color: #777; }
+.page_cms .contenu_cms h2, .page_cms .tarifs_cms h2 { font-weight: 300; font-size: 30px; letter-spacing: -.01em; }
+
+/* Liste des metiers de la doc : couleurs du menu « Filtres par metiers » (core.css). */
+.page_cms .ubg_metiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin: 8px 0 28px; padding: 0; list-style: none; }
+.page_cms .contenu_cms .ubg_metiers li { margin: 0; }
+.page_cms .contenu_cms .ubg_metiers a { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 12px; background: #fff; font-size: 16px; font-weight: 600; text-decoration: none; transition: box-shadow .15s ease; }
+.page_cms .contenu_cms .ubg_metiers a:hover { box-shadow: 0 8px 20px -12px rgba(0,0,0,.35); }
+.page_cms .ubg_metiers .nuancier { flex: none; width: 14px; height: 14px; border-radius: 3px; }
+.page_cms .ubg_metiers .coul_illustrateur .nuancier { background: #8a8b8a; }
+.page_cms .ubg_metiers .coul_illustrateur_jeunesse .nuancier { background: #979689; }
+.page_cms .ubg_metiers .coul_graphiste .nuancier { background: #757c98; }
+.page_cms .ubg_metiers .coul_directeur_artistique .nuancier { background: #9999ba; }
+.page_cms .ubg_metiers .coul_digital .nuancier { background: #6d95ae; }
+.page_cms .ubg_metiers .coul_plasticien .nuancier { background: #a27365; }
+.page_cms .ubg_metiers .coul_photographe .nuancier { background: #bb8372; }
+.page_cms .ubg_metiers .coul_design .nuancier { background: #af8897; }
+.page_cms .ubg_metiers .coul_architecte .nuancier { background: #a79fbc; }
+
+/* Captures des modeles : l'ordinateur sur toute la largeur de la colonne,
+   le mobile pose en recouvrement dans l'angle bas droit, qui deborde un
+   peu sous la capture (d'ou la marge basse). */
+.page_cms .ubg_duo { position: relative; margin: 8px 0 24%; }
+.page_cms .contenu_cms .ubg_duo img { display: block; width: 100%; border-radius: 12px; border: 1px solid #b5b5b5; box-shadow: 0 12px 30px -16px rgba(0,0,0,.35); }
+.page_cms .contenu_cms .ubg_duo img + img {
+    position: absolute; right: 4%; bottom: -34%; width: 34.3%;
+    border-radius: 14px; border: 8px solid #1b1b1b; box-shadow: 0 18px 40px -12px rgba(0,0,0,.45);
+}

@@ -40,7 +40,7 @@
     </aside>
 </main>
 
-@include('partials.espace.pied')
+@include('partials.pied-commun')
 
 <x-portail.menu-plein-ecran />
 

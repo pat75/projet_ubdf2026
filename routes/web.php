@@ -460,7 +460,8 @@ $portail = function (?string $langue = null) {
     Route::get('/actus/{slug}', [CmsController::class, 'actualite'])
         ->where('slug', '[-a-zA-Z0-9_]+')->name('actualite');
 
-    Route::get('/doc/{slug}', [CmsController::class, 'page'])
+    Route::get('/doc', fn () => redirect()->to(lien('cms.doc', 'doc'), 301));
+    Route::get('/doc/{slug}',[CmsController::class, 'page'])
         ->where('slug', '[-a-zA-Z0-9_]+')->name('cms.doc');
     Route::get('/page__{slug}', [CmsController::class, 'page'])
         ->where('slug', '[-a-zA-Z0-9_]+')->name('cms.page');

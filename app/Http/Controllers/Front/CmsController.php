@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
 use App\Models\CmsPost;
 use App\Support\Marque;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -14,6 +15,19 @@ class CmsController extends Controller
 {
     /** Pages affichees par la navigation laterale de la documentation. */
     private const RACINE_DOC = 'doc';
+
+    /** Pages qui affichent la grille tarifaire, sous leur texte. */
+    private const PAGES_TARIFS = ['les-formules-ultra-book', 'formules'];
+
+    /**
+     * Pages retirees (depubliees en base) => page de destination. Leurs URL
+     * sont indexees : on les redirige plutot que de servir une 404.
+     */
+    private const RETIREES = [
+        'qui-sommes-nous' => 'doc',
+        'tuto-video-ultra-book' => 'doc',
+        'tutos-videos' => 'doc',
+    ];
 
     /**
      * Page editoriale : /doc/<slug> et /page__<slug>.
@@ -24,14 +38,20 @@ class CmsController extends Controller
      * n'a plus lieu d'etre — un slug est unique par langue — mais les deux
      * URL restent servies, elles sont indexees.
      */
-    public function page(Request $request, string $slug): View
+    public function page(Request $request, string $slug): View|RedirectResponse
     {
+        if (isset(self::RETIREES[$slug])) {
+            return redirect()->to(lien('cms.doc', self::RETIREES[$slug]), 301);
+        }
+
+
         $page = $this->trouver($slug);
         $this->adapterALaMarque($request, $page);
 
         return view('front.cms.page', [
             'page' => $page,
             'navigation' => $this->navigation($page),
+            'tarifs' => in_array($page->slug, self::PAGES_TARIFS, true) ? $this->tarifs() : null,
         ]);
     }
 
@@ -80,6 +100,26 @@ class CmsController extends Controller
     }
 
     /**
+     * Grille publique : celle d'un nouveau createur, sans promotion (elles
+     * dependent du compte) ni offre retiree de la vente en ligne. Le tarif
+     * de reabonnement est donne a part. Tout vient de config/formules.php,
+     * comme dans l'espace : les prix affiches ne peuvent pas diverger.
+     *
+     * @return array{options: array<int, array<string, mixed>>, reabonnement: ?array<string, mixed>, limites: array<string, array<string, int>>}
+     */
+    private function tarifs(): array
+    {
+        $grille = collect(config('formules.options'))
+            ->reject(fn ($o) => isset($o['promo']) || ($o['en_ligne'] ?? true) === false);
+
+        return [
+            'options' => $grille->reject(fn ($o) => ! empty($o['reabonnement']))->all(),
+            'reabonnement' => $grille->first(fn ($o) => ! empty($o['reabonnement'])),
+            'limites' => config('formules.limites'),
+        ];
+    }
+
+    /**
      * Cherche la page dans la langue courante, puis dans les autres.
      *
      * Une page anglaise reste accessible par son slug meme quand le portail
@@ -109,9 +149,11 @@ class CmsController extends Controller
     {
         $parent = $page->parent_slug ?: self::RACINE_DOC;
 
+        // La page racine (/doc/doc) ouvre le sommaire de ses propres filles.
         return CmsPage::publiees()
             ->where('locale', $page->locale)
-            ->where('parent_slug', $parent)
+            ->where(fn ($q) => $q->where('parent_slug', $parent)->orWhere('slug', $parent))
+            ->orderByRaw('slug = ? DESC', [$parent])
             ->orderBy('position')
             ->orderBy('title')
             ->get();
