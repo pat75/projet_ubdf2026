@@ -93,12 +93,16 @@
     </x-espace.carte>
 
     <x-espace.carte :titre="__('Profil')" :sous-titre="__('Votre nom accompagne vos messages aux créatifs et votre mémoBook partagé.')">
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-5 gap-y-5">
+        <div class="flex flex-wrap items-center gap-6">
+        {{-- Initiales tenues a jour a chaque enregistrement du prenom ou du nom. --}}
+        <x-visiteur.avatar :visiteur="$visiteur" :taille="64" wire:key="avatar-{{ $visiteur->initiales() }}" />
+        <div class="grid min-w-0 flex-1 grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-5 gap-y-5">
             <x-espace.champ-editable nom="firstname" :valeur="(string) $visiteur->firstname"
                 :libelle="__('Prénom')" :vide="__('Ajouter votre prénom…')" />
 
             <x-espace.champ-editable nom="lastname" :valeur="(string) $visiteur->lastname"
                 :libelle="__('Nom')" :vide="__('Ajouter votre nom…')" />
+        </div>
         </div>
     </x-espace.carte>
 

@@ -399,6 +399,7 @@ $portail = function (?string $langue = null) {
     Route::middleware('auth:visitor')->prefix('visiteur')->name('visiteur.')->group(function () {
         Route::get('/', TableauVisiteurController::class)->name('tableau');
         Route::view('/compte', 'visiteur.compte')->name('compte');
+        Route::view('/messages', 'visiteur.messages')->name('messages');
         Route::post('/confirmation', [InscriptionVisiteurController::class, 'renvoyer'])
             ->middleware('throttle:3,10')->name('confirmation');
     });

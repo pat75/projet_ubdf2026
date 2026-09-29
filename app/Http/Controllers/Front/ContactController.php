@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers\Front;
 
+use App\Actions\Visiteur\OuvrirCompteContact;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\DemandeContactRequest;
 use App\Services\Messagerie\DepotDemande;
+use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class ContactController extends Controller
 {
-    public function __construct(private readonly DepotDemande $depot) {}
+    public function __construct(
+        private readonly DepotDemande $depot,
+        private readonly OuvrirCompteContact $ouvrirCompte,
+    ) {}
 
     /**
      * Depot d'une demande : POST /intermediate_send.
@@ -34,15 +40,33 @@ class ContactController extends Controller
             ]);
         }
 
-        $this->depot->deposer($destinataire, $request->validated(), $request->ip());
+        $demande = $request->safe()->except('password');
+        $ouvrirCompte = $request->veutUnCompte();
 
-        return $this->succes($request->validated()['action']);
+        // Case « Créer mon compte » : compte cree ou retrouve avant le depot,
+        // un mot de passe refuse n'envoie rien.
+        if ($ouvrirCompte) {
+            try {
+                $this->ouvrirCompte->executer(
+                    $demande['us_mail'], $request->validated('password'), $demande['us_nom_prenom'],
+                    $request->attributes->get('marque') ?? Marque::defaut(), $request->ip(),
+                );
+            } catch (ValidationException $e) {
+                return $this->echec($e->errors());
+            }
+        }
+
+        $this->depot->deposer($destinataire, $demande, $request->ip());
+
+        return $this->succes($demande['action'], $ouvrirCompte);
     }
 
-    private function succes(string $action): JsonResponse
+    /** `connecte` : une session vient d'etre ouverte, la page doit se recharger. */
+    private function succes(string $action, bool $connecte = false): JsonResponse
     {
         return response()->json([
             'error' => false,
+            'connecte' => $connecte,
             'error_list' => [],
             'action' => str_replace(['work_A_', 'work_B_', 'work_C_'], 'work_', $action),
             'savedb_result' => true,

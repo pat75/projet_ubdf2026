@@ -221,6 +221,8 @@ it('montre au visiteur ses messages une fois son adresse confirmee', function ()
 
     $this->get('/memobook/messages/'.$fil->id)->assertRedirect();
 
+    // Non confirmee : le fil anterieur a l'ouverture du compte se cache.
+    $fil->forceFill(['created_at' => $visiteur->created_at->subDay()])->save();
     $visiteur->forceFill(['email_verified_at' => null])->save();
     $this->get('/memobook/messages/'.$fil->id)->assertNotFound();
 });

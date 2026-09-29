@@ -122,16 +122,17 @@ class MemoBooks
      * Demandes envoyees depuis l'adresse du proprietaire, a n'importe quel
      * creatif.
      *
-     * Seulement une fois l'adresse confirmee : sans cela, n'importe qui
-     * ouvrirait un compte au nom d'un tiers pour lire ses echanges.
+     * Adresse non confirmee : seulement les demandes posterieures a
+     * l'ouverture du compte, visibles tout de suite. L'historique anterieur
+     * attend la confirmation : sans cela, n'importe qui ouvrirait un compte
+     * au nom d'un tiers pour lire ses echanges passes.
      */
     public function conversations(User|Visitor $proprietaire): Builder
     {
-        $adresse = $proprietaire->email_verified_at ? mb_strtolower((string) $proprietaire->email) : '';
-
         return Conversation::query()
-            ->where('sender_email', $adresse)
-            ->where('is_spam', false);
+            ->where('sender_email', mb_strtolower((string) $proprietaire->email))
+            ->where('is_spam', false)
+            ->when(! $proprietaire->email_verified_at, fn (Builder $q) => $q->where('created_at', '>=', $proprietaire->created_at));
     }
 
     /**

@@ -38,6 +38,32 @@ class Visitor extends Authenticatable
         return $nom === '' ? null : $nom;
     }
 
+    /**
+     * Initiales de l'avatar : prenom + nom ; un seul des deux → ses deux
+     * premieres lettres ; aucun → les deux premiers caracteres de l'adresse.
+     */
+    public function initiales(): string
+    {
+        $prenom = trim((string) $this->firstname);
+        $nom = trim((string) $this->lastname);
+
+        $initiales = match (true) {
+            $prenom !== '' && $nom !== '' => mb_substr($prenom, 0, 1).mb_substr($nom, 0, 1),
+            $prenom !== '' || $nom !== '' => mb_substr($prenom.$nom, 0, 2),
+            default => mb_substr((string) $this->email, 0, 2),
+        };
+
+        return mb_strtoupper($initiales);
+    }
+
+    /** Couleur stable de l'avatar, tiree de la palette des createurs. */
+    public function couleur(): string
+    {
+        $palette = \App\Services\Espace\AffichageProfil::PALETTE;
+
+        return $palette[crc32((string) $this->id) % count($palette)];
+    }
+
     public function memoBooks(): HasMany
     {
         return $this->hasMany(MemoBook::class);

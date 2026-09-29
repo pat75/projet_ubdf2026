@@ -13,7 +13,7 @@
     @unless ($visiteur->email_verified_at)
         <div class="carte-espace flex flex-wrap items-center justify-between gap-3 p-5">
             <p class="text-[15px] text-ub-texte2">
-                {{ __('Confirmez votre adresse :email pour retrouver ici les messages envoyés aux créatifs.', ['email' => $visiteur->email]) }}
+                {{ __('Confirmez votre adresse :email pour retrouver aussi les messages envoyés aux créatifs avant l’ouverture de votre compte.', ['email' => $visiteur->email]) }}
             </p>
             <form method="post" action="{{ lien('visiteur.confirmation') }}">
                 @csrf
@@ -23,7 +23,11 @@
     @endunless
 
     {{-- Memo book --}}
-    <x-espace.carte :titre="__('Mon mémoBook')" :sous-titre="trans_choice(':n book enregistré|:n books enregistrés', $memoTotal, ['n' => $memoTotal])">
+    <x-espace.carte :titre="__('Memo Books')" :sous-titre="trans_choice(':n book enregistré|:n books enregistrés', $memoTotal, ['n' => $memoTotal])">
+        <x-slot:action>
+            <a href="{{ lien('memobook') }}" class="bouton-espace bouton-espace-petit px-4">{{ __('Voir mon mémoBook') }}</a>
+        </x-slot:action>
+
         @if ($memo->isEmpty())
             <p class="text-[15px] text-ub-texte3">{{ __('Cliquez sur le cœur d’un book, sur le portail, pour le garder ici.') }}</p>
         @else
@@ -44,31 +48,39 @@
                 @endforeach
             </ul>
         @endif
-
-        <div class="mt-5">
-            <a href="{{ lien('memobook') }}" class="bouton-espace bouton-espace-grand px-6">{{ __('Voir mon mémoBook') }}</a>
-        </div>
     </x-espace.carte>
 
     {{-- Derniers messages --}}
     <x-espace.carte :titre="__('Mes derniers messages')">
-        @if (! $visiteur->email_verified_at)
-            <p class="text-[15px] text-ub-texte3">{{ __('Vos messages apparaîtront ici une fois votre adresse confirmée.') }}</p>
-        @elseif ($messages->isEmpty())
+        <x-slot:action>
+            <a href="{{ lien('visiteur.messages') }}" class="bouton-espace bouton-espace-petit px-4">{{ __('Tous mes messages') }}</a>
+        </x-slot:action>
+
+        @if ($messages->isEmpty())
             <p class="text-[15px] text-ub-texte3">{{ __('Aucun message envoyé depuis cette adresse.') }}</p>
         @else
-            <ul>
+            {{-- Les huit derniers echanges, un avatar du createur chacun :
+                 le clic ouvre l'echange deplie dans Mes messages. --}}
+            @php($profil = app(\App\Services\Espace\AffichageProfil::class))
+            {{-- Avatars superposes d'un tiers (19px sur 56), le survol passe devant. --}}
+            <ul class="flex flex-wrap pl-[19px]">
                 @foreach ($messages as $fil)
-                    <li class="border-b border-ub-filet last:border-b-0">
-                        <a href="{{ lien('memobook.message', ['conversation' => $fil->id]) }}" class="flex items-center gap-3 py-3">
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-[15px] font-semibold text-ub-texte">{{ $fil->user?->fullName() }}</span>
-                                <span class="block truncate text-[13px] text-ub-texte3">{{ $fil->objet() }} · {{ $fil->last_message_at?->translatedFormat('j F Y') }}</span>
-                            </span>
-                            @if ($fil->non_lus > 0)
-                                <span class="rounded-full bg-ub-accent px-2 py-px text-[12px] font-bold text-white">{{ $fil->non_lus }}</span>
+                    @continue(! $fil->user)
+                    @php($photo = $profil->photoUrl($fil->user))
+                    <li class="-ml-[19px] hover:z-10 focus-within:z-10 relative">
+                        <a href="{{ lien('visiteur.messages', ['fil' => $fil->id]) }}"
+                           title="{{ $fil->user->fullName() }} — {{ $fil->last_message_at?->translatedFormat('j F Y') }}"
+                           class="relative block h-14 w-14 rounded-full ring-2 ring-white transition hover:-translate-y-0.5">
+                            @if ($photo)
+                                <img src="{{ $photo }}" alt="{{ $fil->user->fullName() }}" class="h-14 w-14 rounded-full object-cover">
+                            @else
+                                <span class="flex h-14 w-14 items-center justify-center rounded-full text-[16px] font-bold text-white"
+                                      style="background: {{ $profil->couleur($fil->user) }}">{{ $profil->initiales($fil->user) }}</span>
+                                <span class="sr-only">{{ $fil->user->fullName() }}</span>
                             @endif
-                            <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
+                            @if ($fil->non_lus > 0)
+                                <span class="absolute -left-1 -top-1 min-w-5 rounded-full bg-ub-accent px-1.5 text-center text-[11px] font-bold leading-5 text-white">{{ $fil->non_lus }}</span>
+                            @endif
                         </a>
                     </li>
                 @endforeach
@@ -78,22 +90,6 @@
 
     {{-- Dernieres visites --}}
     <x-espace.carte :titre="__('Mes dernières visites')">
-        @if ($visites->isEmpty())
-            <p class="text-[15px] text-ub-texte3">{{ __('Les books que vous consultez, connecté, s’afficheront ici.') }}</p>
-        @else
-            <ul>
-                @foreach ($visites as $book)
-                    <li class="border-b border-ub-filet last:border-b-0">
-                        <a href="{{ $book->bookUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-3 py-3">
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate text-[15px] font-semibold text-ub-texte">{{ $book->fullName() }}</span>
-                                <span class="block truncate text-[13px] text-ub-texte3">{{ $book->category?->name }} · {{ \Illuminate\Support\Carbon::parse($book->pivot->visited_at)->diffForHumans() }}</span>
-                            </span>
-                            <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
+        <livewire:visiteur.dernieres-visites />
     </x-espace.carte>
 @endsection

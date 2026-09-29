@@ -23,6 +23,7 @@
         'mobile' => '<rect x="7" y="3" width="10" height="18" rx="1.5"/><path stroke-linecap="round" d="M11 18h2"/>',
         'tablette' => '<rect x="4.5" y="3" width="15" height="18" rx="1.5"/><path stroke-linecap="round" d="M11 18h2"/>',
         'ordinateur' => '<rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path stroke-linecap="round" d="M8.5 20h7M12 16.5V20"/>',
+        'utilisateur' => '<circle cx="12" cy="8" r="4"/><path stroke-linecap="round" d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/>',
         'enveloppe' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m3.5 7 8.5 6 8.5-6"/>',
     ];
 @endphp

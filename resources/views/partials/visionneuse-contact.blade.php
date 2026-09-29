@@ -4,6 +4,9 @@
      ligne soulignee par champ, mais sur le fond sombre de la visionneuse.
      Logique : resources/js/portail/contact.js. --}}
 @php
+    // Compte connecte : il signe la demande (DemandeContactRequest), ni
+    // adresse, ni captcha, ni case « Créer mon compte ».
+    $compteContact = auth('web')->user() ?? auth('visitor')->user();
     $champ = 'w-full border-0 border-b border-white/30 bg-transparent px-0 py-2 text-[16px] font-light text-white outline-none placeholder:text-white/50 focus:border-white focus:ring-0';
 @endphp
 <div id="visionneuse_contact" x-show="$store.visionneuse.contactOuvert" x-cloak x-data="contactCreatif"
@@ -77,6 +80,20 @@
                 <p x-show="erreurs.us_message" x-text="erreurs.us_message" x-cloak class="mt-2 text-[13px] text-red-400"></p>
             </div>
 
+            @if ($compteContact)
+                <p x-show="vue !== 'erreur'" class="text-[14px] font-light text-white/70" style="margin:0;">
+                    {{ __('Envoyé en tant que :nom', ['nom' => $compteContact->fullName() ?: $compteContact->email]) }}
+                    <span class="text-white/50">({{ $compteContact->email }})</span>
+                </p>
+                @unless ($compteContact->fullName())
+            <div x-show="vue !== 'erreur'">
+                <input id="visionneuse-contact-nom" name="us_nom_prenom" type="text" placeholder="{{ __('Nom et prénom') }}"
+                       autocomplete="name" @input="erreurs.us_nom_prenom = ''" class="{{ $champ }}">
+                <p x-show="erreurs.us_nom_prenom" x-text="erreurs.us_nom_prenom" x-cloak class="mt-2 text-[13px] text-red-400"></p>
+            </div>
+
+                @endunless
+            @else
             <div x-show="vue !== 'erreur'">
                 <input id="visionneuse-contact-nom" name="us_nom_prenom" type="text" placeholder="{{ __('Nom et prénom') }}"
                        autocomplete="name" @input="erreurs.us_nom_prenom = ''" class="{{ $champ }}">
@@ -87,6 +104,31 @@
                 <input id="visionneuse-contact-mail" name="us_mail" type="email" placeholder="{{ __('E-mail') }}"
                        autocomplete="email" @input="erreurs.us_mail = ''" class="{{ $champ }}">
                 <p x-show="erreurs.us_mail" x-text="erreurs.us_mail" x-cloak class="mt-2 text-[13px] text-red-400"></p>
+            </div>
+
+
+            {{-- Case « Créer mon compte » : adresse inconnue → compte visiteur ;
+                 adresse connue → le mot de passe connecte a ce compte. --}}
+            <div x-show="vue !== 'erreur'">
+                <label class="flex cursor-pointer items-center gap-3 text-[15px] font-light text-white/80">
+                    <input type="checkbox" name="compte" value="1" x-model="compte"
+                           class="size-4 rounded-none border-white/40 bg-transparent text-white focus:ring-0">
+                    {{ __('Créer mon compte visiteur, ou me connecter au mien') }}
+                </label>
+                <div x-show="compte" x-cloak x-transition.opacity class="mt-4">
+                    <div class="relative" x-data="{ voir: false }">
+                        <input id="visionneuse-contact-mdp" name="password" :type="voir ? 'text' : 'password'"
+                               placeholder="{{ __('Mot de passe (8 caractères minimum)') }}" autocomplete="current-password"
+                               :disabled="! compte" @input="erreurs.password = ''" class="{{ $champ }} pr-10">
+                        <button type="button" @click="voir = ! voir" :aria-label="voir ? '{{ __('Masquer') }}' : '{{ __('Afficher') }}'"
+                                style="background:none; border:0; padding:4px; position:absolute; right:0; top:50%; transform:translateY(-50%); color:#fff; cursor:pointer;"
+                                class="transition hover:opacity-70">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <p class="mt-2 text-[12px] font-light text-white/50">{{ __('Déjà un compte avec cette adresse ? Indiquez simplement son mot de passe.') }}</p>
+                    <p x-show="erreurs.password" x-text="erreurs.password" x-cloak class="mt-2 text-[13px] text-red-400"></p>
+                </div>
             </div>
 
             <div x-show="vue !== 'erreur'" class="mt-2">
@@ -109,6 +151,8 @@
                 </div>
                 <p x-show="erreurs.captcha_answer" x-text="erreurs.captcha_answer" x-cloak class="mt-2 text-[13px] text-red-400"></p>
             </div>
+
+            @endif
 
             <div x-show="vue !== 'erreur'" style="margin-top:10px;">
                 <button type="submit" :disabled="vue === 'envoi'" style="border:0;"

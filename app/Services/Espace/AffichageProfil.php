@@ -13,7 +13,7 @@ use App\Models\User;
  */
 class AffichageProfil
 {
-    private const PALETTE = [
+    public const PALETTE = [
         '#4285f4', '#ea4335', '#fbbc05', '#34a853', '#5e35b1', '#00897b',
         '#43a047', '#e53935', '#1e88e5', '#f4511e', '#3949ab', '#039be5',
     ];

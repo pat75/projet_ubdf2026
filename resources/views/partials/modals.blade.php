@@ -131,12 +131,19 @@
                                 <x-barre.createur :creatif="auth('web')->user()" />
                             </div>
                         @elseauth('visitor')
-                            {{-- Visiteur connecte : son compte (tableau de bord, memo book). --}}
+                            {{-- Visiteur connecte : le coeur mene au memo book, le texte a
+                                 son compte. Ecart entre domaine, recherche et coeur :
+                                 portail.css (.coeur_menu_top). --}}
+                            <div class="item coeur_menu_top">
+                                <a href="{{ lien('memobook') }}" aria-label="{{ __('Mémo book') }}" title="{{ __('Mémo book') }}" style="display:flex;align-items:center;color:#444">
+                                    <span class="fonticon-heart_white" aria-hidden="true"></span>
+                                </a>
+                            </div>
                             <div class="item">
                                 <a href="{{ lien('visiteur.tableau') }}" class="barre_visiteur"
                                    style="display:flex;align-items:center;gap:10px;color:#1b1b1b;text-decoration:none;font-family:'Source Sans 3','Source Sans Pro',sans-serif;font-size:16px;font-weight:600">
-                                    <span class="fonticon-heart_white" aria-hidden="true" style="font-size:22px"></span>
-                                    <span>{{ __('Mon compte') }}</span>
+                                    <x-visiteur.avatar :visiteur="auth('visitor')->user()" :taille="36" />
+                                    {{ __('Mon compte') }}
                                 </a>
                             </div>
                         @else

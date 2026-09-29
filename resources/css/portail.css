@@ -130,11 +130,13 @@
 
 /* Menu du haut : leger survol des icones filtre et recherche. */
 #menu-top-fixed .link_menu_top_ptf.icon_domaine svg,
-#menu-top-fixed .recherche_menu_top svg {
+#menu-top-fixed .recherche_menu_top svg,
+#menu-top-fixed .coeur_menu_top .fonticon-heart_white {
     transition: transform .2s ease, opacity .2s ease;
 }
 #menu-top-fixed .link_menu_top_ptf.icon_domaine:hover svg,
-#menu-top-fixed .recherche_menu_top:hover svg {
+#menu-top-fixed .recherche_menu_top:hover svg,
+#menu-top-fixed .coeur_menu_top a:hover .fonticon-heart_white {
     transform: translateY(-2px) scale(1.08);
     opacity: .7;
 }
@@ -946,4 +948,31 @@
     inset: -12px -16px;
     z-index: -1;
     pointer-events: auto;
+}
+
+/*
+ | Menu du haut, visiteur connecte : domaine, recherche et coeur a ecart
+ | strictement egal (18px entre les traces). Les marges Semantic des
+ | .item et le padding-right de .icon_domaine (core.css) sont neutralises.
+ |
+ | Coeur : glyphe fonticon a 89 % de la police (908/1024 unites) — 27px
+ | donnent 24px visibles, la hauteur des deux autres. Sa chasse (1365
+ | unites = 36px) laisse 4,5px de vide de chaque cote : repris par les
+ | marges negatives, pour que l'ecart se mesure trace a trace.
+ */
+#menu-top-fixed .container .item.icon_domaine,
+#menu-top-fixed .container .item.recherche_menu_top,
+#menu-top-fixed .container .item.coeur_menu_top {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 18px !important;
+}
+#menu-top-fixed .coeur_menu_top .fonticon-heart_white {
+    display: block;
+    font-size: 27px;
+    line-height: 24px;
+    height: 24px;
+    margin: 0 -4.5px;
+    color: #444;
 }
