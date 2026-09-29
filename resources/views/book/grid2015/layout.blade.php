@@ -159,7 +159,7 @@
     @if ($vue->edition())
         @include('book.commun._edition')
     @else
-        <img src="/ubstats.gif?r={{ random_int(0, 9999) }}" width="1" height="1" alt="" class="hidden">
+        @include('book.commun._pixel')
     @endif
 
     @if (! empty($b->cont_analytic))

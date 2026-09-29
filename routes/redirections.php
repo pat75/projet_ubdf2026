@@ -69,8 +69,7 @@ Route::get('/contact', [RedirectionLegacyController::class, 'support']);
 Route::redirect('/ja', '/accueil', 301);
 
 // Pages du portail disparues.
-Route::redirect('/memo', '/accueil', 301);
-Route::redirect('/memobook', '/accueil', 301);
+Route::redirect('/memo', '/memobook', 301);
 Route::redirect('/newsletters', '/actus', 301);
 Route::redirect('/microbook_externe', '/accueil', 301);
 

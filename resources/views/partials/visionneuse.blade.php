@@ -85,14 +85,15 @@
                 <div class="actions" x-show="! $store.visionneuse.contactOuvert">
                     <div class="ui horizontal list">
                         <div class="item">
-                            <div class="memobook_add sans_cadre cursor_effect"
+                            <div class="memobook_add sans_cadre cursor_effect" title="{{ __('Ajouter au mémo book') }}"
                                  x-show="! $store.memo.contient($store.visionneuse.login)"
                                  @click="$store.visionneuse.memoriser()">
                                 <svg class="icone_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
                                 </svg>
                             </div>
-                            <div class="no_button sans_cadre" x-show="$store.memo.contient($store.visionneuse.login)" x-cloak>
+                            <div class="no_button sans_cadre cursor_effect" x-show="$store.memo.contient($store.visionneuse.login)" x-cloak
+                                 @click="$store.visionneuse.oublier()" title="{{ __('Retirer du mémo book') }}">
                                 <svg class="icone_svg" viewBox="0 0 24 24" fill="#db2828" stroke="#db2828" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
                                 </svg>

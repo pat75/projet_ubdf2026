@@ -1,4 +1,4 @@
-@props(['route', 'icone' => null, 'pastille' => 0])
+@props(['route', 'icone' => null, 'pastille' => 0, 'pastilleEvenement' => null])
 
 {{-- Les rubriques pas encore livrees n'apparaissent pas : pas de lien mort.
      La rubrique ouverte prend le fond leger de l'accent. --}}
@@ -34,7 +34,13 @@
 
         <span class="flex-1">{{ $slot }}</span>
 
-        @if ($pastille > 0)
+        @if ($pastilleEvenement)
+            {{-- Compteur tenu a jour sans recharger : l'evenement navigateur
+                 porte le nouveau total (ex. `memo-change` du memo book). --}}
+            <span x-data="{ n: {{ (int) $pastille }} }" x-on:{{ $pastilleEvenement }}.window="n = $event.detail.total"
+                  x-show="n > 0" x-text="n" @if ($pastille <= 0) x-cloak @endif
+                  class="rounded-[10px] bg-ub-messages px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
+        @elseif ($pastille > 0)
             {{-- Le compteur de messages non lus. --}}
             <span class="rounded-[10px] bg-ub-messages px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
         @endif

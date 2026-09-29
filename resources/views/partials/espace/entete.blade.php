@@ -46,11 +46,6 @@
                 <span class="sr-only">{{ __('Rechercher') }}</span>
             </a>
 
-            <a href="/memobook" class="text-[26px] leading-none text-black hover:opacity-70" title="{{ __('Mémo-book') }}">
-                <span class="fonticon-heart_white" aria-hidden="true"></span>
-                <span class="sr-only">{{ __('Mémo-book') }}</span>
-            </a>
-
             <x-barre.createur :creatif="$creatif" />
         </div>
     </div>

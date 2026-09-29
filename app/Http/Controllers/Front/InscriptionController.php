@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
@@ -185,6 +186,9 @@ class InscriptionController extends Controller
         }
 
         $nombre = $this->motDePasse->demander($requete->input('us_mail'), $requete->ip());
+
+        // Meme fenetre pour les comptes visiteurs : leur broker envoie son propre lien.
+        Password::broker('visitors')->sendResetLink(['email' => mb_strtolower(trim($requete->input('us_mail')))]);
 
         /*
          | La reponse est la meme qu'aucun compte ne corresponde ou que

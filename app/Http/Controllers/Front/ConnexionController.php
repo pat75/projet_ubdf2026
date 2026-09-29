@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Front;
 
+use App\Actions\Auth\IdentifierCompte;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\ConnexionRequest;
+use App\Models\Visitor;
 use App\Services\Auth\Recaptcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,7 +34,10 @@ class ConnexionController extends Controller
      */
     private const BLOCAGE_SECONDES = 600;
 
-    public function __construct(private readonly Recaptcha $recaptcha) {}
+    public function __construct(
+        private readonly Recaptcha $recaptcha,
+        private readonly IdentifierCompte $identifier,
+    ) {}
 
     public function connecter(ConnexionRequest $requete): RedirectResponse
     {
@@ -54,12 +59,15 @@ class ConnexionController extends Controller
             return $this->echec($requete, __('Erreur de captcha — rechargez la page, svp.'));
         }
 
-        $identifiants = [
-            'login' => mb_strtolower(trim($requete->input('login'))),
-            'password' => $requete->input('pass'),
-        ];
+        $compte = $this->identifier->executer((string) $requete->input('login'), (string) $requete->input('pass'));
 
-        if (! Auth::attempt($identifiants, remember: true)) {
+        if ($compte === IdentifierCompte::AMBIGU) {
+            RateLimiter::hit($cle, self::BLOCAGE_SECONDES);
+
+            return $this->echec($requete, __('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant.'));
+        }
+
+        if ($compte === null) {
             RateLimiter::hit($cle, self::BLOCAGE_SECONDES);
 
             /*
@@ -71,6 +79,18 @@ class ConnexionController extends Controller
         }
 
         RateLimiter::clear($cle);
+
+        // Se connecter sous l'un ferme l'autre (AppServiceProvider, evenement Login).
+        if ($compte instanceof Visitor) {
+            Auth::guard('visitor')->login($compte, remember: true);
+            $requete->session()->regenerate();
+            // La page memorisee avant connexion peut etre une page de l'espace creatif.
+            $requete->session()->forget('url.intended');
+
+            return redirect()->to(lien('visiteur.tableau'));
+        }
+
+        Auth::guard('web')->login($compte, remember: true);
         $requete->session()->regenerate();
 
         return redirect()->intended(lien('espace'));
@@ -78,7 +98,8 @@ class ConnexionController extends Controller
 
     public function deconnecter(Request $requete): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+        Auth::guard('visitor')->logout();
         $requete->session()->invalidate();
         $requete->session()->regenerateToken();
 

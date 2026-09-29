@@ -15,6 +15,10 @@
 @source "../views/espace/**/*.blade.php";
 @source "../views/layouts/espace.blade.php";
 @source "../views/partials/espace/**/*.blade.php";
+@source "../views/memo/**/*.blade.php";
+@source "../views/visiteur/**/*.blade.php";
+@source "../views/partials/visiteur/**/*.blade.php";
+@source "../views/layouts/visiteur.blade.php";
 @source "../views/components/espace/**/*.blade.php";
 @source "../views/components/portail/menu-plein-ecran.blade.php";
 @source "../views/livewire/**/*.blade.php";

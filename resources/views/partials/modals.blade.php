@@ -122,14 +122,6 @@
                         </div>
 
 
-                        <!-- bloc memobook -->
-                        <div class="item memobook link_memobook  cursor_effect" id="nav_memobook" x-data x-infobulle="'.popup_memobook'">
-                            <a href="/memobook" title="S'election de book">
-                                <span class="memo_nb" x-show="$store.memo.books.length" x-text="$store.memo.books.length" x-cloak></span>
-                                <span class="fonticon-heart_white fonticon_w22"></span>
-                            </a>
-                        </div>
-
                         <!-- bloc connexion-->
                         {{-- Connecte, le createur remplace les deux boutons
                              par sa vignette, son nom et son metier : le meme
@@ -137,6 +129,15 @@
                         @auth('web')
                             <div class="item">
                                 <x-barre.createur :creatif="auth('web')->user()" />
+                            </div>
+                        @elseauth('visitor')
+                            {{-- Visiteur connecte : son compte (tableau de bord, memo book). --}}
+                            <div class="item">
+                                <a href="{{ lien('visiteur.tableau') }}" class="barre_visiteur"
+                                   style="display:flex;align-items:center;gap:10px;color:#1b1b1b;text-decoration:none;font-family:'Source Sans 3','Source Sans Pro',sans-serif;font-size:16px;font-weight:600">
+                                    <span class="fonticon-heart_white" aria-hidden="true" style="font-size:22px"></span>
+                                    <span>{{ __('Mon compte') }}</span>
+                                </a>
                             </div>
                         @else
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">
@@ -266,16 +267,6 @@
                     </div>
                     <!-- Popup domaine/metiers -end  !-->
 
-                    <!-- Popup Mémo book !-->
-                    <div class="ui fluid+ inverted popup transition hidden popup_memobook">
-                        <div class="ui one column grid">
-                            <div class="left aligned  column">
-                                <h4 class="ui header">Mémo book</h4>
-								Mes sélections de books                            </div>
-
-                        </div>
-                    </div>
-                    <!-- Popup Mémo book -end  !-->
 
                     <!-- Popup popup_rechercher !-->
                     <div class="ui fluid+ inverted popup transition hidden popup_rechercher">
@@ -483,7 +474,7 @@
                         <input type="hidden" name="g-recaptcha-response">
                         <div class="field" :class="{ error: erreurLogin }">
                             <input id="login" type="text" name="login" value="{{ old('login') }}"
-                                   placeholder="{{ __('Identifiant') }}" aria-label="{{ __('Identifiant') }}"
+                                   placeholder="{{ __('Identifiant ou e-mail') }}" aria-label="{{ __('Identifiant ou e-mail') }}"
                                    autocomplete="username" @input="erreurLogin = ''">
                             <div class="ui basic red pointing prompt label" :class="{ show: erreurLogin }" x-text="erreurLogin"></div>
                         </div>
@@ -553,6 +544,65 @@
         </div>
     </div>
 </x-portail.modale>
+
+{{-- Proposition de compte visiteur, ouverte au premier coeur d'un anonyme
+     ($store.memo.proposerCompte). Adresse + mot de passe : le compte est
+     cree, connecte, et la selection du navigateur y est versee.
+     Etats : resources/js/portail/memo-compte.js. --}}
+@if (! auth('web')->check() && ! auth('visitor')->check())
+<x-portail.modale nom="memo-compte" class="connexion_plein">
+    <div class="connexion" x-data="memoCompte">
+
+        <button type="button" class="btn_close connexion_fermer" aria-label="{{ __('Fermer') }}">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18"/>
+            </svg>
+        </button>
+
+        <div class="connexion_visuel">
+            <img src="/img_admin/diffusion-b.svg" alt="" width="400" height="400" loading="lazy">
+        </div>
+
+        <div class="connexion_panneau">
+            <div class="connexion_colonne">
+                <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
+                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémo book') }}</p>
+                <p class="connexion_accroche">{{ __('Book ajouté à votre sélection. Indiquez votre e-mail et un mot de passe pour la retrouver sur tous vos appareils et l’exporter en PDF.') }}</p>
+
+                <div class="ui negative message connexion_alerte" role="alert" x-show="erreur" x-cloak>
+                    <p x-text="erreur"></p>
+                    <p x-show="existe"><a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Me connecter') }}</a></p>
+                </div>
+
+                <form class="ui form creer_book_form" @submit.prevent="creer($el)" novalidate>
+                    <div class="field">
+                        <input type="email" name="email" placeholder="{{ __('Adresse e-mail') }}" aria-label="{{ __('Adresse e-mail') }}"
+                               autocomplete="email" required @input="erreur = ''">
+                    </div>
+                    <div class="field" x-data="{ visible: false }">
+                        <div class="ui icon input">
+                            <input :type="visible ? 'text' : 'password'" type="password" name="password"
+                                   placeholder="{{ __('Mot de passe (8 caractères minimum)') }}" aria-label="{{ __('Mot de passe') }}"
+                                   autocomplete="new-password" minlength="8" required @input="erreur = ''">
+                            <i class="link icon" :class="visible ? 'eye slash' : 'eye'" @click="visible = ! visible"
+                               :title="visible ? @js(__('Masquer')) : @js(__('Afficher'))"></i>
+                        </div>
+                    </div>
+                    <div class="connexion_actions">
+                        <button class="ui black button" type="submit" :class="{ loading: envoi }" :disabled="envoi">{{ __('Enregistrer mon mémo book') }}</button>
+                        <a href="#" @click.prevent="$store.modale.fermer()">{{ __('Plus tard') }}</a>
+                    </div>
+                </form>
+
+                <p class="connexion_accroche">
+                    {{ __('Déjà un compte ?') }}
+                    <a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Connexion') }}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</x-portail.modale>
+@endif
 <!-- Modal #end !-->
 
 

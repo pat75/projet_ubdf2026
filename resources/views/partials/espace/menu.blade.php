@@ -2,6 +2,7 @@
     $creatif = auth()->user();
     // Calcule une fois par le layout, qui inclut aussi la barre mobile.
     $messagesNonLus ??= $creatif->conversationsNonLues();
+    $memoTotal ??= $creatif->memoBooks()->count();
 @endphp
 
 {{-- Carte du createur : vignette, nom, lien vers le book, et ses deux
@@ -36,6 +37,7 @@
     <x-espace.nav-lien route="espace.compte">{{ __('Mon compte') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.formule">{{ __('Ma formule') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.messages" :pastille="$messagesNonLus">{{ __('Mes messages') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémo book') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.aide">{{ __('Aide') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Mon portfolio') }}</x-espace.nav-groupe>

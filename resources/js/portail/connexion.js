@@ -19,7 +19,6 @@ export default function connexion(Alpine) {
 
         verifierLogin(valeur) {
             if (!valeur.trim()) return 'Indiquer une valeur';
-            if (valeur.includes('@')) return 'Indiquez votre identifiant (pas votre mail)';
             return '';
         },
 

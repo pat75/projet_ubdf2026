@@ -8,6 +8,13 @@ use App\Http\Controllers\Front\BookController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
+use App\Http\Controllers\Memo\MemoController;
+use App\Http\Controllers\Memo\PdfMemoController;
+use App\Http\Controllers\Visiteur\InscriptionVisiteurController;
+use App\Http\Controllers\Visiteur\MessageVisiteurController;
+use App\Http\Controllers\Visiteur\MotDePasseVisiteurController;
+use App\Http\Controllers\Visiteur\TableauVisiteurController;
+use App\Http\Controllers\Visiteur\VisiteBookController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\DesabonnementController;
 use App\Http\Controllers\Front\EditionBookController;
@@ -99,7 +106,7 @@ Route::domain('{login}.{domaineBooks}')
         Route::get('/edition/{jeton}', [EditionBookController::class, 'entrer'])
             ->middleware('signed')->name('book.edition.entrer');
         Route::post('/reglages', [EditionBookController::class, 'enregistrer'])
-            ->middleware('auth')->name('book.reglages');
+            ->middleware('auth:web')->name('book.reglages');
 
         Route::get('/{titre}-r{rub}-c{pag}', [BookController::class, 'page'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}', 'pag' => '[0-9]{1,12}'])
@@ -268,6 +275,23 @@ Route::group([], function () {
     Route::post('/ubaction__user_out', [ConnexionController::class, 'deconnecter'])
         ->name('deconnexion');
 
+    /*
+     | Memo book (store Alpine `memo`) : appels JSON, hors langue. Le
+     | proprietaire est un visiteur ou un creatif connecte ; un anonyme
+     | ouvre un compte visiteur par /memo/compte.
+     */
+    Route::middleware(['auth:web,visitor', 'throttle:60,1'])->prefix('memo')->name('memo.')->group(function () {
+        Route::post('/ajouter', [MemoController::class, 'ajouter'])->name('ajouter');
+        Route::post('/retirer', [MemoController::class, 'retirer'])->name('retirer');
+        Route::post('/fusionner', [MemoController::class, 'fusionner'])->name('fusionner');
+    });
+    Route::post('/memo/compte', [InscriptionVisiteurController::class, 'creer'])
+        ->middleware('throttle:10,1')->name('visiteur.inscription');
+
+    // Pixel des dernieres visites d'un visiteur connecte (book/commun/_pixel).
+    Route::get('/ubvisite/{login}.gif', VisiteBookController::class)
+        ->where('login', '[-a-zA-Z0-9_]+')->name('visiteur.vu');
+
     // Disponibilite d'un identifiant, interrogee a la frappe (texte brut).
     Route::get('/inscription', [InscriptionController::class, 'loginDisponible'])
         ->name('inscription.login-disponible');
@@ -323,9 +347,9 @@ $portail = function (?string $langue = null) {
      | la connexion, de l'inscription et de la reinitialisation.
      */
     Route::get('/espace', EspaceController::class)
-        ->middleware('auth')->name('espace');
+        ->middleware('auth:web')->name('espace');
 
-    Route::middleware('auth')->prefix('espace')->name('espace.')->group(function () {
+    Route::middleware('auth:web')->prefix('espace')->name('espace.')->group(function () {
         Route::get('/galeries', [GalerieController::class, 'index'])->name('galeries');
         Route::get('/galeries/{galerie}', [GalerieController::class, 'show'])
             ->can('update', 'galerie')->name('galeries.show');
@@ -352,6 +376,30 @@ $portail = function (?string $langue = null) {
         Route::get('/factures/{facture}', [FormuleController::class, 'facture'])->name('facture');
         Route::get('/factures/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('facture.pdf');
     });
+
+    /*
+     | Memo book : page commune au creatif (dans son espace) et au visiteur.
+     | Compte visiteur : tableau de bord, fils de messages, confirmation
+     | d'adresse et mot de passe.
+     */
+    Route::middleware('auth:web,visitor')->group(function () {
+        Route::view('/memobook', 'memo.index')->name('memobook');
+        Route::get('/memobook/pdf', PdfMemoController::class)->middleware('throttle:10,1')->name('memobook.pdf');
+    });
+
+    Route::middleware('auth:visitor')->prefix('visiteur')->name('visiteur.')->group(function () {
+        Route::get('/', TableauVisiteurController::class)->name('tableau');
+        Route::get('/messages/{conversation}', MessageVisiteurController::class)->whereNumber('conversation')->name('message');
+        Route::post('/confirmation', [InscriptionVisiteurController::class, 'renvoyer'])
+            ->middleware('throttle:3,10')->name('confirmation');
+    });
+
+    Route::get('/visiteur/confirmer/{visitor}/{hash}', [InscriptionVisiteurController::class, 'confirmer'])
+        ->middleware('signed')->whereNumber('visitor')->name('visiteur.confirmer');
+    Route::get('/visiteur/mot-de-passe/{jeton}', [MotDePasseVisiteurController::class, 'formulaire'])
+        ->name('visiteur.mot-de-passe');
+    Route::post('/visiteur/mot-de-passe/{jeton}', [MotDePasseVisiteurController::class, 'enregistrer'])
+        ->name('visiteur.mot-de-passe.enregistrer');
 
     /*
      | Les memes factures, pour le back-office : un administrateur n'est pas

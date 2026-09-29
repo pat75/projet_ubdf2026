@@ -8,7 +8,7 @@
         <h1>{{ __('Choisir un nouveau mot de passe') }}</h1>
 
         <form method="post"
-              action="{{ lien('mot-de-passe.enregistrer', ['demande' => $demande, 'jeton' => $jeton]) }}"
+              action="{{ $action ?? lien('mot-de-passe.enregistrer', ['demande' => $demande, 'jeton' => $jeton]) }}"
               class="ui form">
             @csrf
 

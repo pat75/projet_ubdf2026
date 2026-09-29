@@ -216,6 +216,12 @@ class User extends Authenticatable
      * Demandes qui portent au moins un message non lu, ecrit par le
      * client — celui du createur ne compte pas. Pastille du menu de l'espace.
      */
+    /** Les books que ce creatif a mis dans son memo book. */
+    public function memoBooks(): HasMany
+    {
+        return $this->hasMany(MemoBook::class, 'user_id');
+    }
+
     public function conversationsNonLues(): int
     {
         return $this->conversations()

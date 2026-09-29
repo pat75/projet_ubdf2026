@@ -48,6 +48,12 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+
+        // Visiteurs du portail (memo book), table a part : jamais l'espace creatif.
+        'visitor' => [
+            'driver' => 'session',
+            'provider' => 'visitors',
+        ],
     ],
 
     /*
@@ -76,6 +82,11 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
+        ],
+
+        'visitors' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Visitor::class,
         ],
 
         // 'users' => [
@@ -107,6 +118,13 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'visitors' => [
+            'provider' => 'visitors',
+            'table' => 'visitor_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

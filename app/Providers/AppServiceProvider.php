@@ -9,6 +9,9 @@ use App\Models\PromoCode;
 use App\Models\Selection;
 use App\Models\User;
 use App\Observers\JournalAdmin;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
@@ -33,6 +36,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /*
+         | Un creatif et un visiteur ne partagent jamais une session : se
+         | connecter sous l'un ferme l'autre, quel que soit le chemin
+         | (formulaire, Google, inscription, reinitialisation...).
+         */
+        Event::listen(function (Login $connexion) {
+            $autre = ['web' => 'visitor', 'visitor' => 'web'][$connexion->guard] ?? null;
+
+            if ($autre && Auth::guard($autre)->check()) {
+                Auth::guard($autre)->logout();
+            }
+        });
+
         /*
          | Journal du back-office : les modeles que les administrateurs
          | modifient. L'observateur ne retient que les ecritures faites par

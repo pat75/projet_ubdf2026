@@ -22,30 +22,131 @@ function lireJson(texte, defaut) {
     }
 }
 
+/*
+ * Memo book (store `memo`).
+ *
+ * Connecte (visiteur ou creatif), la selection vit en base : chaque
+ * ajout ou retrait passe par /memo/* (MemoController), qui rend la liste
+ * a jour. Anonyme, elle reste dans le localStorage (cle `books` du
+ * legacy) et le premier coeur de la session propose d'ouvrir un compte
+ * visiteur (fenetre `memo-compte`), qui recoit alors cette selection.
+ */
+const CLE_LOCALE = 'books';
+const CLE_PROPOSE = 'memo_compte_propose';
+
+function lireLocal() {
+    try {
+        return lireJson(localStorage.getItem(CLE_LOCALE), []).map((b) => b.id_user).filter(Boolean);
+    } catch {
+        return []; // stockage indisponible (navigation privee...)
+    }
+}
+
+function ecrireLocal(logins) {
+    try {
+        if (logins.length) {
+            localStorage.setItem(CLE_LOCALE, JSON.stringify(logins.map((l) => ({ id_user: l, us_dir: l }))));
+        } else {
+            localStorage.removeItem(CLE_LOCALE);
+        }
+    } catch {
+        // Selection gardee pour la page courante seulement.
+    }
+}
+
+async function poster(url, donnees) {
+    const reponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        },
+        body: JSON.stringify(donnees),
+    });
+    if (!reponse.ok) throw new Error(`memo ${reponse.status}`);
+    return reponse.json();
+}
+
 function memo(Alpine) {
     Alpine.store('memo', {
-        books: [],
+        logins: [],
+        connecte: false,
+        visiteur: false,
+
+        // Compatibilite avec les gabarits : `$store.memo.books.length`.
+        get books() {
+            return this.logins;
+        },
 
         init() {
-            try {
-                this.books = lireJson(localStorage.getItem('books'), []);
-            } catch {
-                this.books = []; // stockage indisponible (navigation privee...)
+            const serveur = window.ubdf?.memo ?? {};
+            this.connecte = !!serveur.connecte;
+            this.visiteur = !!serveur.visiteur;
+
+            if (!this.connecte) {
+                this.logins = lireLocal();
+                return;
+            }
+
+            this.logins = serveur.logins ?? [];
+
+            // Une selection faite avant de se connecter rejoint le compte.
+            const locale = lireLocal();
+            if (locale.length) {
+                poster('/memo/fusionner', { logins: locale })
+                    .then((r) => { this.logins = r.logins; ecrireLocal([]); })
+                    .catch(() => {});
             }
         },
 
         contient(login) {
-            return this.books.some((b) => b.id_user === login);
+            return this.logins.includes(login);
         },
 
-        ajouter(login, slider) {
-            if (this.contient(login)) return;
-            this.books = [...this.books, { id_user: login, us_dir: login, us_memob_date: new Date(), slider: JSON.stringify(slider) }];
-            try {
-                localStorage.setItem('books', JSON.stringify(this.books));
-            } catch {
-                // Selection gardee pour la page courante seulement.
+        async ajouter(login) {
+            if (!login || this.contient(login)) return;
+            this.logins = [login, ...this.logins];
+
+            if (this.connecte) {
+                try {
+                    this.logins = (await poster('/memo/ajouter', { login })).logins;
+                } catch {
+                    this.logins = this.logins.filter((l) => l !== login);
+                }
+                return;
             }
+
+            ecrireLocal(this.logins);
+            this.proposerCompte();
+        },
+
+        async retirer(login) {
+            if (!this.contient(login)) return;
+            const avant = this.logins;
+            this.logins = this.logins.filter((l) => l !== login);
+
+            if (this.connecte) {
+                try {
+                    this.logins = (await poster('/memo/retirer', { login })).logins;
+                } catch {
+                    this.logins = avant;
+                }
+                return;
+            }
+
+            ecrireLocal(this.logins);
+        },
+
+        // Une fois par session : proposer, pas harceler.
+        proposerCompte() {
+            try {
+                if (sessionStorage.getItem(CLE_PROPOSE)) return;
+                sessionStorage.setItem(CLE_PROPOSE, '1');
+            } catch {
+                // sans sessionStorage, on propose a chaque fois
+            }
+            Alpine.store('modale').ouvrir('memo-compte');
         },
     });
 }
@@ -92,6 +193,11 @@ export default function visionneuse(Alpine) {
             this.ouverte = true;
             document.documentElement.classList.add('swipebox-html');
             history.replaceState(null, '', `#${this.login}`);
+
+            // Dernieres visites d'un visiteur connecte (VisiteBookController).
+            if (Alpine.store('memo').visiteur) {
+                new Image().src = `/ubvisite/${encodeURIComponent(this.login)}.gif`;
+            }
         },
 
         fermer() {
@@ -128,7 +234,11 @@ export default function visionneuse(Alpine) {
         },
 
         memoriser() {
-            Alpine.store('memo').ajouter(this.login, this.slider);
+            Alpine.store('memo').ajouter(this.login);
+        },
+
+        oublier() {
+            Alpine.store('memo').retirer(this.login);
         },
     });
 
