@@ -77,3 +77,19 @@ it('refuse un mot de passe trop court', function () {
     expect($reponse['erreur'])->toBe('Le champ mot de passe doit contenir au moins 8 caractères.')
         ->and(Hash::check('court', $this->creatif->fresh()->password))->toBeFalse();
 });
+
+it('abonne et desabonne de la newsletter', function () {
+    $this->creatif->bookSetting()->updateOrCreate([], ['diffuse_newsletter' => true]);
+
+    $this->get(route('espace.compte'))->assertOk()->assertSee('Recevoir la newsletter');
+
+    Livewire::test(Compte::class)
+        ->assertSet('newsletter', true)
+        ->toggle('newsletter');
+
+    expect($this->creatif->bookSetting()->first()->diffuse_newsletter)->toBeFalse();
+
+    Livewire::test(Compte::class)->assertSet('newsletter', false)->toggle('newsletter');
+
+    expect($this->creatif->bookSetting()->first()->diffuse_newsletter)->toBeTrue();
+});

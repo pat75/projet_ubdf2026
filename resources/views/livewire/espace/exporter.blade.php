@@ -114,7 +114,7 @@
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span>{{ __('Préparation de votre archive… Vous pouvez quitter cette page, elle vous attendra ici.') }}</span>
+                            <span>{{ __('Archive en cours de préparation. Vous recevrez un e-mail à :email dès qu’elle sera prête ; vous pouvez quitter cette page.', ['email' => auth()->user()->email]) }}</span>
                             @break
 
                         @case ($archive->telechargeable())

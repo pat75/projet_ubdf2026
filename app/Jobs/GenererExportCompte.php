@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Mail\ArchivePrete;
 use App\Models\DataExport;
 use App\Services\Espace\ExportCompte;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -55,6 +57,10 @@ class GenererExportCompte implements ShouldQueue
             'termine_at' => now(),
             'expire_at' => now()->addDays(DataExport::CONSERVATION_JOURS),
         ]);
+
+        Mail::to($this->export->user->email)->send(
+            new ArchivePrete($this->export, route(nom_route('espace.exporter')))
+        );
     }
 
     public function failed(?Throwable $erreur): void

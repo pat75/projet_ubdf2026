@@ -45,6 +45,9 @@ class Compte extends Component
 
     public bool $sms = false;
 
+    /** Abonnement a la newsletter (book_settings.diffuse_newsletter). */
+    public bool $newsletter = false;
+
 
     public string $motDePasseActuel = '';
 
@@ -65,6 +68,7 @@ class Compte extends Component
         $this->profil = collect(self::CHAMPS)->mapWithKeys(fn ($r, $c) => [$c => (string) $creatif->{$c}])->all();
         $this->categorie = $creatif->category_id;
         $this->sms = (bool) $creatif->accepts_sms;
+        $this->newsletter = (bool) $creatif->bookSetting()->value('diffuse_newsletter');
 
         // Les fiches reprises portent parfois l'indice du legacy la ou on
         // attend un libelle : on ne propose alors rien plutot que « 6 ».
@@ -137,6 +141,12 @@ class Compte extends Component
     public function updatedSms(): void
     {
         Auth::user()->update(['accepts_sms' => $this->sms]);
+    }
+
+    /** Meme reglage que le lien de desabonnement des campagnes. */
+    public function updatedNewsletter(): void
+    {
+        Auth::user()->bookSetting()->updateOrCreate([], ['diffuse_newsletter' => $this->newsletter]);
     }
 
     /*

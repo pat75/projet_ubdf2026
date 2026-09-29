@@ -237,6 +237,18 @@
         @endif
     </x-espace.carte>
 
+    {{-- Newsletter : desinscription possible a tout moment. --}}
+    <x-espace.carte :titre="__('Newsletter')">
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <div class="text-[15px] font-semibold">{{ __('Recevoir la newsletter') }}</div>
+                <div class="text-[14px] text-ub-texte3">{{ __('Actualités, sélections et conseils de :marque. Vous pouvez vous désinscrire à tout moment.', ['marque' => \App\Support\Marque::depuisCode(auth()->user()->brand ?: 'ub')->nom]) }}</div>
+            </div>
+
+            <x-espace.interrupteur wire:click="$toggle('newsletter')" :actif="$newsletter" :libelle="__('Recevoir la newsletter')" />
+        </div>
+    </x-espace.carte>
+
     {{-- Localisation, repliee par defaut. --}}
     <section class="carte-espace overflow-hidden">
         <button type="button" @click="locOpen = ! locOpen" :aria-expanded="locOpen"

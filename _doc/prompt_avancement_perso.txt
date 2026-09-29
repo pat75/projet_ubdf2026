@@ -2,7 +2,6 @@
  +  revoir et terminer la page mon compte
     Notamment pour le mot de passe et l'e-mails
 
-+   prévoir sur mon compte la possibilité de se désinscrire des newsletter
 
 +   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner 
 le bon éditeur
@@ -17,11 +16,7 @@ le bon éditeur
 
 
 
-+ sur page d'accueil et sur les mini book les pages du site
-Analyser et Optimiser également le référencement SOE,et GEO
-Proposer des solutions pour améliorer
-
-
+ 
 
 
 

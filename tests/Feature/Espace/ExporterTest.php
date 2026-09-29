@@ -6,7 +6,9 @@ use App\Models\DataExport;
 use App\Models\User;
 use App\Services\Espace\MiseEnPagePdf;
 use App\Support\DossierBook;
+use App\Mail\ArchivePrete;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -107,6 +109,23 @@ it('met la demande d archive en file et en limite le nombre', function () {
     expect(DataExport::where('user_id', $this->creatif->id)->count())->toBe(1);
 });
 
+it('annonce l e-mail pendant la preparation puis le lien une fois l archive prete', function () {
+    Storage::fake(DataExport::DISQUE);
+    $export = new DataExport;
+    $export->user()->associate($this->creatif)->save();
+
+    Livewire::actingAs($this->creatif)->test(Exporter::class)
+        ->assertSee('Vous recevrez un e-mail à '.$this->creatif->email, false)
+        ->assertDontSee('Préparer mon archive');
+
+    Storage::disk(DataExport::DISQUE)->put('exports/a.zip', 'zip');
+    $export->update(['status' => DataExport::PRET, 'fichier' => 'exports/a.zip', 'taille' => 3, 'termine_at' => now(), 'expire_at' => now()->addDays(7)]);
+
+    Livewire::actingAs($this->creatif)->test(Exporter::class)
+        ->assertSee('Archive prête')
+        ->assertSee(route('espace.export.telecharger', $export), false);
+});
+
 it('laisse redemander une archive apres un echec', function () {
     Queue::fake();
     $echec = new DataExport(['status' => DataExport::ECHEC]);
@@ -119,6 +138,7 @@ it('laisse redemander une archive apres un echec', function () {
 
 it('construit l archive des donnees, images HD comprises, sans secret', function () {
     Storage::fake(DataExport::DISQUE);
+    Mail::fake();
     visuels($this->dossier, 12);
     $this->creatif->conversations()->create(['subject' => 'Affiche', 'sender_name' => 'Client', 'sender_email' => 'c@example.test'])
         ->messages()->create(['from_owner' => false, 'body' => 'Bonjour']);
@@ -141,6 +161,9 @@ it('construit l archive des donnees, images HD comprises, sans secret', function
         ->and(json_decode($zip->getFromName('messages.json'), true)[0]['messages'][0]['texte'])->toBe('Bonjour')
         ->and(count(json_decode($zip->getFromName('portfolios.json'), true)[0]['visuels']))->toBe(12);
     $zip->close();
+
+    Mail::assertSent(ArchivePrete::class, fn ($mail) => $mail->hasTo($this->creatif->email)
+        && str_contains($mail->lien, '/espace/exporter'));
 
     $this->actingAs($this->creatif)->get(route('espace.export.telecharger', $export))->assertOk()
         ->assertDownload();
