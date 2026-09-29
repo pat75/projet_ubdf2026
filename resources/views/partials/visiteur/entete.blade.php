@@ -30,7 +30,7 @@
                 <span class="sr-only">{{ __('Rechercher') }}</span>
             </a>
 
-            <a href="{{ lien('memobook') }}" class="text-[#444] hover:opacity-70" title="{{ __('Mémo book') }}">
+            <a href="{{ lien('memobook') }}" class="mr-4 text-[#444] hover:opacity-70" title="{{ __('Mémo book') }}">
                 {{-- 27px = 24px visibles ; -4,5px reprennent le vide de la chasse du
                      glyphe : l'ecart de 18px se mesure trace a trace (cf. portail.css). --}}
                 <span class="fonticon-heart_white" aria-hidden="true" style="display:block;font-size:27px;line-height:24px;height:24px;margin:0 -4.5px"></span>

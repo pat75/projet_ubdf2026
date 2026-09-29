@@ -28,6 +28,7 @@
         </div>
     @elseif ($books->isEmpty())
         <div class="ui basic segment center aligned recherche_vide">
+            <img src="/img_front/recherche-vide.png" alt="" width="343" height="400" style="display:block;margin:0 auto 1em;max-width:60%;height:auto">
             {{ __('Aucun portfolio ne correspond à cette recherche.') }}
         </div>
     @endif

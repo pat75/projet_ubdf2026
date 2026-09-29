@@ -31,19 +31,24 @@
         @if ($memo->isEmpty())
             <p class="text-[15px] text-ub-texte3">{{ __('Cliquez sur le cœur d’un book, sur le portail, pour le garder ici.') }}</p>
         @else
-            <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {{-- Les dix derniers books du memo, un avatar chacun, superposes
+                 comme dans « Mes derniers messages ». --}}
+            @php($profil = app(\App\Services\Espace\AffichageProfil::class))
+            <ul class="flex flex-wrap pl-[19px]">
                 @foreach ($memo as $book)
-                    @php($couverture = $book->media->first())
-                    <li>
-                        <a href="{{ $book->bookUrl() }}" target="_blank" rel="noopener" class="group block">
-                            <span class="block h-24 overflow-hidden rounded-ub bg-ub-fond">
-                                @if ($couverture)
-                                    <img src="{{ $couverture->url('front_desk') }}" alt="" loading="lazy" class="h-full w-full object-cover">
-                                @endif
-                            </span>
-                            <span class="mt-2 block truncate text-[15px] font-semibold text-ub-texte group-hover:underline">{{ $book->fullName() }}</span>
-                            <span class="block truncate text-[12px] uppercase tracking-wide text-ub-texte3">{{ $book->category?->name }}</span>
+                    @php($photo = $profil->photoUrl($book))
+                    <li class="group/avatar -ml-[19px] hover:z-10 focus-within:z-10 relative">
+                        <a href="{{ $book->bookUrl() }}" target="_blank" rel="noopener"
+                           class="relative block h-14 w-14 rounded-full ring-2 ring-white transition hover:-translate-y-0.5">
+                            @if ($photo)
+                                <img src="{{ $photo }}" alt="{{ $book->fullName() }}" class="h-14 w-14 rounded-full object-cover">
+                            @else
+                                <span class="flex h-14 w-14 items-center justify-center rounded-full text-[16px] font-bold text-white"
+                                      style="background: {{ $profil->couleur($book) }}">{{ $profil->initiales($book) }}</span>
+                                <span class="sr-only">{{ $book->fullName() }}</span>
+                            @endif
                         </a>
+                        <x-espace.bulle-avatar>{{ $book->fullName() }}</x-espace.bulle-avatar>
                     </li>
                 @endforeach
             </ul>
@@ -67,9 +72,8 @@
                 @foreach ($messages as $fil)
                     @continue(! $fil->user)
                     @php($photo = $profil->photoUrl($fil->user))
-                    <li class="-ml-[19px] hover:z-10 focus-within:z-10 relative">
+                    <li class="group/avatar -ml-[19px] hover:z-10 focus-within:z-10 relative">
                         <a href="{{ lien('visiteur.messages', ['fil' => $fil->id]) }}"
-                           title="{{ $fil->user->fullName() }} — {{ $fil->last_message_at?->translatedFormat('j F Y') }}"
                            class="relative block h-14 w-14 rounded-full ring-2 ring-white transition hover:-translate-y-0.5">
                             @if ($photo)
                                 <img src="{{ $photo }}" alt="{{ $fil->user->fullName() }}" class="h-14 w-14 rounded-full object-cover">
@@ -82,6 +86,7 @@
                                 <span class="absolute -left-1 -top-1 min-w-5 rounded-full bg-ub-accent px-1.5 text-center text-[11px] font-bold leading-5 text-white">{{ $fil->non_lus }}</span>
                             @endif
                         </a>
+                        <x-espace.bulle-avatar>{{ $fil->user->fullName() }}</x-espace.bulle-avatar>
                     </li>
                 @endforeach
             </ul>

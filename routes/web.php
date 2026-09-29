@@ -563,3 +563,10 @@ foreach (array_keys(config('langues.disponibles', [])) as $langue) {
 | adresses figees, citees telles quelles ailleurs.
 */
 require __DIR__.'/redirections.php';
+
+/*
+| Toute URL restee sans route passe par le groupe `web` (session, auth) :
+| la 404 affiche ainsi la meme barre de navigation, visiteur ou creatif
+| connecte, que le reste du portail.
+*/
+Route::fallback(fn () => abort(404));

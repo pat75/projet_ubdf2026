@@ -24,7 +24,7 @@ class TableauVisiteurController extends Controller
                 ->orderByDesc('last_message_at')
                 ->limit(8)
                 ->get(),
-            'memo' => $memo->books($visiteur, limite: 6),
+            'memo' => $memo->books($visiteur, limite: 10),
             'memoTotal' => $memo->compter($visiteur),
         ]);
     }
