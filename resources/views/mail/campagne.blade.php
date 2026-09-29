@@ -12,7 +12,7 @@
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:8px;">
                 <tr>
                     <td style="padding:28px 32px;font-size:15px;line-height:1.6;">
-                        {!! $campagne->body !!}
+                        {!! $corps !!}
                     </td>
                 </tr>
                 <tr>

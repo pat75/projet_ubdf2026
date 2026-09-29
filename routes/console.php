@@ -28,3 +28,12 @@ Schedule::command('backup:monitor')->dailyAt('08:00')->timezone('Europe/Paris');
 // robots.txt : le serveur web le sert comme un fichier statique, sans
 // passer par Laravel. On l'ecrit donc (App\Support\Robots) chaque nuit.
 Schedule::command('ubdf:robots')->dailyAt('04:30')->timezone('Europe/Paris');
+
+/*
+ | Newsletters programmees : l'heure choisie au back-office est tenue a la
+ | minute pres. Le travail reel part en file, la commande ne fait que le
+ | declencher.
+ */
+Schedule::command('ubdf:envoyer-newsletters')
+    ->everyMinute()
+    ->withoutOverlapping();

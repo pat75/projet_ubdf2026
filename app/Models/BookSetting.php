@@ -12,7 +12,7 @@ class BookSetting extends Model
         'experience', 'footer', 'theme', 'theme_settings', 'theme_texts', 'theme_home_image',
         'background_image', 'background_color', 'background_mode', 'is_centered',
         'thumbnail', 'bio_photo', 'keywords', 'custom_js', 'analytics_id',
-        'diffuse_ub', 'diffuse_web', 'diffuse_newsletter', 'diffuse_availability',
+        'diffuse_ub', 'diffuse_web', 'diffuse_newsletter', 'newsletter_desabonne_at', 'diffuse_availability',
         'legacy_payload',
     ];
 
@@ -26,6 +26,7 @@ class BookSetting extends Model
             'diffuse_ub' => 'boolean',
             'diffuse_web' => 'boolean',
             'diffuse_newsletter' => 'boolean',
+            'newsletter_desabonne_at' => 'datetime',
             'diffuse_availability' => 'boolean',
         ];
     }

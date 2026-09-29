@@ -10,6 +10,7 @@ use App\Filament\Resources\Campaigns\Tables\CampaignsTable;
 use App\Models\Campaign;
 use BackedEnum;
 use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -20,9 +21,11 @@ class CampaignResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
-    protected static ?string $modelLabel = 'campagne';
+    protected static ?string $modelLabel = 'newsletter';
 
-    protected static ?string $pluralModelLabel = 'campagnes';
+    protected static ?string $pluralModelLabel = 'newsletters';
+
+    protected static ?string $navigationLabel = 'Newsletter';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Éditorial';
 
@@ -38,6 +41,15 @@ class CampaignResource extends Resource
     public static function table(Table $table): Table
     {
         return CampaignsTable::configure($table);
+    }
+
+    /**
+     * La rubrique ne montre que les newsletters : les relances d'abonnement
+     * portent le meme modele mais partent toutes seules (RelanceFormule).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('type', 'newsletter');
     }
 
     public static function getRelations(): array

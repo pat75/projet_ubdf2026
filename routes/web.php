@@ -18,6 +18,7 @@ use App\Http\Controllers\Visiteur\TableauVisiteurController;
 use App\Http\Controllers\Visiteur\VisiteBookController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\DesabonnementController;
+use App\Http\Controllers\Front\DesinscriptionNewsletterController;
 use App\Http\Controllers\Front\EditionBookController;
 use App\Http\Controllers\Front\EspaceController;
 use App\Http\Controllers\Front\MicrobookController;
@@ -435,6 +436,13 @@ $portail = function (?string $langue = null) {
         ->name('admin.prise-identite.rendre');
 
     // Desabonnement newsletter : lien signe present dans chaque campagne.
+    // Par adresse (createurs et visiteurs confondus), avec retour possible.
+    Route::get('/newsletter/desinscription/{adresse}', [DesinscriptionNewsletterController::class, 'desinscrire'])
+        ->middleware('signed')->name('newsletter.desinscription');
+    Route::get('/newsletter/reabonnement/{adresse}', [DesinscriptionNewsletterController::class, 'reabonner'])
+        ->middleware('signed')->name('newsletter.reabonnement');
+
+    // Ancien lien, par createur : garde pour les messages deja partis.
     Route::get('/newsletter/desabonnement/{user}', DesabonnementController::class)
         ->middleware('signed')->name('newsletter.desabonnement');
 

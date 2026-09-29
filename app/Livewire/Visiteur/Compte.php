@@ -29,7 +29,10 @@ class Compte extends Component
 
     public function mount(): void
     {
-        $this->newsletter = NewsletterMail::query()->where('email', $this->visiteur()->email)->exists();
+        $this->newsletter = NewsletterMail::query()
+            ->where('email', $this->visiteur()->email)
+            ->whereNull('desabonne_at')
+            ->exists();
     }
 
     protected function champsAutoEnregistres(): array
@@ -98,7 +101,10 @@ class Compte extends Component
         $visiteur = $this->visiteur();
 
         if ($this->newsletter) {
-            NewsletterMail::query()->firstOrCreate(['email' => $visiteur->email], ['ip' => request()->ip()]);
+            NewsletterMail::query()->firstOrCreate(
+                ['email' => $visiteur->email],
+                ['brand' => $visiteur->brand ?: 'ub', 'ip' => request()->ip()],
+            )->update(['desabonne_at' => null]);
         } else {
             NewsletterMail::query()->where('email', $visiteur->email)->delete();
         }

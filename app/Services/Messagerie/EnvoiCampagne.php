@@ -2,79 +2,108 @@
 
 namespace App\Services\Messagerie;
 
+use App\Jobs\Newsletter\EnvoyerPaquetNewsletter;
 use App\Mail\CampagneMail;
 use App\Models\Campaign;
 use App\Models\CampaignSend;
 use App\Models\User;
+use App\Services\Newsletter\Desabonnement;
+use App\Services\Newsletter\DestinataireNewsletter;
+use App\Services\Newsletter\Destinataires;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 
 /**
- * Envoi d'une campagne (nl_masse_mail_v2.php du legacy, lance a la main par
- * tranches depuis une page d'administration).
+ * Envoi d'une newsletter (nl_masse_mail_v2.php du legacy, lance a la main
+ * par tranches depuis une page d'administration).
  *
  * Chaque destinataire a sa ligne dans `campaign_sends` avant la mise en
  * file : relancer un envoi interrompu ne redonne pas le message a ceux qui
- * l'ont deja recu.
+ * l'ont deja recu. La contrainte d'unicite (campagne, adresse) en repond
+ * meme si deux envois se croisent.
  */
 class EnvoiCampagne
 {
+    /** Destinataires traites par job : de quoi lisser la charge du relais. */
+    public const PAQUET = 100;
+
+    public function __construct(
+        private readonly Destinataires $destinataires,
+        private readonly Desabonnement $desabonnement,
+    ) {}
+
     /** @return int nombre de messages mis en file */
     public function envoyer(Campaign $campagne): int
     {
-        $envoyes = 0;
+        $nombre = 0;
 
-        $this->destinataires($campagne)->each(function (User $creatif) use ($campagne, &$envoyes) {
-            $deja = CampaignSend::where('campaign_id', $campagne->id)
-                ->where('user_id', $creatif->id)->exists();
+        $this->destinataires->pour($campagne)
+            ->chunk(self::PAQUET)
+            ->each(function (Collection $paquet) use ($campagne, &$nombre) {
+                $restants = $this->reserver($campagne, $paquet);
 
-            if ($deja) {
-                return;
-            }
+                if ($restants->isEmpty()) {
+                    return;
+                }
 
-            CampaignSend::create([
-                'campaign_id' => $campagne->id,
-                'user_id' => $creatif->id,
-                'email' => $creatif->email,
-                'status' => 'queued',
-                'sent_at' => now(),
-            ]);
+                EnvoyerPaquetNewsletter::dispatch($campagne->id, $restants->values()->all());
+                $nombre += $restants->count();
+            });
 
-            Mail::to($creatif->email)->queue(
-                new CampagneMail($campagne, $creatif, $this->lienDesabonnement($creatif))
-            );
+        $campagne->update([
+            'sent_at' => $campagne->sent_at ?? now(),
+            'stats' => ['destinataires' => $nombre] + (array) $campagne->stats,
+        ]);
 
-            $envoyes++;
-        });
-
-        $campagne->update(['sent_at' => $campagne->sent_at ?? now()]);
-
-        return $envoyes;
-    }
-
-    /** Envoi d'essai, a une adresse choisie, sans rien enregistrer. */
-    public function essai(Campaign $campagne, string $adresse, User $exemple): void
-    {
-        Mail::to($adresse)->queue(new CampagneMail($campagne, $exemple, $this->lienDesabonnement($exemple)));
+        return $nombre;
     }
 
     /**
-     * Createurs de la marque qui acceptent la newsletter. Le refus se lit
-     * dans `book_settings.diffuse_newsletter`, ou le lien de desabonnement
-     * ecrit.
+     * Pose la ligne d'envoi de chaque destinataire, et ne rend que ceux qui
+     * n'en avaient pas : c'est ce qui rend un envoi rejouable.
+     *
+     * @param  Collection<int, DestinataireNewsletter>  $paquet
+     * @return Collection<int, DestinataireNewsletter>
      */
-    public function destinataires(Campaign $campagne)
+    private function reserver(Campaign $campagne, Collection $paquet): Collection
     {
-        return User::query()
-            ->where('brand', $campagne->brand ?: 'ub')
-            ->whereNotNull('email')
-            ->whereHas('bookSetting', fn ($q) => $q->where('diffuse_newsletter', true))
-            ->cursor();
+        return $paquet->filter(function (DestinataireNewsletter $destinataire) use ($campagne) {
+            $ligne = CampaignSend::firstOrCreate(
+                ['campaign_id' => $campagne->id, 'email' => $destinataire->email],
+                [
+                    'user_id' => $destinataire->userId,
+                    'source' => $destinataire->source,
+                    'status' => 'queued',
+                    'sent_at' => now(),
+                ],
+            );
+
+            return $ligne->wasRecentlyCreated;
+        });
     }
 
-    /** Lien signe, sans jeton a stocker : la signature suffit a prouver l'origine. */
-    public function lienDesabonnement(User $creatif): string
+    /** Met un destinataire en file, sans rien enregistrer de plus. */
+    public function mettreEnFile(Campaign $campagne, DestinataireNewsletter $destinataire): void
     {
-        return URL::signedRoute('newsletter.desabonnement', ['user' => $creatif->login]);
+        Mail::to($destinataire->email)->queue(new CampagneMail(
+            $campagne,
+            $destinataire,
+            $this->desabonnement->lien($destinataire->email),
+        ));
+    }
+
+    /** Envoi d'essai, a une adresse choisie, sans rien enregistrer. */
+    public function essai(Campaign $campagne, string $adresse, ?User $exemple = null): void
+    {
+        $destinataire = new DestinataireNewsletter(
+            email: $adresse,
+            source: 'essai',
+            prenom: $exemple?->firstname,
+            userId: $exemple?->id,
+        );
+
+        $this->mettreEnFile($campagne, $destinataire);
+
+        $campagne->update(['essai_at' => now()]);
     }
 }

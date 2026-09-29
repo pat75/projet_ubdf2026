@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CampaignSend extends Model
 {
-    protected $fillable = ['campaign_id', 'user_id', 'email', 'status', 'payload', 'sent_at'];
+    protected $fillable = ['campaign_id', 'user_id', 'email', 'source', 'status', 'payload', 'sent_at'];
 
     protected function casts(): array
     {

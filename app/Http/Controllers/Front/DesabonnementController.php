@@ -17,7 +17,10 @@ class DesabonnementController extends Controller
 {
     public function __invoke(User $user): View
     {
-        $user->bookSetting()->updateOrCreate([], ['diffuse_newsletter' => false]);
+        $user->bookSetting()->updateOrCreate([], [
+            'diffuse_newsletter' => false,
+            'newsletter_desabonne_at' => now(),
+        ]);
 
         return view('front.desabonnement', ['creatif' => $user]);
     }

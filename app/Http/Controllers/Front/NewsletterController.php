@@ -15,8 +15,11 @@ class NewsletterController extends Controller
         // Une adresse deja inscrite recoit le meme message : rien a divulguer.
         NewsletterMail::firstOrCreate(
             ['email' => $request->validated('mail')],
-            ['ip' => $request->ip()],
-        );
+            [
+                'brand' => $request->attributes->get('brand', 'ub'),
+                'ip' => $request->ip(),
+            ],
+        )->update(['desabonne_at' => null]);
 
         return response()->json([
             'error' => false,
