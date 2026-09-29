@@ -18,7 +18,7 @@ it('place la presentation en tete et ne propose plus les reglages du modele', fu
     $this->creatif->bookSetting()->create(['theme' => 'mdl_2016_zoom']);
 
     $this->get(route('espace.design'))->assertOk()
-        ->assertSeeInOrder(['Présentation', 'Modèle du book', 'Modèle Zoom 2016'])
+        ->assertSeeInOrder(['Profil', 'Modèle du book', 'Modèle Zoom 2016'])
         ->assertDontSee('Réglages du modèle')
         ->assertDontSee('Link bio');
 });

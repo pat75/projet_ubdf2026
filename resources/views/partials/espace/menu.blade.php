@@ -40,13 +40,12 @@
 
     <x-espace.nav-groupe>{{ __('Mon portfolio') }}</x-espace.nav-groupe>
     <x-espace.nav-lien route="espace.design" icone="reglage">{{ __('Configurer') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="espace.edition-book" icone="oeil">{{ __('Modifier') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.diffusion" icone="diffusion">{{ __('Diffuser') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="espace.statistiques" icone="graphe">{{ __('Statistiques') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Contenu du portfolio') }}</x-espace.nav-groupe>
     <x-espace.nav-lien route="espace.galeries">{{ __('Images') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.pages">{{ __('Pages') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="espace.statistiques">{{ __('Statistiques') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.exporter">{{ __('Exporter') }}</x-espace.nav-lien>
 
     <div class="mx-3 my-2.5 h-px bg-ub-filet"></div>

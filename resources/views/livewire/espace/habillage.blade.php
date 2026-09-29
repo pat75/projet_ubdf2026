@@ -28,7 +28,7 @@
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
             <div class="text-[13px] font-semibold uppercase tracking-[.08em] text-ub-accent-texte">{{ __('Sélectionner mon modèle de portfolio') }}</div>
-            <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Habillage') }}</h1>
+            <h1 class="mt-1.5 font-titre text-[34px] font-light leading-tight tracking-tight text-ub-texte">{{ __('Configuration et habillage') }}</h1>
         </div>
 
         {{-- Ultra-frais / Ultra-zen : reglages modifiables sur le book lui-meme. --}}
@@ -45,7 +45,7 @@
         <div x-data="{ ouvert: true }" class="carte-espace overflow-hidden">
             <button type="button" @click="ouvert = ! ouvert"
                     class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left">
-                <span class="text-[15px] font-bold text-ub-texte">{{ __('Présentation') }}</span>
+                <span class="text-[15px] font-bold text-ub-texte">{{ __('Profil') }}</span>
                 <x-espace.picto x-show="! ouvert" nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" />
                 <x-espace.picto x-show="ouvert" nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
             </button>
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    <section class="mb-8">
+    <section class="mb-8 pt-5">
         <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Modèle du book') }}</h2>
         <p class="mt-1 text-[13px] text-ub-texte3">{{ __('Chaque modèle garde ses propres réglages : revenir à un ancien modèle les retrouve.') }}</p>
 

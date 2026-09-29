@@ -38,3 +38,13 @@ it('n appelle plus le serveur de statistiques du legacy', function () {
     expect(collect(File::allFiles(resource_path('views/book')))
         ->filter(fn ($f) => str_contains($f->getContents(), 'extra-book.com'))->count())->toBe(0);
 });
+
+it('cumule les surfaces d un meme jour dans la courbe', function () {
+    $this->book->visitStats()->create(['date' => now()->toDateString(), 'surface' => 'book', 'public_views' => 10]);
+    $this->book->visitStats()->create(['date' => now()->toDateString(), 'surface' => 'minibook', 'public_views' => 3]);
+
+    $parJour = $this->actingAs($this->book)->get(route('espace.statistiques'))->assertOk()->viewData('parJour');
+
+    expect($parJour->last())->toMatchArray(['book' => 10, 'minibook' => 3])
+        ->and($parJour)->toHaveCount(90);
+});

@@ -20,6 +20,9 @@
         'coeur' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/>',
         'horloge' => '<circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/>',
         'graphe' => '<path stroke-linecap="round" d="M5 20V10M12 20V4M19 20v-7"/>',
+        'mobile' => '<rect x="7" y="3" width="10" height="18" rx="1.5"/><path stroke-linecap="round" d="M11 18h2"/>',
+        'tablette' => '<rect x="4.5" y="3" width="15" height="18" rx="1.5"/><path stroke-linecap="round" d="M11 18h2"/>',
+        'ordinateur' => '<rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path stroke-linecap="round" d="M8.5 20h7M12 16.5V20"/>',
         'enveloppe' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m3.5 7 8.5 6 8.5-6"/>',
     ];
 @endphp

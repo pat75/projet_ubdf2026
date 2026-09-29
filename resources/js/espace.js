@@ -1,5 +1,6 @@
 import Sortable from 'sortablejs';
 import newsletter from './portail/newsletter';
+import statistiques from './espace/statistiques';
 import './vendor/redactor/redactor.min.js';
 import './vendor/redactor/redactor.min.css';
 // Plugins charges apres le coeur : ils s'enregistrent sur le meme global
@@ -395,6 +396,7 @@ window.addEventListener('avatar-profil-modifie', ({ detail: { url, initiales, co
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('recadrageAvatar', recadrageAvatar);
     window.Alpine.data('champEditable', champEditable);
+    window.Alpine.data('statistiques', statistiques);
 
     /* Menu plein ecran du portail (<x-portail.menu-plein-ecran>), ouvert
        par le burger de l'entete sur mobile. Meme store que le portail,

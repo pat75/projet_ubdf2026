@@ -24,6 +24,7 @@
         "@editorjs/image": "^2.10.3",
         "@editorjs/paragraph": "^2.11.7",
         "alpinejs": "^3.17.4",
+        "chart.js": "^4.5.1",
         "sortablejs": "^1.15.7"
     }
 }

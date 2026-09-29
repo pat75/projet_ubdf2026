@@ -18,17 +18,32 @@
         @endif
     </div>
 
-    <div class="flex items-center gap-3 border-t border-ub-filet p-4">
+    <div class="flex items-start gap-3 border-t border-ub-filet p-4">
         <div class="min-w-0 flex-1">
-            <div class="text-[15px] font-bold leading-snug text-ub-texte">{{ $nom }}</div>
-            <div class="text-[11px] font-semibold uppercase tracking-[.06em] text-ub-texte3">{{ __('Responsive') }}</div>
+            {{-- Nom, puis les trois ecrans servis (modeles responsive). --}}
+            <div class="flex items-center gap-2">
+                <span class="text-[15px] font-bold leading-snug text-ub-texte">{{ $nom }}</span>
+                <span class="flex items-center gap-0.5 text-ub-texte3" title="{{ __('Mobile, tablette et ordinateur') }}">
+                    <x-espace.icone nom="mobile" class="h-3.5 w-3.5" />
+                    <x-espace.icone nom="tablette" class="h-3.5 w-3.5" />
+                    <x-espace.icone nom="ordinateur" class="h-3.5 w-3.5" />
+                </span>
+            </div>
+            {{-- Modele actif Ultra-frais / Ultra-zen : reglages visuels sur le book lui-meme. --}}
+            @if ($cle === $theme && in_array($cle, ['mdl_2020_ultra_frais', 'mdl_2020_ultra_zen'], true))
+                <a href="{{ route('espace.edition-book') }}" target="_blank" rel="noopener"
+                   class="bouton-espace bouton-espace-petit mt-3 inline-flex items-center gap-1.5 px-3.5">
+                    <x-espace.icone nom="reglage" class="h-4 w-4" />
+                    {{ __('Réglages visuels') }}
+                </a>
+            @endif
         </div>
 
         @if ($cle === $theme)
-            <span class="shrink-0 text-[13px] font-semibold text-ub-accent-texte">{{ __('Modèle actif') }}</span>
+            <span class="shrink-0 text-[13px] font-semibold leading-[1.375rem] text-ub-accent-texte">{{ __('Modèle actif') }}</span>
         @else
             <button type="button" wire:click="choisirTheme('{{ $cle }}')"
-                    class="bouton-espace-petit inline-flex shrink-0 items-center justify-center border border-ub-bord bg-white px-3.5 text-[13px] font-semibold text-ub-texte hover:border-ub-accent hover:text-ub-accent-texte">
+                    class="bouton-espace-petit inline-flex shrink-0 self-center items-center justify-center border border-ub-bord bg-white px-3.5 text-[13px] font-semibold text-ub-texte hover:border-ub-accent hover:text-ub-accent-texte">
                 {{ __('Activer') }}
             </button>
         @endif
