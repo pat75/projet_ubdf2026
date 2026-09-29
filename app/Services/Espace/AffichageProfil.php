@@ -41,4 +41,31 @@ class AffichageProfil
     {
         return self::PALETTE[crc32($creatif->login) % count(self::PALETTE)];
     }
+    /**
+     * Medaillon d'initiales en image, pour les contextes qui attendent une
+     * URL et non du HTML — la colonne avatar du back-office, qui ne sait
+     * afficher qu'une image quand la photo manque.
+     *
+     * Un SVG en data-URI plutot qu'un service de vignettes distant : rien a
+     * telecharger, rien a mettre en cache, et la liste reste lisible meme
+     * sur une page servie sans acces au stockage des books.
+     */
+    public function medaillon(string $initiales, string $couleur): string
+    {
+        $initiales = htmlspecialchars($initiales, ENT_QUOTES | ENT_XML1);
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+            .'<rect width="64" height="64" fill="'.$couleur.'"/>'
+            .'<text x="32" y="33" fill="#fff" font-family="Helvetica,Arial,sans-serif"'
+            .' font-size="26" font-weight="700" text-anchor="middle"'
+            .' dominant-baseline="central">'.$initiales.'</text></svg>';
+
+        return 'data:image/svg+xml;base64,'.base64_encode($svg);
+    }
+
+    /** Medaillon du creatif : ses initiales sur sa couleur. */
+    public function medaillonCreatif(User $creatif): string
+    {
+        return $this->medaillon($this->initiales($creatif), $this->couleur($creatif));
+    }
 }

@@ -67,6 +67,10 @@ class ConnexionController extends Controller
             return $this->echec($requete, __('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant.'));
         }
 
+        if ($compte === IdentifierCompte::BLOQUE) {
+            return $this->echec($requete, __('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.'));
+        }
+
         if ($compte === null) {
             RateLimiter::hit($cle, self::BLOCAGE_SECONDES);
 

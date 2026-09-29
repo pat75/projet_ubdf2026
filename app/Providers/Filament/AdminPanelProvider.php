@@ -34,7 +34,7 @@ class AdminPanelProvider extends PanelProvider
             // serait aussi servi sur chaque sous-domaine de book.
             ->domain(config('ubdf.portail_domain'))
             ->authGuard('admin')
-            ->brandName('Ultra-book classique')
+            ->brandName('Ultra-book classique V3')
             ->login()
             ->colors([
                 'primary' => Color::Slate,
@@ -53,6 +53,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): View => view('filament.styles'),
+            )
+            // Ouverture en serie des books : le serveur envoie les
+            // adresses, le navigateur ouvre les onglets.
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): View => view('filament.scripts'),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

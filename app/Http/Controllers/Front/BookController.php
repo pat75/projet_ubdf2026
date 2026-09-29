@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Book\ContexteBook;
 use App\Services\Book\AccesPortfolios;
 use App\Services\Book\Gabarit;
+use App\Services\Admin\BandeauRevue;
 use App\Services\Book\LecteurVideos;
 use App\Services\Book\VueUltra2020;
 use App\Services\Messagerie\DepotDemande;
@@ -240,7 +241,13 @@ class BookController extends Controller
     /** Page du book, avec le lecteur des videos YouTube et Vimeo. */
     private function reponse(User $book, string $html): Response
     {
-        return response(app(LecteurVideos::class)->injecter($html, $book));
+        $html = app(LecteurVideos::class)->injecter($html, $book);
+
+        // Bandeau de revue : n'apparait que si l'adresse porte un jeton
+        // d'administrateur valide pour ce book (BandeauRevue).
+        $html = app(BandeauRevue::class)->injecter($html, $book, request());
+
+        return response($html);
     }
 
     /**

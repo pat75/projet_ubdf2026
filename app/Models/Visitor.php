@@ -16,9 +16,13 @@ use Illuminate\Notifications\Notifiable;
  */
 class Visitor extends Authenticatable
 {
+    use Concerns\PeutEtreBloque;
     use HasFactory, Notifiable, SoftDeletes;
 
-    protected $fillable = ['email', 'firstname', 'lastname', 'password', 'brand', 'locale', 'signup_ip'];
+    protected $fillable = [
+        'email', 'firstname', 'lastname', 'password', 'brand', 'locale', 'signup_ip',
+        'blocked_at', 'blocked_reason',
+    ];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -27,6 +31,7 @@ class Visitor extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'blocked_at' => 'datetime',
         ];
     }
 

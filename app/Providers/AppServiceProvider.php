@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\PromoCode;
 use App\Models\Selection;
 use App\Models\User;
+use App\Models\Visitor;
 use App\Observers\JournalAdmin;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
@@ -54,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
          | modifient. L'observateur ne retient que les ecritures faites par
          | un administrateur connecte.
          */
-        foreach ([User::class, PromoCode::class, Selection::class, Campaign::class, Category::class, Admin::class] as $modele) {
+        foreach ([User::class, Visitor::class, PromoCode::class, Selection::class, Campaign::class, Category::class, Admin::class] as $modele) {
             $modele::observe(JournalAdmin::class);
         }
     }

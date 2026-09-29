@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
+    use Concerns\PeutEtreBloque;
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
@@ -26,6 +27,7 @@ class User extends Authenticatable
         'plan', 'plan_started_at', 'plan_months', 'plan_expires_at',
         'storage_used', 'media_count',
         'signup_ip', 'signup_referer', 'admin_note',
+        'blocked_at', 'blocked_reason',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -37,6 +39,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'plan_started_at' => 'datetime',
             'plan_expires_at' => 'datetime',
+            'blocked_at' => 'datetime',
             'in_home_selection' => 'boolean',
             'home_selection_at' => 'datetime',
             'in_directory' => 'boolean',

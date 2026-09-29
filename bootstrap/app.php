@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\NormalizeUnicodeInput;
+use App\Http\Middleware\RefuserComptesBloques;
 use App\Http\Middleware\ResoudreMarque;
 use App\Support\Langue;
 use Illuminate\Foundation\Application;
@@ -22,6 +23,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // La marque (Ultra-book ou Dustfolio) se deduit de l'hote et
         // conditionne le nom du site, les books listes et les courriels.
         $middleware->append(ResoudreMarque::class);
+
+        // Un compte ferme au back-office perd sa session des la requete suivante,
+        // quel que soit le chemin par lequel il s'est connecte.
+        $middleware->appendToGroup('web', RefuserComptesBloques::class);
 
         /*
          | Le cookie de langue reste en clair.
@@ -66,7 +71,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
          | Le fil de discussion, lui, reste sous CSRF : son formulaire est
          | rendu par Blade et porte le jeton.
          */
-        $middleware->validateCsrfTokens(except: ['intermediate_send', 'payplug/notification']);
+        $middleware->validateCsrfTokens(except: ['intermediate_send', 'payplug/notification', 'revue/selection']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         /*

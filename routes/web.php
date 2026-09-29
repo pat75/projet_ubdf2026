@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PriseIdentiteController;
+use App\Http\Controllers\Admin\PriseIdentiteVisiteurController;
 use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
@@ -109,6 +110,12 @@ Route::domain('{login}.{domaineBooks}')
             ->middleware('signed')->name('book.edition.entrer');
         Route::post('/reglages', [EditionBookController::class, 'enregistrer'])
             ->middleware('auth:web')->name('book.reglages');
+
+        // Revue en serie depuis le back-office : bascule de la selection
+        // depuis le bandeau pose en haut du book. Autorisee par le jeton
+        // signe qu'elle porte, pas par une session (RevueBooks).
+        Route::post('/revue/selection', [App\Http\Controllers\Front\RevueBookController::class, 'basculer'])
+            ->name('book.revue.basculer');
 
         Route::get('/{titre}-r{rub}-c{pag}', [BookController::class, 'page'])
             ->where(['titre' => '[-_0-9A-Za-z]*', 'rub' => '[0-9]{1,12}', 'pag' => '[0-9]{1,12}'])
@@ -434,6 +441,14 @@ $portail = function (?string $langue = null) {
         ->middleware('auth:admin')->name('admin.prise-identite');
     Route::post('/admin/prise-identite', [PriseIdentiteController::class, 'rendre'])
         ->name('admin.prise-identite.rendre');
+
+    // Meme geste pour un compte visiteur, sur sa propre garde.
+    Route::get('/admin/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'relais'])
+        ->middleware('auth:admin')->name('admin.prise-identite-visiteur.relais');
+    Route::post('/admin/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'prendre'])
+        ->middleware('auth:admin')->name('admin.prise-identite-visiteur');
+    Route::post('/admin/prise-identite-visiteur', [PriseIdentiteVisiteurController::class, 'rendre'])
+        ->name('admin.prise-identite-visiteur.rendre');
 
     // Desabonnement newsletter : lien signe present dans chaque campagne.
     // Par adresse (createurs et visiteurs confondus), avec retour possible.

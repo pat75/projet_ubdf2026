@@ -73,9 +73,11 @@ class OuvrirCompteContact
 
         RateLimiter::hit($cle, self::BLOCAGE_SECONDES);
 
-        throw ValidationException::withMessages(['password' => $compte === IdentifierCompte::AMBIGU
-            ? __('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant.')
-            : __('Cette adresse a déjà un compte : mot de passe incorrect.')]);
+        throw ValidationException::withMessages(['password' => match ($compte) {
+            IdentifierCompte::AMBIGU => __('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant.'),
+            IdentifierCompte::BLOQUE => __('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.'),
+            default => __('Cette adresse a déjà un compte : mot de passe incorrect.'),
+        }]);
     }
 
     /** « Claire Dupont » → prenom « Claire », nom « Dupont ». */

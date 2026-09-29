@@ -19,8 +19,25 @@ class IdentifierCompte
 {
     public const AMBIGU = 'ambigu';
 
-    /** @return User|Visitor|self::AMBIGU|null */
+    /**
+     * Compte reconnu, mais ferme au back-office. Distingue de l'echec
+     * d'identification : le mot de passe etait bon, dire « incorrect »
+     * enverrait la personne le reinitialiser en boucle.
+     */
+    public const BLOQUE = 'bloque';
+
+    /** @return User|Visitor|self::AMBIGU|self::BLOQUE|null */
     public function executer(string $identifiant, string $motDePasse): User|Visitor|string|null
+    {
+        $compte = $this->reconnaitre($identifiant, $motDePasse);
+
+        return $compte instanceof User || $compte instanceof Visitor
+            ? ($compte->estBloque() ? self::BLOQUE : $compte)
+            : $compte;
+    }
+
+    /** @return User|Visitor|self::AMBIGU|null */
+    private function reconnaitre(string $identifiant, string $motDePasse): User|Visitor|string|null
     {
         $identifiant = mb_strtolower(trim($identifiant));
 

@@ -23,6 +23,19 @@
      rubriques de creatif. Le menu passe au-dessus du contenu sous 900 px. --}}
 <body class="min-h-screen bg-ub-fond font-courant text-ub-texte antialiased">
 
+@if (session()->has('prise_identite_visiteur'))
+    {{-- Un administrateur regarde le compte par-dessus l'epaule du
+         visiteur. Meme bandeau rouge que dans l'espace creatif : on ne
+         doit jamais oublier qu'on agit sous une autre identite. --}}
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-red-700 px-4 py-2 text-center text-sm text-white">
+        <span>{{ __('Vous êtes connecté en tant que :email.', ['email' => auth('visitor')->user()->email]) }}</span>
+        <form method="post" action="{{ route('admin.prise-identite-visiteur.rendre') }}">
+            @csrf
+            <button type="submit" class="font-semibold underline">{{ __('Revenir au back-office') }}</button>
+        </form>
+    </div>
+@endif
+
 @include('partials.visiteur.entete')
 
 <main class="mx-auto flex max-w-[1140px] flex-wrap items-start gap-8 px-4 pb-18 pt-8 min-[900px]:px-5 min-[900px]:pt-11">
