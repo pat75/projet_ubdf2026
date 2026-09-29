@@ -104,6 +104,7 @@ Analyser la demande posséder des questions et faire un plan de codage
 
 
 +   Message a partir du mini book et compte visiteurs
+un visiteur non connecté doit 
 pour envoyer un message à un créatif à partir du mini book via le bouton contactez,
  le visiteur doit être connecté.
 Ainsi, s il clique sur le bouton contacter, le formulaire de contacts s'affiche avec une case. Cocher pour créer un compte quand l'utilisateur coche cette case.
@@ -113,20 +114,26 @@ Il recevra un e-mail de validation d'ouverture de son compte visiteur.
 Il s'agit ici de mettre en place le même système que pour mémo book
  de façon à créer des comptes, visiteurs, utiliser la même table visitors
  
-L les compte créé via Nemo book sont identiques au compte, créé lors des envois de messages par des visiteurs
+Les compte créé via Memo book sont identiques au compte créé lors des envois de messages par des visiteurs
 
 Pour résumer un visiteur qui envoie un message à un créatif, passe automatiquement par une page de création de compte
 En même temps qu'il envoie son message. Si son mail existe déjà, il doit juste indiquer son mot de passe pour se connecter à son compte.
 
  
-
-si un visiteur utilise le bouton de connexion dans le menu top pour se connecter, il indiquera son e-mail et son mot de passe. Ainsi, il sera directement connecté sur son compte visiteur.
-Si un créatif utilise ce même bouton connexion dans le menu top pour se connecter, il indiquera son Logging où son e-mail et sera automatiquement connecté sur son compte créatif
+à vérifier :
+si un visiteur utilise le bouton de connexion dans le menu top pour se connecter, 
+il indiquera son e-mail et son mot de passe. 
+Ainsi, il sera directement connecté sur son compte visiteur.
+Si un créatif utilise ce même bouton connexion dans le menu top pour se connecter, 
+il indiquera son Logging où son e-mail et sera automatiquement connecté 
+sur son compte créatif
 La page de connexion doit automatiquement différencier les comptes visiteurs des comptes créatifs
 Il faut ajouter cette spécification dans la table MySQL des utilisateurs.
 
-Si un visiteur non connecté, essaye d'envoyer un message via la page contact d'un book, il n'est pas obligé de créer un compte.
-Le fonctionnement de la page contact ne change pas par rapport à ce qu'il existe déjà
+Analyser la demande posée des questions et faire un plan de codage
+
+
+
 
 
 
