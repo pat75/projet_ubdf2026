@@ -464,11 +464,17 @@
                         <div class="ui negative message connexion_alerte" role="alert">
                             <div class="header">{{ __('Connexion impossible') }}</div>
                             <p>{{ $message }}</p>
-                            <p>
-                                <a href="#" @click.prevent="vue = 'mdp'">{{ __('Réinitialiser mon mot de passe') }}</a>
-                                ·
-                                <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
-                            </p>
+                            {{-- Compte suspendu : le message, et rien d'autre.
+                                 Reinitialiser son mot de passe ne debloque
+                                 rien, et proposer « Créer un book » invite a
+                                 contourner la suspension. --}}
+                            @unless (session('connexion_suspendue'))
+                                <p>
+                                    <a href="#" @click.prevent="vue = 'mdp'">{{ __('Réinitialiser mon mot de passe') }}</a>
+                                    ·
+                                    <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+                                </p>
+                            @endunless
                         </div>
                     @enderror
 

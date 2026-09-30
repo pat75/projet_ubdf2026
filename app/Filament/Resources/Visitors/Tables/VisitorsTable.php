@@ -60,12 +60,17 @@ class VisitorsTable
                 TextColumn::make('email')->label('Adresse mail')->searchable()->sortable()
                     ->description(fn (Visitor $v) => $v->fullName())
                     ->copyable()
-                    ->badge(fn (Visitor $v) => $v->estBloque())
-                    ->color(fn (Visitor $v) => $v->estBloque() ? 'danger' : null)
-                    ->tooltip(fn (Visitor $v) => $v->estBloque()
-                        ? trim(__('Compte bloqué le :date', ['date' => $v->blocked_at?->format('d/m/Y')]).' — '.($v->blocked_reason ?: '—'))
-                        : null)
                     ->wrap(),
+
+                // Meme label rouge que chez les creatifs, vide si le compte
+                // est actif (voir UsersTable).
+                TextColumn::make('blocked_at')->label('État')->badge()->alignCenter()
+                    ->formatStateUsing(fn () => __('Bloqué'))
+                    ->color('danger')
+                    ->placeholder('')
+                    ->tooltip(fn (Visitor $v) => $v->estBloque()
+                        ? trim(__('Bloqué le :date', ['date' => $v->blocked_at?->format('d/m/Y')]).' — '.($v->blocked_reason ?: '—'))
+                        : null),
                 TextColumn::make('lastname')->label('Nom')->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('firstname')->label('Prénom')->searchable()
@@ -200,6 +205,9 @@ class VisitorsTable
      * Utile surtout pour voir son memo book tel qu'il le voit : c'est la
      * seule chose qu'un compte visiteur contienne, et la seule dont le
      * support ait a parler avec lui.
+     *
+     * Sans confirmation, comme chez les creatifs : le geste est immediat,
+     * et le bandeau rouge du compte rend la main d'un clic.
      */
     private static function priseIdentite(): Action
     {
@@ -209,13 +217,6 @@ class VisitorsTable
             ->icon('heroicon-o-arrow-right-on-rectangle')
             ->color('gray')
             ->iconButton()
-            ->requiresConfirmation()
-            ->modalHeading(fn (Visitor $v) => __('Ouvrir le compte de :email', ['email' => $v->email]))
-            ->modalDescription(fn (Visitor $v) => trim(
-                __('Vous verrez son compte exactement comme lui. Un bandeau rouge vous permettra de revenir ici, sans ressaisir votre mot de passe.')
-                .($v->estBloque() ? ' '.__('Ce compte est bloqué : il ne peut plus se connecter lui-même, mais vous pouvez entrer dans son compte.') : '')
-            ))
-            ->modalSubmitActionLabel(__('Ouvrir son compte'))
             ->action(fn (Visitor $v) => redirect()->route('admin.prise-identite-visiteur.relais', ['visiteur' => $v]));
     }
 }

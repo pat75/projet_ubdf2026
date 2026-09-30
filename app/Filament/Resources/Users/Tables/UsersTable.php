@@ -68,13 +68,22 @@ class UsersTable
                 TextColumn::make('login')->label('Identifiant')->searchable()->sortable()
                     ->description(fn (User $u) => trim($u->firstname.' '.$u->lastname) ?: null)
                     ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true)
-                    // Un compte bloque doit se voir sans ouvrir sa fiche.
-                    ->badge(fn (User $u) => $u->estBloque())
-                    ->color(fn (User $u) => $u->estBloque() ? 'danger' : null)
-                    ->tooltip(fn (User $u) => $u->estBloque()
-                        ? trim(__('Compte bloqué le :date', ['date' => $u->blocked_at?->format('d/m/Y')]).' — '.($u->blocked_reason ?: '—'))
-                        : null)
                     ->wrap(),
+
+                /*
+                 | Un compte bloque se voit d'un coup d'oeil, sans ouvrir sa
+                 | fiche : un vrai label rouge, pas l'identifiant repeint —
+                 | la couleur doit nommer l'etat, pas deguiser une donnee.
+                 | Vide pour un compte actif : le tableau n'est pas un damier
+                 | de pastilles vertes.
+                 */
+                TextColumn::make('blocked_at')->label('État')->badge()->alignCenter()
+                    ->formatStateUsing(fn () => __('Bloqué'))
+                    ->color('danger')
+                    ->placeholder('')
+                    ->tooltip(fn (User $u) => $u->estBloque()
+                        ? trim(__('Bloqué le :date', ['date' => $u->blocked_at?->format('d/m/Y')]).' — '.($u->blocked_reason ?: '—'))
+                        : null),
                 TextColumn::make('category.name')->label('Métier')->sortable()->toggleable()
                     ->size(TextColumnSize::Small)
                     // Les intitules de metier sont longs ; on les tronque
@@ -381,6 +390,11 @@ class UsersTable
      * toujours depuis la liste, apres avoir cherche quelqu'un — ouvrir la
      * fiche pour en ressortir aussitot ne servait a rien.
      *
+     * Sans fenetre de confirmation : le geste est immediat, et il ne
+     * detruit rien — le bandeau rouge de l'espace dit sous quelle identite
+     * on se trouve, et rend la main d'un clic. Un compte bloque s'ouvre
+     * aussi (RefuserComptesBloques exempte la prise d'identite).
+     *
      * Un GET serait rejouable depuis l'historique du navigateur : on passe
      * par une page de relais qui poste le formulaire d'elle-meme.
      */
@@ -392,13 +406,6 @@ class UsersTable
             ->icon('heroicon-o-arrow-right-on-rectangle')
             ->color('gray')
             ->iconButton()
-            ->requiresConfirmation()
-            ->modalHeading(fn (User $u) => __('Ouvrir l’espace de :login', ['login' => $u->login]))
-            ->modalDescription(fn (User $u) => trim(
-                __('Vous verrez son espace exactement comme lui. Un bandeau rouge vous permettra de revenir ici, sans ressaisir votre mot de passe.')
-                .($u->estBloque() ? ' '.__('Ce compte est bloqué : il ne peut plus se connecter lui-même, mais vous pouvez entrer dans son espace.') : '')
-            ))
-            ->modalSubmitActionLabel(__('Ouvrir son espace'))
             ->action(fn (User $u) => redirect()->route('admin.prise-identite.relais', ['creatif' => $u]));
     }
     /**

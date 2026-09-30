@@ -67,8 +67,18 @@ class ConnexionController extends Controller
             return $this->echec($requete, __('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant.'));
         }
 
+        /*
+         | Compte suspendu : le message suffit, et il est seul.
+         |
+         | `connexion_suspendue` fait retirer de la fenetre « Réinitialiser
+         | mon mot de passe » et « Créer un book » : ni l'un ni l'autre ne
+         | debloquera quoi que ce soit, et les proposer ici enverrait la
+         | personne tourner en rond, ou ouvrir un second compte pour
+         | contourner la suspension.
+         */
         if ($compte === IdentifierCompte::BLOQUE) {
-            return $this->echec($requete, __('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.'));
+            return $this->echec($requete, __('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.'))
+                ->with('connexion_suspendue', true);
         }
 
         if ($compte === null) {
