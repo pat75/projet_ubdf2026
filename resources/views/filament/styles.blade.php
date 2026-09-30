@@ -83,4 +83,139 @@
         margin-inline-start: 0;
         gap: 30px;
     }
+
+    /*
+     | Bloc « Encaisse » du tableau de bord
+     | (resources/views/filament/widgets/encaissements.blade.php).
+     */
+
+        /* La carte occupe toute la hauteur de sa rangee, celle du graphique d'en face. */
+        .ub-encaissements,
+        .ub-encaissements > .fi-section {
+            height: 100%;
+        }
+
+        .ub-encaissements > .fi-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* La grille ne peut faire toute la hauteur que si les deux
+           enveloppes de la section la lui passent. */
+        .ub-encaissements .fi-section-content-ctn {
+            display: flex;
+            flex: 1;
+        }
+
+        .ub-encaissements .fi-section-content {
+            flex: 1;
+        }
+
+        .ub-encaissements-grille {
+            display: grid;
+            grid-template-columns: 1fr;
+            /* Deux rangees de meme hauteur, qui se partagent la carte. */
+            grid-auto-rows: 1fr;
+            gap: .75rem;
+            height: 100%;
+        }
+
+        @media (min-width: 640px) {
+            .ub-encaissements-grille {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .ub-encaissement {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: .5rem;
+            padding: .875rem 1rem;
+            border-radius: .75rem;
+            background-color: rgb(249 250 251);
+            box-shadow: inset 0 0 0 1px rgb(9 9 11 / .06);
+        }
+
+        .ub-encaissement-tete {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+
+        .ub-encaissement-libelle {
+            font-size: .6875rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: rgb(107 114 128);
+        }
+
+        .ub-encaissement-variation {
+            display: inline-flex;
+            flex-shrink: 0;
+            align-items: center;
+            gap: .1875rem;
+            padding: .125rem .375rem;
+            border-radius: .375rem;
+            font-size: .6875rem;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ub-encaissement-variation svg {
+            width: .875rem;
+            height: .875rem;
+        }
+
+        .ub-encaissement-variation.ub-hausse {
+            background-color: rgb(220 252 231);
+            color: rgb(21 128 61);
+        }
+
+        .ub-encaissement-variation.ub-baisse {
+            background-color: rgb(255 237 213);
+            color: rgb(194 65 12);
+        }
+
+        .ub-encaissement-montant {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.15;
+            letter-spacing: -.015em;
+            font-variant-numeric: tabular-nums;
+            color: rgb(9 9 11);
+        }
+
+        .ub-encaissement-rappel {
+            margin-top: .125rem;
+            font-size: .75rem;
+            font-variant-numeric: tabular-nums;
+            color: rgb(107 114 128);
+        }
+
+        .dark .ub-encaissement {
+            background-color: rgb(255 255 255 / .05);
+            box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1);
+        }
+
+        .dark .ub-encaissement-montant {
+            color: rgb(255 255 255);
+        }
+
+        .dark .ub-encaissement-libelle,
+        .dark .ub-encaissement-rappel {
+            color: rgb(161 161 170);
+        }
+
+        .dark .ub-encaissement-variation.ub-hausse {
+            background-color: rgb(74 222 128 / .12);
+            color: rgb(134 239 172);
+        }
+
+        .dark .ub-encaissement-variation.ub-baisse {
+            background-color: rgb(251 146 60 / .12);
+            color: rgb(253 186 116);
+        }
 </style>

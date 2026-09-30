@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\Visitors\Tables;
 
-use App\Models\Visitor;
-use App\Services\Admin\ExportCsv;
+use App\Filament\Support\ActionsCompte;
 use App\Filament\Support\FiltrePeriode;
 use App\Filament\Support\MenuTri;
+use App\Models\Visitor;
+use App\Services\Admin\ExportCsv;
 use App\Services\Espace\AffichageProfil;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -18,10 +19,10 @@ use Filament\Support\Enums\TextSize as TextColumnSize;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -123,7 +124,7 @@ class VisitorsTable
             ->filtersFormColumns(['default' => 1, 'md' => 2, 'xl' => 3])
             ->recordActions([
                 self::blocage(),
-                self::priseIdentite(),
+                ActionsCompte::priseIdentiteVisiteur(),
                 ActionGroup::make([
                     EditAction::make(),
                 ]),
@@ -196,27 +197,5 @@ class VisitorsTable
 
                 Notification::make()->title(__('Compte bloqué.'))->warning()->send();
             });
-    }
-    /**
-     * Ouvre le compte du visiteur sous son identite, sans quitter le
-     * back-office — meme mecanique que pour un creatif, sur la garde
-     * `visitor` (App\Http\Controllers\Admin\PriseIdentiteVisiteurController).
-     *
-     * Utile surtout pour voir son memo book tel qu'il le voit : c'est la
-     * seule chose qu'un compte visiteur contienne, et la seule dont le
-     * support ait a parler avec lui.
-     *
-     * Sans confirmation, comme chez les creatifs : le geste est immediat,
-     * et le bandeau rouge du compte rend la main d'un clic.
-     */
-    private static function priseIdentite(): Action
-    {
-        return Action::make('prise_identite')
-            ->label(__('Se connecter en tant que'))
-            ->tooltip(fn (Visitor $v) => __('Ouvrir le compte de :email', ['email' => $v->email]))
-            ->icon('heroicon-o-arrow-right-on-rectangle')
-            ->color('gray')
-            ->iconButton()
-            ->action(fn (Visitor $v) => redirect()->route('admin.prise-identite-visiteur.relais', ['visiteur' => $v]));
     }
 }

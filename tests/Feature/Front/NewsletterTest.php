@@ -23,5 +23,5 @@ it('liste les adresses dans l\'admin', function () {
     $admin = Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']);
 
     $this->actingAs($admin, 'admin')->get('/admin/newsletter-mails')
-        ->assertOk()->assertSee('MailNewsletter')->assertSee('lea@example.test');
+        ->assertOk()->assertSee('Inscrits')->assertSee('lea@example.test');
 });

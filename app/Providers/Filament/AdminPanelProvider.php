@@ -13,7 +13,6 @@ use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -71,9 +70,20 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            /*
+             | Ordre de lecture du tableau de bord : les chiffres du jour,
+             | les quatre courbes de l'annee comparees a la precedente,
+             | puis les dernieres inscriptions, sur lesquelles on agit.
+             */
             ->widgets([
                 \App\Filament\Widgets\ChiffresCles::class,
-                AccountWidget::class,
+                \App\Filament\Widgets\ChiffreAffairesAnnuel::class,
+                \App\Filament\Widgets\Encaissements::class,
+                \App\Filament\Widgets\InscriptionsCreatifs::class,
+                \App\Filament\Widgets\InscriptionsVisiteurs::class,
+                \App\Filament\Widgets\Desinscriptions::class,
+                \App\Filament\Widgets\DernieresInscriptionsCreatifs::class,
+                \App\Filament\Widgets\DernieresInscriptionsVisiteurs::class,
             ])
             ->middleware([
                 EncryptCookies::class,

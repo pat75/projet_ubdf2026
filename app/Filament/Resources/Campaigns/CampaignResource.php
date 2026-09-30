@@ -10,10 +10,10 @@ use App\Filament\Resources\Campaigns\Tables\CampaignsTable;
 use App\Models\Campaign;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CampaignResource extends Resource
 {
@@ -25,11 +25,11 @@ class CampaignResource extends Resource
 
     protected static ?string $pluralModelLabel = 'newsletters';
 
-    protected static ?string $navigationLabel = 'Newsletter';
+    protected static ?string $navigationLabel = 'Campagnes';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Éditorial';
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
 

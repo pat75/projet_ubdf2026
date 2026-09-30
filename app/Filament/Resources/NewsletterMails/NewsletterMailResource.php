@@ -17,7 +17,11 @@ class NewsletterMailResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
-    protected static ?string $navigationLabel = 'MailNewsletter';
+    protected static ?string $navigationLabel = 'Inscrits';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'mail newsletter';
 
