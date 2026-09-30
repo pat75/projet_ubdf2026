@@ -3,13 +3,19 @@
 namespace App\Livewire\Espace;
 
 use App\Livewire\Concerns\EnregistreChamps;
+use App\Mail\ConfirmationAdresse;
 use App\Models\BillingProfile;
 use App\Models\Category;
+use App\Models\User;
 use App\Services\Espace\ArchiveBook;
 use App\Services\Facturation\AnnuaireEntreprises;
 use App\Services\Facturation\SiretIntrouvable;
 use App\Services\Facturation\SiretInvalide;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -105,7 +111,7 @@ class Compte extends Component
     protected function persisterChamp(string $nom, mixed $valeur): void
     {
         if ($nom === 'email') {
-            Auth::user()->update(['email' => $valeur]);
+            $this->demanderChangementAdresse(Auth::user(), (string) $valeur);
 
             return;
         }
@@ -115,7 +121,13 @@ class Compte extends Component
                 return;
             }
 
-            Auth::user()->update(['password' => $valeur]);
+            $creatif = Auth::user();
+            $creatif->update(['password' => $valeur]);
+
+            // Les anciens temoins « se souvenir de moi » ne rouvrent plus la session.
+            $creatif->setRememberToken(Str::random(60));
+            $creatif->save();
+            Auth::login($creatif, remember: true);
             session()->regenerate();
 
             return;
@@ -125,6 +137,33 @@ class Compte extends Component
 
         Auth::user()->update([$nom => $valeur === '' ? null : $valeur]);
         $this->profil[$nom] = $valeur;
+    }
+
+    /**
+     * L'adresse ne change qu'une fois le lien suivi depuis la nouvelle
+     * boite : une adresse non prouvee ouvrirait la liaison Google
+     * (GoogleController::retour) a qui la possede vraiment.
+     */
+    private function demanderChangementAdresse(User $creatif, string $nouvelle): void
+    {
+        $cle = 'changement-adresse|'.$creatif->id;
+
+        abort_if(RateLimiter::tooManyAttempts($cle, 5), 429);
+        RateLimiter::hit($cle, 3600);
+
+        $lien = URL::temporarySignedRoute(nom_route('compte.adresse.confirmer'), now()->addDay(), [
+            'user' => $creatif->login,
+            'email' => $nouvelle,
+            'depuis' => self::empreinteAdresse($creatif),
+        ]);
+
+        Mail::to($nouvelle)->send(new ConfirmationAdresse($creatif, $lien));
+    }
+
+    /** Empreinte de l'adresse en place : invalide les liens emis avant un changement. */
+    public static function empreinteAdresse(User $creatif): string
+    {
+        return hash_hmac('sha256', (string) $creatif->email, config('app.key'));
     }
 
     public function updatedCategorie(): void

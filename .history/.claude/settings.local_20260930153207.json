@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+
+  },
+  "model": "opus",
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(*)",
+      "Read(//Users/pat/Sites_2026/projet_ubdf2026/**)",
+      "Read(//Users/pat/Sites_2019/_projet_ubdf_2020/**)",
+      "Read(//private/tmp/**)",
+      "Edit(//Users/pat/Sites_2026/projet_ubdf2026/**)",
+      "Write(//Users/pat/Sites_2026/projet_ubdf2026/**)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/Users/pat/Sites_2019/_projet_ubdf_2020",
+      "/private/tmp"
+    ]
+  }
+}

@@ -100,7 +100,7 @@
         </x-espace.ligne>
 
         <x-espace.ligne :libelle="__('Adresse mail')" :prive="true" :dernier="true">
-            <div x-data="{ edition: false, valide: false, enregistre: @js($creatif->email), valeur: @js($creatif->email), erreur: null, minuteur: null, envoi: false,
+            <div x-data="{ edition: false, valide: false, enregistre: @js($creatif->email), valeur: @js($creatif->email), erreur: null, minuteur: null, envoi: false, attente: null,
                            annuler() { this.edition = false; this.valeur = this.enregistre; this.erreur = null; },
                            valider() {
                                if (this.valeur === this.enregistre) { this.annuler(); return; }
@@ -109,7 +109,8 @@
                                $wire.enregistrerChamp('email', this.valeur).then((r) => {
                                    this.envoi = false;
                                    if (r?.erreur) { this.erreur = r.erreur; return; }
-                                   this.enregistre = this.valeur; this.annuler(); this.valide = true;
+                                   // L'adresse ne change qu'apres le lien de confirmation.
+                                   this.attente = this.valeur; this.annuler(); this.valide = true;
                                    clearTimeout(this.minuteur); this.minuteur = setTimeout(() => this.valide = false, 4000);
                                });
                            } }" class="flex w-full flex-col gap-1">
@@ -146,6 +147,8 @@
                 </div>
 
                 <span x-show="erreur" x-cloak x-text="erreur" class="text-[13px] text-ub-danger"></span>
+                <span x-show="attente" x-cloak class="text-[13px] text-ub-texte3"
+                      x-text="@js(__('Lien de confirmation envoyé à :adresse. L’adresse changera une fois le lien suivi.')).replace(':adresse', attente)"></span>
             </div>
         </x-espace.ligne>
     </x-espace.carte>

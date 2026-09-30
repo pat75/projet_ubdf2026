@@ -14,11 +14,6 @@ le bon éditeur
 
 
 
-+ Quota
-sur les comptes, créatifs, vérifier le système de comptabilité des images
-Avec notamment le quota empois et le quota en nombre d'images
-Vérifier le bon fonctionnement du système et sa cohérence par rapport à l'ensemble du site
-
 
 
 
@@ -28,6 +23,11 @@ Vérifier le bon fonctionnement du système et sa cohérence par rapport à l'en
 
 
 ================ ok
++ Quota - ok
+sur les comptes, créatifs, vérifier le système de comptabilité des images
+Avec notamment le quota empois et le quota en nombre d'images
+Vérifier le bon fonctionnement du système et sa cohérence par rapport à l'ensemble du site
+
 
 + Newsletter - ok
 ajouter dans l'administration, une rubrique newsletter pour concevoir et envoyer une newsletter

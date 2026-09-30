@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -112,6 +113,17 @@ class Messages extends Component
         $this->validate(['reponse' => 'required|string|min:2|max:5000']);
 
         $this->erreurIA = null;
+
+        // Chaque correction est facturee par OpenRouter.
+        $cle = 'correction-ia|'.Auth::id();
+
+        if (RateLimiter::tooManyAttempts($cle, 20)) {
+            $this->erreurIA = __('Trop de corrections demandées, réessayez dans un moment.');
+
+            return;
+        }
+
+        RateLimiter::hit($cle, 3600);
 
         try {
             $this->suggestionIA = $correction->corriger($this->reponse);

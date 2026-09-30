@@ -1,8 +1,10 @@
 <?php
 
 use App\Livewire\Espace\Compte;
+use App\Mail\ConfirmationAdresse;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -43,12 +45,48 @@ it('refuse d enregistrer par ce biais un champ hors de la liste', function () {
     Livewire::test(Compte::class)->call('enregistrerChamp', 'category_id', '3')->assertStatus(422);
 });
 
-it('change l adresse mail, sans mot de passe actuel', function () {
+it('ne change l adresse mail qu apres le lien de confirmation', function () {
+    Mail::fake();
+
     Livewire::test(Compte::class)
         ->call('enregistrerChamp', 'email', 'nouveau@example.test')
         ->assertReturned(['ok' => true]);
 
-    expect($this->creatif->fresh()->email)->toBe('nouveau@example.test');
+    expect($this->creatif->fresh()->email)->toBe('moi@example.test');
+
+    $lien = null;
+    Mail::assertSent(ConfirmationAdresse::class, function (ConfirmationAdresse $mail) use (&$lien) {
+        $lien = $mail->lienConfirmation;
+
+        return $mail->hasTo('nouveau@example.test');
+    });
+
+    $this->get($lien)->assertRedirect();
+
+    expect($this->creatif->fresh())
+        ->email->toBe('nouveau@example.test')
+        ->email_verified_at->not->toBeNull();
+});
+
+it('refuse un lien de changement d adresse falsifie ou perime', function () {
+    Mail::fake();
+
+    Livewire::test(Compte::class)->call('enregistrerChamp', 'email', 'nouveau@example.test');
+
+    $lien = null;
+    Mail::assertSent(ConfirmationAdresse::class, function (ConfirmationAdresse $mail) use (&$lien) {
+        $lien = $mail->lienConfirmation;
+
+        return true;
+    });
+
+    $this->get(str_replace('nouveau%40', 'pirate%40', $lien))->assertForbidden();
+
+    // L'adresse a change depuis : l'ancien lien ne vaut plus rien.
+    $this->creatif->forceFill(['email' => 'autre@example.test'])->save();
+    $this->get($lien)->assertForbidden();
+
+    expect($this->creatif->fresh()->email)->toBe('autre@example.test');
 });
 
 it('refuse une adresse mail deja prise', function () {

@@ -56,6 +56,17 @@ class GoogleController extends Controller
                 return $this->echec(__('Plusieurs books utilisent cette adresse : connectez-vous avec votre identifiant et votre mot de passe.'));
             }
 
+            /*
+             | Rattacher Google a un compte existant ouvre ce compte : il faut
+             | que l'adresse soit prouvee des deux cotes. Sinon, un compte
+             | ouvert avec l'adresse d'autrui capterait sa connexion Google.
+             */
+            $verifieeGoogle = filter_var($google->user['email_verified'] ?? false, FILTER_VALIDATE_BOOL);
+
+            if ($comptes->isNotEmpty() && (! $verifieeGoogle || $comptes->first()->email_verified_at === null)) {
+                return $this->echec(__('Connectez-vous avec votre identifiant et votre mot de passe, puis confirmez votre adresse.'));
+            }
+
             $compte = $comptes->first();
             $compte?->forceFill(['google_id' => $google->getId()])->save();
         }

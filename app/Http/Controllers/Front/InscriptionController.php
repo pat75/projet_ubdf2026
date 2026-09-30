@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\InscriptionRequest;
+use App\Livewire\Espace\Compte;
 use App\Models\User;
 use App\Services\Auth\Inscription;
 use App\Services\Auth\MotDePasse;
@@ -218,6 +219,27 @@ class InscriptionController extends Controller
 
         return redirect()->to(lien('espace'))
             ->with('statut', __('Votre adresse est confirmée.'));
+    }
+
+    /**
+     * Nouvelle adresse confirmee (Livewire\Espace\Compte). Le lien porte
+     * l'empreinte de l'adresse en place a la demande : une fois l'adresse
+     * changee, les liens plus anciens ne valent plus rien.
+     */
+    public function confirmerAdresse(Request $requete, User $user): RedirectResponse
+    {
+        $nouvelle = (string) $requete->query('email');
+
+        abort_unless(
+            filter_var($nouvelle, FILTER_VALIDATE_EMAIL)
+                && hash_equals(Compte::empreinteAdresse($user), (string) $requete->query('depuis')),
+            403,
+        );
+
+        $user->forceFill(['email' => $nouvelle, 'email_verified_at' => now()])->save();
+
+        return redirect()->to(lien('espace.compte'))
+            ->with('statut', __('Votre nouvelle adresse est confirmée.'));
     }
 
     /** @param  string|list<string>  $messages */

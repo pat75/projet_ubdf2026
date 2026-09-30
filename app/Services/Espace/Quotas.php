@@ -3,6 +3,7 @@
 namespace App\Services\Espace;
 
 use App\Models\User;
+use RuntimeException;
 
 /**
  * Les deux compteurs de l'espace : nombre de visuels et poids total,
@@ -14,6 +15,16 @@ use App\Models\User;
  */
 class Quotas
 {
+    /** Refuse un nouveau visuel au-dela du plafond de la formule. */
+    public function verifierAjout(User $creatif): void
+    {
+        $images = $this->pour($creatif)['images'];
+
+        if ($images['valeur'] >= $images['plafond']) {
+            throw new RuntimeException(__('Vous avez atteint les :n visuels de votre formule.', ['n' => $images['plafond']]));
+        }
+    }
+
     /** @return array<string, array{valeur: int, plafond: int, unite: string}> */
     public function pour(User $creatif): array
     {

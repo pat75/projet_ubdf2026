@@ -7,6 +7,7 @@ use App\Models\BookSetting;
 use App\Models\User;
 use App\Services\Espace\AffichageProfil;
 use App\Services\Espace\DepotAvatar;
+use App\Services\Espace\NettoyeurHtml;
 use App\Services\Espace\ReglagesTheme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -127,7 +128,10 @@ class Habillage extends Component
     {
         $colonne = ['titre' => 'title', 'description' => 'description', 'piedDePage' => 'footer'][$nom];
 
-        $this->reglages()->update([$colonne => (string) $valeur]);
+        // Le pied de page ressort sans echappement sur le book ({!! $pied !!}).
+        $valeur = $nom === 'piedDePage' ? app(NettoyeurHtml::class)->nettoyer((string) $valeur) : (string) $valeur;
+
+        $this->reglages()->update([$colonne => $valeur]);
         $this->{$nom} = (string) $valeur;
     }
 

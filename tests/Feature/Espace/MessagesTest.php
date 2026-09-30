@@ -205,3 +205,21 @@ it('affiche seulement Contacts et Supprimer, cote a cote', function () {
     // largeur egale (flex-1) : le bloc prend toute la largeur.
     expect($reponse->getContent())->toContain('flex-1 items-center justify-center');
 });
+
+it('limite les corrections IA par createur', function () {
+    config(['services.openrouter.api_key' => 'test-key']);
+    Http::fake(['openrouter.ai/*' => Http::response(['choices' => [['message' => ['content' => 'Corrige.']]]], 200)]);
+
+    for ($i = 0; $i < 20; $i++) {
+        Illuminate\Support\Facades\RateLimiter::hit('correction-ia|'.auth()->id(), 3600);
+    }
+
+    Livewire::test(Messages::class)
+        ->call('ouvrir', $this->conversation->id)
+        ->set('reponse', 'Mon texte original.')
+        ->call('corrigerReponse')
+        ->assertSet('suggestionIA', null)
+        ->assertSet('erreurIA', 'Trop de corrections demandées, réessayez dans un moment.');
+
+    Http::assertNothingSent();
+});

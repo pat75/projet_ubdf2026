@@ -160,3 +160,15 @@ it('garde les anciens modeles visibles pour un book recent qui en porte un', fun
 
     $this->get(route('espace.design'))->assertOk()->assertSee('Anciens modèles');
 });
+
+it('retire scripts et gestionnaires d evenements du pied de page', function () {
+    Livewire::test(Habillage::class)
+        ->call('enregistrerChamp', 'piedDePage', '<p>Merci</p><script>alert(1)</script><img src="x" onerror="alert(2)">')
+        ->assertReturned(['ok' => true]);
+
+    $pied = $this->creatif->bookSetting()->value('footer');
+
+    expect($pied)->toContain('<p>Merci</p>')
+        ->not->toContain('<script')
+        ->not->toContain('onerror');
+});

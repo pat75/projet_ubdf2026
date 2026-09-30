@@ -82,3 +82,14 @@ it('ne propose plus le Pack Luxe ni le Pack Site', function () {
         ->assertDontSee('Pack Luxe')
         ->assertDontSee('Pack Site');
 });
+
+it('ignore un paiement de test en production', function () {
+    app()->detectEnvironment(fn () => 'production');
+    $this->payplug->shouldReceive('lireNotification')->andReturn(
+        ['brut' => ['id' => 'pay_t', 'is_live' => false]] + notification($this->creatif->id, 2, 3680, 'pay_t')
+    );
+
+    $this->postJson(route('payplug.notification'), ['id' => 'pay_t'])->assertOk();
+
+    expect($this->creatif->fresh()->invoices()->count())->toBe(0);
+});

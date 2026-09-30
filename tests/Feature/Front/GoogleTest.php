@@ -14,9 +14,9 @@ beforeEach(function () {
     config(['services.google.client_id' => 'id', 'services.google.client_secret' => 'secret']);
 });
 
-function retourGoogle(string $id, string $email, string $nom = 'Nolwenn Le Goff'): void
+function retourGoogle(string $id, string $email, string $nom = 'Nolwenn Le Goff', bool $verifiee = true): void
 {
-    $google = (new UtilisateurGoogle)->map(['id' => $id, 'email' => $email, 'name' => $nom]);
+    $google = (new UtilisateurGoogle)->setRaw(['email_verified' => $verifiee])->map(['id' => $id, 'email' => $email, 'name' => $nom]);
     $pilote = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
     $pilote->shouldReceive('redirectUrl')->andReturnSelf();
     $pilote->shouldReceive('user')->andReturn($google);
@@ -24,13 +24,33 @@ function retourGoogle(string $id, string $email, string $nom = 'Nolwenn Le Goff'
 }
 
 it('connecte un compte existant par son adresse et lui rattache Google', function () {
-    $compte = User::factory()->create(['email' => 'nolwenn@example.com']);
+    $compte = User::factory()->create(['email' => 'nolwenn@example.com', 'email_verified_at' => now()]);
     retourGoogle('g-123', 'nolwenn@example.com');
 
     $this->get('/auth/google/callback')->assertRedirect(route('espace'));
 
     expect(auth()->id())->toBe($compte->id)
         ->and($compte->fresh()->google_id)->toBe('g-123');
+});
+
+it('ne rattache pas Google a un compte dont l adresse n est pas confirmee', function () {
+    $compte = User::factory()->create(['email' => 'nolwenn@example.com', 'email_verified_at' => null]);
+    retourGoogle('g-123', 'nolwenn@example.com');
+
+    $this->get('/auth/google/callback')->assertSessionHasErrors('login');
+
+    expect(auth()->check())->toBeFalse()
+        ->and($compte->fresh()->google_id)->toBeNull();
+});
+
+it('ne rattache pas Google quand Google ne garantit pas l adresse', function () {
+    $compte = User::factory()->create(['email' => 'nolwenn@example.com', 'email_verified_at' => now()]);
+    retourGoogle('g-123', 'nolwenn@example.com', verifiee: false);
+
+    $this->get('/auth/google/callback')->assertSessionHasErrors('login');
+
+    expect(auth()->check())->toBeFalse()
+        ->and($compte->fresh()->google_id)->toBeNull();
 });
 
 it('refuse de choisir entre plusieurs books de la meme adresse', function () {

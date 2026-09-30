@@ -4,6 +4,7 @@ namespace App\Services\Paiement;
 
 use App\Models\Invoice;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -120,7 +121,19 @@ class Souscription
             return null;
         }
 
-        return DB::transaction(function () use ($p, $option, $creatif) {
+        // Un paiement de test ne prolonge jamais une formule en production.
+        if (app()->isProduction() && ! ($p['brut']['is_live'] ?? false)) {
+            Log::warning('Payplug : paiement de test recu en production', ['id' => $p['id']]);
+
+            return null;
+        }
+
+        /*
+         | Payplug rejoue ses notifications, parfois en meme temps. Le verrou
+         | de ligne ne protege rien tant que la facture n'existe pas : on
+         | serialise donc par paiement avant de chercher la facture.
+         */
+        return Cache::lock('payplug:'.$p['id'], 30)->block(10, fn () => DB::transaction(function () use ($p, $option, $creatif) {
             $existante = Invoice::where('gateway', 'payplug')->where('gateway_payload->id', $p['id'])->lockForUpdate()->first();
 
             if ($existante) {
@@ -146,6 +159,6 @@ class Souscription
             $facture->update(['number' => ($creatif->brand ?: 'ub').'-'.$facture->id]);
 
             return $facture;
-        });
+        }));
     }
 }

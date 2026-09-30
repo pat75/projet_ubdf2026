@@ -31,7 +31,10 @@ use Throwable;
  */
 class DepotVisuel
 {
-    public function __construct(private readonly ImageManager $images) {}
+    public function __construct(
+        private readonly ImageManager $images,
+        private readonly Quotas $quotas,
+    ) {}
 
     public function deposer(Gallery $galerie, UploadedFile $fichier): Media
     {
@@ -83,6 +86,7 @@ class DepotVisuel
     private function stocker(Gallery $galerie, string $source, array $attributs, ?\Closure $retouche = null): Media
     {
         $creatif = $galerie->user;
+        $this->quotas->verifierAjout($creatif->fresh());
         $ecrit = $this->ecrire($creatif->login, $source, $retouche);
 
         return DB::transaction(function () use ($galerie, $creatif, $attributs, $ecrit) {

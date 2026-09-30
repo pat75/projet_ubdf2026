@@ -214,3 +214,16 @@ it('protege un portfolio par un mot de passe relisible, puis le retire', functio
 
     expect($g->fresh()->estProtegee())->toBeFalse();
 });
+
+it('refuse un visuel au-dela du plafond de la formule', function () {
+    config(['formules.limites.gratuite.visuels' => 1]);
+    $this->creatif->update(['plan' => 0, 'media_count' => 1]);
+    $galerie = galerie($this->creatif);
+
+    Livewire::test(Galeries::class)
+        ->set('cible', $galerie->id)
+        ->set('fichiers', [UploadedFile::fake()->image('Portrait.jpg', 300, 200)])
+        ->assertHasErrors('fichiers');
+
+    expect($galerie->media()->count())->toBe(0);
+});

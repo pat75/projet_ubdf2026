@@ -245,7 +245,7 @@ Route::group([], function () {
      */
     // Notification de paiement Payplug (serveur a serveur, sans session).
     Route::post('/payplug/notification', [PaiementController::class, 'notification'])
-        ->name('payplug.notification');
+        ->middleware('throttle:60,1')->name('payplug.notification');
 
     // Microbook : URL du legacy, collee telle quelle dans des sites tiers.
     Route::get('/microbook_{admin}_{pied}__{login}', MicrobookController::class)
@@ -365,7 +365,7 @@ $portail = function (?string $langue = null) {
         Route::get('/modifier-mon-book', [EditionBookController::class, 'lien'])->name('edition-book');
         Route::get('/pages', [PageController::class, 'index'])->name('pages');
         Route::get('/pages/images', [PageImageController::class, 'index'])->name('pages.images.index');
-        Route::post('/pages/upload-image', [PageImageController::class, 'store'])->name('pages.upload-image');
+        Route::post('/pages/upload-image', [PageImageController::class, 'store'])->middleware('throttle:60,1')->name('pages.upload-image');
         Route::post('/pages/images/{image}', [PageImageController::class, 'update'])->name('pages.images.update');
         Route::delete('/pages/images/{image}', [PageImageController::class, 'destroy'])->name('pages.images.destroy');
         Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
@@ -463,6 +463,10 @@ $portail = function (?string $langue = null) {
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
         ->middleware('signed')->name('inscription.confirmer');
+
+    // Changement d'adresse depuis l'espace : la nouvelle adresse, signee, dans l'URL.
+    Route::get('/compte/adresse/{user}', [InscriptionController::class, 'confirmerAdresse'])
+        ->middleware('signed')->name('compte.adresse.confirmer');
 
     Route::get('/mot-de-passe/{demande}/{jeton}', [MotDePasseController::class, 'formulaire'])
         ->where(['demande' => '[0-9]+', 'jeton' => '[a-f0-9]{64}'])
