@@ -94,7 +94,10 @@ class Compte extends Component
             // cours prouve deja l'identite : pas besoin de reprouver le mot
             // de passe actuel pour les changer, contrairement a une action
             // plus lourde (supprimer le portfolio).
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore(Auth::id())],
+            // Pas d'unicite : un meme createur peut tenir plusieurs books
+            // avec la meme adresse (heritage legacy, index non unique), et
+            // la connexion se fait par le login, pas par l'adresse.
+            'email' => ['required', 'email', 'max:255'],
             'motDePasse' => ['nullable', 'string', 'min:8', 'max:255'],
         ];
     }

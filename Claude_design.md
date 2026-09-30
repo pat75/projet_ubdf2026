@@ -149,7 +149,12 @@ principe, sur toutes les pages. Références : bloc « Présentation » de
   **sans mot de passe actuel ni confirmation** : la session en cours
   prouve déjà l'identité. Pour le mot de passe : masqué au repos (des
   points, jamais la vraie valeur), et un **œil** dans le champ pour le
-  relire pendant la frappe (`text`/`password`). Références : lignes
+  relire pendant la frappe (`text`/`password`). **Exception propre au
+  mot de passe et à l'adresse mail** (et à eux seuls sur le site) : pas d'enregistrement à la
+  sortie du champ ; un bouton « Valider » noir, texte blanc, apparaît
+  dans le champ, à droite de l’œil (pas d'œil pour le mail, toujours
+  lisible ; le mot de passe s'affiche en clair à l'ouverture) dès l'ouverture du champ, Entrée valide aussi ; Échap ou un clic ailleurs dans la page annule
+  sans enregistrer. Références : lignes
   « Mot de passe » et « Adresse mail » de `/espace/compte`.
 - **Action protégée par le mot de passe actuel** : réservé aux gestes
   plus lourds qu'un champ de profil (ex. supprimer le portfolio) —

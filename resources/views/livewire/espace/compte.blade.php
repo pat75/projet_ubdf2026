@@ -38,11 +38,22 @@
              mot de passe actuel : la session en cours prouve deja
              l'identite. --}}
         <x-espace.ligne :libelle="__('Mot de passe')" :prive="true">
-            <div x-data="{ edition: false, visible: false, valide: false, valeur: '', erreur: null, minuteur: null }" class="flex w-full flex-col gap-1">
-                <div class="flex max-w-60 items-center">
+            <div x-data="{ edition: false, visible: false, valide: false, valeur: '', erreur: null, minuteur: null, envoi: false,
+                           annuler() { this.edition = false; this.valeur = ''; this.visible = false; this.erreur = null; },
+                           valider() {
+                               if (this.valeur === '' || this.envoi) return;
+                               this.envoi = true;
+                               $wire.enregistrerChamp('motDePasse', this.valeur).then((r) => {
+                                   this.envoi = false;
+                                   if (r?.erreur) { this.erreur = r.erreur; return; }
+                                   this.annuler(); this.valide = true;
+                                   clearTimeout(this.minuteur); this.minuteur = setTimeout(() => this.valide = false, 4000);
+                               });
+                           } }" class="flex w-full flex-col gap-1">
+                <div class="flex items-center gap-2.5">
                     <span x-show="! edition" class="flex items-center">
                         <span class="text-[18px] tracking-[3px] text-ub-texte">••••••••••</span>
-                        <button type="button" @click="edition = true; erreur = null; $nextTick(() => $refs.champMotDePasse.focus())"
+                        <button type="button" @click="edition = true; visible = true; erreur = null; $nextTick(() => $refs.champMotDePasse.focus())"
                                 :title="valide ? @js(__('Enregistré')) : @js(__('Modifier'))"
                                 class="ml-2.5 shrink-0 text-ub-texte3 hover:text-ub-texte">
                             <svg x-show="! valide" class="h-4 w-4" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true">
@@ -54,19 +65,15 @@
                         </button>
                     </span>
 
-                    <span x-show="edition" x-cloak class="relative w-full">
+                    <span x-show="edition" x-cloak class="relative w-full max-w-80">
                         <input x-ref="champMotDePasse" :type="visible ? 'text' : 'password'" x-model="valeur" @input="erreur = null"
-                               @keydown.escape="edition = false; valeur = ''"
-                               @blur="if (valeur === '') { edition = false; return; }
-                                      $wire.enregistrerChamp('motDePasse', valeur).then((r) => {
-                                          if (r?.erreur) { erreur = r.erreur; return; }
-                                          erreur = null; valeur = ''; visible = false; edition = false; valide = true;
-                                          clearTimeout(minuteur); minuteur = setTimeout(() => valide = false, 4000);
-                                      })"
-                               autocomplete="new-password" placeholder="••••••••••" class="champ-espace pr-10">
-                        <button type="button" @click="visible = ! visible"
+                               @keydown.enter.prevent="valider()"
+                               @keydown.escape="annuler()"
+                               @blur="annuler()"
+                               autocomplete="new-password" placeholder="••••••••••" class="champ-espace pr-28">
+                        <button type="button" @mousedown.prevent @click="visible = ! visible"
                                 :title="visible ? @js(__('Masquer')) : @js(__('Afficher'))"
-                                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-ub-texte3 hover:text-ub-texte">
+                                class="absolute right-20 top-1/2 -translate-y-1/2 text-ub-texte3 hover:text-ub-texte">
                             <svg x-show="! visible" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12Z"/>
                                 <circle cx="12" cy="12" r="3"/>
@@ -75,7 +82,17 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.58 10.58a3 3 0 0 0 4.24 4.24M6.53 6.53C4.2 8.06 2.25 12 2.25 12s3.75 7.5 9.75 7.5c1.9 0 3.53-.5 4.88-1.24M9.88 4.7A10.4 10.4 0 0 1 12 4.5c6 0 9.75 7.5 9.75 7.5a15.8 15.8 0 0 1-2.13 3.05"/>
                             </svg>
                         </button>
+                        {{-- Mot de passe seulement : validation explicite par un
+                             bouton, jamais a la sortie du champ (une faute de
+                             frappe ne doit pas partir seule). mousedown.prevent
+                             garde le focus dans le champ au clic. --}}
+                        <button type="button" @mousedown.prevent @click="valider()"
+                                :disabled="valeur === '' || envoi"
+                                class="absolute inset-y-1 right-1 bg-black px-3 text-[13px] font-bold text-white hover:bg-[#333] disabled:opacity-60">
+                            {{ __('Valider') }}
+                        </button>
                     </span>
+
                 </div>
 
                 <span x-show="erreur" x-cloak x-text="erreur" class="text-[13px] text-ub-danger"></span>
@@ -83,10 +100,22 @@
         </x-espace.ligne>
 
         <x-espace.ligne :libelle="__('Adresse mail')" :prive="true" :dernier="true">
-            <div x-data="{ edition: false, valide: false, valeur: @js($creatif->email), erreur: null, minuteur: null }" class="flex w-full flex-col gap-1">
+            <div x-data="{ edition: false, valide: false, enregistre: @js($creatif->email), valeur: @js($creatif->email), erreur: null, minuteur: null, envoi: false,
+                           annuler() { this.edition = false; this.valeur = this.enregistre; this.erreur = null; },
+                           valider() {
+                               if (this.valeur === this.enregistre) { this.annuler(); return; }
+                               if (this.valeur === '' || this.envoi) return;
+                               this.envoi = true;
+                               $wire.enregistrerChamp('email', this.valeur).then((r) => {
+                                   this.envoi = false;
+                                   if (r?.erreur) { this.erreur = r.erreur; return; }
+                                   this.enregistre = this.valeur; this.annuler(); this.valide = true;
+                                   clearTimeout(this.minuteur); this.minuteur = setTimeout(() => this.valide = false, 4000);
+                               });
+                           } }" class="flex w-full flex-col gap-1">
                 <div class="flex items-center">
                     <span x-show="! edition" class="flex items-center">
-                        <span x-text="valeur"></span>
+                        <span x-text="enregistre"></span>
                         <button type="button" @click="edition = true; erreur = null; $nextTick(() => $refs.champEmail.focus())"
                                 :title="valide ? @js(__('Enregistré')) : @js(__('Modifier'))"
                                 class="ml-2.5 shrink-0 text-ub-texte3 hover:text-ub-texte">
@@ -99,16 +128,20 @@
                         </button>
                     </span>
 
-                    <span x-show="edition" x-cloak class="w-full max-w-xs">
+                    {{-- Meme principe que le mot de passe : validation par le
+                         bouton ou Entree, jamais a la sortie du champ ; pas
+                         d'oeil, l'adresse est toujours lisible. --}}
+                    <span x-show="edition" x-cloak class="relative w-full max-w-80">
                         <input x-ref="champEmail" type="email" x-model="valeur" @input="erreur = null"
-                               @keydown.escape="edition = false; valeur = @js($creatif->email)"
-                               @blur="if (valeur === @js($creatif->email)) { edition = false; return; }
-                                      $wire.enregistrerChamp('email', valeur).then((r) => {
-                                          if (r?.erreur) { erreur = r.erreur; return; }
-                                          erreur = null; edition = false; valide = true;
-                                          clearTimeout(minuteur); minuteur = setTimeout(() => valide = false, 4000);
-                                      })"
-                               autocomplete="email" class="champ-espace">
+                               @keydown.enter.prevent="valider()"
+                               @keydown.escape="annuler()"
+                               @blur="annuler()"
+                               autocomplete="email" class="champ-espace pr-20">
+                        <button type="button" @mousedown.prevent @click="valider()"
+                                :disabled="valeur === '' || envoi"
+                                class="absolute inset-y-1 right-1 bg-black px-3 text-[13px] font-bold text-white hover:bg-[#333] disabled:opacity-60">
+                            {{ __('Valider') }}
+                        </button>
                     </span>
                 </div>
 
