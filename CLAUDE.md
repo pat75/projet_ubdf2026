@@ -19,6 +19,32 @@ Le `php` du PATH est **MAMP 8.1.13**, pas 8.3. Toujours utiliser :
 /usr/local/opt/php@8.3/bin/php /usr/local/bin/composer.phar ...
 ```
 
+## Piege : Filament nomme les arguments de closure
+
+Filament passe ses valeurs aux closures **par nom de parametre**
+(`$query`, `$data`, `$state`, `$record`, `$livewire`, `$table`). Un nom
+different ne recoit rien : le conteneur fabrique un objet vide a la place.
+
+```php
+// FAUX : $q ne recoit rien, Filament construit un Builder sans modele.
+->modifyQueryUsing(fn (Builder $q) => $q->addSelect([...]))
+
+// JUSTE
+->modifyQueryUsing(fn (Builder $query) => $query->addSelect([...]))
+```
+
+Une seule exception, et c'est elle qui trompe : **l'enregistrement se
+resout aussi par son type** (`Column::resolveDefaultClosureDependency
+ForEvaluationByType`). `fn (User $u) => ...` marche donc dans les
+colonnes et les actions, ce qui laisse croire que le type suffit
+toujours. Il ne suffit que pour le modele.
+
+L'echec est parfois bruyant (`Call to a member function
+newQueryWithoutRelationships() on null`), parfois **silencieux** : un
+filtre dont la closure prend `$requete` au lieu de `$query` ne filtre
+rien et rend toute la table, sans erreur. Apres avoir ecrit un filtre,
+verifier que le nombre de lignes bouge vraiment.
+
 ## Environnement
 
 | | |
