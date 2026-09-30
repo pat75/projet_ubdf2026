@@ -15,8 +15,9 @@ class PdfController extends Controller
         $nom = ($request->user()->brand === 'df' ? 'dustfolio' : 'ultra-book').'_'.now()->format('j-m-Y').'.pdf';
 
         // Interrupteurs de la page Exporter : ?titres=0 masque le nom des
-        // rubriques, ?legendes=1 ajoute le titre des visuels.
-        $contenu = $pdf->generer($request->user(), $request->boolean('titres', true), $request->boolean('legendes'));
+        // rubriques, ?legendes=1 ajoute le titre des visuels, ?proteges=1
+        // inclut les portfolios proteges par mot de passe.
+        $contenu = $pdf->generer($request->user(), $request->boolean('titres', true), $request->boolean('legendes'), $request->boolean('proteges'));
 
         return response($contenu, 200, [
             'Content-Type' => 'application/pdf',

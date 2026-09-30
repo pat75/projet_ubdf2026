@@ -2,6 +2,7 @@
 
 namespace App\Services\Book;
 
+use App\Models\Gallery;
 use App\Models\Media;
 use App\Models\User;
 
@@ -18,7 +19,14 @@ class LecteurVideos
 {
     public function injecter(string $html, User $book): string
     {
+        // Les liens des lecteurs sont lisibles dans la page : ceux d'un
+        // portfolio encore ferme a ce visiteur n'y figurent pas.
+        $acces = app(AccesPortfolios::class);
+        $fermes = $book->galleries()->whereNotNull('password')->get()
+            ->reject(fn (Gallery $g) => $acces->ouvert($g))->modelKeys();
+
         $lecteurs = Media::where('user_id', $book->id)->published()->whereNotNull('video_url')
+            ->when($fermes, fn ($q) => $q->whereNotIn('gallery_id', $fermes))
             ->get(['filename', 'video_url'])
             ->mapWithKeys(fn (Media $m) => [(string) $m->filename => $m->video()?->lecteur()])
             ->filter()

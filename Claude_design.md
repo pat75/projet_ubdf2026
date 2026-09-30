@@ -206,6 +206,28 @@ d'origine) : `courrier` (non lu), `courrier-lu` (lu), `poubelle`,
 `restaurer`, `angle-droite`, `angle-bas`, `deplacer` (croix à quatre flèches : poignée de tout élément déplaçable). Ajouter un picto = ajouter son
 tracé dans `resources/views/components/espace/picto.blade.php`.
 
+## Bulles d'aide
+
+Toute icône d'action sans libellé visible (cadenas, interrupteur,
+poubelle…) porte une bulle d'aide de quelques mots, qui dit ce que le
+geste fait *maintenant* (« Masquer du book » ou « Afficher dans le
+book », selon l'état). Pas d'attribut `title` en plus : deux bulles se
+superposeraient.
+
+```blade
+<x-espace.info-bulle :texte="__('Supprimer le portfolio')">
+    <button type="button" …>…</button>
+</x-espace.info-bulle>
+```
+
+- Composant `<x-espace.info-bulle>` : fond `bg-gray-900`, texte blanc
+  14px, angles droits, `px-3 py-2`.
+- Posée **sous** l'icône, centrée (`mt-3`), avec un losange de 8px
+  (`rotate-45`) qui **pointe vers le haut**.
+- Visible au survol et au focus clavier, en fondu de 150 ms.
+- Une carte en `overflow-hidden` coupe la bulle si elle dépasse : la
+  laisser dans une zone qui a du contenu dessous.
+
 ## Onglets
 
 Onglets et panneau dans une même carte (`carte-espace overflow-hidden`) :

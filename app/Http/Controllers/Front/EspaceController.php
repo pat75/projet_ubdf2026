@@ -49,9 +49,9 @@ class EspaceController extends Controller
             ->pluck('vues', 'surface');
 
         /*
-         | MemoBook et MicroBook n'ont pas de pixel qui les compte (seul
-         | le book en envoie un, voir CompteurVisites) : les montrer a
-         | zero en permanence n'apportait rien qu'un stat vide.
+         | MemoBook n'a pas de pixel qui le compte (seul le book en envoie
+         | un, voir CompteurVisites) : le montrer a zero en permanence
+         | n'apportait rien qu'un stat vide.
          */
         $libelles = [
             'book' => __('Book'),

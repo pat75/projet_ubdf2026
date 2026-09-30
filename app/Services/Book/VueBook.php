@@ -26,6 +26,9 @@ class VueBook
         $this->pref = is_object($pref->data ?? null) ? $pref->data : (object) [];
     }
 
+    /** Page a ne pas indexer (ex. mot de passe d'un portfolio) : pose par le controleur. */
+    public bool $sansIndex = false;
+
     /** Le createur, connecte sur le sous-domaine de son book (EditionBookController). */
     public function edition(): bool
     {

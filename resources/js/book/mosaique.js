@@ -67,6 +67,10 @@ export default function mosaique(Alpine) {
                 this.mesure.observe(item.firstElementChild);
                 this.vue.observe(item);
             });
+
+            // Page d'un portfolio (`/<titre>-p<id>`) : la mosaique s'ouvre deja filtree.
+            const { filtre, filtreNom } = this.$el.dataset;
+            if (filtre) this.filtrer(filtre, filtreNom ?? '');
         },
 
         destroy() {

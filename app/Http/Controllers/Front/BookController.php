@@ -65,7 +65,13 @@ class BookController extends Controller
         $cle = 'portfolio-mdp|'.$requete->ip().'|'.$galerie->id;
 
         if (RateLimiter::tooManyAttempts($cle, 10)) {
-            return $this->pageMotDePasse($galerie, __('Trop d’essais. Réessayez dans quelques minutes.'));
+            $minutes = max(1, (int) ceil(RateLimiter::availableIn($cle) / 60));
+
+            return $this->pageMotDePasse($galerie, trans_choice(
+                'Trop d’essais. Réessayez dans :n minute.|Trop d’essais. Réessayez dans :n minutes.',
+                $minutes,
+                ['n' => $minutes],
+            ));
         }
 
         if (! $acces->deverrouiller($galerie, (string) $requete->input('mot_de_passe'))) {
@@ -231,11 +237,32 @@ class BookController extends Controller
 
     private function pageMotDePasse(Gallery $galerie, ?string $erreur = null): Response
     {
+        $statut = $erreur ? 422 : 200;
+        $contexte = new ContexteBook($galerie->user, Marque::depuisCode($galerie->user->brand));
+        $theme = config('book_themes.'.$contexte->modele_book);
+
+        // Ultra-frais et Ultra-zen : la page reprend l'en-tete et les couleurs du book.
+        if (($theme['dossier'] ?? null) === 'ultra2020') {
+            $contexte->page_type = 'portfolio';
+            $contexte->chargerPortfolio()->chargerPages()->pagePortfolio((int) ($galerie->legacy_id ?? $galerie->id));
+
+            $classe = $theme['vue'] ?? VueUltra2020::class;
+            $vue = new $classe($contexte);
+            $vue->sansIndex = true;
+
+            return response()->view('book.ultra2020.mot-de-passe', [
+                'b' => $contexte,
+                'vue' => $vue,
+                'galerie' => $galerie,
+                'erreur' => $erreur,
+            ], $statut)->header('Cache-Control', 'no-store, private');
+        }
+
         return response()->view('book.mot-de-passe', [
             'galerie' => $galerie,
             'book' => $galerie->user->bookSetting?->title ?: $galerie->user->login,
             'erreur' => $erreur,
-        ], $erreur ? 422 : 200)->header('Cache-Control', 'no-store');
+        ], $statut)->header('Cache-Control', 'no-store, private');
     }
 
     /** Page du book, avec le lecteur des videos YouTube et Vimeo. */

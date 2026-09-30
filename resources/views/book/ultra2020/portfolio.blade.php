@@ -8,11 +8,12 @@
 @section('contenu')
     @php
         $zen = $vue->zen();
-        $rubriques = $vue->rubriques();
+        $rubriques = $vue->menuProjets();
+        $filtre = $vue->filtreInitial();
         $marges = ['small' => 'p-0', 'normal' => 'px-[3px] py-1.5', 'large' => 'px-2.5 py-5'][$vue->tailleVisuels()];
     @endphp
 
-    <div x-data="mosaique">
+    <div x-data="mosaique" @if ($filtre) data-filtre="{{ $filtre['cle'] }}" data-filtre-nom="{{ $filtre['nom'] }}" @endif>
         @if (count($rubriques) > 1)
             {{-- « les projets » : survol sur ordinateur, clic sur mobile. --}}
             <div @class(['relative mb-8 flex', 'justify-center' => ! $zen, 'justify-center md:justify-start' => $zen])
@@ -50,9 +51,18 @@
                     <button type="button" x-ref="tous" @click="filtrer('all', $el.textContent.trim())" data-curseur
                             class="text-[14px] text-book-texte3 hover:text-book-texte" :class="filtre === 'all' && 'font-semibold text-book-texte'">{{ __('Tous') }}</button>
                     @foreach ($rubriques as $rubrique)
-                        <button type="button" @click="filtrer(@js($rubrique['cle']), $el.textContent.trim())" data-curseur
-                                class="text-[14px] text-book-texte3 hover:text-book-texte"
-                                :class="filtre === @js($rubrique['cle']) && 'font-semibold text-book-texte'">{{ $rubrique['nom'] }}</button>
+                        @if ($rubrique['verrou'])
+                            {{-- Portfolio protege : pas de visuel a filtrer, le lien mene au mot de passe. --}}
+                            <a href="{{ $rubrique['url'] }}" rel="nofollow" data-verrou data-curseur
+                               class="inline-flex items-center gap-1.5 text-[14px] text-book-texte3 hover:text-book-texte">
+                                {{ $rubrique['nom'] }}
+                                <x-book.cadenas />
+                            </a>
+                        @else
+                            <button type="button" @click="filtrer(@js($rubrique['cle']), $el.textContent.trim())" data-curseur
+                                    class="text-[14px] text-book-texte3 hover:text-book-texte"
+                                    :class="filtre === @js($rubrique['cle']) && 'font-semibold text-book-texte'">{{ $rubrique['nom'] }}</button>
+                        @endif
                     @endforeach
                 </div>
             </div>

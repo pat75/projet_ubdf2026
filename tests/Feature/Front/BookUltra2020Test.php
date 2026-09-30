@@ -162,3 +162,81 @@ it('refuse les reglages d un book a un autre createur', function () {
     $this->postJson(urlUltra('lea-frais', '/reglages'), ['cle' => 'theme', 'valeur' => 'theme_black']);
     expect($this->book->bookSetting->fresh()->theme_settings['data']['theme'] ?? null)->not->toBe('theme_black');
 });
+
+describe('portfolio verrouille', function () {
+    beforeEach(function () {
+        $this->prive = $this->book->galleries()->create(['name' => 'Privé', 'status' => 'published', 'position' => 2, 'password' => 'secret42']);
+        $this->prive->media()->create(['user_id' => $this->book->id, 'filename' => 'prive1.jpg', 'status' => 'published', 'title' => 'Prive 1']);
+        $this->urlPrive = urlUltra('lea-frais', '/prive-p'.$this->prive->id);
+    });
+
+    it('garde le portfolio dans le menu, avec un cadenas et un lien, sans ses visuels', function () {
+        $this->get(urlUltra('lea-frais'))
+            ->assertOk()
+            ->assertSee('data-verrou', false)
+            ->assertSee('href="/prive-p'.$this->prive->id.'"', false)
+            ->assertSee('rel="nofollow"', false)
+            ->assertSee('Protégé par mot de passe')
+            ->assertSeeInOrder(['Affiches', 'Carnets', 'Privé'])
+            ->assertDontSee('prive1.jpg')
+            ->assertDontSee('data-rubrique="2__prive"', false);
+    });
+
+    it('affiche le menu meme quand un seul portfolio est ouvert', function () {
+        $this->book->galleries()->where('name', 'Carnets')->get()->each->delete();
+        $this->book->galleries()->where('name', 'Affiches')->get()->each->delete();
+        $autre = $this->book->galleries()->create(['name' => 'Seul', 'status' => 'published', 'position' => 5]);
+        $autre->media()->create(['user_id' => $this->book->id, 'filename' => 'seul.jpg', 'status' => 'published']);
+
+        $this->get(urlUltra('lea-frais'))->assertSee('les projets')->assertSee('data-verrou', false);
+    });
+
+    it('ne change rien aux autres modeles', function () {
+        $this->book->bookSetting->update(['theme' => 'mdl_2016_zoom']);
+
+        $this->get(urlUltra('lea-frais'))->assertOk()->assertDontSee('data-verrou', false);
+    });
+
+    it('demande le mot de passe aux couleurs du book', function () {
+        $this->get($this->urlPrive)
+            ->assertOk()
+            ->assertSee('Ce portfolio est protégé')
+            ->assertSee('theme_ultrafrais', false)
+            ->assertSee('<meta name="robots" content="noindex">', false)
+            ->assertSee('href="/"', false)
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertDontSee('prive1.jpg');
+    });
+
+    it('refuse un mauvais mot de passe puis annonce le temps restant', function () {
+        $this->post($this->urlPrive, ['mot_de_passe' => 'faux'])->assertStatus(422)->assertSee('Mot de passe incorrect.');
+
+        foreach (range(1, 10) as $i) {
+            $this->post($this->urlPrive, ['mot_de_passe' => 'faux']);
+        }
+
+        $this->post($this->urlPrive, ['mot_de_passe' => 'secret42'])->assertStatus(422)->assertSee('dans 10 minutes');
+    });
+
+    it('ouvre le portfolio sur une mosaique deja filtree, sans cadenas ensuite', function () {
+        $this->post($this->urlPrive, ['mot_de_passe' => 'secret42'])->assertRedirect($this->urlPrive);
+
+        $this->get($this->urlPrive)
+            ->assertOk()
+            ->assertSee('prive1.jpg')
+            ->assertSee('data-filtre="2__prive"', false)
+            ->assertDontSee('data-verrou', false);
+    });
+
+    it('reste ouvert a son createur, avec le meme filtre', function () {
+        $this->actingAs($this->book)->get($this->urlPrive)
+            ->assertOk()->assertSee('prive1.jpg')->assertDontSee('data-verrou', false);
+    });
+
+    it('filtre aussi sur un portfolio non protege', function () {
+        $affiches = $this->book->galleries()->where('name', 'Affiches')->first();
+
+        $this->get(urlUltra('lea-frais', '/affiches-p'.$affiches->id))
+            ->assertOk()->assertSee('data-filtre="0__affiches"', false);
+    });
+});

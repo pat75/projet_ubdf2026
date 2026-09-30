@@ -107,22 +107,28 @@
                     </div>
 
                     <div class="ml-auto flex shrink-0 items-center gap-3" x-on:click.stop>
-                        <span class="text-[13px] text-ub-texte3">{{ trans_choice(':n projet|:n projets', $liste->count(), ['n' => $liste->count()]) }}</span>
+                        <span class="text-[13px] text-ub-texte3">{{ trans_choice(':n visuel|:n visuels', $liste->count(), ['n' => $liste->count()]) }}</span>
                         <span class="hidden text-ub-texte4 sm:inline" aria-hidden="true">·</span>
-                        <span class="hidden text-[13px] text-ub-texte3 sm:inline">{{ $portfolio->status === 'published' ? __('En ligne') : __('Masqué') }}</span>
-                        <button type="button" x-on:click="cadenas = ! cadenas"
-                                title="{{ $portfolio->estProtegee() ? __('Protégé par mot de passe') : __('Protéger par un mot de passe') }}"
-                                @class(['p-1', 'text-ub-texte' => $portfolio->estProtegee(), 'text-ub-texte4 hover:text-ub-texte' => ! $portfolio->estProtegee()])>
-                            @if ($portfolio->estProtegee()) <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> @else <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.9-1"/></svg> @endif
-                            <span class="sr-only">{{ __('Mot de passe du portfolio') }}</span>
-                        </button>
-                        <x-espace.interrupteur wire:click="basculerPublication({{ $portfolio->id }})" :actif="$portfolio->status === 'published'"
-                            :libelle="__('Afficher le portfolio dans le book')" />
-                        <button type="button" class="p-1 text-ub-texte4 hover:text-ub-danger" title="{{ __('Supprimer le portfolio') }}"
-                                wire:click="supprimer({{ $portfolio->id }})"
-                                wire:confirm="{{ __('Supprimer le portfolio « :nom » et ses :n visuels ?', ['nom' => $portfolio->name, 'n' => $liste->count()]) }}">
-                            <x-espace.picto nom="poubelle" class="h-4 w-4" />
-                        </button>
+                        <span class="hidden text-[13px] text-ub-texte3 sm:inline">{{ $portfolio->status !== 'published' ? __('Masqué') : ($portfolio->estProtegee() ? __('En ligne protégée') : __('En ligne')) }}</span>
+                        <x-espace.info-bulle :texte="$portfolio->estProtegee() ? __('Changer le mot de passe') : __('Protéger par un mot de passe')">
+                            <button type="button" x-on:click="cadenas = ! cadenas"
+                                    @class(['rounded-full', 'bg-red-500 p-1.5 text-white' => $portfolio->estProtegee(), 'p-1 text-ub-texte4 hover:text-ub-texte' => ! $portfolio->estProtegee()])>
+                                @if ($portfolio->estProtegee()) <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> @else <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.9-1"/></svg> @endif
+                                <span class="sr-only">{{ __('Mot de passe du portfolio') }}</span>
+                            </button>
+                        </x-espace.info-bulle>
+                        <x-espace.info-bulle :texte="$portfolio->status === 'published' ? __('Masquer du book') : __('Afficher dans le book')">
+                            <x-espace.interrupteur moyen wire:click="basculerPublication({{ $portfolio->id }})" :actif="$portfolio->status === 'published'"
+                                :libelle="__('Afficher le portfolio dans le book')" />
+                        </x-espace.info-bulle>
+                        <x-espace.info-bulle :texte="__('Supprimer le portfolio')">
+                            <button type="button" class="p-1 text-ub-texte4 hover:text-ub-danger"
+                                    wire:click="supprimer({{ $portfolio->id }})"
+                                    wire:confirm="{{ __('Supprimer le portfolio « :nom » et ses :n visuels ?', ['nom' => $portfolio->name, 'n' => $liste->count()]) }}">
+                                <x-espace.picto nom="poubelle" class="h-4 w-4" />
+                                <span class="sr-only">{{ __('Supprimer le portfolio') }}</span>
+                            </button>
+                        </x-espace.info-bulle>
                     </div>
 
                     <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" x-show="! ouvert" />

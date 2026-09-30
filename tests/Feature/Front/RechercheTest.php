@@ -220,3 +220,13 @@ it('pointe la loupe du menu vers /search', function () {
         ->assertOk()
         ->assertSee('href="'.lien('search').'"', false);
 });
+
+it('ne montre pas en carte un book dont tous les visuels sont proteges', function () {
+    $galerie = $this->aquarelliste->galleries()->create(['name' => 'Privé', 'status' => 'published', 'password' => 'secret42']);
+    $this->aquarelliste->media()->update(['gallery_id' => $galerie->id]);
+
+    $this->get(url_portail('/recherche?q=aquarelle'))
+        ->assertOk()
+        ->assertDontSee('nolwenn.jpg')
+        ->assertSee('lisep');
+});

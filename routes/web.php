@@ -22,7 +22,6 @@ use App\Http\Controllers\Front\DesabonnementController;
 use App\Http\Controllers\Front\DesinscriptionNewsletterController;
 use App\Http\Controllers\Front\EditionBookController;
 use App\Http\Controllers\Front\EspaceController;
-use App\Http\Controllers\Front\MicrobookController;
 use App\Http\Controllers\Front\NewsletterController;
 use App\Http\Controllers\Front\StatsBookController;
 use App\Http\Controllers\Espace\ExportController;
@@ -247,10 +246,9 @@ Route::group([], function () {
     Route::post('/payplug/notification', [PaiementController::class, 'notification'])
         ->middleware('throttle:60,1')->name('payplug.notification');
 
-    // Microbook : URL du legacy, collee telle quelle dans des sites tiers.
-    Route::get('/microbook_{admin}_{pied}__{login}', MicrobookController::class)
-        ->where(['admin' => '[0-9]', 'pied' => '[0-9]', 'login' => '[a-z0-9_-]+'])
-        ->name('microbook');
+    // Microbook supprime : son URL, collee dans des sites tiers, repond « disparu ».
+    Route::get('/microbook_{admin}_{pied}__{login}', fn () => response('', 410, ['X-Robots-Tag' => 'noindex']))
+        ->where(['admin' => '[0-9]', 'pied' => '[0-9]', 'login' => '[a-z0-9_-]+']);
 
     Route::post('/intermediate_send', [ContactController::class, 'envoyer'])
         ->name('contact.envoyer');

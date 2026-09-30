@@ -13,7 +13,7 @@
 <title>{{ $titre }}</title>
 <meta name="description" content="{{ $description }}">
 <link rel="canonical" href="{{ $canonique }}">
-@if ($vue->edition())
+@if ($vue->edition() || $vue->sansIndex)
     <meta name="robots" content="noindex">
 @else
     <meta name="robots" content="index, follow, max-image-preview:large">

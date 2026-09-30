@@ -34,17 +34,9 @@ function visuels(string $dossier, int $nombre, int $l = 40, int $h = 30): void
     }
 }
 
-it('sert le microbook a l url du legacy, integrable par iframe', function () {
-    $r = $this->get('/microbook_0_1__microtest')->assertOk()->assertSee('Léa Roux');
-
-    expect(substr_count($r->getContent(), 'data-grande='))->toBe(10)
-        ->and($r->headers->get('Content-Security-Policy'))->toBe('frame-ancestors *');
-});
-
-it('ne sert pas le microbook d un book hors ligne', function () {
-    $this->creatif->bookSetting->update(['diffuse_web' => false]);
-
-    $this->get('/microbook_0_1__microtest')->assertNotFound();
+it('repond 410 a l ancienne URL du microbook', function () {
+    $this->get('/microbook_0_1__microtest')->assertStatus(410)
+        ->assertHeader('X-Robots-Tag', 'noindex');
 });
 
 it('n affiche plus le code d integration mais le PDF, l archive et les limites', function () {
@@ -216,4 +208,14 @@ it('ne reprend pas un titre de visuel qui n est que le nom du fichier', function
 
     // Au jour pres du pied de page, le PDF est le meme que sans titre.
     expect(abs($fichier - $vide))->toBeLessThan(20);
+});
+
+it('n inclut les portfolios proteges dans le PDF que sur demande', function () {
+    visuels($this->dossier, 2);
+    $this->galerie->update(['password' => 'secret42']);
+
+    $sans = $this->actingAs($this->creatif)->get(route('espace.pdf'))->getContent();
+    $avec = $this->actingAs($this->creatif)->get(route('espace.pdf', ['proteges' => 1]))->getContent();
+
+    expect(strlen($avec))->toBeGreaterThan(strlen($sans));
 });

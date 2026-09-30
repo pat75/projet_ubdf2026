@@ -126,3 +126,16 @@ describe('domaine des books selon la marque du compte', function () {
         expect($this->book->fresh()->bookUrl())->toBe('https://aurelie-b.dustfolio.test');
     });
 });
+
+it('ne livre pas le lien des videos d un portfolio ferme a ce visiteur', function () {
+    $this->book->bookSetting->update(['diffuse_web' => true]);
+    $prive = $this->book->galleries()->create(['name' => 'Privé', 'status' => 'published', 'password' => 'secret42']);
+    $prive->media()->create(['user_id' => $this->book->id, 'filename' => 'secret.jpg', 'status' => 'published',
+        'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+    $url = hoteBook('aurelie-b', '/prive-p'.$prive->id);
+
+    $this->get(hoteBook('aurelie-b'))->assertOk()->assertDontSee('dQw4w9WgXcQ', false);
+
+    $this->post($url, ['mot_de_passe' => 'secret42']);
+    $this->get($url)->assertOk()->assertSee('dQw4w9WgXcQ', false);
+});

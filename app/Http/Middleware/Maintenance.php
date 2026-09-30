@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  * servis :
  *
  *  - les books creatifs sur leur sous-domaine, et les images qu'ils
- *    tirent du portail (routes `book.*`, `microbook`) : fermer le portail
+ *    tirent du portail (routes `book.*`) : fermer le portail
  *    ne doit pas casser les portfolios en ligne ;
  *  - le back-office et sa page de connexion, sans quoi personne ne
  *    pourrait rouvrir le site ;
@@ -42,7 +42,6 @@ class Maintenance
     /** Routes servies malgre la maintenance (nom exact ou prefixe `x.`). */
     private const AUTORISEES = [
         'book.',
-        'microbook',
         'deconnexion',
         'payplug.notification',
     ];

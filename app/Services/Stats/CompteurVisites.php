@@ -18,10 +18,10 @@ use Illuminate\Support\Facades\DB;
 class CompteurVisites
 {
     /**
-     * Les quatre surfaces ou un book s'affiche. Le tableau de bord en
+     * Les trois surfaces ou un book s'affiche. Le tableau de bord en
      * donne la repartition ; une valeur inconnue retombe sur `book`.
      */
-    public const SURFACES = ['book', 'minibook', 'memobook', 'microbook'];
+    public const SURFACES = ['book', 'minibook', 'memobook'];
 
     public function compter(User $book, ?int $visiteurId, string $ip, ?string $navigateur, string $surface = 'book'): void
     {

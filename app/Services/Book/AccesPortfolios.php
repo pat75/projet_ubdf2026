@@ -3,8 +3,6 @@
 namespace App\Services\Book;
 
 use App\Models\Gallery;
-use App\Models\Media;
-use App\Models\User;
 
 /**
  * Portfolios proteges par mot de passe, cote visiteur du book.
@@ -44,25 +42,23 @@ class AccesPortfolios
     public const FERME = 'ferme';
 
     /**
-     * Etat d'un fichier du book pour ce visiteur. Un book sans portfolio
-     * protege ne coute qu'une requete, sur un index.
+     * Etat d'un fichier du book pour ce visiteur. Une seule requete par
+     * image servie : le portfolio protege qui contient ce fichier, s'il y
+     * en a un.
      *
      * @return self::LIBRE|self::OUVERT|self::FERME
      */
     public function fichier(string $login, string $fichier): string
     {
-        $book = User::where('login', $login)->first(['id']);
-        $proteges = $book?->galleries()->whereNotNull('password')->get() ?? collect();
-
-        if ($proteges->isEmpty()) {
-            return self::LIBRE;
-        }
-
-        $galerie = Media::whereIn('gallery_id', $proteges->modelKeys())->where('filename', $fichier)->value('gallery_id');
+        $galerie = Gallery::query()
+            ->whereNotNull('password')
+            ->whereHas('user', fn ($q) => $q->where('login', $login))
+            ->whereHas('media', fn ($q) => $q->where('filename', $fichier))
+            ->first();
 
         return match (true) {
             $galerie === null => self::LIBRE,
-            $this->ouvert($proteges->find($galerie)) => self::OUVERT,
+            $this->ouvert($galerie) => self::OUVERT,
             default => self::FERME,
         };
     }

@@ -464,3 +464,18 @@ it('supprime le compte visiteur apres le mot de passe actuel', function () {
     expect(Visitor::withTrashed()->find($visiteur->id))->toBeNull()
         ->and(MemoBook::where('visitor_id', $visiteur->id)->count())->toBe(0);
 });
+
+it('ne prend pas la couverture du memo dans un portfolio protege', function () {
+    $prive = $this->book->galleries()->create(['name' => 'Privé', 'status' => 'published', 'password' => 'secret42']);
+    $prive->media()->create(['user_id' => $this->book->id, 'filename' => 'prive.jpg', 'status' => 'published', 'position' => 0]);
+    $libre = $this->book->galleries()->create(['name' => 'Libre', 'status' => 'published']);
+    $libre->media()->create(['user_id' => $this->book->id, 'filename' => 'libre.jpg', 'status' => 'published', 'position' => 1]);
+
+    $visiteur = Visitor::factory()->create();
+    MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
+
+    // La couverture du PDF est le premier visuel charge par MemoBooks.
+    $book = app(App\Services\Memo\MemoBooks::class)->books($visiteur)->first();
+
+    expect($book->media->pluck('filename')->all())->toBe(['libre.jpg']);
+});

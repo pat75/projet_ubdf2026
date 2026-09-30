@@ -53,8 +53,9 @@ class PdfBook
     /**
      * @param  bool  $titres  nom de la rubrique en tete de ses pages
      * @param  bool  $legendes  titre de chaque visuel sous l'image
+     * @param  bool  $proteges  inclure les portfolios proteges par mot de passe
      */
-    public function generer(User $creatif, bool $titres = true, bool $legendes = false): string
+    public function generer(User $creatif, bool $titres = true, bool $legendes = false, bool $proteges = false): string
     {
         $pdf = new class('P', 'mm', [self::COTE, self::COTE]) extends FPDF
         {
@@ -83,7 +84,10 @@ class PdfBook
         $this->couverture($pdf, $creatif);
 
         $restantes = self::pagesMax($creatif);
-        $galeries = $creatif->galleries()->published()->whereNull('parent_id')->orderBy('position')->get();
+        $galeries = $creatif->galleries()->published()->whereNull('parent_id')->orderBy('position')
+            // Un PDF circule : les portfolios proteges n'y entrent que sur demande.
+            ->when(! $proteges, fn ($q) => $q->whereNull('password'))
+            ->get();
 
         foreach ($galeries as $galerie) {
             if ($restantes <= 0) {

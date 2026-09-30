@@ -755,6 +755,8 @@ class ContexteBook
             'rub_coul' => $r->color,
             'rub_link' => null,
             'rub_publier' => 'publie',
+            // Portfolio protege et ferme a ce visiteur : il garde sa place dans le menu.
+            'rub_verrou' => $r instanceof Gallery && $r->estProtegee() && ! app(AccesPortfolios::class)->ouvert($r),
         ];
     }
 

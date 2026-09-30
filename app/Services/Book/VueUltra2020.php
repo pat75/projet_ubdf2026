@@ -55,6 +55,64 @@ class VueUltra2020 extends VueBook
 
     public const RESEAUX = ['facebook', 'instagram', 'pinterest', 'twitter', 'linkedin'];
 
+    /**
+     * Entrees du menu « les projets » : les rubriques qui ont des visuels,
+     * et les portfolios verrouilles, qui n'en montrent aucun. Ces derniers
+     * mènent a la page du mot de passe (`verrou` + `url`) au lieu de filtrer.
+     *
+     * @return list<array{rub_id: int, cle: string, nom: string, verrou: bool, url: ?string}>
+     */
+    public function menuProjets(): array
+    {
+        $gal = $this->b->menu['ptf'] ?? [];
+        $entrees = [];
+
+        foreach ($gal as $k => $rub) {
+            if (! is_int($k)) {
+                continue;
+            }
+
+            $verrou = (bool) ($rub['rub_verrou'] ?? false);
+
+            if (! $verrou && empty($gal['img'][$rub['rub_id']])) {
+                continue;
+            }
+
+            $entrees[] = [
+                'rub_id' => (int) $rub['rub_id'],
+                'cle' => self::cle($k, $rub['rub_nom']),
+                'nom' => self::brut($rub['rub_nom']),
+                'verrou' => $verrou,
+                'url' => $verrou ? '/'.wd_remove_accents($rub['rub_nom']).'-p'.$rub['rub_id'] : null,
+            ];
+        }
+
+        return $entrees;
+    }
+
+    /**
+     * Filtre pose a l'ouverture : la rubrique designee par l'URL
+     * (`/<titre>-p<id>`), `null` sur la page portfolio entiere.
+     *
+     * @return array{cle: string, nom: string}|null
+     */
+    public function filtreInitial(): ?array
+    {
+        $rubId = (int) $this->b->rub_id;
+
+        if ($rubId === 0) {
+            return null;
+        }
+
+        foreach ($this->menuProjets() as $entree) {
+            if ($entree['rub_id'] === $rubId && ! $entree['verrou']) {
+                return ['cle' => $entree['cle'], 'nom' => $entree['nom']];
+            }
+        }
+
+        return null;
+    }
+
     public function zen(): bool
     {
         return $this->b->modele_book === 'mdl_2020_ultra_zen';
