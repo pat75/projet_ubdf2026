@@ -192,7 +192,7 @@ describe('portfolio verrouille', function () {
     });
 
     it('ne change rien aux autres modeles', function () {
-        $this->book->bookSetting->update(['theme' => 'mdl_2016_zoom']);
+        $this->book->bookSetting->update(['theme' => 'mdl_2012_slide']);
 
         $this->get(urlUltra('lea-frais'))->assertOk()->assertDontSee('data-verrou', false);
     });

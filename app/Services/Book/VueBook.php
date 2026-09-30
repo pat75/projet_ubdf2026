@@ -26,6 +26,22 @@ class VueBook
         $this->pref = is_object($pref->data ?? null) ? $pref->data : (object) [];
     }
 
+    /**
+     * Modeles dont le menu montre un portfolio protege avec son cadenas.
+     * Les autres (Classique 2010, Base, Slide, Pinter) partagent parfois le
+     * gabarit Responsive, mais ne sont pas encore declines.
+     */
+    public const MODELES_VERROU = [
+        'mdl_2014_responsive', 'mdl_2015_classique', 'mdl_2015_grid',
+        'mdl_2016_zoom', 'mdl_2020_ultra_frais', 'mdl_2020_ultra_zen',
+    ];
+
+    /** Portfolio protege et ferme a ce visiteur, si ce modele le montre. */
+    protected function verrouille(array $rubrique): bool
+    {
+        return ($rubrique['rub_verrou'] ?? false) && in_array($this->b->modele_book, self::MODELES_VERROU, true);
+    }
+
     /** Page a ne pas indexer (ex. mot de passe d'un portfolio) : pose par le controleur. */
     public bool $sansIndex = false;
 
@@ -84,6 +100,65 @@ class VueBook
         }
 
         return $rubriques;
+    }
+
+    /**
+     * Entrees d'un menu de portfolio en mosaique (« les projets » d'Ultra
+     * 2020, filtre de Zoom 2016) : les rubriques qui ont des visuels,
+     * et les portfolios verrouilles, qui n'en montrent aucun. Ces derniers
+     * mènent a la page du mot de passe (`verrou` + `url`) au lieu de filtrer.
+     *
+     * @return list<array{rub_id: int, cle: string, nom: string, verrou: bool, url: ?string}>
+     */
+    public function menuProjets(): array
+    {
+        $gal = $this->b->menu['ptf'] ?? [];
+        $entrees = [];
+
+        foreach ($gal as $k => $rub) {
+            if (! is_int($k)) {
+                continue;
+            }
+
+            $verrou = $this->verrouille($rub);
+
+            if (! $verrou && empty($gal['img'][$rub['rub_id']])) {
+                continue;
+            }
+
+            $entrees[] = [
+                'rub_id' => (int) $rub['rub_id'],
+                'cle' => self::cle($k, $rub['rub_nom']),
+                'nom' => self::brut($rub['rub_nom']),
+                'verrou' => $verrou,
+                'url' => $verrou ? '/'.wd_remove_accents($rub['rub_nom']).'-p'.$rub['rub_id'] : null,
+            ];
+        }
+
+        return $entrees;
+    }
+
+    /**
+     * Filtre pose a l'ouverture : la rubrique designee par l'URL
+     * (`/<titre>-p<id>`), `null` sur la page portfolio entiere.
+     *
+     * @return array{cle: string, nom: string}|null
+     */
+    public function filtreInitial(): ?array
+    {
+        $rubId = (int) $this->b->rub_id;
+
+        if ($rubId === 0) {
+            return null;
+        }
+
+        foreach ($this->menuProjets() as $entree) {
+            if ($entree['rub_id'] === $rubId && ! $entree['verrou']) {
+                return ['cle' => $entree['cle'], 'nom' => $entree['nom']];
+            }
+        }
+
+        return null;
     }
 
     /**

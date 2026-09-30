@@ -241,8 +241,11 @@ class BookController extends Controller
         $contexte = new ContexteBook($galerie->user, Marque::depuisCode($galerie->user->brand));
         $theme = config('book_themes.'.$contexte->modele_book);
 
-        // Ultra-frais et Ultra-zen : la page reprend l'en-tete et les couleurs du book.
-        if (($theme['dossier'] ?? null) === 'ultra2020') {
+        // Themes passes en Blade (Ultra 2020, Zoom 2016, Grid et Classique
+        // 2015, Responsive 2014) : la page reprend le gabarit du book.
+        $gabarit = 'book.'.($theme['dossier'] ?? '').'.mot-de-passe';
+
+        if (isset($theme['vues']) && view()->exists($gabarit)) {
             $contexte->page_type = 'portfolio';
             $contexte->chargerPortfolio()->chargerPages()->pagePortfolio((int) ($galerie->legacy_id ?? $galerie->id));
 
@@ -250,7 +253,7 @@ class BookController extends Controller
             $vue = new $classe($contexte);
             $vue->sansIndex = true;
 
-            return response()->view('book.ultra2020.mot-de-passe', [
+            return response()->view($gabarit, [
                 'b' => $contexte,
                 'vue' => $vue,
                 'galerie' => $galerie,

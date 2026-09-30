@@ -138,18 +138,19 @@
                             <ul class="flex flex-col gap-1.5 pl-1" @if ($filtre) x-data="{ filtre: 'all' }" @mosaique-change.window="filtre = $event.detail" @endif>
                                 @foreach ($rubriques as $rubrique)
                                     <li>
-                                        @if ($filtre)
+                                        @if ($filtre && ! $rubrique['verrou'])
                                             <button type="button" @click="$dispatch('mosaique-filtrer', { cle: @js($rubrique['cle']), nom: @js($rubrique['nom']) }); menu = false"
                                                     :aria-pressed="filtre === @js($rubrique['cle'])"
                                                     class="ub_font_menu_newsr inline-block text-left opacity-80 transition-opacity hover:opacity-100"
                                                     :class="filtre === @js($rubrique['cle']) && 'font-bold opacity-100!'">{{ $rubrique['nom'] }}</button>
                                             @continue
                                         @endif
-                                        <a href="/{{ $rubrique['url'] }}" @if ($rubrique['active']) aria-current="page" @endif @class([
-                                            'ub_font_menu_newsr inline-block transition-opacity hover:opacity-100',
+                                        <a href="/{{ $rubrique['url'] }}" @if ($rubrique['active']) aria-current="page" @endif
+                                           @if ($rubrique['verrou']) rel="nofollow" data-verrou @endif @class([
+                                            'ub_font_menu_newsr inline-flex items-center gap-1.5 transition-opacity hover:opacity-100',
                                             'font-bold opacity-100' => $rubrique['active'],
                                             'opacity-80' => ! $rubrique['active'],
-                                        ])>{{ $rubrique['nom'] }}</a>
+                                        ])>{{ $rubrique['nom'] }}@if ($rubrique['verrou']) <x-book.cadenas /> @endif</a>
                                         @if ($rubrique['active'] && count($vignettes) > 1)
                                             {{-- Classique 2015 : vignettes de la rubrique, qui pilotent le diaporama. --}}
                                             <div x-data="{ courante: 0 }" @diaporama-change.window="courante = $event.detail"

@@ -172,6 +172,8 @@ class VueResponsive2014 extends VueBook
                 'url' => wd_remove_accents($rub['rub_nom']).'-p'.$rub['rub_id'],
                 'active' => (int) $rub['rub_id'] === (int) $this->b->rub_id && $this->b->page_type === 'portfolio',
                 'visuels' => $fichiers,
+                // Protege et ferme a ce visiteur : le lien mene au mot de passe.
+                'verrou' => $this->verrouille($rub),
             ];
         }
 

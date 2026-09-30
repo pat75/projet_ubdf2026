@@ -8,12 +8,13 @@
 
 @section('contenu')
     @php
-        $rubriques = $vue->rubriques();
+        $rubriques = $vue->menuProjets();
+        $filtre = $vue->filtreInitial();
         $groupe = $vue->parRubrique();
         $precedente = null;
     @endphp
 
-    <div x-data="mosaique">
+    <div x-data="mosaique" @if ($filtre) data-filtre="{{ $filtre['cle'] }}" data-filtre-nom="{{ $filtre['nom'] }}" @endif>
         @if (count($rubriques) > 1)
             <nav aria-label="{{ __('Filtrer les projets') }}" class="-mx-4 mb-6 overflow-x-auto px-4 motion-safe:animate-apparition md:mx-0 md:mb-10 md:px-0">
                 <ul class="flex w-max gap-x-6 whitespace-nowrap text-[15px] md:mx-auto md:w-auto md:flex-wrap md:justify-center md:gap-y-2">
@@ -24,9 +25,15 @@
                     </li>
                     @foreach ($rubriques as $rubrique)
                         <li>
+                            @if ($rubrique['verrou'])
+                                {{-- Portfolio protege : le lien mene au mot de passe. --}}
+                                <a href="{{ $rubrique['url'] }}" rel="nofollow" data-verrou
+                                   class="inline-flex items-center gap-1.5 border-b border-transparent pb-1 text-book-texte3 transition-colors hover:text-book-texte">{{ $rubrique['nom'] }} <x-book.cadenas /></a>
+                            @else
                             <button type="button" @click="filtrer(@js($rubrique['cle']), $el.textContent.trim())" :aria-pressed="filtre === @js($rubrique['cle'])"
                                     class="border-b border-transparent pb-1 text-book-texte3 transition-colors hover:text-book-texte"
                                     :class="filtre === @js($rubrique['cle']) && 'border-book-texte! text-book-texte!'">{{ $rubrique['nom'] }}</button>
+                            @endif
                         </li>
                     @endforeach
                 </ul>

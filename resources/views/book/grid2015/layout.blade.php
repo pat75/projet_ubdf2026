@@ -105,7 +105,8 @@
                             @foreach ($rubriques as $rubrique)
                                 <li class="border-b border-book-filet">
                                     <a href="/{{ $rubrique['url'] }}" @if ($rubrique['active']) aria-current="page" @endif
-                                       @class(['ub_font_menu_newsr block py-2 text-[17px] uppercase transition-opacity hover:opacity-60', 'font-bold' => $rubrique['active']])>{{ $rubrique['nom'] }}</a>
+                                       @if ($rubrique['verrou']) rel="nofollow" data-verrou @endif
+                                       @class(['ub_font_menu_newsr flex items-center gap-2 py-2 text-[17px] uppercase transition-opacity hover:opacity-60', 'font-bold' => $rubrique['active']])>{{ $rubrique['nom'] }}@if ($rubrique['verrou']) <x-book.cadenas /> @endif</a>
                                 </li>
                             @endforeach
                         </ul>
