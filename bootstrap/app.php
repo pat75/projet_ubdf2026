@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\Maintenance;
 use App\Http\Middleware\NormalizeUnicodeInput;
 use App\Http\Middleware\RefuserComptesBloques;
 use App\Http\Middleware\ResoudreMarque;
@@ -27,6 +28,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // Un compte ferme au back-office perd sa session des la requete suivante,
         // quel que soit le chemin par lequel il s'est connecte.
         $middleware->appendToGroup('web', RefuserComptesBloques::class);
+
+        // Site ferme au public depuis le back-office : le portail entier
+        // repond la page de maintenance, les books restent servis.
+        $middleware->appendToGroup('web', Maintenance::class);
 
         /*
          | Le cookie de langue reste en clair.

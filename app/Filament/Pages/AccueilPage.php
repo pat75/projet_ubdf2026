@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\AccueilBloc;
+use App\Models\Reglage;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Toggle;
@@ -12,7 +13,9 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -34,23 +37,51 @@ class AccueilPage extends Page
 
     protected string $view = 'filament.pages.accueil-page';
 
+    protected Width|string|null $maxContentWidth = Width::Full;
+
     /** @var array<string, mixed> */
     public ?array $data = [];
 
     public function mount(): void
     {
-        $this->form->fill(AccueilBloc::etats());
+        $this->form->fill(AccueilBloc::etats() + [
+            Reglage::MAINTENANCE => Reglage::enMaintenance(),
+        ]);
+    }
+
+    /** Adresse de la page d'accueil du portail, affichee dans l'apercu. */
+    public function urlApercu(): string
+    {
+        return lien('accueil');
     }
 
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components(
-                collect(AccueilBloc::CLES)
-                    ->map(fn (string $libelle, string $cle) => Toggle::make($cle)->label($libelle))
-                    ->values()
-                    ->all(),
-            )
+            ->components([
+                /*
+                 | Ce reglage ne touche pas la page d'accueil mais tout le
+                 | portail : il est dans sa propre section, en rouge, pour
+                 | qu'on ne le coche pas en croyant masquer un bloc.
+                 */
+                Section::make('Maintenance du site')
+                    ->description('Ferme le portail au public. Les books créatifs restent en ligne.')
+                    ->schema([
+                        Toggle::make(Reglage::MAINTENANCE)
+                            ->label('Mettre le site en maintenance')
+                            ->helperText('Le portail affiche « Site en maintenance » : plus de connexion, plus d’inscription, plus de création de book. Les comptes créatifs et visiteurs déjà connectés sont déconnectés.')
+                            ->onColor('danger')
+                            ->onIcon(Heroicon::ExclamationTriangle),
+                    ]),
+
+                Section::make('Blocs de la page d’accueil')
+                    ->schema(
+                        collect(AccueilBloc::CLES)
+                            ->map(fn (string $libelle, string $cle) => Toggle::make($cle)->label($libelle))
+                            ->values()
+                            ->all(),
+                    ),
+            ])
             ->statePath('data');
     }
 
@@ -77,10 +108,31 @@ class AccueilPage extends Page
 
     public function save(): void
     {
-        foreach ($this->form->getState() as $cle => $actif) {
+        $etat = $this->form->getState();
+
+        // Le reglage de maintenance vit dans sa propre table : il est
+        // retire avant la boucle sur les blocs d'accueil.
+        $maintenance = (bool) ($etat[Reglage::MAINTENANCE] ?? false);
+        unset($etat[Reglage::MAINTENANCE]);
+
+        Reglage::definir(Reglage::MAINTENANCE, $maintenance);
+
+        foreach ($etat as $cle => $actif) {
             AccueilBloc::definir($cle, (bool) $actif);
         }
 
-        Notification::make()->title('Enregistré')->success()->send();
+        if ($maintenance) {
+            Notification::make()
+                ->title('Site en maintenance')
+                ->body('Le portail est fermé au public.')
+                ->warning()
+                ->persistent()
+                ->send();
+        } else {
+            Notification::make()->title('Enregistré')->success()->send();
+        }
+
+        // Recharge l'iframe d'apercu (ecoute dans accueil-page.blade.php).
+        $this->dispatch('accueil-enregistree');
     }
 }

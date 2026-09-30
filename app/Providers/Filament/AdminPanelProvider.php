@@ -46,6 +46,11 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::System)
             // Le selecteur clair / sombre, remonte du menu utilisateur vers
             // la barre du haut.
+            // Site ferme au public : badge rouge a cote du nom du site.
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): View => view('filament.badge-maintenance'),
+            )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn (): View => view('filament.bascule-theme'),
