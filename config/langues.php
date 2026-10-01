@@ -29,4 +29,14 @@ return [
 
     // Duree du choix de langue, reprise du legacy (setcookie + 90 jours).
     'cookie_jours' => 90,
+
+    /*
+    | Langue du navigateur (Accept-Language) pour une marque multilingue.
+    |
+    | En production, un navigateur francais arrive sur /fr, tout autre sur
+    | la langue par defaut de la marque (anglais pour Dustfolio). En
+    | developpement, le site reste dans sa langue par defaut quel que soit
+    | le navigateur : c'est la version anglaise qu'on y relit.
+    */
+    'navigateur' => (bool) env('LANGUE_NAVIGATEUR', env('APP_ENV') !== 'local'),
 ];

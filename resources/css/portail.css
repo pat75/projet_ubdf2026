@@ -141,6 +141,38 @@
     opacity: .7;
 }
 
+/* Selecteur de langue (Dustfolio) : « EN | FR », a cote du filtre. */
+.selecteur_langue {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    font-size: 14px;
+    letter-spacing: .04em;
+    color: #444;
+}
+#menu-top-fixed .container .item.selecteur_langue {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 18px !important;
+}
+.selecteur_langue a {
+    color: #888;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+.selecteur_langue a:hover {
+    color: #000;
+}
+.selecteur_langue_actif {
+    font-weight: 700;
+    color: #4db8f0;
+}
+.selecteur_langue_sep {
+    color: #ccc;
+}
+
 /* /search : resultats estompes pendant la requete ajax (recherche.js). */
 #resultats_recherche {
     transition: opacity .2s;
@@ -1174,4 +1206,25 @@
     .bloc_accueil_entreprise2020_stats .grid .left.column .t-h4 { margin-top: -10px; }
 }
 
-.accueil_definition { max-width: 720px; margin: 12px auto 0; font-size: 16px; line-height: 1.55; font-weight: 300; color: #555; }
+/* Titre et definition alignes sur le bord gauche du champ de recherche. */
+.accueil_titre_definition { text-align: left; }
+.accueil_definition { max-width: 760px; margin: 12px 0 0; font-size: 16px; line-height: 1.55; font-weight: 300; color: #555; }
+/* Mobile : core.css remet la marge du titre a 0, la definition suit. */
+@media only screen and (max-width: 767px) {
+    .bloc_rechercher #bloc_rechercher .accueil_definition { margin-left: 0; }
+}
+
+/* Accueil : texte d'invite du champ de recherche 10 % plus petit (21px -> 19px). */
+.bloc_rechercher #bloc_rechercher .ui.action .floating-label { font-size: 19px; }
+
+/* Mobile : pendant la saisie, le libelle remonte de 6px (6px -> 0) pour ne
+   pas chevaucher le texte saisi. Au-dela de 980px : accueil-hero.blade.php. */
+@media only screen and (max-width: 980px) {
+    .bloc_rechercher #bloc_rechercher .ui.action input:focus ~ .floating-label,
+    .bloc_rechercher #bloc_rechercher .ui.action input:not(:focus):valid ~ .floating-label { top: 0; }
+}
+
+/* Mobile : texte saisi 4px plus bas (14px/14px -> 22px/6px, meme hauteur). */
+@media only screen and (max-width: 980px) {
+    .bloc_rechercher #bloc_rechercher .ui.action input.prompt { padding-top: 22.25px !important; padding-bottom: 6.25px !important; }
+}

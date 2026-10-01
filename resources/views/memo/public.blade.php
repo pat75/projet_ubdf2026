@@ -49,7 +49,7 @@
                         <span class="block text-[17px]">
                             <span class="font-semibold text-ub-texte">{{ $createur->fullName() }}</span>
                             @if ($createur->category)
-                                <span class="ml-1 font-light text-ub-texte3">{{ $createur->category->name }}</span>
+                                <span class="ml-1 font-light text-ub-texte3">{{ __($createur->category->name) }}</span>
                             @endif
                         </span>
                     </span>

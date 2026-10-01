@@ -21,7 +21,7 @@
                     <a href="{{ $creatif->bookUrl() }}" class="coul_{{ $creatif->category?->slug }}">
                         {{ $creatif->fullName() }}
                     </a>
-                    <span class="meta">{{ $creatif->category?->name }}</span>
+                    <span class="meta">{{ __($creatif->category?->name ?? '') }}</span>
                 </div>
             @endforeach
         </div>

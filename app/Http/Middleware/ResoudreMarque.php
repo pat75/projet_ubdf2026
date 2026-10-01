@@ -38,6 +38,16 @@ class ResoudreMarque
         // segment de langue de l'URL la remplacera (ForcerLangue).
         app()->setLocale($marque->locale());
 
+        // Les appels Livewire n'ont pas de segment de langue : ils prennent
+        // celle de la page d'ou ils partent (/fr/espace/... → fr).
+        if ($marque->multilingue() && $request->headers->has('X-Livewire')) {
+            $segment = explode('/', trim((string) parse_url((string) $request->headers->get('referer'), PHP_URL_PATH), '/'))[0];
+
+            if ($marque->sert($segment)) {
+                app()->setLocale($segment);
+            }
+        }
+
         return $next($request);
     }
 }

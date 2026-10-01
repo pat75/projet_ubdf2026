@@ -148,3 +148,63 @@ it('ne prefixe pas les points d entree techniques', function () {
         $this->get(ub($chemin))->assertOk();
     }
 });
+
+it('reste en anglais en developpement, meme pour un navigateur francais', function () {
+    // config/langues.php : la detection est coupee quand APP_ENV=local.
+    config(['langues.navigateur' => false]);
+
+    $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')
+        ->get(df('/'))
+        ->assertRedirect(df('/en'));
+
+    // Le choix explicite du visiteur l'emporte toujours.
+    $this->withUnencryptedCookie(Langue::COOKIE, 'fr')
+        ->get(df('/'))
+        ->assertRedirect(df('/fr'));
+});
+
+it('affiche le selecteur de langue sur Dustfolio, pas sur Ultra-book', function () {
+    $this->get(df('/en'))->assertOk()
+        ->assertSee('selecteur_langue', false)
+        ->assertSee('/langue/fr?retour=%2Ffr', false);
+
+    $this->get(ub('/'))->assertOk()->assertDontSee('selecteur_langue', false);
+});
+
+it('pointe le selecteur vers la meme page dans l autre langue', function () {
+    $this->get(df('/en/illustrator'))->assertOk()
+        ->assertSee('/langue/fr?retour=%2Ffr%2Fillustrateur', false);
+});
+
+it('retient le choix de langue et renvoie vers la page', function () {
+    $this->get(df('/langue/fr?retour=/fr/illustrateur'))
+        ->assertRedirect('/fr/illustrateur')
+        ->assertPlainCookie(Langue::COOKIE, 'fr');
+});
+
+it('refuse un retour hors du site ou dans une autre langue', function () {
+    foreach (['https://evil.test', '//evil.test', '/en/illustrator', '/fred'] as $retour) {
+        $this->get(df('/langue/fr?retour='.urlencode($retour)))->assertRedirect('/fr');
+    }
+});
+
+it('refuse le choix de langue sur Ultra-book et une langue non servie', function () {
+    $this->get(ub('/langue/en'))->assertNotFound();
+    $this->get(ub('/langue/fr'))->assertNotFound();
+    $this->get(df('/langue/ja'))->assertNotFound();
+});
+
+it('garde la langue de la page pour les appels Livewire', function () {
+    // /livewire/update n'a pas de segment de langue : la page d'origine
+    // (Referer) fait foi, sinon une page /fr/espace repasse en anglais.
+    $requete = Illuminate\Http\Request::create(df('/livewire/update'), 'POST');
+    $requete->headers->set('X-Livewire', '1');
+    $requete->headers->set('Referer', df('/fr/espace/galeries'));
+
+    (new App\Http\Middleware\ResoudreMarque)->handle($requete, fn () => response('ok'));
+    expect(app()->getLocale())->toBe('fr');
+
+    $requete->headers->set('Referer', df('/de/espace'));
+    (new App\Http\Middleware\ResoudreMarque)->handle($requete, fn () => response('ok'));
+    expect(app()->getLocale())->toBe('en');
+});

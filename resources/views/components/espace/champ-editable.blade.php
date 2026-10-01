@@ -7,7 +7,7 @@
      Livewire ne doit pas l'ecraser.
      Texte et crayon sont en ligne : le crayon suit le dernier caractere, et
      le filet d'edition ne souligne que le texte, pas toute la largeur. --}}
-<div x-data="champEditable(@js($nom), @js((string) $valeur), @js((bool) $multiligne))" wire:ignore
+<div x-data="champEditable(@js($nom), @js((string) $valeur), @js((bool) $multiligne))" wire:ignore data-erreur="{{ __('Enregistrement impossible, réessayez.') }}"
      {{ $attributes->merge(['class' => 'relative']) }}>
     @if ($libelle)
         <div class="mb-1 text-[12px] font-semibold uppercase tracking-[.06em] text-ub-texte3">{{ $libelle }}@if ($prive) <span class="text-[10px] text-ub-prive" title="{{ __('Donnée privée') }}">●</span>@endif</div>

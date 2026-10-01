@@ -48,11 +48,13 @@ class Diffusion extends Component
     public function render(): View
     {
         $user = Auth::user();
+        // Les requetes Livewire ne passent pas par ResoudreMarque : la marque du compte.
+        $marque = \App\Support\Marque::depuisCode($user->brand ?: 'ub')->nom;
 
         return view('livewire.espace.diffusion', [
             'canaux' => [
                 'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],
-                'portail' => [__('Diffusion sur Ultra-book'), __('Votre book apparaît dans l’annuaire et les recherches Ultra-book.'), 'https://'.config('ubdf.portail_domain').'#'.$user->login],
+                'portail' => [__('Diffusion sur :marque', ['marque' => $marque]), __('Votre book apparaît dans l’annuaire et les recherches :marque.', ['marque' => $marque]), 'https://'.config('ubdf.portail_domain').'#'.$user->login],
                 'newsletter' => [__('Newsletter'), __('Vos nouveaux projets peuvent être mis en avant dans la newsletter.'), null],
             ],
         ]);

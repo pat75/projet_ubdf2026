@@ -1,16 +1,16 @@
 {{-- Pied de page commun : portail, espace creatif et compte visiteur (maquette « Footer ultra-book »). --}}
 @php
     $rubriques = [
-        ['Zoom', null, 'btn_zoom'],
-        ['Tendances, Actualités', null, 'btn_actu'],
-        ['Derniers Ultra-book', '/accueil#bloc_ultrabook_href', null],
+        [__('Zoom'), null, 'btn_zoom'],
+        [__('Tendances, Actualités'), null, 'btn_actu'],
+        [__('Derniers :marque', ['marque' => $marque->nom]), lien('accueil').'#bloc_ultrabook_href', null],
     ];
     $annuaires = [
-        ['Annuaire des écoles', 'http://www.ultra-book.fr/ecoles/'],
-        ['Illustrateurs freelances', 'https://www.les-illustrateurs.com'],
-        ['Graphistes freelances', '/meilleurs-graphistes'],
-        ['Webdesigners freelances', '/webdesigner-freelance'],
-        ['Développeurs freelances', '/developpeur-freelance'],
+        [__('Annuaire des écoles'), 'http://www.ultra-book.fr/ecoles/'],
+        [__('Illustrateurs freelances'), 'https://www.les-illustrateurs.com'],
+        [__('Graphistes freelances'), '/meilleurs-graphistes'],
+        [__('Webdesigners freelances'), '/webdesigner-freelance'],
+        [__('Développeurs freelances'), '/developpeur-freelance'],
     ];
     $autresSites = [
         ['Tesli', 'https://www.tesli.fr', 'Créez votre site en un clic, par IA'],
@@ -117,15 +117,14 @@
             <div class="pf-marque">
                 <img class="pf-logo" src="{{ $marque->logoClair }}" alt="{{ $marque->nom }}">
                 <p class="pf-intro">
-                    Depuis 2007 {{ $marque->nom }} vous permet de créer votre portfolio, d’y ajouter vos images,
-                    légendes, liens web, textes de présentation, et surtout de personnaliser votre espace book.
-                    Les books sont classés par domaine, une sélection est faite tous les trois mois par des professionnels.
+                    {{ __('Depuis 2007 :marque vous permet de créer votre portfolio, d’y ajouter vos images, légendes, liens web, textes de présentation, et surtout de personnaliser votre espace book.', ['marque' => $marque->nom]) }}
+                    {{ __('Les books sont classés par domaine, une sélection est faite tous les trois mois par des professionnels.') }}
                 </p>
             </div>
 
             <div class="pf-newsletter" x-data="newsletter">
                 <h2 class="pf-titre-section">Newsletter</h2>
-                <p class="pf-newsletter-accroche">Les dernières sélections du mois</p>
+                <p class="pf-newsletter-accroche">{{ __('Les dernières sélections du mois') }}</p>
 
                 <form class="pf-form-newsletter" action="{{ route('newsletter.inscription') }}" @submit.prevent="envoyer($el)" x-show="! message" x-cloak>
                     @csrf
@@ -133,32 +132,32 @@
                         <rect x="1" y="1" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
                         <path d="M1.5 2l7.5 6 7.5-6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
                     </svg>
-                    <input type="email" name="mail" required placeholder="Votre e-mail">
-                    <button type="submit">S'inscrire</button>
+                    <input type="email" name="mail" required placeholder="{{ __('Votre e-mail') }}">
+                    <button type="submit">{{ __('S\'inscrire') }}</button>
                 </form>
                 <p class="pf-retour" x-show="message" x-transition.opacity.duration.300ms x-cloak>
                     <span :style="{ color: erreur ? '#ff6b6b' : '#8ce99a' }" x-text="message"></span>
                 </p>
-                <a href="/doc/mentions-legales" class="pf-nospam">Confidentialité, sécurité et absence de spam</a>
+                <a href="/doc/mentions-legales" class="pf-nospam">{{ __('Confidentialité, sécurité et absence de spam') }}</a>
             </div>
         </div>
 
         <div class="pf-grille">
             <nav class="pf-nav">
-                <h2 class="pf-titre-section">Plateforme portfolio</h2>
+                <h2 class="pf-titre-section">{{ __('Plateforme portfolio') }}</h2>
                 <div class="pf-liens">
-                    <a class="pf-lien-contact" href="mailto:{{ $marque->email }}?subject={{ rawurlencode('Aide '.$marque->nom) }}&body={{ rawurlencode('Indiquez l’adresse de votre portfolio, merci.') }}">
-                        Contact/aide<span>{{ $marque->email }}</span>
+                    <a class="pf-lien-contact" href="mailto:{{ $marque->email }}?subject={{ rawurlencode(__('Aide').' '.$marque->nom) }}&body={{ rawurlencode(__('Indiquez l’adresse de votre portfolio, merci.')) }}">
+                        {{ __('Contact/aide') }}<span>{{ $marque->email }}</span>
                     </a>
-                    <a href="/doc/doc">Documentation</a>
-                    <a href="/doc/les-formules-ultra-book">Formules et tarifs</a>
-                    <a href="/doc/questions-frequentes-2">Questions fréquentes</a>
-                    <a href="/doc/mentions-legales">Mentions légales</a>
+                    <a href="/doc/doc">{{ __('Documentation') }}</a>
+                    <a href="/doc/les-formules-ultra-book">{{ __('Formules et tarifs') }}</a>
+                    <a href="/doc/questions-frequentes-2">{{ __('Questions fréquentes') }}</a>
+                    <a href="/doc/mentions-legales">{{ __('Mentions légales') }}</a>
                 </div>
             </nav>
 
             <nav class="pf-nav">
-                <h2 class="pf-titre-section">Rubriques</h2>
+                <h2 class="pf-titre-section">{{ __('Rubriques') }}</h2>
                 <div class="pf-liens">
                     @foreach ($rubriques as [$libelle, $url, $classe])
                         <a @if ($url) href="{{ $url }}" @endif @if ($classe) class="{{ $classe }}" @endif>{{ $libelle }}</a>
@@ -167,7 +166,7 @@
             </nav>
 
             <nav class="pf-nav">
-                <h2 class="pf-titre-section">Annuaires</h2>
+                <h2 class="pf-titre-section">{{ __('Annuaires') }}</h2>
                 <div class="pf-liens">
                     @foreach ($annuaires as [$libelle, $url])
                         <a href="{{ $url }}" class="pf-lien-fleche"><span class="pf-puce">→</span>{{ $libelle }}</a>
@@ -197,7 +196,7 @@
             </div>
             <div class="pf-boutons">
                 <a href="https://www.dustfolio.com/accueil" class="pf-btn-contour">Dustfolio <span>→</span></a>
-                <a href="https://www.creer-un-book.com" title="Comment créer un book" class="pf-btn-plein">Créez un book <span>→</span></a>
+                <a href="https://www.creer-un-book.com" title="{{ __('Comment créer un book') }}" class="pf-btn-plein">{{ __('Créez un book') }} <span>→</span></a>
             </div>
         </div>
     </div>

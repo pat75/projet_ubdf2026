@@ -29,6 +29,6 @@
 
     <span class="barre_createur_texte" style="line-height:1.2">
         <span style="display:block;font-size:17px;font-weight:600;white-space:nowrap">{{ $creatif->fullName() }}</span>
-        <span style="display:block;font-size:13px;color:#777;white-space:nowrap">{{ $creatif->category?->name }}</span>
+        <span style="display:block;font-size:13px;color:#777;white-space:nowrap">{{ __($creatif->category?->name ?? '') }}</span>
     </span>
 </a>

@@ -20,6 +20,27 @@ final class VersionsLangue
      */
     public static function pour(Marque $marque): array
     {
+        $racine = rtrim($marque->canonique, '/');
+        $versions = array_map(fn (string $chemin) => $racine.$chemin, self::chemins($marque));
+
+        if (count($versions) < 2) {
+            return [];
+        }
+
+        $versions['x-default'] = $versions[$marque->locale()] ?? reset($versions);
+
+        return $versions;
+    }
+
+    /**
+     * Chemins relatifs de la page courante dans chaque langue servie ou
+     * elle existe. Sert aussi au selecteur de langue, qui reste sur l'hote
+     * courant (le domaine canonique n'est pas celui du developpement).
+     *
+     * @return array<string, string> code de langue => chemin (/fr/illustrateur)
+     */
+    public static function chemins(Marque $marque): array
+    {
         $route = request()->route();
         $nom = $route?->getName();
 
@@ -28,7 +49,6 @@ final class VersionsLangue
         }
 
         [, $langueCourante, $base] = $m;
-        $racine = rtrim($marque->canonique, '/');
         $parametres = $route->parameters();
         $versions = [];
 
@@ -55,14 +75,8 @@ final class VersionsLangue
                 $params['slug'] = $slug;
             }
 
-            $versions[$langue] = $racine.parse_url(route($langue.'.'.$base, $params, false), PHP_URL_PATH);
+            $versions[$langue] = parse_url(route($langue.'.'.$base, $params, false), PHP_URL_PATH);
         }
-
-        if (count($versions) < 2) {
-            return [];
-        }
-
-        $versions['x-default'] = $versions[$marque->locale()] ?? reset($versions);
 
         return $versions;
     }

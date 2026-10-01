@@ -165,6 +165,11 @@
 
             }
 
+            /* La phrase de definition demarre exactement sous le titre. */
+             #bloc_rechercher .accueil_definition {
+                margin-left: 38px;
+            }
+
              #bloc_rechercher {
                 margin-left: 20px;
                 margin-right: 20px;
@@ -198,7 +203,8 @@
                        bleu — le calage de la maquette de reference.
                        C'est la valeur du front 2018, qui ne s'appliquait pas
                        tant que la media query etait invalide. */
-                    margin-top: -260px !important;
+                    /* -290px : remonte de 30px de plus que le calage d'origine. */
+                    margin-top: -290px !important;
                     /* Compense le remontage pour que le bloc des mots-cles
                        reste sous l'en-tete video. */
                     margin-bottom: 100px !important;
@@ -207,6 +213,30 @@
                        propriete « opacity », qui aurait aussi affaibli le
                        titre et le champ de recherche. */
                     background-color: rgba(255, 255, 255, 0.8) !important;
+                    /* 10 % plus etroit que la largeur d'origine (conteneur
+                       moins 2 x 20px), centre. */
+                    width: calc((100% - 40px) * 0.9);
+                    margin-left: auto !important;
+                    margin-right: auto !important;
+                }
+
+                /* Bloc 10 % moins haut (265px -> 239px) : 26px pris sur le
+                   vide sous le champ de recherche. */
+                body.marque_ub #bloc_rechercher > .row:last-child {
+                    padding-bottom: 0 !important;
+                }
+                body.marque_ub #bloc_rechercher > .row:last-child > .column > .segment {
+                    padding-bottom: 2px !important;
+                }
+
+                /* En-tete video 10 % plus haut : 480px -> 528px. Le bloc de
+                   recherche garde son remontage de 260px, il reste donc cale
+                   au meme endroit par rapport au bas de la video. */
+                body.marque_ub .bloc_slide_video,
+                body.marque_ub .video_header,
+                body.marque_ub .video_bg,
+                body.marque_ub .video_source {
+                    height: 528px !important;
                 }
             }
 
@@ -234,7 +264,9 @@
 
                 #bloc_rechercher .form_rechercher2018 .ui.action input.prompt {
                     margin-top: 0 !important;
-                    padding-top: 0 !important;
+                    /* 8px en haut, 0 en bas : le texte saisi descend de 4px
+                       (box-sizing border-box, hauteur fixe). */
+                    padding-top: 8px !important;
                     padding-bottom: 0 !important;
                     height: 68px;
                     /* arrondi de 8px sur le bord gauche du champ */
@@ -257,7 +289,9 @@
                 }
                 #bloc_rechercher .form_rechercher2018 .ui.action input:focus ~ .floating-label,
                 #bloc_rechercher .form_rechercher2018 .ui.action input:not(:focus):valid ~ .floating-label {
-                    top: 12px;
+                    /* 6px (et non 12px) : le libelle remonte pour ne pas
+                       chevaucher le texte saisi. */
+                    top: 6px;
                     transform: none;
                 }
             }
@@ -509,13 +543,13 @@
     <div class="ui container bloc_slide mobile bloc_accueil_modele2020">
         <div class="ui middle aligned two column stackable grid">
                 <div class="right aligned column " x-apparition:gauche>
-                    <p class="t-h5">Freelances</p>
+                    <p class="t-h5">{{ __('Freelances') }}</p>
                     <h2>{{ __('Créer votre portfolio') }}</h2>
-                    <p class="t-h4">Chargez vos images par glisser-poser</p>
-                    <p class="t-h4">Modifiez l’apparence, et diffusez</p>
+                    <p class="t-h4">{{ __('Chargez vos images par glisser-poser') }}</p>
+                    <p class="t-h4">{{ __('Modifiez l’apparence, et diffusez') }}</p>
                     <a class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" href="{{ lien('inscription.page') }}">
                         <i class="right arrow icon"></i>
-                        CRÉEZ UN BOOK                    </a>
+                        {{ mb_strtoupper(__('Créez un book')) }}</a>
                 </div>
                 <div class=" center aligned olive+ column col_visuel_mdl_book" x-apparition:droite.150>
                     <div class="accueil_mdl_book_visuel"></div>
@@ -541,36 +575,36 @@
             </div>
 
             <div class="left aligned olive+ column" x-apparition:droite.150>
-                <p class="t-h5">Entreprises</p>
+                <p class="t-h5">{{ __('Entreprises') }}</p>
                 <h2>{{ __('Une sélection de qualité') }}</h2>
 
                 <div class="accueil_stats ">
 
                     <div class="stats_nbselection">
                         <p class="t-h3">58 133</p>
-                        <p class="t-h6">Books actifs</p>
+                        <p class="t-h6">{{ __('Books actifs') }}</p>
                     </div>
 
                     <div class="stats_nbbook">
                         <p class="t-h3">4 325</p>
-                        <p class="t-h6">Books sélectionnés</p>
+                        <p class="t-h6">{{ __('Books sélectionnés') }}</p>
                     </div>
 
                 </div>
 
 
-                <p class="t-h4">Trouver et contacter les meilleurs créatifs freelances !</p>
+                <p class="t-h4">{{ __('Trouver et contacter les meilleurs créatifs freelances !') }}</p>
 
                 <div class="ui black  buttons ubdf_principes">
                     <div class="ui button right pointing label">
                         <i class="heart icon"></i>
-                        Sélectionnez un créatif                    </div>
+                        {{ __('Sélectionnez un créatif') }}</div>
                     <div class="ui button right pointing label">
                         <i class="paper plane icon"></i>
-                        Envoyez votre demande                    </div>
+                        {{ __('Envoyez votre demande') }}</div>
                     <div class="ui button label">
                         <i class="rocket icon"></i>
-                        Validez et démarrez un projet                    </div>
+                        {{ __('Validez et démarrez un projet') }}</div>
                 </div>
 
             </div>

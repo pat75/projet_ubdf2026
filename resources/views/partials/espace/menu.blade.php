@@ -54,6 +54,9 @@
 
     <form method="post" action="{{ route(nom_route('deconnexion')) }}">
         @csrf
-        <button type="submit" class="w-full rounded-ub px-3 py-2 text-left text-ub-sortie hover:bg-[#fdf2ea]">{{ __('Déconnexion') }}</button>
+        <button type="submit" class="flex w-full items-center gap-2 rounded-ub px-3 py-2 text-left text-ub-sortie hover:bg-[#fdf2ea]">
+            <x-espace.icone nom="sortie" class="h-4 w-4 shrink-0" />
+            {{ __('Déconnexion') }}
+        </button>
     </form>
 </nav>

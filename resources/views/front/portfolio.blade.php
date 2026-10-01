@@ -88,7 +88,7 @@
     <div class="ui container bloc_portfolios book_single">
         <h1>{{ $book->fullName() }}</h1>
         <div class="meta">
-            <a class="group coul_{{ $book->category?->slug }}">{{ $book->category?->name }}</a>
+            <a class="group coul_{{ $book->category?->slug }}">{{ __($book->category?->name ?? '') }}</a>
             @if ($book->city)<span class="ville">{{ $book->city }}</span>@endif
         </div>
 

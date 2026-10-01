@@ -60,6 +60,12 @@ class ResoudreLangue
             }
         }
 
+        // Coupe en developpement (config/langues.php) : la version de dev
+        // reste dans la langue par defaut de la marque.
+        if (! config('langues.navigateur')) {
+            return $marque->locale();
+        }
+
         return Langue::depuisNavigateur($request->getLanguages(), $marque->langues)
             ?? $marque->locale();
     }

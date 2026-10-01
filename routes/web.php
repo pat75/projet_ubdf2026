@@ -166,6 +166,11 @@ Route::group([], function () {
         ->whereNumber('paquet')->name('sitemap.books');
     Route::redirect('/sitemap', '/sitemap.xml', 301);
     Route::get('/robots.txt', RobotsController::class)->name('robots');
+
+    // Selecteur de langue du menu (Dustfolio) : retient le choix, puis
+    // renvoie vers la page dans cette langue.
+    Route::get('/langue/{langue}', App\Http\Controllers\Front\ChoisirLangueController::class)
+        ->where('langue', '[a-z]{2}')->name('langue.choisir');
     // Presentation du portail pour les assistants IA (llmstxt.org).
     Route::get('/llms.txt', LlmsController::class)->name('llms');
 

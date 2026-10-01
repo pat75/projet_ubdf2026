@@ -16,7 +16,9 @@
 			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
 			        </div>
 
-        <a class="item right btn_rechercher mode_accueil" x-show="! recherche" href="{{ lien('search') }}" aria-label="{{ __('Rechercher') }}">
+        <x-portail.selecteur-langue class="right mode_accueil" x-show="! recherche" />
+
+        <a class="item {{ $marque->multilingue() ? '' : 'right' }} btn_rechercher mode_accueil" x-show="! recherche" href="{{ lien('search') }}" aria-label="{{ __('Rechercher') }}">
             <i class="search icon"></i>
         </a>
 
@@ -99,6 +101,8 @@
 						
 
 
+                        <x-portail.selecteur-langue />
+
                         <!-- bloc menu filtre -->
                         <div class="item link_menu_top_ptf icon_domaine show cursor_effect" x-data x-infobulle.lent="'.popup_ptf'">
                             <svg height="393pt" viewBox="-4 0 393 393.99003" width="393pt" xmlns="http://www.w3.org/2000/svg">
@@ -148,7 +152,7 @@
                             </div>
                         @else
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">
-                                <a class="ui black basic button btn_connection" x-data @click="$store.modale.ouvrir('connexion')">Connexion</a>
+                                <a class="ui black basic button btn_connection" x-data @click="$store.modale.ouvrir('connexion')">{{ __('Connexion') }}</a>
                             </div>
                             <!-- bloc creer un book-->
                             <div class="item btn_connection_signin mobile-hidden  cursor_effect">
@@ -161,105 +165,105 @@
                     </div>
                 </div>
                 <div class="ui right secondary menu menu_top_droite mobile-hidden">
-                    <div class="item link_menu_top_ptf  icon_domaine_secondary" x-data x-infobulle.lent="'.popup_ptf'">METIERS</div>
+                    <div class="item link_menu_top_ptf  icon_domaine_secondary" x-data x-infobulle.lent="'.popup_ptf'">{{ mb_strtoupper(__('Métiers')) }}</div>
 
                     <!-- Popup domaine/metiers !-->
                     <div class="ui fluid inverted popup transition hidden popup_ptf">
                         <div class="ui one column grid">
                             <div class="left aligned  column">
-                                <h4 class="ui header">Filtres par métiers</h4>
+                                <h4 class="ui header">{{ __('Filtres par métiers') }}</h4>
                                 <div class="ui link list" id="bloc_menu_contant_metiers">
                                     <div id="nav_metiers">
                                         <nav>
 
                                             <ul>
 																																							
-                                                        <a href="/illustrateur"
+                                                        <a href="{{ lien_metier('illustrateur') }}"
                                                            class="coul_illustrateur"
-                                                           title="Illustration">
+                                                           title="{{ __('Illustration') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_illustrateur "></div>
-																Illustration                                                            </li>
+																{{ __('Illustration') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/illustrateur-jeunesse"
+                                                        <a href="{{ lien_metier('illustrateur-jeunesse') }}"
                                                            class="coul_illustrateur_jeunesse"
-                                                           title="Illustration jeunesse">
+                                                           title="{{ __('Illustration jeunesse') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_illustrateur_jeunesse "></div>
-																Illustration jeunesse                                                            </li>
+																{{ __('Illustration jeunesse') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/graphiste"
+                                                        <a href="{{ lien_metier('graphiste') }}"
                                                            class="coul_graphiste"
-                                                           title="Graphisme">
+                                                           title="{{ __('Graphisme') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_graphiste "></div>
-																Graphisme                                                            </li>
+																{{ __('Graphisme') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/directeur-artistique"
+                                                        <a href="{{ lien_metier('directeur-artistique') }}"
                                                            class="coul_directeur_artistique"
-                                                           title="Direction artistique">
+                                                           title="{{ __('Direction artistique') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_directeur_artistique "></div>
-																Direction artistique                                                            </li>
+																{{ __('Direction artistique') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/digital"
+                                                        <a href="{{ lien_metier('digital') }}"
                                                            class="coul_digital"
-                                                           title="Digital & développement">
+                                                           title="{{ __('Digital & développement') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_digital "></div>
-																Digital & développement                                                            </li>
+																{{ __('Digital & développement') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/plasticien"
+                                                        <a href="{{ lien_metier('plasticien') }}"
                                                            class="coul_plasticien"
-                                                           title="Art">
+                                                           title="{{ __('Art') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_plasticien "></div>
-																Art                                                            </li>
+																{{ __('Art') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/photographe"
+                                                        <a href="{{ lien_metier('photographe') }}"
                                                            class="coul_photographe"
-                                                           title="Photographie">
+                                                           title="{{ __('Photographie') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_photographe "></div>
-																Photographie                                                            </li>
+																{{ __('Photographie') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/design"
+                                                        <a href="{{ lien_metier('design') }}"
                                                            class="coul_design"
-                                                           title="Design objet">
+                                                           title="{{ __('Design objet') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_design "></div>
-																Design objet                                                            </li>
+																{{ __('Design objet') }}                                                            </li>
                                                         </a>
 
 
 																																																				
-                                                        <a href="/architecte"
+                                                        <a href="{{ lien_metier('architecte') }}"
                                                            class="coul_architecte"
-                                                           title="Architecture">
+                                                           title="{{ __('Architecture') }}">
                                                             <li class="no_selected">
                                                                 <div class="nuancier coul_architecte "></div>
-																Architecture                                                            </li>
+																{{ __('Architecture') }}                                                            </li>
                                                         </a>
 
 
@@ -279,8 +283,8 @@
                     <div class="ui fluid+ inverted popup transition hidden popup_rechercher">
                         <div class="ui one column grid">
                             <div class="left aligned  column">
-                                <h4 class="ui header">Recherchez un book</h4>
-								Par mots-clés ou par nom                            </div>
+                                <h4 class="ui header">{{ __('Recherchez un book') }}</h4>
+								{{ __('Par mots-clés ou par nom') }}</div>
 
                         </div>
                     </div>
@@ -288,8 +292,8 @@
 
 
 
-                    <div class="item btn_zoom">ZOOM</div>
-                    <div class="item btn_actu">TENDANCES</div>
+                    <div class="item btn_zoom">{{ mb_strtoupper(__('Zoom')) }}</div>
+                    <div class="item btn_actu">{{ mb_strtoupper(__('Tendances')) }}</div>
                     <div class="item btn_actu">COWORKING</div>
 
 
@@ -353,17 +357,17 @@
 <div class="ui popup bottom left transition hidden popup_rechercher_options">
     <div class="ui one column grid">
         <div class="left aligned  column">
-            <h4 class="ui header">Options de recherche</h4>
+            <h4 class="ui header">{{ __('Options de recherche') }}</h4>
             <div class="ui link list" id="bloc_menu_contant_metiers">
                 <div class="inline field">
                     <div class="ui toggle checkbox flt_sel" x-data="caseACocher" x-bind="racine" @change="$store.optionsRecherche.selection = $event.target.checked">
                         <input type="checkbox" name="flt_sel" tabindex="0">
-                        <label>Sélections</label>
+                        <label>{{ __('Sélections') }}</label>
                     </div>
                     <br/><br/>
                     <div class="ui toggle checkbox flt_pro" x-data="caseACocher" x-bind="racine" @change="$store.optionsRecherche.abonnes = $event.target.checked">
                         <input type="checkbox" name="flt_pro" tabindex="0">
-                        <label>Ultra-book</label>
+                        <label>{{ $marque->nom }}</label>
                     </div>
                 </div>
             </div>

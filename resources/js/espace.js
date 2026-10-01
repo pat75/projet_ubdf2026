@@ -350,7 +350,7 @@ function champEditable(nom, valeur, multiligne) {
                 clearTimeout(this.minuteur);
                 this.minuteur = setTimeout(() => this.valide = false, 4000);
             } catch {
-                this.erreur = 'Enregistrement impossible, réessayez.';
+                this.erreur = this.$root.dataset.erreur;
             } finally {
                 this.enregistrement = false;
             }

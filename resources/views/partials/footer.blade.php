@@ -7,8 +7,8 @@
         <div></div>
     </div>
     <div class="cookiepolicy-message">
-        <p>Nous utilisons des cookies pour améliorer notre site et votre expérience de navigation.
-            En utilisant notre site, vous acceptez notre politique de cookies. <span><a target="_blank" href="/doc/mentions-legales">En savoir plus</a></span>
+        <p>{{ __('Nous utilisons des cookies pour améliorer notre site et votre expérience de navigation.') }}
+            {{ __('En utilisant notre site, vous acceptez notre politique de cookies.') }} <span><a target="_blank" href="/doc/mentions-legales">{{ __('En savoir plus') }}</a></span>
         </p>
     </div>
 </div>

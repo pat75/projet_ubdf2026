@@ -34,7 +34,7 @@
                                  class="-mt-7.5 mb-3 h-15 w-15 rounded-full object-cover shadow-[1px_1px_6px_#aaa]">
                         @endif
                         <span class="text-[16px] font-semibold leading-tight text-black/85">{{ $book->fullName() }}</span>
-                        <span class="mt-1 text-[12px] uppercase leading-6 tracking-wide text-black/40">{{ $book->category?->name }}</span>
+                        <span class="mt-1 text-[12px] uppercase leading-6 tracking-wide text-black/40">{{ __($book->category?->name ?? '') }}</span>
                     </span>
                 </a>
 

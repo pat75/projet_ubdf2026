@@ -22,7 +22,7 @@
         <div class="min-w-0 flex-1">
             {{-- Nom, puis les trois ecrans servis (modeles responsive). --}}
             <div class="flex items-center gap-2">
-                <span class="text-[15px] font-bold leading-snug text-ub-texte">{{ $nom }}</span>
+                <span class="text-[15px] font-bold leading-snug text-ub-texte">{{ __($nom) }}</span>
                 <span class="flex items-center gap-0.5 text-ub-texte3" title="{{ __('Mobile, tablette et ordinateur') }}">
                     <x-espace.icone nom="mobile" class="h-3.5 w-3.5" />
                     <x-espace.icone nom="tablette" class="h-3.5 w-3.5" />
