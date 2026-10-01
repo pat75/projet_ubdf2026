@@ -64,14 +64,25 @@ function infobulle(Alpine) {
             }, delaiMasquage);
         };
 
-        [el, popup].forEach((zone) => {
-            zone.addEventListener('mouseenter', montrer);
-            zone.addEventListener('mouseleave', cacher);
+        /*
+         * Sur le popup lui-meme : le garder ouvert, sans le replacer. Un
+         * meme popup peut avoir plusieurs declencheurs (l'icone filtre et
+         * l'item « METIERS », masque) : chacun le replacerait sous lui, et
+         * le dernier inscrit — masque, donc en 0,0 — l'envoyait en haut a
+         * gauche des que la souris y entrait.
+         */
+        const garder = () => clearTimeout(minuterie);
+
+        el.addEventListener('mouseenter', montrer);
+        el.addEventListener('mouseleave', cacher);
+        popup.addEventListener('mouseenter', garder);
+        popup.addEventListener('mouseleave', cacher);
+        cleanup(() => {
+            el.removeEventListener('mouseenter', montrer);
+            el.removeEventListener('mouseleave', cacher);
+            popup.removeEventListener('mouseenter', garder);
+            popup.removeEventListener('mouseleave', cacher);
         });
-        cleanup(() => [el, popup].forEach((zone) => {
-            zone.removeEventListener('mouseenter', montrer);
-            zone.removeEventListener('mouseleave', cacher);
-        }));
     });
 }
 

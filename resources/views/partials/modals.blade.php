@@ -8,9 +8,11 @@
 <div class="ui fixed secondary mobile only menu " id="menu-top-fixed-mobile" x-data="barreMobile">
     <div class="ui container" >
 
+        @if ($marque->estDefaut())
         <div class="item btn_burger mode_accueil" x-show="! recherche">
             <div class="menu-burger mobile-hidden" @click="$store.menu.basculer()" x-text="$store.menu.ouvert ? '✕' : '☰'">☰</div>
         </div>
+        @endif
 
         <div class="item logo mode_accueil  cursor_effect" x-show="! recherche">
 			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
@@ -73,13 +75,16 @@
 
     <div class="ui  container ">
 
-		            <div class="item btn_burger ">
+            {{-- Pas de menu burger sur Dustfolio. --}}
+            @if ($marque->estDefaut())
+            <div class="item btn_burger ">
                 <div class="menu-burger cursor_effect" x-data @click="$store.menu.basculer()" x-text="$store.menu.ouvert ? '✕' : '☰'">☰</div>
             </div>
+            @endif
 		
         <div class="item logo">
             <a href="/" class=" cursor_effect">
-				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:120px;">
+				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:{{ $marque->estDefaut() ? 120 : 145 }}px;">
 				            </a>
         </div>
 

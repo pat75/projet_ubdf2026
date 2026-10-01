@@ -168,6 +168,9 @@ it('affiche le selecteur de langue sur Dustfolio, pas sur Ultra-book', function 
         ->assertSee('selecteur_langue', false)
         ->assertSee('/langue/fr?retour=%2Ffr', false);
 
+    // Langue courante seule au repos : l'autre n'est qu'un lien de la liste.
+    $this->get(df('/en'))->assertSee('selecteur_langue_liste', false);
+
     $this->get(ub('/'))->assertOk()->assertDontSee('selecteur_langue', false);
 });
 

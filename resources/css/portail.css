@@ -141,15 +141,14 @@
     opacity: .7;
 }
 
-/* Selecteur de langue (Dustfolio) : « EN | FR », a cote du filtre. */
+/* Selecteur de langue (Dustfolio) : langue courante + fleche, les autres en liste. */
 .selecteur_langue {
+    position: relative;
     display: flex !important;
     align-items: center;
-    gap: 6px;
     font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
     font-size: 14px;
     letter-spacing: .04em;
-    color: #444;
 }
 #menu-top-fixed .container .item.selecteur_langue {
     padding-left: 0 !important;
@@ -157,20 +156,76 @@
     margin-left: 0 !important;
     margin-right: 18px !important;
 }
-.selecteur_langue a {
-    color: #888;
-    text-decoration: none;
-    transition: color .2s ease;
-}
-.selecteur_langue a:hover {
-    color: #000;
-}
 .selecteur_langue_actif {
-    font-weight: 700;
-    color: #4db8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 400;
+    letter-spacing: inherit;
+    color: #000;
+    cursor: pointer;
 }
-.selecteur_langue_sep {
-    color: #ccc;
+/* Liste des langues : meme bulle que celle des metiers (.popup_ptf,
+   Semantic « ui inverted popup ») — fond #1b1c1d, rayon 4px, 24px de
+   marge, losange de 10px qui pointe vers le declencheur, 36px sous lui. */
+.selecteur_langue_liste {
+    position: absolute;
+    /* Bas du bouton + 41px : meme hauteur que la bulle des metiers,
+       placee 36px sous l'icone filtre, plus haute que le bouton. */
+    top: calc(100% + 41px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1900;
+    margin: 0;
+    padding: 24px;
+    min-width: 160px;
+    list-style: none;
+    background: #1b1c1d;
+    border-radius: 4px;
+    color: #fff;
+    font-family: 'Source Sans Pro', sans-serif;
+    letter-spacing: normal;
+}
+.selecteur_langue_liste::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    background: #1b1c1d;
+    transform: rotate(45deg);
+}
+.selecteur_langue_titre {
+    margin: -3px 0 14px;
+    font-size: 24px;
+    font-weight: 200;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.selecteur_langue_liste a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 200;
+    line-height: 30px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.selecteur_langue_liste a span {
+    color: rgba(255, 255, 255, .6);
+}
+.selecteur_langue_liste a:hover,
+.selecteur_langue_liste a:hover span {
+    color: #fff;
+    text-decoration: underline;
 }
 
 /* /search : resultats estompes pendant la requete ajax (recherche.js). */
