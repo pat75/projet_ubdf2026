@@ -115,7 +115,7 @@
 
         <div class="pf-haut">
             <div class="pf-marque">
-                <img class="pf-logo" src="{{ $marque->logoClair }}" alt="{{ $marque->nom }}">
+                <img class="pf-logo" src="{{ $marque->logoClair }}" alt="{{ $marque->nom }}" @unless ($marque->estDefaut()) style="height:25.6px" @endunless>
                 <p class="pf-intro">
                     {{ __('Depuis 2007 :marque vous permet de créer votre portfolio, d’y ajouter vos images, légendes, liens web, textes de présentation, et surtout de personnaliser votre espace book.', ['marque' => $marque->nom]) }}
                     {{ __('Les books sont classés par domaine, une sélection est faite tous les trois mois par des professionnels.') }}

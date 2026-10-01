@@ -15,7 +15,7 @@
         @endif
 
         <div class="item logo mode_accueil  cursor_effect" x-show="! recherche">
-			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
+			                <img  class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" @unless ($marque->estDefaut()) style="width:155px;" @endunless>
 			        </div>
 
         <x-portail.selecteur-langue class="right mode_accueil" x-show="! recherche" />
@@ -84,7 +84,7 @@
 		
         <div class="item logo">
             <a href="/" class=" cursor_effect">
-				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:{{ $marque->estDefaut() ? 120 : 145 }}px;">
+				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:{{ $marque->estDefaut() ? 120 : 168 }}px;">
 				            </a>
         </div>
 

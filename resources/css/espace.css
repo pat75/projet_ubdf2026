@@ -324,3 +324,69 @@ button:not(:disabled) {
     cursor: pointer;
 }
 .redactor-imagemanager-action:hover { background: var(--color-ub-danger); }
+
+/*
+ * Selecteur de langue de l'entete (Dustfolio) : meme rendu que celui du
+ * portail (portail.css, .selecteur_langue), repris ici parce que les deux
+ * feuilles ne cohabitent pas sur une meme page.
+ */
+.selecteur_langue {
+    position: relative;
+    display: flex;
+    align-items: center;
+    font-family: 'Source Sans 3', 'Source Sans Pro', sans-serif;
+    font-size: 14px;
+    letter-spacing: .04em;
+}
+.selecteur_langue_actif {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 400;
+    letter-spacing: inherit;
+    color: #000;
+    cursor: pointer;
+}
+.selecteur_langue_liste {
+    position: absolute;
+    top: calc(100% + 41px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1900;
+    margin: 0;
+    padding: 24px;
+    min-width: 160px;
+    list-style: none;
+    background: #1b1c1d;
+    border-radius: 4px;
+    color: #fff;
+}
+.selecteur_langue_liste::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    background: #1b1c1d;
+    transform: rotate(45deg);
+}
+.selecteur_langue_liste a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 200;
+    line-height: 30px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.selecteur_langue_liste a span { color: rgba(255, 255, 255, .6); }
+.selecteur_langue_liste a:hover,
+.selecteur_langue_liste a:hover span { color: #fff; text-decoration: underline; }
