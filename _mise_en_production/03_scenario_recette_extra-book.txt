@@ -1,0 +1,320 @@
+# Scénario de recette sur O2switch avec les données de production — extra-book.com
+
+Complète et corrige `01_tutoriel_o2switch.txt`. Objectif : un site de test
+alimenté par une copie **figée** de la production actuelle, rejouable de bout
+en bout, sans jamais écrire sur la production ni écrire aux créatifs.
+
+| | Ultra-book | Dustfolio |
+|---|---|---|
+| Portail | https://www.extra-book.com | https://www.extra-book.biz |
+| Books | https://\<login\>.extra-book.com | https://\<login\>.extra-book.biz |
+
+---
+
+## 0. Écarts relevés dans le tutoriel actuel
+
+| # | Problème | Gravité | Correction |
+|---|---|---|---|
+| 1 | Aucun envoi de mail n'est neutralisé : la base contient les vraies adresses des ~60 000 créatifs, et le cron lance `EnvoyerNewslettersProgrammees` et `RelancerFormulesCommand` | **bloquant** | `MAIL_MAILER=log` pendant toute la recette (étape 5) |
+| 2 | `SESSION_DOMAIN=.extra-book.com` contredit le code : `EditionBookController` et `RevueBooks` supposent une session **limitée au portail** et passent par des liens signés | **bloquant** (sécurité) | `SESSION_DOMAIN=null` |
+| 3 | Dustfolio absent : sans `DF_BOOK_DOMAIN` / `DF_DOMAIN`, les books `df` redirigent vers `ubdf-dust-2026.ultra-book.name` (valeur par défaut) | **bloquant** | déclarer extra-book.biz, DNS et joker compris |
+| 4 | Base WordPress du magazine non transférée, `DB_LEGACY_WP_DATABASE` et `LEGACY_PATH` absents : `ubdf:import-cms` échoue | bloquant | étapes 3 et 6 |
+| 5 | Assets du front non versionnés (`public/img_front`, `js_jquery`, `magazine`, `2010_*`…, voir `.gitignore`) : un `git clone` ne les apporte pas | bloquant | rsync depuis le poste (étape 4) |
+| 6 | `dossiers-books` **copie** (`File::copy`) : `users_2` + `books` = deux fois ~30 Go et ~2 M d'inodes | important | ne transférer que les dossiers utiles, supprimer `users_2` après contrôle |
+| 7 | rsync de tout `users_2` alors que seuls `img_`, `img_adm_medium`, `img_ptf_medium`, `cms_pref`, `img_cms` sont repris | important | filtre rsync (étape 2) |
+| 8 | Import latin1 sans neutraliser `sql_mode` : les dates `0000-00-00` du legacy sont refusées par un MariaDB strict | important | `SET sql_mode=''` à l'import |
+| 9 | Reprise de 5 à 6 h sur un hébergement mutualisé : risque d'arrêt par les limites de processus (LVE) | important | reprise faite sur le poste, import du résultat (étape 3, voie recommandée) |
+| 10 | Pas de contrôle d'intégrité des octets après transfert de la base | moyen | `CHECKSUM TABLE` des deux côtés + sonde double encodage (étape 3) |
+
+---
+
+## 1. Préparation (une fois)
+
+1. **Gel de la source.** Choisir une date de photo (ex. dimanche 6 h). Tout le
+   scénario porte sur cette photo ; une seconde passe, juste avant la
+   bascule, ne rejoue que le delta (étape 9).
+2. **Accès SSH** : clé du poste sur O2switch, et clé O2switch autorisée sur
+   l'ancien serveur, pour un rsync **serveur à serveur** (30 Go ne passent
+   pas par le poste).
+3. **Dépôt git** : clé de déploiement en lecture seule pour O2switch.
+4. **Vérifier la version MySQL/MariaDB d'O2switch** (`mysql -V`). MariaDB
+   10.3+ ou MySQL 5.7+ avec `innodb_default_row_format=dynamic` : sinon
+   les index `varchar(255)` utf8mb4 tombent en erreur 1071
+   (`_doc/06_charset.md`).
+
+## 2. Joker DNS et SSL
+
+Deux domaines, même traitement :
+
+1. Faire pointer les **serveurs de noms** d'extra-book.com et extra-book.biz
+   vers O2switch. C'est la condition pour qu'AutoSSL délivre un certificat
+   joker (validation DNS-01 automatique) ; sinon, ticket au support.
+2. cPanel > Domaines : `extra-book.com`, racine `~/extra-book/public`,
+   puis sous-domaine `*` (joker) sur la **même racine**. Idem extra-book.biz.
+3. Zone DNS : `A @`, `A www`, `A *` vers l'IP du serveur.
+4. SSL/TLS Status : lancer AutoSSL, vérifier que `*.extra-book.com` et
+   `*.extra-book.biz` sont couverts.
+
+Contrôle :
+
+```bash
+dig +short test123.extra-book.com       # IP O2switch
+curl -sI https://test123.extra-book.com | head -1   # 404 applicative, pas une erreur TLS
+```
+
+Les sous-domaines réservés (`www`, `admin`, `mail`… — `config/marques.php`)
+ne désignent jamais un book : ne pas créer d'enregistrement DNS spécifique
+qui les détournerait (le `mail.` de cPanel est normal).
+
+## 3. Base de données
+
+### Voie recommandée : transformation sur le poste, import du résultat
+
+La reprise (`ubdf:migrate-legacy --tous`) tourne en local, où elle est
+mesurée, interrompable et rejouable sans contrainte de processus. Le serveur
+ne reçoit qu'une base déjà en utf8mb4.
+
+**a. Export de la production (ancien serveur)**, en latin1 pour conserver
+les octets tels qu'ils sont stockés :
+
+```bash
+mysqldump --default-character-set=latin1 --single-transaction --quick \
+          --hex-blob --routines --no-tablespaces ub2020 | gzip > ub2020_$(date +%F).sql.gz
+mysqldump --default-character-set=utf8mb4 --single-transaction \
+          <base_wordpress_magazine> | gzip > magazine_$(date +%F).sql.gz
+```
+
+Relever tout de suite, **sur l'ancien serveur**, la référence d'intégrité :
+
+```sql
+CHECKSUM TABLE inc_user, inc_user_pref, ub2_gal_rub, ub2_gal_img;
+SELECT COUNT(*) FROM inc_user;  SELECT COUNT(*) FROM ub2_gal_img;
+```
+
+**b. Import local** dans une base `ub2020_prod` (jamais dans `ub2020`, qui
+reste la référence de développement) :
+
+```bash
+mysql -e "CREATE DATABASE ub2020_prod CHARACTER SET latin1 COLLATE latin1_swedish_ci"
+( echo "SET SESSION sql_mode='';"; gunzip -c ub2020_2026-10-04.sql.gz ) \
+  | mysql --default-character-set=latin1 ub2020_prod
+```
+
+`sql_mode=''` : le legacy contient des dates `0000-00-00` et des valeurs
+hors bornes qu'un serveur strict refuse.
+
+**c. Contrôles d'encodage** (sur `ub2020_prod`, connexion latin1) :
+
+```sql
+-- mêmes sommes que sur l'ancien serveur : sinon le transfert a converti des octets
+CHECKSUM TABLE inc_user, inc_user_pref, ub2_gal_rub, ub2_gal_img;
+
+-- double encodage figé : doit rester à 0 (mesure de référence 2026-09-15)
+SELECT COUNT(*) FROM inc_user
+ WHERE HEX(us_nom) REGEXP 'C383C2|C383C3|C3A2C280';
+
+-- valeurs non UTF-8 valides : 2 attendues (varchar tronqués), traitées par LegacyText
+SELECT COUNT(*) FROM ub2_gal_img
+ WHERE CONVERT(CONVERT(img_titre USING binary) USING utf8mb4) IS NULL
+   AND img_titre IS NOT NULL;
+```
+
+Puis rejouer l'audit complet sur cette copie :
+`DB_LEGACY_DATABASE=ub2020_prod vendor/bin/pest --group=slow`. Un écart
+avec les mesures de `_doc/06_charset.md` doit être compris avant d'aller
+plus loin.
+
+**d. Transformation** vers une base locale `2026_ubdf_prod` :
+
+```bash
+php artisan migrate --force
+php artisan db:seed --class=CategorySeeder --force
+php artisan ubdf:migrate-legacy --tous --skip-files   # nohup … > reprise.log &
+php artisan ubdf:import-cms --skip-medias
+php artisan ubdf:import-langues
+```
+
+(`.env.dev` pointé temporairement sur `ub2020_prod` / `2026_ubdf_prod`.)
+
+Lire le rapport final : comptes repris, **valeurs tronquées**, logins
+écartés (20 attendus), mots de passe non déchiffrés (3 attendus), références
+orphelines (~498). Tout écart sensible avec ces chiffres : on s'arrête.
+
+**e. Envoi sur O2switch** :
+
+```bash
+mysqldump --default-character-set=utf8mb4 --single-transaction --quick \
+          2026_ubdf_prod | gzip > ubdf_prod.sql.gz
+rsync -P ubdf_prod.sql.gz <compte>@<serveur>:
+ssh <compte>@<serveur> "gunzip -c ubdf_prod.sql.gz | mysql --default-character-set=utf8mb4 <compte>_ubdf"
+```
+
+**f. Base legacy sur le serveur** : `ubdf:prod:dossiers-books` a besoin de
+la table des logins (`LegacyLogins::depuisLegacy()`). Importer aussi
+`ub2020` dans `<compte>_ub2020` (même commande qu'en b), utilisateur
+**SELECT seul**. Elle contient les mots de passe chiffrés de façon
+réversible : la supprimer du serveur dès l'étape 6 terminée.
+
+> Voie alternative (tutoriel initial) : importer `ub2020` sur O2switch et
+> lancer la reprise sur place. À réserver au cas où le poste ne peut pas
+> tenir la base ; lancer alors par paquets (`--max-paquets=5`, relance
+> `--depuis=`) plutôt qu'en une traite de 6 h.
+
+## 4. Code et assets
+
+```bash
+ssh <compte>@<serveur>
+git clone <depot> ~/extra-book && cd ~/extra-book
+/opt/alt/php83/usr/bin/php ~/composer.phar install --no-dev --optimize-autoloader
+```
+
+Depuis le poste, ce que git ne transporte pas :
+
+```bash
+npm run build
+rsync -a public/build/ <compte>@<serveur>:extra-book/public/build/
+rsync -a --relative public/./img_front public/./img_front_df public/./img_default \
+      public/./js_jquery public/./magazine public/./html_pages_v2018 public/./_video \
+      public/./2010_css public/./2010_images public/./2010_js public/./2011_css \
+      public/./2011_img public/./2011_iphone public/./2012_css public/./2012_img \
+      public/./2012_js public/./2012_web \
+      <compte>@<serveur>:extra-book/public/
+```
+
+(liste = entrées `/public/*` du `.gitignore`, hors `build`, `hot`, `storage`,
+et assets Filament régénérés par `php artisan filament:assets`.)
+
+## 5. `.env.prod`
+
+Copie de `.env.prod.example`, valeurs de recette :
+
+```ini
+APP_URL=https://www.extra-book.com
+APP_DEBUG=false
+
+DB_DATABASE=<compte>_ubdf
+DB_LEGACY_HOST=localhost
+DB_LEGACY_PORT=3306
+DB_LEGACY_DATABASE=<compte>_ub2020
+DB_LEGACY_WP_DATABASE=<compte>_magazine
+DB_LEGACY_USERNAME=<user_select_seul>
+
+BOOK_DOMAIN=extra-book.com
+PORTAIL_DOMAIN=www.extra-book.com
+UB_CANONIQUE=https://www.extra-book.com
+DF_BOOK_DOMAIN=extra-book.biz
+DF_DOMAIN=extra-book.biz
+DF_CANONIQUE=https://www.extra-book.biz
+SESSION_DOMAIN=null                     # session du portail seul : voir EditionBookController
+
+LEGACY_BOOKS_PATH=/home/<compte>/users_2
+LEGACY_PATH=/home/<compte>/legacy_site  # médias du magazine, si import-cms avec médias
+
+# --- RECETTE : aucun courriel ne part vers les créatifs ---
+MAIL_MAILER=log
+PAYPLUG_SECRET_KEY=sk_test_…
+RECAPTCHA_SECRET=                       # vide : vérification désactivée
+```
+
+Puis `php artisan key:generate`. Pour tester les courriels (contact d'un
+book, facture), passer ponctuellement sur un SMTP de capture (Mailtrap ou
+boîte dédiée) — **jamais** sur le SMTP réel tant que la base contient les
+vraies adresses.
+
+`noindex` : en tête de `~/extra-book/public/.htaccess` (serveur seul) :
+
+```apache
+Header set X-Robots-Tag "noindex, nofollow"
+```
+
+Option recommandée pendant la recette : protection HTTP Basic sur le
+portail (cPanel > Confidentialité des répertoires), qui empêche aussi les
+créatifs de découvrir le site avant l'annonce.
+
+## 6. Fichiers des books (rsync + trois lettres)
+
+**a. Transfert filtré, serveur à serveur**, depuis O2switch :
+
+```bash
+screen -S rsync
+rsync -a --partial --info=progress2 \
+      --include='*/' \
+      --include='img_/***' --include='img_adm_medium/***' --include='img_ptf_medium/***' \
+      --include='cms_pref/***' --include='img_cms/***' \
+      --exclude='*' --prune-empty-dirs \
+      <ancien-serveur>:/chemin/users_2/ ~/users_2/
+```
+
+Les 9 dossiers de déclinaisons pré-générées ne sont pas transférés : le
+nouveau site les régénère à la demande. Mesurer avant sur un book :
+`rsync -an --stats` avec et sans filtre.
+
+**b. Contrôle** : `du -sh ~/users_2`, `find ~/users_2 -type f | wc -l`,
+comparer au même comptage filtré côté source.
+
+**c. Arborescence trois lettres** :
+
+```bash
+php artisan ubdf:prod:dossiers-books --dry-run | tail -20   # books, logins convertis, écartés
+php artisan ubdf:prod:dossiers-books                         # dans screen ; relance : --depuis=<lettre>
+php artisan storage:link
+```
+
+`users_2/a/d/adolie` → `storage/app/public/books/a/d/o/adolie` ;
+`a_menguy` → `books/a/-/m/a-menguy`.
+
+**d. Libérer l'espace** une fois l'étape 8 validée : supprimer `~/users_2`
+et la base `<compte>_ub2020` (`LegacyFiles` et `LegacyLogins` n'en ont plus
+besoin). Suivre les inodes : cPanel > Statistiques.
+
+## 7. Tâches planifiées, cache
+
+```
+* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+```
+
+Activer ces crons **après** avoir vérifié que `MAIL_MAILER=log` est bien
+pris en compte (`php artisan config:show mail.default`).
+
+```bash
+php artisan filament:assets
+php artisan ubdf:robots
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+```
+
+## 8. Recette
+
+Contrôles techniques :
+
+- `curl -I https://www.extra-book.com` : 200, `X-Robots-Tag: noindex`.
+- `https://<login>.extra-book.com` : 200 ; un book `df` sur extra-book.com
+  → 301 vers `<login>.extra-book.biz`.
+- Cookie de session posé sur `www.extra-book.com` seulement (outils
+  développeur), pas sur `.extra-book.com`.
+- `storage/logs/laravel-*.log` vide d'erreurs après une heure de navigation.
+
+Contrôles métier, sur un échantillon noté à l'avance :
+
+- Connexion de 5 comptes avec leur **ancien** mot de passe (dont un au
+  format `encode()` et un `encode_2()`).
+- 10 books tirés au hasard + les 7 logins saturés + 3 logins convertis
+  (`_` → `-`, et un `--`) : visuels, rubriques, pages, actualités, thème.
+- Accents : noms, rubriques, légendes (`Amélie Falière`,
+  `Réalisations graphiques`) ; un compte à caractères japonais si présent.
+- Espace créatif : modifier un titre, téléverser un visuel, messagerie.
+- Contact d'un book, facture PDF, paiement Payplug test.
+- Back-office : recherche, revue des books, selection.
+- `php artisan ubdf:verifier-urls` : anciennes URL du `.htaccess` legacy.
+
+## 9. Avant la bascule
+
+1. Nouvelle photo de la production ; rejouer 3 et 6 (les deux sont
+   idempotents : rsync ne transfère que le delta, `dossiers-books` ignore
+   les fichiers présents, `migrate-legacy` s'appuie sur `legacy_id`).
+2. Prévenir les 20 créatifs dont le login est écarté, et ceux dont l'adresse
+   change (`_` ou `.` → `-`).
+3. Bascule : seuls `.env.prod` (domaines, `MAIL_MAILER=smtp`, clé Payplug
+   live) et la zone DNS changent ; retirer l'en-tête `noindex`.
+4. Après la bascule : supprimer `LegacyPassword` et `LegacyText`
+   (`_doc/09_politique_encodage.md`, règle 4).

@@ -123,7 +123,7 @@ rsync -a --info=progress2 <ancien-serveur>:/chemin/users_2/ ~/users_2/
 ```
 
 Puis recréer l'arborescence sur **trois lettres** (voir
-`02_scripts.md`) :
+`02_scripts.txt`) :
 
 ```bash
 php artisan ubdf:prod:dossiers-books --dry-run   # contrôle
