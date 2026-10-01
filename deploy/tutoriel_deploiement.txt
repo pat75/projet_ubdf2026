@@ -1,0 +1,153 @@
+DEPLOIEMENT — mode d'emploi des scripts deploy/
+================================================
+Ultra-book 2026, du Mac vers O2switch (ultra-book.pro).
+Toutes les commandes se lancent depuis la racine du projet :
+   cd /Users/pat/Sites_2026/projet_ubdf2026
+
+
+1. LES FICHIERS
+---------------
+   deploy-prod.sh          deploiement (complet, sync, rollback)
+   rollback-prod.sh        restauration d'une sauvegarde
+   ssh-prod.sh             shell / commande sur le serveur
+   lib.sh                  fonctions communes (ne pas lancer)
+   deploy.config           reglages (NON versionne)
+   rsync-exclude.txt       ce qui n'est jamais envoye
+   TUTO_RSYNC_SSH.txt      cle SSH et rsync a la main
+   tutoriel_o2switch.txt   reglages PHP 8.3 dans cPanel
+
+
+2. PREMIERE UTILISATION
+-----------------------
+a) Cle SSH et alias o2switch-ubpro : voir TUTO_RSYNC_SSH.txt.
+   Test : ssh o2switch-ubpro "echo OK"
+
+b) Configuration : deploy/deploy.config (section 3), deja renseigne.
+
+c) Sur le serveur : composer.phar dans ~ (/home/sc4tapa2662/composer.phar).
+
+d) En local : .env.prod complet (il devient le .env du serveur).
+
+e) Une fois : chmod +x deploy/*.sh
+
+
+3. DEPLOY.CONFIG — LES REGLAGES
+-------------------------------
+   SSH_HOST         alias ~/.ssh/config (o2switch-ubpro)
+   SSH_USER         vide : pris dans l'alias
+   SSH_PORT         22
+   REMOTE_PATH      /home/sc4tapa2662/ultra-book.pro  (absolu, pas de ~)
+   REMOTE_PHP       /opt/alt/php83/usr/bin/php
+   REMOTE_COMPOSER  $HOME/composer.phar
+   BACKUP_DIR       $HOME/backups_deploy  (sauvegardes sur le serveur)
+   KEEP             5  (sauvegardes conservees, les plus anciennes effacees)
+   LOCAL_PHP        /usr/local/opt/php@8.3/bin/php  (pour les tests)
+   DEPLOY_BRANCH    book-alpine  (vide = pas de controle)
+   URL_CHECK        URL qui doivent repondre 200 apres deploiement,
+                    separees par un espace
+   NOINDEX_CHECK    1 = exige l'en-tete X-Robots-Tag noindex (recette)
+                    0 = apres la bascule en production definitive
+
+
+4. DEPLOIEMENT COMPLET — le cas normal
+--------------------------------------
+   ./deploy/deploy-prod.sh
+
+Deroule, avec les questions posees :
+
+   1) Controles locaux
+      - .env.prod present, pas de public/hot (npm run dev arrete)
+      - branche = DEPLOY_BRANCH, sinon question
+      - fichiers non commites : liste + question "Deployer quand meme ?"
+      - "Lancer npm run build ?"             [O/n]  Entree = oui
+      - "Lancer les tests (Pest) ?"          [o/N]  Entree = non
+   2) Connexion SSH + controle PHP 8.3 distant (arret sinon)
+   3) Sauvegarde : code-STAMP.tgz + base-STAMP.sql.gz
+   4) Apercu (rien n'est encore envoye) :
+      - fichiers nouveaux / modifies (>f+++ nouveau, >f.st modifie)
+      - "*suppression ..." : fichiers qui seront effaces
+      - ".env.prod differe" si la config change
+      - migrations nouvelles
+      - "Envoyer ces modifications ?"       [o/N]  non = arret, rien n'a bouge
+   5) Site en maintenance ; affiche une URL secrete
+      (https://www.ultra-book.pro/<secret>) pour voir le site pendant ce temps
+   6) Envoi rsync + .env.prod -> .env
+   7) composer install --no-dev, puis si migrations en attente :
+      liste + "Executer ces migrations ?"     [o/N]
+      puis caches (artisan optimize) et queue:restart
+   8) Site remis en ligne, verification des URL_CHECK et du noindex
+
+A la fin : la commande de rollback avec le STAMP de la sauvegarde.
+Exemple : ./deploy/deploy-prod.sh rollback 20261001-143000
+
+
+5. SYNC — correctif rapide
+--------------------------
+   ./deploy/deploy-prod.sh sync
+
+Pour une vue, un CSS, une traduction, un changement de .env.prod.
+Fait : controles, build (question), envoi, .env, composer, caches,
+verification. Ne fait PAS : sauvegarde, apercu, migrations, maintenance.
+=> Jamais de sync si une migration est a passer.
+
+
+6. ROLLBACK — revenir en arriere
+--------------------------------
+   ./deploy/deploy-prod.sh rollback
+      liste les sauvegardes : 20261001-143000  (code + base)
+
+   ./deploy/deploy-prod.sh rollback 20261001-143000
+      - "Restaurer le code ?"                 [o/N]
+      - "Restaurer aussi la base ?"           [o/N]
+        ECRASE tout ce qui a ete saisi depuis (inscriptions, messages,
+        paiements) : seulement apres une migration ratee.
+      - maintenance, restauration, composer, caches, remise en ligne
+
+Le code (et le .env) revient a l'etat exact de la sauvegarde. Penser
+ensuite a corriger .env.prod en local, sinon le prochain deploiement
+le renvoie.
+
+
+7. SSH-PROD — travailler sur le serveur
+---------------------------------------
+   ./deploy/ssh-prod.sh
+      shell dans /home/sc4tapa2662/ultra-book.pro, "php" = PHP 8.3
+
+   ./deploy/ssh-prod.sh "php artisan about"
+   ./deploy/ssh-prod.sh "php artisan migrate:status"
+   ./deploy/ssh-prod.sh "tail -50 storage/logs/laravel.log"
+   ./deploy/ssh-prod.sh "tail ~/backups_deploy/deploy.log"   historique
+   ./deploy/ssh-prod.sh "php artisan up"                      si bloque en maintenance
+
+
+8. CE QUI EST SAUVEGARDE / ENVOYE
+---------------------------------
+Sauvegarde (deploiement complet seulement, ~/backups_deploy/, KEEP derniers) :
+   code-STAMP.tgz     tout le dossier de l'app, .env compris
+   base-STAMP.sql.gz  base ubdf
+NON sauvegarde :
+   storage/ (fichiers des books, logs) -> backup:run quotidien
+   vendor/  (reconstruit par composer)
+   base ub2020 (lecture seule)
+   tout ce que fait le mode sync
+
+Envoye : code, public/ (assets non versionnes compris), .env.prod -> .env
+Jamais : storage/, vendor/, node_modules/, .git, docs, tests, deploy/
+         (liste complete : deploy/rsync-exclude.txt)
+Efface sur le serveur quand supprime en local : seulement app/, config/,
+routes/, resources/views/, database/, public/build/. Ailleurs, a la main.
+
+
+9. QUAND CA COINCE
+------------------
+"config manquante"            -> etape 2b
+"public/hot present"          -> arreter npm run dev, supprimer public/hot
+"PHP distant x.y"             -> corriger REMOTE_PHP
+"connexion SSH impossible"    -> TUTO_RSYNC_SSH.txt, section depannage
+Code HTTP 500 a la verification
+                              -> ./deploy/ssh-prod.sh "tail -50 storage/logs/laravel.log"
+Code 503                      -> site reste en maintenance : php artisan up
+Erreur en cours de route      -> le script remet le site en ligne seul ;
+                                 relancer apres correction, ou rollback
+Modification non visible      -> attendre 60 s (OPcache), sinon
+                                 ./deploy/ssh-prod.sh "php artisan optimize"

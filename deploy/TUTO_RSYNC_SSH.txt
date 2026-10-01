@@ -1,0 +1,134 @@
+RSYNC + CLE SSH — du poste local vers O2switch (production)
+============================================================
+
+
+1. CREER LA CLE (sur le Mac, une fois)
+--------------------------------------
+Deja faite : ~/.ssh/id_ed25519_o2switch (+ .pub). Sinon :
+
+   ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_o2switch -C "o2switch"
+   chmod 600 ~/.ssh/id_ed25519_o2switch
+
+La cle privee ne quitte jamais le Mac. Seule la .pub va sur le serveur.
+
+
+2. AUTORISER LA CLE SUR O2SWITCH
+--------------------------------
+cPanel > Acces SSH > Gerer les cles SSH > Importer une cle :
+   - nom : id_ed25519_o2switch
+   - coller le contenu de :  cat ~/.ssh/id_ed25519_o2switch.pub
+Puis, dans la liste des cles publiques : Gerer > Autoriser.
+
+Si l'acces SSH est filtre par IP : cPanel > Autorisation SSH > ajouter
+l'IP publique du poste (https://ifconfig.me).
+
+
+3. ALIAS SSH (~/.ssh/config)
+----------------------------
+   Host o2switch-ubpro
+       HostName       <compte>.universe.wf
+       User           <compte>
+       Port           22
+       IdentityFile   ~/.ssh/id_ed25519_o2switch
+       IdentitiesOnly yes
+
+<compte> : identifiant cPanel. L'alias porte l'hote, l'utilisateur et la cle :
+plus besoin de les repeter dans chaque commande.
+
+Test :
+   ssh o2switch-ubpro "echo OK && pwd"
+   -> OK, puis /home/<compte>, sans demande de mot de passe.
+
+
+4. RSYNC : LA COMMANDE DE BASE
+------------------------------
+   rsync -az --no-perms -e ssh  SOURCE/  o2switch-ubpro:/home/<compte>/DESTINATION/
+
+   -a          recursif, conserve dates et liens
+   -z          compresse pendant le transfert
+   --no-perms  ne pas imposer les droits du Mac au serveur
+   -e ssh      passe par SSH (donc par l'alias et la cle)
+
+Le "/" final de SOURCE compte :
+   public/build/   -> envoie le CONTENU de build dans DESTINATION
+   public/build    -> cree DESTINATION/build
+
+
+5. OPTIONS UTILES
+-----------------
+   -n (--dry-run)          simule : TOUJOURS le faire avant un vrai envoi
+   -i (--itemize-changes)  liste ce qui change (>f+++ = nouveau, >f.st = modifie)
+   --progress              progression fichier par fichier
+   --exclude='dossier/'    ignore un dossier (repetable)
+   --exclude-from=FICHIER  liste d'exclusions (deploy/rsync-exclude.txt)
+   --delete                supprime sur le serveur ce qui n'existe plus en local
+                           DANGEREUX : jamais sur la racine du projet
+                           (effacerait storage/, .env, fichiers des books)
+   --checksum              compare le contenu, pas la date (plus lent)
+
+
+6. EXEMPLES CONCRETS
+--------------------
+Racine distante : /home/<compte>/ultra-book-pro (R ci-dessous).
+
+Apercu de tout le projet, sans rien envoyer :
+   rsync -azni --no-perms --exclude-from=deploy/rsync-exclude.txt ./ o2switch-ubpro:R/
+
+Envoi reel :
+   rsync -az --no-perms --progress --exclude-from=deploy/rsync-exclude.txt ./ o2switch-ubpro:R/
+
+Seulement les assets Vite (apres npm run build), anciens fichiers effaces :
+   rsync -az --no-perms --delete public/build/ o2switch-ubpro:R/public/build/
+
+Un seul fichier :
+   rsync -az --no-perms resources/views/welcome.blade.php o2switch-ubpro:R/resources/views/
+
+Config de prod :
+   rsync -a --chmod=F600 .env.prod o2switch-ubpro:R/.env
+
+Rapatrier du serveur vers le Mac (sens inverse) :
+   rsync -az o2switch-ubpro:R/storage/logs/laravel.log ./_outils/
+
+
+Conf de depart
+rsync -az --no-perms --progress \
+  --exclude-from=/Users/pat/Sites_2026/projet_ubdf2026/deploy/rsync-exclude.txt \
+  -e ssh \
+  /Users/pat/Sites_2026/projet_ubdf2026/ \
+  o2switch-ubpro:/home/sc4tapa2662/ultra-book.pro/
+
+
+
+7. APRES UN ENVOI A LA MAIN
+---------------------------
+   ssh o2switch-ubpro
+   cd ~/ultra-book-pro
+   /opt/alt/php83/usr/bin/php ~/composer.phar install --no-dev -o   # si composer.lock a change
+   /opt/alt/php83/usr/bin/php artisan migrate --force               # si nouvelles migrations
+   /opt/alt/php83/usr/bin/php artisan optimize                      # toujours
+
+Le script ./deploy/deploy-prod.sh enchaine tout cela (avec sauvegarde) :
+l'utiliser par defaut, rsync a la main reste pour les cas ponctuels.
+
+
+8. DEPANNAGE
+------------
+Permission denied (publickey)
+   -> cle non "Autorisee" dans cPanel, ou mauvais IdentityFile.
+   Diagnostic : ssh -v o2switch-ubpro   (voir quelle cle est proposee)
+
+Demande de mot de passe
+   -> la cle n'est pas utilisee : verifier IdentitiesOnly yes et les droits
+      chmod 700 ~/.ssh ; chmod 600 ~/.ssh/id_ed25519_o2switch ~/.ssh/config
+
+Connection timed out / refused
+   -> IP du poste non autorisee (cPanel > Autorisation SSH).
+
+Host key verification failed
+   -> serveur change : ssh-keygen -R <compte>.universe.wf, puis se reconnecter.
+
+rsync: command not found (cote serveur)
+   -> rare sur O2switch ; signaler au support.
+
+Le site sert encore l'ancienne version
+   -> artisan optimize non relance (config/vues en cache).

@@ -1,0 +1,91 @@
+PHP 8.3 SUR O2SWITCH — reglages cPanel pour Ultra-book (ultra-book.pro)
+========================================================================
+
+Tout se regle dans cPanel > Logiciel > "Selectionner une version de PHP".
+Trois onglets : version, Extensions, Options.
+
+
+1. VERSION
+----------
+Choisir 8.3, puis "Definir comme actuel".
+Ce reglage ne vaut que pour le site web. En SSH et dans les crons,
+appeler toujours : /opt/alt/php83/usr/bin/php
+
+
+2. EXTENSIONS (onglet Extensions)
+---------------------------------
+Cocher celles-ci, les autres peuvent rester decochees :
+
+   opcache                         LA plus importante pour la vitesse
+   pdo_mysql, mysqlnd              base de donnees
+   mbstring, intl, iconv           textes UTF-8 / latin1, traductions
+   gd, imagick                     declinaisons des visuels des books
+   exif                            orientation des photos
+   fileinfo                        uploads
+   zip                             exports, backup:run
+   bcmath                          calculs de montants (Payplug)
+   curl, openssl                   appels aux API
+   sodium                          chiffrement
+   tokenizer, xml, dom,            exiges par Laravel
+   simplexml, ctype
+
+
+3. OPTIONS (onglet Options)
+---------------------------
+   memory_limit                      512M     Filament, traitement d'images
+   max_execution_time                300      imports, exports
+   upload_max_filesize               64M      uploads de visuels
+   post_max_size                     64M      >= upload_max_filesize
+   max_input_vars                    5000     gros formulaires Filament
+   max_file_uploads                  50       envoi de visuels en lot
+   date.timezone                     Europe/Paris
+   display_errors                    Off      securite en prod
+   expose_php                        Off      masque la version de PHP
+
+   opcache.enable                    On       cache du code compile
+   opcache.memory_consumption        256      Laravel + Filament + vendor en memoire
+   opcache.interned_strings_buffer   16       cache des chaines
+   opcache.max_accelerated_files     20000    vendor depasse 10 000 fichiers
+   opcache.validate_timestamps       On       voir ci-dessous
+   opcache.revalidate_freq           60       verifie les fichiers modifies 1 fois/minute
+   realpath_cache_size               4096K    moins d'acces disque
+   realpath_cache_ttl                600
+
+IMPORTANT : laisser opcache.validate_timestamps sur On. Sur un mutualise,
+on ne peut pas redemarrer PHP : avec Off, le code envoye par rsync ne
+serait jamais pris en compte. Avec On et 60, une modification est visible
+au plus 60 secondes apres le deploiement.
+
+Option absente de la liste : la poser dans public/.user.ini, meme syntaxe
+   opcache.memory_consumption=256
+
+
+4. EN PLUS DE PHP, POUR L'AFFICHAGE
+-----------------------------------
+- Caches Laravel : php artisan optimize apres chaque deploiement (le gain
+  le plus net apres OPcache). deploy-prod.sh le fait deja.
+
+- Navigateur, dans public/.htaccess : compression (mod_deflate) et cache
+  long sur public/build/ (noms de fichiers changes a chaque build, donc
+  sans risque) :
+
+   <IfModule mod_deflate.c>
+       AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+   </IfModule>
+   <IfModule mod_headers.c>
+       <If "%{REQUEST_URI} =~ m#^/build/#">
+           Header set Cache-Control "public, max-age=31536000, immutable"
+       </If>
+   </IfModule>
+
+- Cache applicatif : CACHE_STORE=file ou database dans .env.prod
+  (pas de Redis sur le mutualise O2switch).
+
+
+5. VERIFIER
+-----------
+   ./deploy/ssh-prod.sh "php -i | grep -E 'opcache.enable|memory_limit|realpath_cache_size'"
+
+Attention : en SSH, c'est le PHP en ligne de commande qui repond ; ses
+valeurs peuvent differer de celles du site. Pour la configuration du site
+lui-meme : cPanel > "Informations PHP".
