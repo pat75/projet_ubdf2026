@@ -38,11 +38,11 @@ cPanel > **Sélecteur de version PHP** : 8.3, extensions `pdo_mysql`,
 `post_max_size` 64M, `max_execution_time` 300.
 
 En SSH, le `php` par défaut n'est pas forcément 8.3 : utiliser
-`/opt/alt/php83/usr/bin/php` (vérifier avec `ls /opt/alt/`). Dans la suite,
+`/usr/local/bin/php` (vérifier avec `ls /opt/alt/`). Dans la suite,
 `php` désigne ce binaire :
 
 ```bash
-alias php=/opt/alt/php83/usr/bin/php
+alias php=/usr/local/bin/php
 ```
 
 ## 3. Bases de données
@@ -149,14 +149,14 @@ php artisan ubdf:import-langues
 cPanel > **Tâches Cron**, toutes les minutes :
 
 ```
-* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
 La file (`QUEUE_CONNECTION=database`) : O2switch n'autorise pas de
 processus permanent, on la dépile par cron :
 
 ```
-* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /usr/local/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
 ```
 
 ## 9. Optimisation

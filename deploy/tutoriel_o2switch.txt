@@ -8,8 +8,10 @@ Trois onglets : version, Extensions, Options.
 1. VERSION
 ----------
 Choisir 8.3, puis "Definir comme actuel".
-Ce reglage ne vaut que pour le site web. En SSH et dans les crons,
-appeler toujours : /opt/alt/php83/usr/bin/php
+Ce reglage vaut pour le site web ET pour /usr/local/bin/php (SSH, crons,
+composer). Ne pas utiliser /opt/alt/php83/usr/bin/php : aucune extension
+chargee (ni phar, ni intl, ni gd), composer et artisan y echouent.
+Verifier : ssh o2switch-ubpro "php -v"   -> doit afficher 8.3
 
 
 2. EXTENSIONS (onglet Extensions)

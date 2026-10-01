@@ -130,7 +130,9 @@ rsync "${RSYNC_OPTS[@]}" "$PROJECT_DIR/" "$REMOTE:$REMOTE_PATH/"
 for d in "${DELETE_DIRS[@]}"; do
     rsync "${RSYNC_OPTS[@]}" --delete "$PROJECT_DIR/$d/" "$REMOTE:$REMOTE_PATH/$d/"
 done
-rsync -a -e "$SSH_CMD" --chmod=F600 "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env"
+# Pas de --chmod : le rsync de macOS (openrsync / 2.6.9) ne le connait pas.
+rsync -a -e "$SSH_CMD" "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env"
+ssh_run "chmod 600 .env"
 ok "code et .env envoyes"
 
 # 7) Dependances, migrations, caches.

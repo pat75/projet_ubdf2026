@@ -24,7 +24,7 @@ a) Cle SSH et alias o2switch-ubpro : voir TUTO_RSYNC_SSH.txt.
 
 b) Configuration : deploy/deploy.config (section 3), deja renseigne.
 
-c) Sur le serveur : composer.phar dans ~ (/home/sc4tapa2662/composer.phar).
+c) cPanel > Selectionner une version de PHP : 8.3 (voir tutoriel_o2switch.txt).
 
 d) En local : .env.prod complet (il devient le .env du serveur).
 
@@ -37,8 +37,8 @@ e) Une fois : chmod +x deploy/*.sh
    SSH_USER         vide : pris dans l'alias
    SSH_PORT         22
    REMOTE_PATH      /home/sc4tapa2662/ultra-book.pro  (absolu, pas de ~)
-   REMOTE_PHP       /opt/alt/php83/usr/bin/php
-   REMOTE_COMPOSER  $HOME/composer.phar
+   REMOTE_PHP       /usr/local/bin/php
+   REMOTE_COMPOSER  /usr/local/bin/composer
    BACKUP_DIR       $HOME/backups_deploy  (sauvegardes sur le serveur)
    KEEP             5  (sauvegardes conservees, les plus anciennes effacees)
    LOCAL_PHP        /usr/local/opt/php@8.3/bin/php  (pour les tests)

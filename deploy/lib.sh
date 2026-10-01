@@ -39,8 +39,8 @@ source "$CONFIG"
 : "${SSH_HOST:?manque SSH_HOST dans deploy.config}"
 : "${REMOTE_PATH:?manque REMOTE_PATH dans deploy.config}"
 SSH_PORT="${SSH_PORT:-22}"
-REMOTE_PHP="${REMOTE_PHP:-/opt/alt/php83/usr/bin/php}"
-REMOTE_COMPOSER="${REMOTE_COMPOSER:-\$HOME/composer.phar}"
+REMOTE_PHP="${REMOTE_PHP:-/usr/local/bin/php}"
+REMOTE_COMPOSER="${REMOTE_COMPOSER:-/usr/local/bin/composer}"
 BACKUP_DIR="${BACKUP_DIR:-\$HOME/backups_deploy}"
 KEEP="${KEEP:-5}"
 LOCAL_PHP="${LOCAL_PHP:-/usr/local/opt/php@8.3/bin/php}"
@@ -67,8 +67,14 @@ artisan() {
     ssh_run "'$REMOTE_PHP' artisan $*"
 }
 
+# composer.phar de REMOTE_COMPOSER s'il existe, sinon le composer fourni par cPanel,
+# toujours execute par PHP 8.3 (le composer du PATH tournerait avec le php par defaut).
 composer_install() {
-    ssh_run "'$REMOTE_PHP' $REMOTE_COMPOSER install --no-dev --optimize-autoloader --no-interaction --no-progress"
+    ssh_run "C=\"$REMOTE_COMPOSER\"; \
+        [ -f \"\$C\" ] || C=\"\$(command -v composer || true)\"; \
+        [ -n \"\$C\" ] || { [ -f /opt/cpanel/composer/bin/composer ] && C=/opt/cpanel/composer/bin/composer; }; \
+        [ -n \"\$C\" ] || { echo 'composer introuvable sur le serveur' >&2; exit 1; }; \
+        '$REMOTE_PHP' \"\$C\" install --no-dev --optimize-autoloader --no-interaction --no-progress"
 }
 
 caches() {

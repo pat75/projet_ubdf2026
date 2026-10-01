@@ -103,9 +103,9 @@ rsync -az --no-perms --progress \
 ---------------------------
    ssh o2switch-ubpro
    cd ~/ultra-book-pro
-   /opt/alt/php83/usr/bin/php ~/composer.phar install --no-dev -o   # si composer.lock a change
-   /opt/alt/php83/usr/bin/php artisan migrate --force               # si nouvelles migrations
-   /opt/alt/php83/usr/bin/php artisan optimize                      # toujours
+   /usr/local/bin/php composer install --no-dev -o   # si composer.lock a change
+   /usr/local/bin/php artisan migrate --force               # si nouvelles migrations
+   /usr/local/bin/php artisan optimize                      # toujours
 
 Le script ./deploy/deploy-prod.sh enchaine tout cela (avec sauvegarde) :
 l'utiliser par defaut, rsync a la main reste pour les cas ponctuels.
