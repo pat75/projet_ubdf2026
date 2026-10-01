@@ -33,7 +33,7 @@
         </div>
 
         <img src="{{ $cover?->url('front_desk') }}"
-             alt="{{ $cover?->title }} - {{ $name }}-{{ $category }}">
+             alt="{{ filled($cover?->title) ? $cover->title.' - ' : '' }}{{ $name }}-{{ $category }}">
     </a>
 
     <div class="content center aligned">

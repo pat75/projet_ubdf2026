@@ -342,7 +342,7 @@
 	</div>
 
 
-@include('partials.bloc-recherche')
+@include('partials.bloc-recherche', ['definition' => $marque->estDefaut()])
 
     
 
@@ -356,7 +356,7 @@
 	                <div class="row">
 
                 <div class="two wide column">
-                    <h4>illustration</h4>
+                    <p class="t-h4">illustration</p>
                 </div>
 
                 <div class="fourteen wide column">
@@ -398,7 +398,7 @@
 	                <div class="row">
 
                 <div class="two wide column">
-                    <h4>graphisme</h4>
+                    <p class="t-h4">graphisme</p>
                 </div>
 
                 <div class="fourteen wide column">
@@ -440,7 +440,7 @@
 	                <div class="row">
 
                 <div class="two wide column">
-                    <h4>digital</h4>
+                    <p class="t-h4">digital</p>
                 </div>
 
                 <div class="fourteen wide column">
@@ -460,8 +460,8 @@
                         <i class="chevron right icon"></i><strong>directeur artistique web</strong>
                     </a>
 
-                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,dévelopeur wordpress" href="{{ lien('recherche', ['q' => 'digital,dévelopeur wordpress', 'type_recherche' => 'mcles']) }}">
-                        <i class="chevron right icon"></i><strong>dévelopeur wordpress</strong>
+                                    <a class="ui large basic label cursor_effect  coul_digital" data-slug="digital,développeur wordpress" href="{{ lien('recherche', ['q' => 'digital,développeur wordpress', 'type_recherche' => 'mcles']) }}">
+                        <i class="chevron right icon"></i><strong>développeur wordpress</strong>
                     </a>
 
                                 </div>
@@ -470,7 +470,7 @@
 	                <div class="row">
 
                 <div class="two wide column">
-                    <h4>photo</h4>
+                    <p class="t-h4">photo</p>
                 </div>
 
                 <div class="fourteen wide column">
@@ -509,10 +509,10 @@
     <div class="ui container bloc_slide mobile bloc_accueil_modele2020">
         <div class="ui middle aligned two column stackable grid">
                 <div class="right aligned column " x-apparition:gauche>
-                    <h5>Freelances</h5>
+                    <p class="t-h5">Freelances</p>
                     <h2>{{ __('Créer votre portfolio') }}</h2>
-                    <h4>Chargez vos images par glisser-poser</h4>
-                    <h4>Modifiez l’apparence, et diffusez</h4>
+                    <p class="t-h4">Chargez vos images par glisser-poser</p>
+                    <p class="t-h4">Modifiez l’apparence, et diffusez</p>
                     <a class="ui black basic  right labeled icon button mobile-hidden cursor_effect btn_modal_creerbook_mdl" href="{{ lien('inscription.page') }}">
                         <i class="right arrow icon"></i>
                         CRÉEZ UN BOOK                    </a>
@@ -541,25 +541,25 @@
             </div>
 
             <div class="left aligned olive+ column" x-apparition:droite.150>
-                <h5>Entreprises</h5>
+                <p class="t-h5">Entreprises</p>
                 <h2>{{ __('Une sélection de qualité') }}</h2>
 
                 <div class="accueil_stats ">
 
                     <div class="stats_nbselection">
-                        <h3>58 133</h3>
-                        <h6>Books actifs</h6>
+                        <p class="t-h3">58 133</p>
+                        <p class="t-h6">Books actifs</p>
                     </div>
 
                     <div class="stats_nbbook">
-                        <h3>4 325</h3>
-                        <h6>Books selectionnés</h6>
+                        <p class="t-h3">4 325</p>
+                        <p class="t-h6">Books sélectionnés</p>
                     </div>
 
                 </div>
 
 
-                <h4>Trouver et contacter les meilleurs créatifs freelances !</h4>
+                <p class="t-h4">Trouver et contacter les meilleurs créatifs freelances !</p>
 
                 <div class="ui black  buttons ubdf_principes">
                     <div class="ui button right pointing label">

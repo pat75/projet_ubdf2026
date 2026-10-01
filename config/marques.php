@@ -65,7 +65,8 @@ return [
             'hotes' => array_filter([
                 env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
                 'ultra-book.com',
-                // Domaine de test de la mise en production.
+                // Domaine de test de la mise en production (O2switch, joker).
+                'ultra-book.pro',
                 'extra-book.com',
                 'extra-book.net',
                 'extra-book.info',

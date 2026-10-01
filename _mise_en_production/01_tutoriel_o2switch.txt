@@ -1,14 +1,14 @@
-# Mise en production sur O2switch — domaine de test extra-book.com
+# Mise en production sur O2switch — domaine de test ultra-book.pro
 
-Objectif : faire tourner le nouveau site sur O2switch sous **extra-book.com**
+Objectif : faire tourner le nouveau site sur O2switch sous **ultra-book.pro**
 le temps de la recette, sans toucher à la production actuelle
 (ultra-book.com). La bascule définitive ne changera que les domaines du
 `.env.prod`.
 
 | | |
 |---|---|
-| Portail | https://www.extra-book.com |
-| Books | https://\<login\>.extra-book.com |
+| Portail | https://www.ultra-book.pro |
+| Books | https://\<login\>.ultra-book.pro |
 | PHP | 8.3 |
 | Base | `<compte>_ubdf` (nouvelle) + `<compte>_ub2020` (copie de l'ancienne, lecture seule) |
 
@@ -16,17 +16,17 @@ le temps de la recette, sans toucher à la production actuelle
 
 ## 1. Domaine et DNS
 
-1. cPanel > **Domaines** : ajouter `extra-book.com`, racine du document
-   `~/extra-book/public` (et non `public_html`).
-2. Zone DNS d'extra-book.com (chez le registrar, ou cPanel > Zone Editor si
+1. cPanel > **Domaines** : ajouter `ultra-book.pro`, racine du document
+   `~/ultra-book-pro/public` (et non `public_html`).
+2. Zone DNS d'ultra-book.pro (chez le registrar, ou cPanel > Zone Editor si
    les NS pointent vers O2switch) :
-   - `A  extra-book.com      -> IP du serveur O2switch`
-   - `A  www.extra-book.com  -> même IP`
-   - `A  *.extra-book.com    -> même IP` (**joker** : un sous-domaine par book)
-3. cPanel > **Domaines** > créer le sous-domaine `*.extra-book.com`, même
-   racine `~/extra-book/public`.
+   - `A  ultra-book.pro      -> IP du serveur O2switch`
+   - `A  www.ultra-book.pro  -> même IP`
+   - `A  *.ultra-book.pro    -> même IP` (**joker** : un sous-domaine par book)
+3. cPanel > **Domaines** > créer le sous-domaine `*.ultra-book.pro`, même
+   racine `~/ultra-book-pro/public`.
 4. cPanel > **SSL/TLS Status** (AutoSSL / Let's Encrypt) : certificat pour
-   `extra-book.com`, `www.` **et** `*.extra-book.com`. Le joker exige la
+   `ultra-book.pro`, `www.` **et** `*.ultra-book.pro`. Le joker exige la
    validation DNS : si AutoSSL refuse, ouvrir un ticket O2switch, ils
    délivrent le certificat wildcard.
 
@@ -70,20 +70,20 @@ Accès SSH : cPanel > **Terminal** ou clé SSH (cPanel > Accès SSH).
 
 ```bash
 cd ~
-git clone <depot> extra-book
-cd extra-book
+git clone <depot> ultra-book-pro
+cd ultra-book-pro
 php ~/composer.phar install --no-dev --optimize-autoloader
 ```
 
 Les assets Vite se construisent sur le poste (`npm run build`) puis
-s'envoient : `rsync -av public/build/ <compte>@<serveur>:extra-book/public/build/`.
+s'envoient : `rsync -av public/build/ <compte>@<serveur>:ultra-book-pro/public/build/`.
 
 ## 5. `.env.prod`
 
 Copier `.env.prod.example` en `.env.prod`, puis :
 
 ```ini
-APP_URL=https://www.extra-book.com
+APP_URL=https://www.ultra-book.pro
 APP_KEY=                              # php artisan key:generate
 
 DB_DATABASE=<compte>_ubdf
@@ -96,18 +96,18 @@ DB_LEGACY_DATABASE=<compte>_ub2020
 DB_LEGACY_USERNAME=<user_ub2020>      # SELECT seul
 DB_LEGACY_PASSWORD=…
 
-BOOK_DOMAIN=extra-book.com
-PORTAIL_DOMAIN=www.extra-book.com
-UB_CANONIQUE=https://www.extra-book.com
-SESSION_DOMAIN=.extra-book.com        # session partagée portail / books
+BOOK_DOMAIN=ultra-book.pro
+PORTAIL_DOMAIN=www.ultra-book.pro
+UB_CANONIQUE=https://www.ultra-book.pro
+SESSION_DOMAIN=.ultra-book.pro        # session partagée portail / books
 
 LEGACY_BOOKS_PATH=/home/<compte>/users_2
 ```
 
-`config/marques.php` reconnaît déjà extra-book.com comme hôte Ultra-book.
+`config/marques.php` reconnaît déjà ultra-book.pro comme hôte Ultra-book.
 Tant que la recette dure, bloquer l'indexation (sinon Google indexe des
 doublons d'ultra-book.com). `ubdf:robots` réécrit `robots.txt` chaque jour :
-passer plutôt par un en-tête, en tête de `~/extra-book/public/.htaccess`
+passer plutôt par un en-tête, en tête de `~/ultra-book-pro/public/.htaccess`
 sur le serveur seulement, à retirer à la bascule :
 
 ```apache
@@ -149,14 +149,14 @@ php artisan ubdf:import-langues
 cPanel > **Tâches Cron**, toutes les minutes :
 
 ```
-* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
 La file (`QUEUE_CONNECTION=database`) : O2switch n'autorise pas de
 processus permanent, on la dépile par cron :
 
 ```
-* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
 ```
 
 ## 9. Optimisation
@@ -170,12 +170,12 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 ## 10. Recette
 
 - Portail, connexion d'un compte repris avec son **ancien** mot de passe.
-- Trois books au hasard : `https://<login>.extra-book.com`, visuels,
+- Trois books au hasard : `https://<login>.ultra-book.pro`, visuels,
   pages, actualités.
 - Un book Dustfolio (redirection vers son domaine de marque).
 - Formulaire de contact d'un book, réception du courriel.
 - Paiement Payplug en mode test.
-- En-tête `X-Robots-Tag: noindex` présent (`curl -I https://www.extra-book.com`).
+- En-tête `X-Robots-Tag: noindex` présent (`curl -I https://www.ultra-book.pro`).
 
 ## Logins avec `_` ou `.`
 

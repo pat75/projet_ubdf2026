@@ -1,4 +1,4 @@
-# Scénario de recette sur O2switch avec les données de production — extra-book.com
+# Scénario de recette sur O2switch avec les données de production — ultra-book.pro
 
 Complète et corrige `01_tutoriel_o2switch.txt`. Objectif : un site de test
 alimenté par une copie **figée** de la production actuelle, rejouable de bout
@@ -6,8 +6,8 @@ en bout, sans jamais écrire sur la production ni écrire aux créatifs.
 
 | | Ultra-book | Dustfolio |
 |---|---|---|
-| Portail | https://www.extra-book.com | https://www.extra-book.biz |
-| Books | https://\<login\>.extra-book.com | https://\<login\>.extra-book.biz |
+| Portail | https://www.ultra-book.pro | https://www.extra-book.biz |
+| Books | https://\<login\>.ultra-book.pro | https://\<login\>.extra-book.biz |
 
 ---
 
@@ -16,7 +16,7 @@ en bout, sans jamais écrire sur la production ni écrire aux créatifs.
 | # | Problème | Gravité | Correction |
 |---|---|---|---|
 | 1 | Aucun envoi de mail n'est neutralisé : la base contient les vraies adresses des ~60 000 créatifs, et le cron lance `EnvoyerNewslettersProgrammees` et `RelancerFormulesCommand` | **bloquant** | `MAIL_MAILER=log` pendant toute la recette (étape 5) |
-| 2 | `SESSION_DOMAIN=.extra-book.com` contredit le code : `EditionBookController` et `RevueBooks` supposent une session **limitée au portail** et passent par des liens signés | **bloquant** (sécurité) | `SESSION_DOMAIN=null` |
+| 2 | `SESSION_DOMAIN=.ultra-book.pro` contredit le code : `EditionBookController` et `RevueBooks` supposent une session **limitée au portail** et passent par des liens signés | **bloquant** (sécurité) | `SESSION_DOMAIN=null` |
 | 3 | Dustfolio absent : sans `DF_BOOK_DOMAIN` / `DF_DOMAIN`, les books `df` redirigent vers `ubdf-dust-2026.ultra-book.name` (valeur par défaut) | **bloquant** | déclarer extra-book.biz, DNS et joker compris |
 | 4 | Base WordPress du magazine non transférée, `DB_LEGACY_WP_DATABASE` et `LEGACY_PATH` absents : `ubdf:import-cms` échoue | bloquant | étapes 3 et 6 |
 | 5 | Assets du front non versionnés (`public/img_front`, `js_jquery`, `magazine`, `2010_*`…, voir `.gitignore`) : un `git clone` ne les apporte pas | bloquant | rsync depuis le poste (étape 4) |
@@ -46,20 +46,20 @@ en bout, sans jamais écrire sur la production ni écrire aux créatifs.
 
 Deux domaines, même traitement :
 
-1. Faire pointer les **serveurs de noms** d'extra-book.com et extra-book.biz
+1. Faire pointer les **serveurs de noms** d'ultra-book.pro et extra-book.biz
    vers O2switch. C'est la condition pour qu'AutoSSL délivre un certificat
    joker (validation DNS-01 automatique) ; sinon, ticket au support.
-2. cPanel > Domaines : `extra-book.com`, racine `~/extra-book/public`,
+2. cPanel > Domaines : `ultra-book.pro`, racine `~/ultra-book-pro/public`,
    puis sous-domaine `*` (joker) sur la **même racine**. Idem extra-book.biz.
 3. Zone DNS : `A @`, `A www`, `A *` vers l'IP du serveur.
-4. SSL/TLS Status : lancer AutoSSL, vérifier que `*.extra-book.com` et
+4. SSL/TLS Status : lancer AutoSSL, vérifier que `*.ultra-book.pro` et
    `*.extra-book.biz` sont couverts.
 
 Contrôle :
 
 ```bash
-dig +short test123.extra-book.com       # IP O2switch
-curl -sI https://test123.extra-book.com | head -1   # 404 applicative, pas une erreur TLS
+dig +short test123.ultra-book.pro       # IP O2switch
+curl -sI https://test123.ultra-book.pro | head -1   # 404 applicative, pas une erreur TLS
 ```
 
 Les sous-domaines réservés (`www`, `admin`, `mail`… — `config/marques.php`)
@@ -164,7 +164,7 @@ réversible : la supprimer du serveur dès l'étape 6 terminée.
 
 ```bash
 ssh <compte>@<serveur>
-git clone <depot> ~/extra-book && cd ~/extra-book
+git clone <depot> ~/ultra-book-pro && cd ~/ultra-book-pro
 /opt/alt/php83/usr/bin/php ~/composer.phar install --no-dev --optimize-autoloader
 ```
 
@@ -172,13 +172,13 @@ Depuis le poste, ce que git ne transporte pas :
 
 ```bash
 npm run build
-rsync -a public/build/ <compte>@<serveur>:extra-book/public/build/
+rsync -a public/build/ <compte>@<serveur>:ultra-book-pro/public/build/
 rsync -a --relative public/./img_front public/./img_front_df public/./img_default \
       public/./js_jquery public/./magazine public/./html_pages_v2018 public/./_video \
       public/./2010_css public/./2010_images public/./2010_js public/./2011_css \
       public/./2011_img public/./2011_iphone public/./2012_css public/./2012_img \
       public/./2012_js public/./2012_web \
-      <compte>@<serveur>:extra-book/public/
+      <compte>@<serveur>:ultra-book-pro/public/
 ```
 
 (liste = entrées `/public/*` du `.gitignore`, hors `build`, `hot`, `storage`,
@@ -189,7 +189,7 @@ et assets Filament régénérés par `php artisan filament:assets`.)
 Copie de `.env.prod.example`, valeurs de recette :
 
 ```ini
-APP_URL=https://www.extra-book.com
+APP_URL=https://www.ultra-book.pro
 APP_DEBUG=false
 
 DB_DATABASE=<compte>_ubdf
@@ -199,9 +199,9 @@ DB_LEGACY_DATABASE=<compte>_ub2020
 DB_LEGACY_WP_DATABASE=<compte>_magazine
 DB_LEGACY_USERNAME=<user_select_seul>
 
-BOOK_DOMAIN=extra-book.com
-PORTAIL_DOMAIN=www.extra-book.com
-UB_CANONIQUE=https://www.extra-book.com
+BOOK_DOMAIN=ultra-book.pro
+PORTAIL_DOMAIN=www.ultra-book.pro
+UB_CANONIQUE=https://www.ultra-book.pro
 DF_BOOK_DOMAIN=extra-book.biz
 DF_DOMAIN=extra-book.biz
 DF_CANONIQUE=https://www.extra-book.biz
@@ -221,7 +221,7 @@ book, facture), passer ponctuellement sur un SMTP de capture (Mailtrap ou
 boîte dédiée) — **jamais** sur le SMTP réel tant que la base contient les
 vraies adresses.
 
-`noindex` : en tête de `~/extra-book/public/.htaccess` (serveur seul) :
+`noindex` : en tête de `~/ultra-book-pro/public/.htaccess` (serveur seul) :
 
 ```apache
 Header set X-Robots-Tag "noindex, nofollow"
@@ -270,8 +270,8 @@ besoin). Suivre les inodes : cPanel > Statistiques.
 ## 7. Tâches planifiées, cache
 
 ```
-* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
-* * * * * cd ~/extra-book && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/ultra-book-pro && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
 ```
 
 Activer ces crons **après** avoir vérifié que `MAIL_MAILER=log` est bien
@@ -287,11 +287,11 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 Contrôles techniques :
 
-- `curl -I https://www.extra-book.com` : 200, `X-Robots-Tag: noindex`.
-- `https://<login>.extra-book.com` : 200 ; un book `df` sur extra-book.com
+- `curl -I https://www.ultra-book.pro` : 200, `X-Robots-Tag: noindex`.
+- `https://<login>.ultra-book.pro` : 200 ; un book `df` sur ultra-book.pro
   → 301 vers `<login>.extra-book.biz`.
-- Cookie de session posé sur `www.extra-book.com` seulement (outils
-  développeur), pas sur `.extra-book.com`.
+- Cookie de session posé sur `www.ultra-book.pro` seulement (outils
+  développeur), pas sur `.ultra-book.pro`.
 - `storage/logs/laravel-*.log` vide d'erreurs après une heure de navigation.
 
 Contrôles métier, sur un échantillon noté à l'avance :

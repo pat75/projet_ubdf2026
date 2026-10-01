@@ -59,3 +59,6 @@ __pycache__/
 # Acces locaux et mots de passe de test
 ACCES_LOCAL.md
 liens_books_acces.TXT
+
+# Identifiants de deploiement
+/deploy/deploy.config

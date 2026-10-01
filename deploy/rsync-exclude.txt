@@ -1,0 +1,44 @@
+# Jamais envoye en production (rsync --exclude-from).
+# .env.prod est envoye a part, vers .env (deploy-prod.sh).
+
+# --- VCS / IDE / outils locaux ---
+.git/
+.github/
+.gitignore
+.gitattributes
+.editorconfig
+.idea/
+.vscode/
+.claude/
+.history/
+.DS_Store
+
+# --- Construit sur le serveur (composer) ou inutile ---
+vendor/
+node_modules/
+
+# --- Donnees runtime de prod : ne jamais ecraser ni supprimer ---
+storage/
+.env
+.env.*
+public/storage
+public/hot
+
+# --- Documentation, outils, acces locaux ---
+_doc/
+_mise_en_production/
+_outils/
+graphify-out/
+tests/
+CLAUDE.md
+Claude_design.md
+README.md
+_doc_php8_3.txt
+ACCES_LOCAL.md
+liens_books_acces.TXT
+phpunit.xml
+*.log
+.phpunit.result.cache
+
+# --- Les scripts de deploiement ---
+deploy/

@@ -5,6 +5,8 @@
 @php
     $url = lien_metier($slug);
     $pluriel = App\Support\Metier::pluriel($slug);
+    // « 1 webdesigner », pas « 1 webdesigners ».
+    $libelleTotal = $total > 1 ? $pluriel : mb_strtolower(__(App\Support\Metier::find($slug)['name'] ?? ''));
 @endphp
 
 <div class="ui container bloc_portfolios">
@@ -33,7 +35,7 @@
                         <div class="cat_link_txt">
                             <strong>{{ number_format($total, 0, ',', ' ') }}</strong>
                             <br/>
-                            {{ $pluriel }}
+                            {{ $libelleTotal }}
                         </div>
                     </div>
                 </a>

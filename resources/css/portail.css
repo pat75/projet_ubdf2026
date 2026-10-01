@@ -1140,3 +1140,38 @@
     position: absolute; right: 4%; bottom: -34%; width: 34.3%;
     border-radius: 14px; border: 8px solid #1b1b1b; box-shadow: 0 18px 40px -12px rgba(0,0,0,.45);
 }
+
+/* Accueil : textes d'accroche autrefois en h3-h6 (front 2018). Passes en
+   <p> pour ne garder qu'une hierarchie h1 > h2 lisible par les moteurs ;
+   ces regles reprennent a l'identique l'apparence des titres d'origine
+   (Semantic UI + core.css). */
+.t-h3, .t-h4, .t-h5 { font-family: 'Lato', sans-serif; font-weight: 300; line-height: 1.28571429em; margin: calc(2rem - .14285714em) 0 1rem; padding: 0; }
+.t-h3:first-child, .t-h4:first-child, .t-h5:first-child { margin-top: 0; }
+.t-h3:last-child, .t-h4:last-child, .t-h5:last-child { margin-bottom: 0; }
+.t-h3 { font-size: 1.28571429rem; line-height: 26px; }
+.t-h4 { font-size: 1.07142857rem; }
+.t-h5 { font-size: 1rem; }
+.t-h6 { font-family: 'Lato', sans-serif; font-weight: 300; font-size: .67em; margin: 2.33em 0; }
+
+.bloc_last_recherche .t-h4 { font-size: 16px; text-transform: capitalize; }
+
+.bloc_accueil_modele2020 .grid .t-h4 { font-size: 25px; line-height: 32px; margin: 0; }
+.bloc_accueil_modele2020 .grid .t-h5 { text-transform: uppercase; margin-bottom: -5px; font-size: 12px; font-weight: 400; color: #aaa; }
+
+.bloc_accueil_entreprise2020_stats .grid .t-h5 { text-transform: uppercase; margin-bottom: 0; font-size: 12px; font-weight: 400; color: #ddd; }
+.bloc_accueil_entreprise2020_stats .grid .t-h4 { margin-top: 20px; font-size: 25px; line-height: 32px; }
+.bloc_accueil_entreprise2020_stats .grid .accueil_stats .t-h6 { text-transform: uppercase; margin: -20px 0 0 0; font-size: 16px; font-weight: 400; color: #00d6cf; }
+.bloc_accueil_entreprise2020_stats .grid .accueil_stats div.stats_nbselection .t-h3 { font-size: 118px; line-height: 118px; }
+.bloc_accueil_entreprise2020_stats .grid .accueil_stats div.stats_nbselection .t-h6 { color: white; }
+.bloc_accueil_entreprise2020_stats .grid .accueil_stats div.stats_nbbook .t-h3 { color: #00d6cf; font-size: 48px; line-height: 58px; }
+.bloc_accueil_entreprise2020_stats .grid .accueil_stats div.stats_nbbook .t-h6 { font-size: 13px; }
+@media only screen and (max-width: 767px) {
+    .bloc_accueil_modele2020 .grid .t-h4 { font-size: 20px; }
+    .bloc_accueil_entreprise2020_stats .grid .left.column .stats_nbselection .t-h3 { font-size: 89px !important; }
+    .bloc_accueil_entreprise2020_stats .grid .left.column .stats_nbselection .t-h6 { margin-top: -30px; font-size: 14px !important; }
+    .bloc_accueil_entreprise2020_stats .grid .left.column .stats_nbbook .t-h3 { font-size: 32px !important; }
+    .bloc_accueil_entreprise2020_stats .grid .left.column .stats_nbbook .t-h6 { margin-top: -26px; font-size: 12px !important; }
+    .bloc_accueil_entreprise2020_stats .grid .left.column .t-h4 { margin-top: -10px; }
+}
+
+.accueil_definition { max-width: 720px; margin: 12px auto 0; font-size: 16px; line-height: 1.55; font-weight: 300; color: #555; }

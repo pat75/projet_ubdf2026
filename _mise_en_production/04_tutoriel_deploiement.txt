@@ -1,0 +1,75 @@
+DEPLOIEMENT — Ultra-book 2026 vers O2switch (ultra-book.pro)
+=============================================================
+Depuis la racine du projet. Scripts dans deploy/.
+
+
+MISE EN PLACE (une fois)
+------------------------
+1. Cle ~/.ssh/id_ed25519_o2switch autorisee dans cPanel > Acces SSH.
+2. Alias ~/.ssh/config :
+      Host o2switch-ubpro
+          HostName <compte>.universe.wf
+          User <compte>
+          IdentityFile ~/.ssh/id_ed25519_o2switch
+          IdentitiesOnly yes
+   Test : ssh o2switch-ubpro "echo OK"
+3. cp deploy/deploy.config.example deploy/deploy.config  puis renseigner.
+4. composer.phar present dans ~ sur le serveur.
+
+
+COMMANDES
+---------
+./deploy/deploy-prod.sh                  deploiement complet (cas normal)
+./deploy/deploy-prod.sh sync             correctif rapide, sans sauvegarde ni migration
+./deploy/deploy-prod.sh rollback         liste les sauvegardes
+./deploy/deploy-prod.sh rollback STAMP   restaure une sauvegarde
+./deploy/ssh-prod.sh                     shell sur le serveur (php = 8.3)
+./deploy/ssh-prod.sh "php artisan about" commande ponctuelle
+
+
+OPERATIONS                                   complet   sync   rollback
+---------------------------------------------------------------------
+Controle branche / git propre / public/hot      x        x
+npm run build (question)                        x        x
+Tests Pest (question)                           x
+Sauvegarde code + base                          x
+Apercu fichiers, suppressions, migrations       x
+Site en maintenance pendant l'operation         x                 x
+Envoi du code (rsync)                           x        x
+.env.prod -> .env distant                       x        x
+composer install --no-dev                       x        x        x
+Migrations (confirmees une a une liste)         x
+Caches (optimize) + queue:restart               x        x        x
+Verification HTTP (200 + noindex)               x        x
+Ligne dans deploy.log                           x        x        x
+
+
+SAUVEGARDE (deploiement complet uniquement)
+-------------------------------------------
+Dans ~/backups_deploy/ sur le serveur, les 5 dernieres :
+- code-STAMP.tgz   : tout le dossier de l'app, .env compris
+- base-STAMP.sql.gz: la base ubdf (mysqldump)
+
+NON sauvegarde :
+- storage/ (fichiers des books, uploads, logs)  -> sauvegarde quotidienne backup:run
+- vendor/   (reconstruit par composer)
+- la base ub2020 (lecture seule, inchangee)
+- tout ce qui est fait en mode sync
+
+
+ENVOYE / JAMAIS ENVOYE
+----------------------
+Envoye   : code, public/ (assets non versionnes compris), .env.prod -> .env
+Jamais   : storage/, vendor/, node_modules/, .git, docs, tests, deploy/
+           (liste : deploy/rsync-exclude.txt)
+Supprime sur le serveur si supprime en local : seulement app/, config/,
+routes/, resources/views/, database/, public/build/. Ailleurs : a la main.
+
+
+A RETENIR
+---------
+- Modifier la config = modifier .env.prod puis deployer (sync suffit).
+- Rollback de la base = ECRASE les donnees saisies depuis : seulement
+  apres une migration ratee.
+- Echec en cours de route : le site est remis en ligne automatiquement.
+- Historique : ./deploy/ssh-prod.sh "tail ~/backups_deploy/deploy.log"

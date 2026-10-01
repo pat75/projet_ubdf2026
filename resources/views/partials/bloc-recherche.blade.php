@@ -7,6 +7,11 @@
 				<div class="column aligned">
 					<div class="ui segment basic ">
 						<{{ $niveauTitre ?? 'h1' }}>{{ __('Trouvez les meilleurs portfolios de créatifs.') }}</{{ $niveauTitre ?? 'h1' }}>
+						@if ($definition ?? false)
+							{{-- Phrase de definition sous le h1 : le passage que les moteurs
+							     et les assistants IA reprennent pour presenter le site. --}}
+							<p class="accueil_definition">{{ __('Depuis 2007, Ultra-book réunit les portfolios de plus de 58 000 illustrateurs, graphistes, photographes et designers indépendants. Chaque trimestre, des professionnels en sélectionnent les meilleurs : parcourez leurs books et contactez directement le créatif qui vous correspond.') }}</p>
+						@endif
 					</div>
 				</div>
 			</div>
