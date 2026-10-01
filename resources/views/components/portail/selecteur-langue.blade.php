@@ -23,7 +23,6 @@
         </button>
 
         <ul class="selecteur_langue_liste" x-show="ouvert" x-cloak x-transition.opacity.duration.150ms>
-            <li class="selecteur_langue_titre" aria-hidden="true">{{ __('Langue') }}</li>
             @foreach ($marque->langues as $code)
                 @continue($code === $courante)
                 <li>

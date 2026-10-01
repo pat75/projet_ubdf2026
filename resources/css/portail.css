@@ -201,13 +201,6 @@
     background: #1b1c1d;
     transform: rotate(45deg);
 }
-.selecteur_langue_titre {
-    margin: -3px 0 14px;
-    font-size: 24px;
-    font-weight: 200;
-    line-height: 1.2;
-    white-space: nowrap;
-}
 .selecteur_langue_liste a {
     display: flex;
     align-items: baseline;
