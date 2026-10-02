@@ -1,0 +1,210 @@
+TRANSFERT DE LA BASE MYSQL — ancienne prod -> O2switch (ultra-book.pro)
+=========================================================================
+Base source : db_ultra_book_2019 (ancien serveur 163.172.103.215), format
+legacy : memes tables que la copie locale ub2020.
+Base cible  : sc4tapa2662_ultra-book-prod (O2switch), schema 2026.
+
+ETAT : les etapes 1 et 2 (export, rapatriement) se font des maintenant.
+Le script deploy/importer-legacy.sh (etapes 3 et suivantes) est PREVU,
+PAS ENCORE CODE : ce tutoriel decrit son fonctionnement a venir.
+
+
+PRINCIPE
+--------
+1) EXPORTER   mysqldump sur l'ancien serveur, sans reencodage (latin1).
+2) RAPATRIER  le fichier .sql.gz sur le Mac.
+3) IMPORTER   le dump dans une base LEGACY creee sur O2switch, declaree
+              dans .env.prod (DB_LEGACY_*). Elle sert aussi a « organiser »
+              les images (conversion des logins) : on ne la supprime
+              qu'a la toute fin.
+4) CONVERTIR  ubdf:migrate-legacy --tous : les donnees legacy passent au
+              schema 2026 (comptes, books, visuels, messages, factures,
+              stats, codes promo, offres marketing, abonnes newsletter).
+5) RAPPORT    synthese : volumes, controles, risques par table et champ.
+
+Toujours une SAUVEGARDE de la base de prod avant l'etape 4.
+
+
+ECARTS DE STRUCTURE (ancienne prod / ub2020)
+--------------------------------------------
+Releves le 02/10/2026 sur db_ultra_book_2019_structure.sql. Identiques,
+sauf :
+- inc_user.us_pass en varchar(100), pas de us_pass_old (ub2020 : 255 +
+  us_pass_old). Sans effet : la conversion ne lit que us_pass.
+- table ub2_dispo absente de l'ancienne prod. Sans effet : non lue.
+Comptes : dernier us_id 85 975 (ub2020 : 78 123), soit ~7 800 comptes
+crees depuis la copie de 2020. Aucun changement de code necessaire.
+
+
+ETAPE 1 — EXPORTER (sur l'ancien serveur)
+-----------------------------------------
+Connexion SSH a l'ancien serveur, dans un dossier avec quelques Go libres :
+
+   mysqldump -u ultrabook2019 -p \
+     --default-character-set=latin1 \
+     --hex-blob \
+     --quick \
+     --no-tablespaces \
+     --skip-lock-tables \
+     db_ultra_book_2019 \
+     | gzip > db_ultra_book_2019_$(date +%F).sql.gz
+
+« Access denied ... when using LOCK TABLES » (erreur 1044) : l'utilisateur
+de l'ancien site n'a pas le droit LOCK TABLES. --skip-lock-tables exporte
+sans verrou ; le dump n'est alors coherent que si personne n'ecrit pendant
+l'export : le lancer la nuit, ou fermer l'ancien site le temps de l'export.
+--routines/--triggers retires : le legacy n'en a pas, et ils exigent des
+droits que cet utilisateur n'a pas non plus.
+
+
+
+
+
+
+- UTILISATEUR : l'utilisateur MySQL qui a acces a la base (root, ou
+  celui de l'ancien site).
+- -p sans valeur : le mot de passe est DEMANDE. Ne pas ecrire -pMOTDEPASSE
+  dans la commande (il resterait dans l'historique et la liste des
+  processus).
+- --default-character-set=latin1 : INDISPENSABLE. Les tables sont
+  declarees latin1 mais contiennent des octets UTF-8 bruts ; latin1 les
+  exporte tels quels. Un export phpMyAdmin (SET NAMES utf8mb4) les
+  reencode et peut abimer des accents.
+- --hex-blob : champs binaires exportes sans alteration.
+- --quick : ligne a ligne (ub2_gal_img compte ~2 millions de lignes).
+- Tables MyISAM : mysqldump les verrouille en lecture le temps de
+  l'export (quelques minutes). Le faire a une heure creuse.
+
+Verifier que l'export est complet :
+
+   ls -lh db_ultra_book_2019_*.sql.gz
+   zcat db_ultra_book_2019_*.sql.gz | tail -1
+   -> attendu : « -- Dump completed on ... »
+
+
+ETAPE 2 — RAPATRIER (sur le Mac)
+--------------------------------
+   scp -P 22 adminpat@163.172.103.215:~/db_ultra_book_2019_*.sql.gz ~/Downloads/
+
+(Adapter le chemin si le dump n'est pas dans le dossier personnel.)
+
+
+ETAPE 3 — ANALYSER, SANS RIEN ECRIRE EN PROD  (script a venir)
+--------------------------------------------------------------
+   ./deploy/importer-legacy.sh ~/Downloads/db_ultra_book_2019_<date>.sql.gz --analyse
+
+Ce que fait le script :
+a) Controles locaux : taille, derniere ligne « Dump completed », nombre
+   d'INSERT par table.
+b) Envoi sur O2switch (rsync, compresse).
+c) Creation de la base legacy sur O2switch (cPanel / uapi Mysql), droits
+   pour l'utilisateur de la prod, import avec le jeu de caracteres du
+   dump, ajout de DB_LEGACY_* dans .env.prod.
+d) Analyse :
+   - integrite : lignes importees par table / dernier identifiant ;
+   - encodage : recherche de double encodage (« Ã© ») et de « ? » de
+     remplacement sur les champs texte ;
+   - tables non reprises par la conversion, avec leur nombre de lignes ;
+   - simulation des troncatures : table.colonne, nombre de valeurs trop
+     longues pour le schema 2026, exemples (us_id).
+Rien n'est ecrit dans la base de prod.
+
+
+ETAPE 4 — CONVERTIR  (script a venir)
+-------------------------------------
+   ./deploy/importer-legacy.sh ~/Downloads/db_ultra_book_2019_<date>.sql.gz
+
+Etapes 3a a 3d, puis :
+e) SAUVEGARDE de la base de prod (mysqldump, verifiee non vide ; arret si
+   elle echoue) dans ~/backups_deploy/base-<date>.sql.gz sur O2switch.
+f) Rappel : tables videes, tables gardees, pertes annoncees par
+   l'analyse. Confirmation demandee : rien ne part sans elle.
+g) Site en maintenance (reglage du back-office).
+h) php artisan migrate --force (schema a jour du code).
+i) ubdf:migrate-legacy --tous --fresh --skip-files, dans « screen »
+   (survit a une coupure SSH), progression sur une ligne.
+   Duree : 1 h 30 a 2 h (rechiffrement bcrypt de ~85 000 mots de passe).
+j) Fin de maintenance, cache:clear.
+k) Rapport final : ecran, deploy/logs/ (Mac) et storage/logs/ (O2switch).
+
+Les images ne sont pas concernees (--skip-files) : voir
+tutoriel_transfert_data_image.txt (recuperer, organiser).
+
+
+CE QUI EST REMPLACE / GARDE
+---------------------------
+Decisions du 02/10/2026.
+
+Vide puis recharge depuis l'ancienne prod :
+   users, book_settings, book_sections, book_articles, galleries, media,
+   conversations, messages, invoices, billing_profiles, visit_stats,
+   visitors, visitor_book_visits, memo_books, memo_partages, referrals,
+   selection_user, data_exports,
+   promo_codes (codes de l'ancienne prod ; ceux de la demo sont perdus),
+   marketing_offers (idem),
+   newsletter_mails (UNIQUEMENT les abonnes de l'ancien site, nl_newsletter).
+
+Garde tel qu'en prod (saisi dans le back-office) :
+   admins, admin_activities, reglages, accueil_blocs, cms_pages,
+   cms_posts, actualites, campaigns, campaign_sends, categories,
+   page_images, selections.
+
+Jamais touche (technique) : migrations, cache, sessions, jobs.
+
+Abonnes newsletter (nl_newsletter -> newsletter_mails) :
+   nl_mail -> adresse, nl_ip -> IP, nl_date_insc -> date d'inscription,
+   nl_envoi_etat = off -> desinscrit. Adresses invalides et doublons
+   ecartes et comptes. Marque : Ultra-book (nl_list a verifier sur le
+   dump : une liste Dustfolio serait rattachee a df).
+
+
+RISQUES DE PERTE (affiches par l'analyse, table et champ)
+---------------------------------------------------------
+1) Encodage : tous les champs texte, surtout inc_user.us_nom/us_prenom,
+   ub2_gal_img.img_titre/img_desc, ub2_gal_rub.rub_nom,
+   ub2_intermediate_form.mf_message, inc_user_pref.us_pf_descp.
+   Risque ecarte par l'export latin1 de l'etape 1 ; controle a l'etape 3.
+2) Dump tronque : verifie par « Dump completed » et les comptages.
+3) Tables NON reprises par la conversion (donnees absentes du nouveau
+   site) : bn_ultranews_*_cmsfront, bn_ultranews_art_tab_default (CMS de
+   l'ancien portail), inc_user_token, inc_comt (vide), df2_mail_relance,
+   inc_auto_selection, inc_auto_selection_user, ub2_stats_mcles, wp_import.
+4) Textes plus longs que leur colonne 2026 : coupes. Le rapport donne
+   table.colonne, le nombre et des exemples.
+5) Comptes ecartes : comptes supprimes (us_delete), logins sans
+   conversion possible, mots de passe illisibles (le compte passe par
+   « mot de passe oublie »). Listes dans le rapport.
+
+
+EXEMPLE DE RAPPORT FINAL
+------------------------
+   REPRISE 2026-10-0x 21:40   dump : db_ultra_book_2019_2026-10-0x.sql.gz (1,2 Go)
+   Sauvegarde prod : ~/backups_deploy/base-2026100x-2140.sql.gz (58 Mo)
+   Comptes repris : 60 112 / 85 974   ecartes : supprimes 25 401, logins 12
+   Visuels 1 204 331   messages 33 900   factures 10 920   abonnes 39 870
+   RISQUES
+     users.phone        3 valeurs > 30 car. coupees (us_id 4512, 8890, 12001)
+     media.title       12 valeurs > 255 car. coupees
+     wp_import          table non reprise : 5 757 lignes
+   CONTROLES  encodage OK   integrite OK
+   Duree : 1 h 52
+
+
+REVENIR EN ARRIERE
+------------------
+Restaurer la sauvegarde de l'etape 4e :
+
+   ./deploy/ssh-prod.sh 'gunzip -c ~/backups_deploy/base-<date>.sql.gz | mysql --defaults-extra-file=<cnf> sc4tapa2662_ultra-book-prod'
+
+(ou ./deploy/deploy-prod.sh rollback, qui liste les sauvegardes.)
+
+
+A LA FIN : SUPPRIMER LA BASE LEGACY
+-----------------------------------
+Seulement quand la reprise est validee ET que « organiser » a tourne sur
+toutes les lettres (il lit la base legacy pour convertir les logins) :
+
+   ./deploy/importer-legacy.sh supprimer-legacy     (script a venir)
+
+Supprime la base legacy d'O2switch apres confirmation, retire DB_LEGACY_*
+de .env.prod. La sauvegarde de la base de prod reste le retour arriere.
