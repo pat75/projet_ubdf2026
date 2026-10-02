@@ -75,7 +75,9 @@ final class Marque
             canonique: $marque['canonique'],
             titre: $marque['titre'],
             description: $marque['description'],
-            domaineBooks: $marque['domaine_books'] ?? (string) config('ubdf.book_domain'),
+            // `BOOK_DOMAIN=` vide dans le .env donne '' et non null : ?: et
+            // non ??, sinon le lien du book devient https://<login>./
+            domaineBooks: ($marque['domaine_books'] ?? '') ?: (string) config('ubdf.book_domain'),
         );
     }
 

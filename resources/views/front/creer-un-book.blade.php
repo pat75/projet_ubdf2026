@@ -34,8 +34,10 @@
                     </p>
                     @include('partials.inscription.google')
                 @else
-                    <x-portail.bouton-google :libelle="__('S’inscrire avec Google')" class="creer_book_google" />
-                    <div class="creer_book_ou"><span>{{ __('ou avec votre e-mail') }}</span></div>
+                    @if (\App\Models\Reglage::googleActif())
+                        <x-portail.bouton-google :libelle="__('S’inscrire avec Google')" class="creer_book_google" />
+                        <div class="creer_book_ou"><span>{{ __('ou avec votre e-mail') }}</span></div>
+                    @endif
 
                     <div class="ui segment basic" id="inscription_segment_">
                         @include('partials.inscription.formulaire')

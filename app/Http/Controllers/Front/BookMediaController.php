@@ -8,6 +8,7 @@ use App\Services\Espace\DepotImagePage;
 use App\Services\Images\Declinaison;
 use App\Services\Images\GenerateurImages;
 use App\Support\DossierBook;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -31,9 +32,9 @@ class BookMediaController extends Controller
     public function __construct(private readonly GenerateurImages $generateur) {}
 
     /** `/books/{login}/{file}` — declinaison par defaut. */
-    public function show(string $login, string $file): BinaryFileResponse|Response
+    public function show(Request $requete, string $login, string $file): BinaryFileResponse|Response
     {
-        return $this->servir($login, $file, null);
+        return $this->servir($requete, $login, $file, null);
     }
 
     /**
@@ -47,12 +48,12 @@ class BookMediaController extends Controller
      * le service produisait bien l'image — la permutation avait lieu entre
      * les deux, et se voyait seulement en HTTP reel.
      */
-    public function showDeclinaison(string $login, string $declinaison, string $file): BinaryFileResponse|Response
+    public function showDeclinaison(Request $requete, string $login, string $declinaison, string $file): BinaryFileResponse|Response
     {
-        return $this->servir($login, $file, $declinaison);
+        return $this->servir($requete, $login, $file, $declinaison);
     }
 
-    private function servir(string $login, string $file, ?string $declinaison): BinaryFileResponse|Response
+    private function servir(Request $requete, string $login, string $file, ?string $declinaison): BinaryFileResponse|Response
     {
         // Ces segments viennent de l'URL : ils ne doivent pas permettre de
         // remonter l'arborescence.
@@ -77,7 +78,14 @@ class BookMediaController extends Controller
         }
 
         $source = DossierBook::chemin($login, $file);
-        $produite = $this->generateur->produire($source, $format);
+        /*
+         | WebP par negociation : meme URL, le navigateur qui annonce
+         | `image/webp` dans son en-tete Accept le recoit ; les autres
+         | (clients mail, certains robots de partage) gardent le JPEG/PNG.
+         | Les gabarits n'ont donc rien a changer.
+         */
+        $webp = config('images.webp') && str_contains((string) $requete->header('Accept'), 'image/webp');
+        $produite = $this->generateur->produire($source, $format, $webp);
 
         if ($produite === null) {
             return $this->parDefaut();
@@ -87,6 +95,9 @@ class BookMediaController extends Controller
             // Un an : remplacer un visuel dans l'espace creatif produira une
             // nouvelle entree de cache, l'URL portant le nom du fichier.
             'Cache-Control' => 'public, max-age=31536000, immutable',
+            // Deux reponses possibles pour une URL : un cache intermediaire
+            // doit les distinguer selon l'Accept du demandeur.
+            'Vary' => 'Accept',
         ]);
 
         // Un visuel protege, meme ouvert a ce visiteur, ne doit pas finir

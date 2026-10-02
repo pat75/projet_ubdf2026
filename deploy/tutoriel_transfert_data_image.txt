@@ -1,0 +1,259 @@
+TRANSFERT DES IMAGES — ancien serveur -> O2switch (ultra-book.pro)
+=====================================================================
+Script : ./deploy/transfert-images.sh   (depuis la racine du projet, sur le Mac)
+
+
+PRINCIPE
+--------
+Deux operations, toutes deux executees SUR O2switch (pilotees depuis le Mac) :
+
+1) RECUPERER   ancien serveur users_2/a/d/adolie/...
+               -> O2switch ~/ultra-book.pro/data_source/a/d/adolie/...
+               rsync tire depuis O2switch, connexion par MOT DE PASSE.
+               Seuls les originaux voyagent : img_, img_adm_medium,
+               img_ptf_medium, cms_pref, img_cms. Les declinaisons
+               (img_ptf_small, img_iph_*…) se regenerent : inutile de les copier.
+
+2) ORGANISER   data_source/a/d/adolie/...
+               -> storage/app/public/books/a/d/o/adolie/   (3 premieres lettres)
+               Commande ubdf:prod:dossiers-books, au choix :
+               - COPIER : data_source intact, recuperer relancable ; autant
+                 de place en plus que ce qui est copie ;
+               - DEPLACER : instantane, sans place en plus ; data_source se vide ;
+               - le mode est demande puis confirme juste avant l'execution ;
+               - possible sur une plage de lettres (ex. a-f pour un essai) ;
+               - login a "_" ou "." converti (a_menguy -> a/-/m/a-menguy) ;
+               - compte supprime ou login non conforme : ignore, laisse dans data_source ;
+               - login < 3 lettres complete par "_" (ab -> a/b/_/ab).
+
+data_source/ est a la racine de l'app, hors de public/ (jamais visible
+sur le web), et exclu du deploiement et de git.
+
+
+AVANT DE COMMENCER
+------------------
+a) deploy/deploy.config, section "Transfert des images" :
+      OLD_SSH_USER    utilisateur SSH de l'ancien serveur
+      OLD_SSH_HOST    IP ou nom de l'ancien serveur
+      OLD_SSH_PORT    22 en general
+      OLD_USERS_PATH  chemin absolu de users_2 (contient a/, b/, c/…)
+      /disc_san_1/sites/ubdf_prod_com/public/users_2
+      
+      DATA_SOURCE     data_source (dossier de reception)
+   Le mot de passe n'est JAMAIS ecrit : il est demande a chaque lancement.
+
+b) Etape 2 seulement : la base ub2020 (copie legacy) doit etre en place sur
+   O2switch et declaree dans .env.prod (DB_LEGACY_*) : la commande y lit la
+   liste des comptes vivants et la conversion des logins.
+
+c) Le site doit etre deploye : copie/deplacement, --lettres et la ligne
+   de progression font partie du code (ubdf:prod:dossiers-books).
+
+
+ETAPE 0 — TESTER LA CONNEXION
+-----------------------------
+   ./deploy/transfert-images.sh test
+   -> mot de passe de l'ancien serveur, puis affiche a/ b/ c/… et le volume.
+
+Si "Connection refused / timed out" :
+   ./deploy/transfert-images.sh diagnostic
+   -> dit qui bloque (O2switch ou l'ancien serveur) et quoi faire ;
+      voir aussi BLOCAGE SSH SORTANT plus bas.
+
+
+ETAPE 1 — RECUPERER
+-------------------
+   ./deploy/transfert-images.sh recuperer
+   -> confirmation, puis mot de passe de l'ancien serveur.
+
+Le transfert tourne dans "screen" sur O2switch : il continue si le Mac se
+met en veille ou si la connexion coupe.
+   Ctrl-A puis D                            se detacher (le transfert continue)
+   ./deploy/transfert-images.sh suivre      revenir voir la progression
+   ./deploy/transfert-images.sh etat        volume deja recu, espace disque
+
+Fin : "Code de sortie rsync : 0" = complet. Autre code = relancer
+"recuperer" : seuls les fichiers manquants sont envoyes, un fichier coupe
+reprend la ou il s'etait arrete.
+
+
+ETAPE 2 — ORGANISER
+-------------------
+Toujours une simulation d'abord (rien ne bouge) :
+   ./deploy/transfert-images.sh organiser --lettres=a-f --dry-run
+   -> liste "a/d/adolie -> books/a/d/o/adolie", nombre de books,
+      logins convertis, dossiers ignores.
+
+Premier essai recommande : COPIER les books de A a F, pour les verifier
+sur la demo sans toucher a data_source :
+   ./deploy/transfert-images.sh organiser --lettres=a-f
+
+Le script demande alors :
+   c) COPIER    data_source reste intact, recuperer peut etre relance
+   d) DEPLACER  instantane, sans place en plus, mais data_source se vide
+puis rappelle le perimetre, le mode (et, en copie, l'espace pris par
+data_source et l'espace libre), et demande confirmation. Rien ne part
+sans cette validation. --copier ou --deplacer en option choisit le mode
+d'avance ; il est quand meme rappele et confirme.
+
+Plages : --lettres=a-f, ou --depuis=g (de g a la fin), ou
+--depuis=g --jusqua=m. Sans plage : toutes les lettres (puis 0-9 et _).
+
+Progression : une seule ligne reecrite, comme pour recuperer :
+   1 234/5 678 books  21%  18 412 fichiers  3.2 Go  42 Mo/s  reste 0:12:03  adolie
+Le temps restant suit le nombre de books, il se stabilise apres quelques
+minutes. Le rangement tourne dans "screen" sur O2switch :
+   Ctrl-A puis D                                   se detacher
+   ./deploy/transfert-images.sh suivre-organiser   revenir voir la progression
+Journal complet (resume final compris) :
+   storage/logs/dossiers-books-<date>-<copier|deplacer>.log
+
+Relancer :
+- en COPIE, une relance ne recopie que les fichiers nouveaux ou modifies
+  depuis la passe precedente (taille ou date differente). Cycle possible :
+  recuperer -> organiser (copier) -> recuperer -> organiser (copier)...
+- en DEPLACEMENT, un fichier deja range n'est ni ecrase ni redeplace ;
+  mais ce qui est parti de data_source serait retelecharge par un
+  recuperer relance : ne deplacer qu'une fois recuperer termine (code 0).
+
+Enchainement conseille :
+   1) recuperer jusqu'a "Code de sortie rsync : 0"
+   2) organiser --lettres=a-f, mode COPIER ; verifier les books sur la demo
+   3) organiser (toutes les lettres), COPIER si l'espace le permet,
+      DEPLACER sinon
+   4) declinaisons : ./deploy/prechauffer-images.sh (voir plus bas)
+
+
+APRES
+-----
+- Verifier quelques books : https://<login>.ultra-book.pro
+- ./deploy/transfert-images.sh etat : volumes de data_source et de books.
+  Apres un DEPLACEMENT, data_source ne contient plus que les declinaisons,
+  les dossiers ignores et les doublons ; apres une COPIE, il est intact.
+- Quand la recette est validee, supprimer data_source (a la main, apres
+  controle) :  ./deploy/ssh-prod.sh "rm -rf data_source"
+
+
+DECLINAISONS APRES LE TRANSFERT
+-------------------------------
+Seuls les originaux sont transferes. Les neuf dossiers de declinaisons
+du legacy (img_ptf_medium, img_iph_small...) restent dans data_source et
+ne servent plus : les tailles d'affichage sont refaites par le nouveau
+site, en WebP, depuis l'original.
+
+Deux facons, combinables :
+
+1) A la demande (rien a faire) : la premiere fois qu'une image est
+   affichee, le serveur la fabrique (0,05 a 0,1 s par taille) puis la
+   garde dans storage/app/public/cache_images/. Le site marche des la
+   fin du transfert ; seul le premier visiteur d'un book attend un peu
+   (quelques secondes pour un book de 200 visuels, images en defilement).
+
+2) Pre-generation (conseille pour les tailles des pages de book) :
+   la commande ubdf:prechauffer-images fabrique d'avance, sans toucher
+   aux originaux, et saute ce qui est deja fait (relancable).
+
+Mesures sur le serveur O2switch (01/10/2026, Imagick, WebP qualite 82,
+sources de 293 Ko en moyenne) :
+
+   ptf_medium   0,11 s     iph_medium  0,07 s     carre_368  0,09 s
+   carre_335    0,08 s     carre_183   0,05 s     front_desk 0,05 s
+   front_mob    0,04 s
+   -> 7 tailles : 0,54 s par visuel ; ptf_medium + iph_medium : 0,19 s
+   8 processus en parallele : chacun garde sa vitesse (8 fois plus vite).
+
+Estimation pour 200 Go d'originaux, soit environ 680 000 visuels a
+300 Ko (moins si les 200 Go comptent aussi les declinaisons du legacy) :
+
+                               1 processus   8 en parallele   Cache
+   ptf_medium + iph_medium        ~36 h          ~4 h 30       ~22 Go
+   les 7 tailles                 ~100 h         ~13 h          ~45 Go
+
+Recommandation : pre-generer ptf_medium et iph_medium (les deux tailles
+de toutes les pages de book), en 8 lots paralleles, de nuit. Les autres
+tailles (cartes du portail, carres d'accueil de book) ne concernent
+qu'une image par book ou par portfolio : les laisser se faire a la
+demande.
+
+Lancer (detache : continue si la connexion SSH tombe ; un journal par
+lettre dans storage/logs/prechauffe-<lettre>.log) :
+
+   ./deploy/prechauffer-images.sh          8 lots en parallele
+   ./deploy/prechauffer-images.sh etat     lots en cours, avancement, volume
+
+Si O2switch coupe des processus (charge trop forte sur le mutualise) :
+relancer avec moins de lots : ./deploy/prechauffer-images.sh 4 ; ce qui est fait
+est saute. Pour un book precis :
+   ./deploy/ssh-prod.sh "php artisan ubdf:prechauffer-images --login=<login>"
+
+
+CE QUI EST ET N'EST PAS FAIT
+----------------------------
+Fait      : originaux des books, images des pages (img_cms), cms_pref.
+Pas fait  : declinaisons (refaites en WebP, voir DECLINAISONS APRES LE TRANSFERT), fichiers .php/.htaccess
+            de img_cms (jamais repris, securite), books de comptes supprimes.
+Sauvegarde: aucune. La source reste l'ancien serveur : en cas de probleme,
+            refaire l'etape 1.
+
+
+BLOCAGE SSH SORTANT (« Connection refused » depuis O2switch)
+-----------------------------------------------------------
+Constat du 02/10/2026 : O2switch filtre les connexions SORTANTES de
+l'hebergement mutualise. Le port 22 ne sort vers aucun serveur (sauf
+quelques-uns autorises, comme github.com) : la connexion est refusee
+par O2switch avant d'atteindre l'ancien serveur. Autoriser l'IP
+d'O2switch (109.234.165.116) dans le pare-feu de l'ancien serveur ne
+change donc rien.
+
+Ports qui sortent : 21, 80, 443, 465, 587, 993, 2083, 3306.
+Ports bloques : 22, 873 (rsync), 2222, 5432, 8022, 8443...
+
+Diagnostic complet, journalise dans deploy/logs/ :
+
+   ./deploy/transfert-images.sh diagnostic
+
+Solution retenue : faire ecouter le SSH de l'ancien serveur AUSSI sur
+le port 2083 (le 22 reste en place), seulement pour le transfert.
+
+   Sur l'ancien serveur (root) :
+   1) /etc/ssh/sshd_config : ajouter une ligne « Port 2083 » sous
+      « Port 22 » (ajouter « Port 22 » s'il n'y figurait pas, sinon le
+      22 serait ferme et la session en cours perdue au prochain acces).
+   2) Pare-feu CSF : ouvrir 2083 pour 109.234.165.116 SEULEMENT.
+      Ajouter cette ligne a la fin de /etc/csf/csf.allow :
+         tcp|in|d=2083|s=109.234.165.116 # transfert images O2switch
+      (ne PAS ajouter 2083 a TCP_IN de csf.conf : il serait ouvert a tous)
+   3) sshd -t && systemctl restart sshd   (sshd -t verifie la syntaxe)
+      csf -r                              (recharge le pare-feu)
+   4) Verifier que CSF/LFD n'a pas bloque l'IP d'O2switch (echecs de
+      connexion repetes, l'IP est partagee par d'autres clients O2switch) :
+         csf -g 109.234.165.116     -> ne doit lister aucun « DENY »
+         csf -dr 109.234.165.116    (retire un blocage permanent)
+         csf -tr 109.234.165.116    (retire un blocage temporaire)
+      Pour qu'elle ne soit plus bloquee pendant le transfert :
+         echo "109.234.165.116 # O2switch transfert" >> /etc/csf/csf.ignore
+         csf -r
+
+   Sur le poste : deploy/deploy.config -> OLD_SSH_PORT="2083", puis
+      ./deploy/transfert-images.sh diagnostic   (attendu : ouvert)
+      ./deploy/transfert-images.sh test
+
+   Apres le transfert : retirer « Port 2083 » de sshd_config, la ligne de
+   csf.allow et celle de csf.ignore, puis systemctl restart sshd et csf -r.
+
+Autres voies : demander au support O2switch d'ouvrir le port 22 sortant
+vers 163.172.103.215 ; ou pousser depuis l'ancien serveur vers O2switch
+(rsync lance sur l'ancien serveur, son IP autorisee dans cPanel -> SSH).
+
+
+DEPANNAGE
+---------
+Connection refused (test)       filtre sortant O2switch : voir BLOCAGE SSH
+                                SORTANT, et ./deploy/transfert-images.sh diagnostic
+Permission denied (password)    mauvais mot de passe, ou l'ancien serveur
+                                n'accepte que les cles : y autoriser le mot
+                                de passe, ou demander.
+"Racine legacy introuvable"     etape 1 non faite ou DATA_SOURCE errone.
+Erreur base legacy (etape 2)    DB_LEGACY_* de .env.prod, puis
+                                ./deploy/deploy-prod.sh sync
+Images absentes sur le book     ./deploy/ssh-prod.sh "php artisan storage:link"

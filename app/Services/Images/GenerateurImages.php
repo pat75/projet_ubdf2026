@@ -29,13 +29,13 @@ class GenerateurImages
      * Retourne null quand la source est absente ou illisible : l'appelant
      * sert alors l'image par defaut, comme le faisait le .htaccess de 2019.
      */
-    public function produire(string $source, Declinaison $declinaison): ?string
+    public function produire(string $source, Declinaison $declinaison, bool $webp = false): ?string
     {
         if (! is_file($source)) {
             return null;
         }
 
-        $cible = $this->cheminCache($source, $declinaison);
+        $cible = $this->cheminCache($source, $declinaison, $webp && $this->convertibleEnWebp($source));
 
         // Le cache est valide tant qu'il est plus recent que sa source :
         // remplacer un visuel suffit a le perimer, sans purge a faire.
@@ -60,6 +60,7 @@ class GenerateurImages
         $image = $this->redimensionner($image, $declinaison);
 
         @mkdir(dirname($cible), 0o755, recursive: true);
+        // L'extension de $cible choisit l'encodeur : .webp donne du WebP.
         $image->save($cible, quality: config('images.qualite'));
 
         return is_file($cible) ? $cible : null;
@@ -80,6 +81,17 @@ class GenerateurImages
         return $image->scaleDown($declinaison->largeur, $declinaison->hauteur);
     }
 
+    /**
+     * Le GIF reste un GIF : souvent anime, il perdrait son animation
+     * (GD n'ecrit pas le WebP anime). Le reste — JPEG, PNG, WebP — passe
+     * en WebP, environ 40 % plus leger a qualite egale, transparence
+     * comprise.
+     */
+    public function convertibleEnWebp(string $source): bool
+    {
+        return strtolower(pathinfo($source, PATHINFO_EXTENSION)) !== 'gif';
+    }
+
     /** Refuse une source dont la surface en pixels saturerait la memoire. */
     private function acceptable(string $source): bool
     {
@@ -98,9 +110,10 @@ class GenerateurImages
      * Le nom de fichier d'origine est conserve en fin de chemin : il aide a
      * lire le cache et donne son nom au telechargement. Le hachage qui le
      * precede porte le chemin complet de la source, ce qui evite toute
-     * collision entre deux books.
+     * collision entre deux books. La version WebP porte « .webp » en plus
+     * de son extension d'origine, a cote de l'autre.
      */
-    public function cheminCache(string $source, Declinaison $declinaison): string
+    public function cheminCache(string $source, Declinaison $declinaison, bool $webp = false): string
     {
         $empreinte = substr(hash('xxh128', $source), 0, 12);
 
@@ -109,7 +122,7 @@ class GenerateurImages
             config('images.cache'),
             $declinaison->nom,
             substr($empreinte, 0, 2),
-            $empreinte.'_'.basename($source),
+            $empreinte.'_'.basename($source).($webp ? '.webp' : ''),
         ]));
     }
 }

@@ -81,3 +81,31 @@ caches() {
     artisan optimize:clear >/dev/null
     artisan optimize
 }
+
+# Bloc balise du .htaccess de REMOTE_PATH (au-dessus de public/, jamais
+# touche par le deploiement), partage par demo-auth.sh et admin-auth.sh :
+# chacun ne remplace que son bloc, entre « # BEGIN nom » et « # END nom ».
+#   htaccess_bloc nom < contenu    pose (ou remplace) le bloc
+#   htaccess_bloc nom --retirer    retire le bloc (et le fichier s'il est vide)
+#   htaccess_a_bloc nom            vrai si le bloc est pose
+htaccess_bloc() {
+    local nom="$1" actuel nouveau
+    actuel="$(ssh_run "cat .htaccess 2>/dev/null || true")"
+    nouveau="$(printf '%s\n' "$actuel" | awk -v n="$nom" '
+        $0 == "# BEGIN " n { saute = 1; next }
+        $0 == "# END " n   { saute = 0; next }
+        !saute')"
+    if [ "${2:-}" != "--retirer" ]; then
+        nouveau="$(printf '%s\n\n# BEGIN %s\n%s\n# END %s' "$nouveau" "$nom" "$(cat)" "$nom")"
+    fi
+    nouveau="$(printf '%s\n' "$nouveau" | sed '/./,$!d')"
+    if [ -z "$nouveau" ]; then
+        ssh_run "rm -f .htaccess"
+    else
+        printf '%s\n' "$nouveau" | ssh_run "cat > .htaccess"
+    fi
+}
+
+htaccess_a_bloc() {
+    ssh_run "grep -qx '# BEGIN $1' .htaccess 2>/dev/null"
+}

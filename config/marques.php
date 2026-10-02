@@ -47,7 +47,7 @@ return [
             // Domaine des books : <login>.<domaine_books>. Un book n'est servi
             // que sur le domaine de la marque de son compte (users.brand) ;
             // sur celui de l'autre marque, il y redirige (301).
-            'domaine_books' => env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
+            'domaine_books' => (env('BOOK_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
 
             // Domaine canonique en production : c'est lui qui sert a
             // construire les URL absolues (courriels, sitemap, og:url).
@@ -63,14 +63,10 @@ return [
             // comparaison : www.ultra-book.com et ultra-book.com sont le
             // meme hote.
             'hotes' => array_filter([
-                env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
+                (env('BOOK_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
                 'ultra-book.com',
                 // Domaine de test de la mise en production (O2switch, joker).
-                'ultra-book.pro',
-                'extra-book.com',
-                'extra-book.net',
-                'extra-book.info',
-                'extra-book.be',
+                'ultra-book.pro'
             ]),
         ],
 
@@ -92,7 +88,7 @@ return [
             'logo' => '/img_front_df/dustfolio.svg',
             'logo_clair' => '/img_front_df/dustfolio_b.svg',
             'image_partage' => '/img_front/partage/dustfolio.png',
-            'domaine_books' => env('DF_BOOK_DOMAIN', 'ubdf-dust-2026.ultra-book.name'),
+            'domaine_books' => (env('DF_BOOK_DOMAIN') ?: 'ubdf-dust-2026.ultra-book.name'),
 
             'canonique' => env('DF_CANONIQUE', 'https://www.dustfolio.com'),
 
@@ -105,7 +101,7 @@ return [
             'description' => 'Dustfolio allows you to create your portfolio, add your images, captions, web links, presentation texts, and above all customize it.',
 
             'hotes' => array_filter([
-                env('DF_DOMAIN', 'ubdf-dust-2026.ultra-book.name'),
+                (env('DF_DOMAIN') ?: 'ubdf-dust-2026.ultra-book.name'),
                 'dustfolio.com',
                 'extra-book.biz',
             ]),

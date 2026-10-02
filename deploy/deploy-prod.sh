@@ -9,7 +9,7 @@
 #                                              caches (sans sauvegarde, dry-run ni migration)
 #   ./deploy/deploy-prod.sh rollback [STAMP]   liste / restaure une sauvegarde
 #
-# - .env.prod local est envoye vers .env distant a chaque deploiement.
+# - .env.prod local remplace .env.prod distant a chaque deploiement (lu par bootstrap/app.php).
 # - --delete seulement sur les dossiers de DELETE_DIRS (fichiers renommes/supprimes).
 # - vendor/ est construit sur le serveur (composer install --no-dev).
 #
@@ -75,7 +75,7 @@ VERSION="$(ssh_run "'$REMOTE_PHP' -r 'echo PHP_VERSION;'")" || echec "connexion 
 ok "PHP $VERSION"
 
 if [ "$MODE" = "full" ]; then
-    # 3) Sauvegardes distantes : code (avec .env) + base.
+    # 3) Sauvegardes distantes : code (avec .env.prod) + base.
     etape "3) Sauvegardes distantes ($STAMP)"
     ssh_script "$STAMP" <<'DISTANT'
 set -euo pipefail
@@ -84,7 +84,7 @@ mkdir -p "$BACKUP_DIR"
 tar czf "$BACKUP_DIR/code-$STAMP.tgz" --exclude=./storage --exclude=./vendor --exclude=./node_modules .
 echo "   code : $BACKUP_DIR/code-$STAMP.tgz"
 
-val() { grep -E "^$1=" .env | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/'; }
+val() { grep -E "^$1=" .env.prod | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/'; }
 CNF="$(mktemp)"; trap 'rm -f "$CNF"' EXIT
 printf '[client]\nuser=%s\npassword=%s\nhost=%s\n' "$(val DB_USERNAME)" "$(val DB_PASSWORD)" "$(val DB_HOST)" > "$CNF"
 mysqldump --defaults-extra-file="$CNF" --single-transaction --quick --no-tablespaces "$(val DB_DATABASE)" \
@@ -104,12 +104,12 @@ DISTANT
             "$PROJECT_DIR/$d/" "$REMOTE:$REMOTE_PATH/$d/" | grep '^\*deleting' | sed "s#\*deleting *#*suppression $d/#" || true)"
     done
     APERCU="$(echo "$APERCU" | sed '/^$/d')"
-    ENV_DIFF="$(rsync -a -e "$SSH_CMD" --checksum --itemize-changes --dry-run "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env" || true)"
+    ENV_DIFF="$(rsync -a -e "$SSH_CMD" --checksum --itemize-changes --dry-run "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env.prod" || true)"
 
     echo "$APERCU" | head -100
     NB="$(echo "$APERCU" | sed '/^$/d' | wc -l | tr -d ' ')"
     [ "$NB" -gt 100 ] && alerte "… $NB lignes au total."
-    [ -n "$ENV_DIFF" ] && alerte ".env.prod differe du .env distant : il sera remplace."
+    [ -n "$ENV_DIFF" ] && alerte ".env.prod local differe de celui du serveur : il sera remplace."
     NOUVELLES="$(echo "$APERCU" | grep -E '^>f\+{9} database/migrations/' | awk '{print $2}' || true)"
     if [ -n "$NOUVELLES" ]; then
         alerte "Migrations nouvelles :"; echo "$NOUVELLES" | sed 's/^/     /'
@@ -131,9 +131,9 @@ for d in "${DELETE_DIRS[@]}"; do
     rsync "${RSYNC_OPTS[@]}" --delete "$PROJECT_DIR/$d/" "$REMOTE:$REMOTE_PATH/$d/"
 done
 # Pas de --chmod : le rsync de macOS (openrsync / 2.6.9) ne le connait pas.
-rsync -a -e "$SSH_CMD" "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env"
-ssh_run "chmod 600 .env"
-ok "code et .env envoyes"
+rsync -a -e "$SSH_CMD" "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env.prod"
+ssh_run "chmod 600 .env.prod"
+ok "code et .env.prod envoyes"
 
 # 7) Dependances, migrations, caches.
 etape "7) Composer, migrations, caches"

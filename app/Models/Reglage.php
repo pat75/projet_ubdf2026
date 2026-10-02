@@ -17,6 +17,13 @@ class Reglage extends Model
     /** Le portail est ferme au public : voir App\Http\Middleware\Maintenance. */
     public const MAINTENANCE = 'maintenance';
 
+    /**
+     * Bouton « Continuer avec Google » retire des fenetres de connexion et
+     * de creation de compte (App\Filament\Pages\ConfigurationPage). Cle
+     * negative : absente, Google reste propose, comme avant ce reglage.
+     */
+    public const GOOGLE_MASQUE = 'google_masque';
+
     protected $table = 'reglages';
 
     protected $fillable = ['cle', 'valeur'];
@@ -40,5 +47,11 @@ class Reglage extends Model
     public static function enMaintenance(): bool
     {
         return self::actif(self::MAINTENANCE);
+    }
+
+    /** La connexion et l'inscription par Google sont-elles proposees ? */
+    public static function googleActif(): bool
+    {
+        return ! self::actif(self::GOOGLE_MASQUE);
     }
 }

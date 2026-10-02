@@ -5,6 +5,7 @@ namespace App\Services\Espace;
 use App\Models\Gallery;
 use App\Models\Media;
 use App\Services\Images\Declinaison;
+use App\Services\Images\GenerateurImages;
 use App\Support\DossierBook;
 use App\Support\VideoEnLigne;
 use Illuminate\Http\UploadedFile;
@@ -28,9 +29,16 @@ use Throwable;
  * Une video YouTube ou Vimeo est un visuel comme un autre : sa vignette est
  * stockee de la meme facon, et `video_url` dit au book d'ouvrir le lecteur
  * au clic. Elle compte donc dans le quota de visuels.
+ *
+ * Une fois la reponse partie, les tailles des pages de book
+ * (PRECHAUFFEES) sont fabriquees d'avance : le premier visiteur du book
+ * ne les attend pas. Les autres naissent toujours a la demande.
  */
 class DepotVisuel
 {
+    /** Tailles de toutes les pages de book (srcset 550 / 320). */
+    public const PRECHAUFFEES = ['ptf_medium', 'iph_medium'];
+
     public function __construct(
         private readonly ImageManager $images,
         private readonly Quotas $quotas,
@@ -141,6 +149,8 @@ class DepotVisuel
             ? $image->save($chemin)
             : $image->save($chemin, quality: config('images.qualite'));
 
+        $this->prechauffer($chemin);
+
         return [
             'filename' => $nom,
             'mime' => mime_content_type($chemin),
@@ -148,6 +158,25 @@ class DepotVisuel
             'width' => $image->width(),
             'height' => $image->height(),
         ];
+    }
+
+    /**
+     * Fabrique les tailles des pages de book apres l'envoi de la reponse,
+     * dans le meme processus : pas de worker de file a faire tourner. Un
+     * echec ne coute rien, la taille sera faite a la demande.
+     */
+    private function prechauffer(string $chemin): void
+    {
+        dispatch(function () use ($chemin) {
+            $generateur = app(GenerateurImages::class);
+
+            foreach (self::PRECHAUFFEES as $nom) {
+                try {
+                    $generateur->produire($chemin, Declinaison::nommee($nom), webp: config('images.webp'));
+                } catch (Throwable) {
+                }
+            }
+        })->afterResponse();
     }
 
     /**

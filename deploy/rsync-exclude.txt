@@ -42,3 +42,6 @@ phpunit.xml
 
 # --- Les scripts de deploiement ---
 deploy/
+
+# --- Images recues de l ancien serveur (transfert-images.sh) ---
+data_source/

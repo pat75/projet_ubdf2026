@@ -36,7 +36,7 @@ Sauvegarde code + base                          x
 Apercu fichiers, suppressions, migrations       x
 Site en maintenance pendant l'operation         x                 x
 Envoi du code (rsync)                           x        x
-.env.prod -> .env distant                       x        x
+.env.prod -> .env.prod distant                  x        x
 composer install --no-dev                       x        x        x
 Migrations (confirmees une a une liste)         x
 Caches (optimize) + queue:restart               x        x        x
@@ -47,7 +47,7 @@ Ligne dans deploy.log                           x        x        x
 SAUVEGARDE (deploiement complet uniquement)
 -------------------------------------------
 Dans ~/backups_deploy/ sur le serveur, les 5 dernieres :
-- code-STAMP.tgz   : tout le dossier de l'app, .env compris
+- code-STAMP.tgz   : tout le dossier de l'app, .env.prod compris
 - base-STAMP.sql.gz: la base ubdf (mysqldump)
 
 NON sauvegarde :
@@ -59,7 +59,7 @@ NON sauvegarde :
 
 ENVOYE / JAMAIS ENVOYE
 ----------------------
-Envoye   : code, public/ (assets non versionnes compris), .env.prod -> .env
+Envoye   : code, public/ (assets non versionnes compris), .env.prod -> .env.prod
 Jamais   : storage/, vendor/, node_modules/, .git, docs, tests, deploy/
            (liste : deploy/rsync-exclude.txt)
 Supprime sur le serveur si supprime en local : seulement app/, config/,

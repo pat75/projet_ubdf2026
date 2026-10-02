@@ -62,3 +62,8 @@ liens_books_acces.TXT
 
 # Identifiants de deploiement
 /deploy/deploy.config
+
+# Images recues de l ancien serveur (deploy/transfert-images.sh)
+/data_source
+
+/deploy/logs/

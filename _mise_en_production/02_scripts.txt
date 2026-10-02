@@ -57,8 +57,12 @@ users_2/a/d/adolie/img_…   ->   storage/app/public/books/a/d/o/adolie/…
 - parcourt tout `users_2`, pas seulement les comptes en base ;
 - copie les originaux (`img_`, replis `img_adm_medium`, `img_ptf_medium`),
   `cms_pref` et `img_cms` ; les déclinaisons se régénèrent à la demande ;
-- la source n'est jamais modifiée ; un fichier déjà copié est ignoré,
-  la commande se relance sans risque ;
+- par défaut la source n'est pas modifiée (copie) ; une relance ne
+  recopie que les fichiers nouveaux ou modifiés (taille ou date) ;
+- `--deplacer` déplace au lieu de copier (même disque : instantané, sans
+  doubler l'espace) ; un fichier déjà rangé n'est alors ni écrasé ni
+  redéplacé ;
+- progression sur une ligne réécrite, comme `rsync --info=progress2` ;
 - login de moins de trois caractères complété par `_` (`ab` -> `a/b/_/ab`) ;
 - login à `_` ou `.` rangé sous son login converti, même table que la
   reprise en base : `users_2/a/_/a_menguy` -> `books/a/-/m/a-menguy` ;
@@ -66,8 +70,11 @@ users_2/a/d/adolie/img_…   ->   storage/app/public/books/a/d/o/adolie/…
 
 ```bash
 php artisan ubdf:prod:dossiers-books --dry-run
-php artisan ubdf:prod:dossiers-books [--source=/chemin/users_2] [--depuis=m]
+php artisan ubdf:prod:dossiers-books [--source=/chemin/users_2] [--depuis=a] [--jusqua=f] [--deplacer]
 ```
 
-`--depuis=m` reprend à la lettre `m` après une coupure SSH (lancer de
-préférence dans `screen` ou `nohup`).
+`--depuis` / `--jusqua` bornent les premières lettres traitées : un essai
+sur les books de a à f, ou une reprise à la lettre `m` après une coupure.
+Depuis le Mac, passer par `./deploy/transfert-images.sh organiser`, qui
+demande et fait confirmer copier/déplacer, et lance dans `screen`
+(voir `deploy/tutoriel_transfert_data_image.txt`).

@@ -36,7 +36,15 @@ final class LegacyFiles
 
     private int $missingBooks = 0;
 
-    public function __construct(private readonly ?string $legacyRoot) {}
+    /**
+     * $deplacer : deplace les originaux au lieu de les copier (mise en
+     * production, meme disque : instantane et sans doubler l'espace). Les
+     * declinaisons et les fichiers ecartes restent dans la source.
+     */
+    public function __construct(
+        private readonly ?string $legacyRoot,
+        private readonly bool $deplacer = false,
+    ) {}
 
     public function copyFor(User $user): void
     {
@@ -63,6 +71,7 @@ final class LegacyFiles
 
         $target = DossierBook::chemin($nouveau ?? $ancien);
         File::ensureDirectoryExists($target);
+        $pris = [];
 
         foreach ([...self::SOURCE_DIRS, ...self::EXTRA_DIRS] as $dir) {
             $path = $source.'/'.$dir;
@@ -74,15 +83,14 @@ final class LegacyFiles
             foreach (File::files($path) as $file) {
                 $destination = $target.'/'.$file->getFilename();
 
-                // Le premier dossier trouve fait foi : on n'ecrase pas.
-                if (file_exists($destination)) {
+                // Le premier dossier trouve fait foi : un fichier deja pris
+                // dans cette passe n'est pas ecrase par un dossier suivant.
+                if (isset($pris[$destination]) || ! $this->aTransferer($file, $destination)) {
                     continue;
                 }
 
-                File::copy($file->getPathname(), $destination);
-
-                $this->copiedFiles++;
-                $this->copiedBytes += $file->getSize();
+                $pris[$destination] = true;
+                $this->transferer($file, $destination);
             }
         }
 
@@ -98,17 +106,50 @@ final class LegacyFiles
 
                 $destination = $target.'/'.self::CMS_DIR.'/'.$file->getRelativePathname();
 
-                if (file_exists($destination)) {
+                if (! $this->aTransferer($file, $destination)) {
                     continue;
                 }
 
                 File::ensureDirectoryExists(dirname($destination));
-                File::copy($file->getPathname(), $destination);
-
-                $this->copiedFiles++;
-                $this->copiedBytes += $file->getSize();
+                $this->transferer($file, $destination);
             }
         }
+    }
+
+    /**
+     * Fichier absent : on le prend. Fichier present : en copie seulement,
+     * on le remplace s'il differe de la source (taille ou date), pour
+     * qu'une nouvelle passe apres un `recuperer` repercute les visuels
+     * modifies sur l'ancien serveur. En deplacement, ce qui est la reste.
+     */
+    private function aTransferer(\SplFileInfo $file, string $destination): bool
+    {
+        if (! file_exists($destination)) {
+            return true;
+        }
+
+        if ($this->deplacer) {
+            return false;
+        }
+
+        return filesize($destination) !== $file->getSize() || filemtime($destination) < $file->getMTime();
+    }
+
+    private function transferer(\SplFileInfo $file, string $destination): void
+    {
+        $taille = $file->getSize();
+
+        if ($this->deplacer) {
+            File::move($file->getPathname(), $destination);
+        } else {
+            File::copy($file->getPathname(), $destination);
+            // Date de la source conservee : c'est elle qu'aTransferer()
+            // compare a la passe suivante.
+            touch($destination, $file->getMTime());
+        }
+
+        $this->copiedFiles++;
+        $this->copiedBytes += $taille;
     }
 
     /** users_2/p/a/pat10 — sharding sur les deux premieres lettres du login. */
@@ -121,17 +162,35 @@ final class LegacyFiles
         return $this->legacyRoot.'/'.$login[0].'/'.$login[1].'/'.$login;
     }
 
+    public function deplace(): bool
+    {
+        return $this->deplacer;
+    }
+
+    /** Fichiers et octets transferes depuis le debut (barre de progression). */
+    public function fichiers(): int
+    {
+        return $this->copiedFiles;
+    }
+
+    public function octets(): int
+    {
+        return $this->copiedBytes;
+    }
+
     /** @return array<string, int|string> */
     public function report(): array
     {
+        $verbe = $this->deplacer ? 'deplace' : 'copie';
+
         return [
-            'fichiers_copies' => $this->copiedFiles,
-            'volume_copie' => $this->humanSize($this->copiedBytes),
+            'fichiers_'.$verbe.'s' => $this->copiedFiles,
+            'volume_'.$verbe => $this->humanSize($this->copiedBytes),
             'books_introuvables' => $this->missingBooks,
         ];
     }
 
-    private function humanSize(int $bytes): string
+    public function humanSize(int|float $bytes): string
     {
         foreach (['o', 'Ko', 'Mo', 'Go'] as $unit) {
             if ($bytes < 1024) {

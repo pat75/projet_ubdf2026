@@ -64,6 +64,12 @@ return [
     'qualite' => (int) env('IMAGES_QUALITE', 82),
 
     /*
+    | Declinaisons servies en WebP aux navigateurs qui l'acceptent (meme URL,
+    | voir BookMediaController). Les GIF restent des GIF (animation).
+    */
+    'webp' => (bool) env('IMAGES_WEBP', true),
+
+    /*
     | Le cache des declinaisons, sur le disque `public`. Il se vide sans
     | dommage : tout s'y regenere depuis la source.
     */

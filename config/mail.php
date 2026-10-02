@@ -115,4 +115,11 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Site de demonstration : tout courriel part vers cette seule adresse,
+    | quel que soit le destinataire (creatif, visiteur, administrateur).
+    | Vide en production.
+    */
+    'toujours_vers' => env('MAIL_ALWAYS_TO'),
+
 ];

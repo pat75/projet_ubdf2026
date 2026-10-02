@@ -100,6 +100,24 @@ it('enregistre un visuel envoye dans le portfolio choisi, borne a la taille sour
         ->and($this->creatif->fresh()->media_count)->toBe(1);
 });
 
+it('fabrique les tailles des pages de book en WebP apres la reponse', function () {
+    $g = galerie($this->creatif);
+
+    Livewire::test(Galeries::class)
+        ->set('cible', $g->id)
+        ->set('fichiers', [UploadedFile::fake()->image('Portrait.jpg', 1200, 800)]);
+
+    $source = App\Support\DossierBook::chemin('testespace', $g->media()->sole()->filename);
+    $generateur = app(App\Services\Images\GenerateurImages::class);
+    $cache = fn (string $nom) => $generateur->cheminCache($source, App\Services\Images\Declinaison::nommee($nom), true);
+
+    // Livewire::test termine la requete simulee : le travail differe
+    // (afterResponse) a deja tourne.
+    expect($cache('ptf_medium'))->toBeFile()
+        ->and($cache('iph_medium'))->toBeFile()
+        ->and($cache('front_desk'))->not->toBeFile();
+});
+
 it('refuse un fichier qui n est pas une image', function () {
     $g = galerie($this->creatif);
 

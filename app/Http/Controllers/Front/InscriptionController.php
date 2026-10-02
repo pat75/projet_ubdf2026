@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\InscriptionRequest;
 use App\Livewire\Espace\Compte;
+use App\Models\Reglage;
 use App\Models\User;
 use App\Services\Auth\Inscription;
 use App\Services\Auth\MotDePasse;
@@ -49,7 +50,7 @@ class InscriptionController extends Controller
     {
         return view('front.creer-un-book', [
             // Creation commencee par Google (GoogleController::retour).
-            'google' => $requete->session()->get('google.inscription'),
+            'google' => Reglage::googleActif() ? $requete->session()->get('google.inscription') : null,
             // Messages du controle cote navigateur (resources/js/portail/inscription.js).
             'textes' => collect(self::TEXTES_NAVIGATEUR)->mapWithKeys(fn (string $phrase) => [$phrase => __($phrase)]),
         ]);

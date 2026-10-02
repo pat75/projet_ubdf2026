@@ -26,7 +26,7 @@ ssh_run "test -f \"$BACKUP_DIR/code-$STAMP.tgz\"" || echec "sauvegarde introuvab
 
 ligne
 echo "  Rollback $STAMP -> ${REMOTE}:${REMOTE_PATH}"
-echo "  Le code (et .env) revient a l'etat exact de la sauvegarde ;"
+echo "  Le code (et .env.prod) revient a l'etat exact de la sauvegarde ;"
 echo "  les fichiers apparus depuis sont supprimes. storage/ n'est pas touche."
 ligne
 confirm "Restaurer le code ?" || { echo "Annule."; exit 0; }
@@ -49,7 +49,7 @@ rsync -a --delete --exclude=storage/ --exclude=vendor/ --exclude=node_modules/ "
 echo "   code restaure"
 
 if [ "$BASE" = "1" ]; then
-    val() { grep -E "^$1=" .env | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/'; }
+    val() { grep -E "^$1=" .env.prod | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/'; }
     CNF="$TMP/my.cnf"
     printf '[client]\nuser=%s\npassword=%s\nhost=%s\n' "$(val DB_USERNAME)" "$(val DB_PASSWORD)" "$(val DB_HOST)" > "$CNF"
     gunzip -c "$BACKUP_DIR/base-$STAMP.sql.gz" | mysql --defaults-extra-file="$CNF" "$(val DB_DATABASE)"

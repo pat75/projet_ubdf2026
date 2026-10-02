@@ -89,3 +89,32 @@ it('sert les images des pages depuis cms/, puis img_cms/ du legacy', function ()
     $this->get("/books/{$this->login}/cms/images/ancienne.jpg")->assertOk()->assertHeader('Content-Type', 'image/jpeg');
     $this->get("/books/{$this->login}/cms/../visuel.jpg")->assertHeader('Content-Type', 'image/gif');
 });
+
+it('sert du WebP au navigateur qui l annonce, a la meme URL', function () {
+    $reponse = $this->get("/books/{$this->login}/front_desk/visuel.jpg", ['Accept' => 'image/avif,image/webp,*/*']);
+
+    $reponse->assertOk()->assertHeader('Content-Type', 'image/webp');
+    expect($reponse->headers->get('Vary'))->toContain('Accept')
+        ->and(tailleReponse($reponse))->toBe('250x136');
+});
+
+it('garde le JPEG pour un client sans WebP', function () {
+    $this->get("/books/{$this->login}/front_desk/visuel.jpg", ['Accept' => 'image/*'])
+        ->assertOk()
+        ->assertHeader('Content-Type', 'image/jpeg');
+});
+
+it('garde le GIF en GIF, pour ne pas perdre son animation', function () {
+    app(ImageManager::class)->createImage(100, 100)->save($this->dossier.'/anime.gif');
+
+    $this->get("/books/{$this->login}/front_desk/anime.gif", ['Accept' => 'image/webp'])
+        ->assertOk()
+        ->assertHeader('Content-Type', 'image/gif');
+});
+
+it('respecte l interrupteur IMAGES_WEBP', function () {
+    config(['images.webp' => false]);
+
+    $this->get("/books/{$this->login}/front_desk/visuel.jpg", ['Accept' => 'image/webp'])
+        ->assertHeader('Content-Type', 'image/jpeg');
+});

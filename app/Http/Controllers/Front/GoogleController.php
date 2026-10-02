@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\GoogleInscriptionRequest;
+use App\Models\Reglage;
 use App\Models\User;
 use App\Services\Auth\Inscription;
 use App\Support\Marque;
@@ -28,7 +29,7 @@ class GoogleController extends Controller
 
     public function redirection(): RedirectResponse
     {
-        if (blank(config('services.google.client_id'))) {
+        if (blank(config('services.google.client_id')) || ! Reglage::googleActif()) {
             return $this->echec(__('La connexion par Google n’est pas disponible pour le moment.'));
         }
 
@@ -37,6 +38,11 @@ class GoogleController extends Controller
 
     public function retour(Request $requete): RedirectResponse
     {
+        // Masque depuis le back-office pendant un aller-retour chez Google.
+        if (! Reglage::googleActif()) {
+            return $this->echec(__('La connexion par Google n’est pas disponible pour le moment.'));
+        }
+
         try {
             $google = $this->pilote()->user();
         } catch (Throwable) {
@@ -90,6 +96,12 @@ class GoogleController extends Controller
 
     public function inscrire(GoogleInscriptionRequest $requete): RedirectResponse
     {
+        if (! Reglage::googleActif()) {
+            $requete->session()->forget('google.inscription');
+
+            return $this->echec(__('La connexion par Google n’est pas disponible pour le moment.'));
+        }
+
         $google = $requete->session()->pull('google.inscription');
         $marque = $requete->attributes->get('marque') ?? Marque::defaut();
 

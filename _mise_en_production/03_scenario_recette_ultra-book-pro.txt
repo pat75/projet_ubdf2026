@@ -202,6 +202,7 @@ DB_LEGACY_USERNAME=<user_select_seul>
 BOOK_DOMAIN=ultra-book.pro
 PORTAIL_DOMAIN=www.ultra-book.pro
 UB_CANONIQUE=https://www.ultra-book.pro
+MAIL_ALWAYS_TO=demo@ultra-book.pro     # tout courriel du site de demo part ici
 DF_BOOK_DOMAIN=extra-book.biz
 DF_DOMAIN=extra-book.biz
 DF_CANONIQUE=https://www.extra-book.biz

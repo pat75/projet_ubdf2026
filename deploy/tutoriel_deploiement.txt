@@ -71,7 +71,7 @@ Deroule, avec les questions posees :
       - "Envoyer ces modifications ?"       [o/N]  non = arret, rien n'a bouge
    5) Site en maintenance ; affiche une URL secrete
       (https://www.ultra-book.pro/<secret>) pour voir le site pendant ce temps
-   6) Envoi rsync + .env.prod -> .env
+   6) Envoi rsync + .env.prod -> .env.prod
    7) composer install --no-dev, puis si migrations en attente :
       liste + "Executer ces migrations ?"     [o/N]
       puis caches (artisan optimize) et queue:restart
@@ -86,7 +86,7 @@ Exemple : ./deploy/deploy-prod.sh rollback 20261001-143000
    ./deploy/deploy-prod.sh sync
 
 Pour une vue, un CSS, une traduction, un changement de .env.prod.
-Fait : controles, build (question), envoi, .env, composer, caches,
+Fait : controles, build (question), envoi, .env.prod, composer, caches,
 verification. Ne fait PAS : sauvegarde, apercu, migrations, maintenance.
 => Jamais de sync si une migration est a passer.
 
@@ -103,7 +103,7 @@ verification. Ne fait PAS : sauvegarde, apercu, migrations, maintenance.
         paiements) : seulement apres une migration ratee.
       - maintenance, restauration, composer, caches, remise en ligne
 
-Le code (et le .env) revient a l'etat exact de la sauvegarde. Penser
+Le code (et le .env.prod) revient a l'etat exact de la sauvegarde. Penser
 ensuite a corriger .env.prod en local, sinon le prochain deploiement
 le renvoie.
 
@@ -123,7 +123,7 @@ le renvoie.
 8. CE QUI EST SAUVEGARDE / ENVOYE
 ---------------------------------
 Sauvegarde (deploiement complet seulement, ~/backups_deploy/, KEEP derniers) :
-   code-STAMP.tgz     tout le dossier de l'app, .env compris
+   code-STAMP.tgz     tout le dossier de l'app, .env.prod compris
    base-STAMP.sql.gz  base ubdf
 NON sauvegarde :
    storage/ (fichiers des books, logs) -> backup:run quotidien
@@ -131,7 +131,7 @@ NON sauvegarde :
    base ub2020 (lecture seule)
    tout ce que fait le mode sync
 
-Envoye : code, public/ (assets non versionnes compris), .env.prod -> .env
+Envoye : code, public/ (assets non versionnes compris), .env.prod -> .env.prod
 Jamais : storage/, vendor/, node_modules/, .git, docs, tests, deploy/
          (liste complete : deploy/rsync-exclude.txt)
 Efface sur le serveur quand supprime en local : seulement app/, config/,
@@ -151,3 +151,236 @@ Erreur en cours de route      -> le script remet le site en ligne seul ;
                                  relancer apres correction, ou rollback
 Modification non visible      -> attendre 60 s (OPcache), sinon
                                  ./deploy/ssh-prod.sh "php artisan optimize"
+
+
+10. MOT DE PASSE DU SERVEUR DE DEMO (PROVISOIRE)
+------------------------------------------------
+Tout ultra-book.pro demande demo / ubdf2026, sauf la notification
+Payplug et /.well-known/ (renouvellement SSL).
+
+   ./deploy/demo-auth.sh status   active ou non
+   ./deploy/demo-auth.sh off      RETIRER (site public)
+   ./deploy/demo-auth.sh on       remettre
+
+Fichiers : ~/ultra-book.pro/.htaccess (hors public/, le deploiement n'y
+touche pas) et ~/.htpasswds/ultra-book.pro/passwd. Effet sous ~1 minute.
+
+
+11. MOT DE PASSE DU BACK-OFFICE (/admin)
+----------------------------------------
+/admin et /admin/* demandent ubdf / ubdf+2026-pat, avant la connexion
+Filament. Apache seulement : en local (Valet, nginx), pas de barriere.
+
+   ./deploy/admin-auth.sh status   active ou non
+   ./deploy/admin-auth.sh on       poser
+   ./deploy/admin-auth.sh off      retirer
+
+Meme ~/ultra-book.pro/.htaccess que la demo (bloc « admin », la demo a
+son bloc « demo » : chaque script ne touche que le sien), mot de passe
+dans ~/.htpasswds/ultra-book.pro/admin.
+
+
+12. COMPTE ADMINISTRATEUR DU BACK-OFFICE
+----------------------------------------
+A ne pas confondre avec le point 11 : ici, c'est le compte de connexion
+Filament (adresse e-mail + mot de passe, table admins), demande apres
+la barriere HTTP. Le compte local (pat75.2024@gmail.com /
+admin-local-2026) n'existe pas en production : il faut en creer un.
+
+Le mot de passe s'ecrit en clair dans la commande : le modele Admin le
+hache seul (cast « hashed »). 12 caracteres au moins, propre a la prod.
+
+1) Ouvrir un shell sur le serveur (PHP 8.3, dans le dossier de l'app) :
+
+   ./deploy/ssh-prod.sh
+
+2) Creer le compte :
+
+   php artisan tinker --execute="App\Models\Admin::create(['name'=>'Pat','email'=>'patrice2016@tardif.fr','password'=>'LKJLMKjfgh+654654az','is_active'=>true]);"
+
+patrice2016@tardif
+LKJLMKjfgh+654654az
+
+3) Changer le mot de passe d'un compte existant :
+
+   php artisan tinker --execute="App\Models\Admin::where('email','adresse@exemple.fr')->firstOrFail()->update(['password'=>'nouveau-mot-de-passe']);"
+
+4) Verifier la liste des administrateurs :
+
+   php artisan tinker --execute="App\Models\Admin::all(['id','name','email','is_active'])->each(fn(\$a)=>print(\$a->toJson().PHP_EOL));"
+
+Puis se connecter sur https://www.ultra-book.pro/admin (identifiants
+HTTP du point 11, puis l'adresse et le mot de passe crees ici). Les
+administrateurs suivants peuvent etre crees depuis le back-office :
+Reglages -> Administrateurs.
+
+Eviter un « ! » dans le mot de passe tape en ligne de commande : le shell
+l'interprete. Sinon, passer par « php artisan tinker » en interactif et
+saisir la meme instruction a l'invite.
+
+
+13. REDIS (CACHE ET SESSIONS)
+-----------------------------
+Le cache Laravel et les sessions passent par Redis, en memoire, au lieu
+de MySQL : moins de requetes a la base a chaque page. La file de taches
+(QUEUE_CONNECTION) reste sur « database » : Redis la demanderait avec un
+worker permanent, impossible en mutualise.
+
+Instance : cPanel O2switch -> Redis (activee une fois pour toutes).
+   Socket ........ /home/sc4tapa2662/.cpanel/redis/redis.sock
+   Journal ....... /home/sc4tapa2662/.cpanel/redis/redis.log
+   Memoire ....... 128 Mo, 32 bases
+   Mot de passe .. affiche dans le cPanel (recopie dans .env.prod)
+
+Reglages dans .env.prod (pas de TCP : on passe par le socket, port 0) :
+
+   SESSION_DRIVER=redis
+   CACHE_STORE=redis
+   REDIS_CLIENT=phpredis
+   REDIS_HOST=/home/sc4tapa2662/.cpanel/redis/redis.sock
+   REDIS_PORT=0
+   REDIS_PASSWORD=<mot de passe du cPanel>
+   REDIS_PREFIX=ubpro_
+
+Toute modification de .env.prod part au prochain deploiement. Pour
+l'envoyer seul, sans le code :
+
+   bash -c 'source deploy/lib.sh; rsync -a -e "$SSH_CMD" .env.prod "$REMOTE:$REMOTE_PATH/.env.prod" && caches'
+
+Verifier :
+
+   ./deploy/ssh-prod.sh "php artisan tinker --execute='Cache::put(\"t\",42,60); echo config(\"cache.default\"),\" \",config(\"session.driver\"),\" \",Cache::get(\"t\");'"
+   -> attendu : redis redis 42
+
+Vider le cache Redis (ex. apres un reglage modifie a la main en base) :
+
+   ./deploy/ssh-prod.sh "php artisan cache:clear"
+
+Points a savoir :
+- Changer SESSION_DRIVER deconnecte tout le monde une fois (creatifs,
+  visiteurs, administrateurs) : les anciennes sessions restent en base.
+- Redis arrete ou mot de passe change dans le cPanel -> erreur 500 sur
+  tout le site. Lire redis.log, relancer l'instance depuis le cPanel, ou
+  mettre a jour REDIS_PASSWORD.
+- Retour arriere : SESSION_DRIVER=database et CACHE_STORE=database dans
+  .env.prod, puis envoyer le fichier comme ci-dessus.
+- En local (.env.dev), rien ne change : cache et sessions restent en base.
+- Garder X-Treme Cache et PageSpeed desactives dans le cPanel : ils
+  mettent en cache des pages avec session et jeton CSRF (erreurs 419,
+  pages d'un compte servies a un autre).
+
+
+14. SOUS-DOMAINES DES BOOKS (JOKER *.ultra-book.pro)
+----------------------------------------------------
+Chaque book est servi sur <login>.ultra-book.pro. Il faut pour cela, dans
+le cPanel, un sous-domaine joker « *.ultra-book.pro » pointant sur la
+meme racine que le portail, et un certificat SSL qui le couvre.
+
+Symptome d'un joker manquant : https://<login>.ultra-book.pro affiche un
+blog WordPress « My Blog » (site par defaut de la machine O2switch) et/ou
+un certificat « anatra.o2switch.net » refuse par le navigateur. Laravel
+n'est jamais atteint : ni .env.prod, ni .htaccess, ni Redis n'y sont
+pour rien.
+
+Diagnostic :
+
+   ./deploy/ssh-prod.sh "uapi DomainInfo list_domains"
+   -> sub_domains doit contenir "*.ultra-book.pro"
+
+Recreer le joker :
+
+   ./deploy/ssh-prod.sh "uapi SubDomain addsubdomain domain='*' rootdomain=ultra-book.pro dir=ultra-book.pro/public"
+
+Si la commande repond « Une entree DNS existe deja pour le domaine
+*.ultra-book.pro » : la ligne DNS « * » est restee seule apres une
+suppression du sous-domaine. La retirer, puis relancer la commande
+ci-dessus (cPanel repose la ligne DNS, meme IP) :
+
+   1) reperer le numero de ligne (line_index) de l'enregistrement A « * » :
+      ./deploy/ssh-prod.sh "uapi DNS parse_zone zone=ultra-book.pro" | grep -B4 -A3 'dname_raw: \"\*\"'
+   2) lire le numero de serie de la zone (enregistrement SOA, 3e valeur),
+      ou le laisser lire par le cPanel : Zone Editor fait la meme chose
+      a la souris (supprimer la ligne A « * »).
+   3) ./deploy/ssh-prod.sh "uapi DNS mass_edit_zone zone=ultra-book.pro serial=<serie> remove=<line_index>"
+
+Plus simple a la souris : cPanel -> Zone Editor -> ultra-book.pro ->
+supprimer l'enregistrement A « * », puis cPanel -> Domaines -> Creer
+« *.ultra-book.pro », racine /home/sc4tapa2662/ultra-book.pro/public.
+
+SSL : le certificat joker « *.ultra-book.pro et ultra-book.pro » est deja
+sur le compte (SSL/TLS -> Certificats) ; il se rattache seul au joker
+recree. Verifier :
+
+   echo | openssl s_client -connect adolie.ultra-book.pro:443 -servername adolie.ultra-book.pro 2>/dev/null | openssl x509 -noout -subject
+   -> CN=ultra-book.pro (et non anatra.o2switch.net)
+
+S'il a expire : cPanel -> Let's Encrypt -> emettre pour ultra-book.pro
+et *.ultra-book.pro (validation DNS, automatique avec la zone chez
+O2switch). AutoSSL n'est pas disponible sur ce compte.
+
+Ne jamais supprimer « *.ultra-book.pro » dans Domaines : tous les books
+tombent d'un coup.
+
+
+15. IMAGES DES BOOKS : POIDS ET WEBP
+------------------------------------
+Mesures du 01/10/2026 sur ultra-book.pro.
+
+Fonctionnement : les visuels sont stockes une fois (source bornee a
+1980x3600) dans storage/app/public/books/a/d/o/<login>/. Les tailles
+d'affichage (declinaisons de config/images.php) sont fabriquees a la
+premiere demande puis gardees dans storage/app/public/cache_images/,
+servies avec un cache navigateur d'un an.
+
+Etat mesure :
+- Sources : 15 109 fichiers, 4,6 Go, 320 Ko en moyenne
+  (734 depassent 1 Mo). Elles ne sont jamais envoyees telles quelles.
+- Cache des declinaisons : 229 Mo.
+- Book adolie (modele zoom, 202 visuels) : balisage deja bon. srcset
+  320/550 px, seules les 6 premieres images chargees d'emblee, les
+  autres au defilement (loading="lazy"). Une vignette ptf_medium pese
+  78 Ko en moyenne ; les plus lourdes sont un PNG (700 Ko) et des GIF
+  animes (1,5 Mo).
+- Accueil du portail : 121 images, 1,2 Mo au total.
+
+Gain du WebP, mesure sur 60 images par taille, qualite 82 :
+   ptf_medium (550 px)   37 Ko -> 22 Ko   -40 %
+   source (zoom)        126 Ko -> 73 Ko   -42 %
+   carre_183              8 Ko ->  6 Ko   -33 %
+   front_desk (cartes)    5 Ko ->  2 Ko   -59 %
+Les PNG photographiques gagnent bien davantage (souvent -80 %).
+
+Ce qui est en place :
+- Meme lien qu'avant, pas de « .webp » dans l'URL : par exemple
+  https://adolie.ultra-book.pro/books/adolie/ptf_medium/xxx.jpg
+  Le navigateur qui annonce WebP (en-tete Accept, tous les navigateurs
+  actuels) le recoit ; un client mail ou un robot de partage recoit le
+  JPEG/PNG. En-tete « Vary: Accept » pour les caches intermediaires.
+- Les GIF restent des GIF (sinon l'animation serait perdue).
+- Le WebP se coupe sans deploiement de code : IMAGES_WEBP=false dans
+  .env.prod, puis envoyer le fichier (voir point 13).
+- Les sources ne sont ni modifiees ni reduites : elles restent la
+  reference, et tout le cache peut etre vide puis regenere.
+
+Pre-generer les WebP (sinon le premier visiteur de chaque book attend
+la fabrication) :
+
+   ./deploy/ssh-prod.sh "php artisan ubdf:prechauffer-images --dry-run"
+   ./deploy/ssh-prod.sh "php artisan ubdf:prechauffer-images"
+   ./deploy/ssh-prod.sh "php artisan ubdf:prechauffer-images --login=adolie"
+
+Options : --declinaison=ptf_medium (une seule taille), --lettre=a (lot
+par premiere lettre du login, pour lancer en parallele), --origine (aussi
+le JPEG/PNG). Temps mesures et estimation pour le stock complet (200 Go),
+lancement en 8 lots paralleles : voir tutoriel_transfert_data_image.txt,
+section DECLINAISONS APRES LE TRANSFERT. La commande est relancable : ce qui est deja a jour est
+saute. Duree : plusieurs dizaines de minutes pour tout le stock ; sur
+O2switch, la lancer par book ou de nuit si elle est coupee.
+
+Vider le cache des declinaisons (tout se regenere seul) :
+
+   ./deploy/ssh-prod.sh "rm -rf storage/app/public/cache_images/*"
+
+Pistes suivantes, non faites : GIF animes lourds (les convertir en
+video ou en WebP anime avec Imagick), et AVIF (encore 20 a 30 % de moins
+que le WebP, mais encodage beaucoup plus lent).

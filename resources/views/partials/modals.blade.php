@@ -487,9 +487,11 @@
                         </div>
                     @enderror
 
-                    <x-portail.bouton-google class="creer_book_google" />
+                    @if (\App\Models\Reglage::googleActif())
+                        <x-portail.bouton-google class="creer_book_google" />
 
-                    <div class="creer_book_ou"><span>{{ __('ou avec votre mot de passe') }}</span></div>
+                        <div class="creer_book_ou"><span>{{ __('ou avec votre mot de passe') }}</span></div>
+                    @endif
 
                     <form action="/ubaction__user_open" id="login_form" method="post" class="ui form creer_book_form" @submit.prevent="connecter($el)" novalidate>
                         @csrf

@@ -99,6 +99,7 @@ DB_LEGACY_PASSWORD=…
 BOOK_DOMAIN=ultra-book.pro
 PORTAIL_DOMAIN=www.ultra-book.pro
 UB_CANONIQUE=https://www.ultra-book.pro
+MAIL_ALWAYS_TO=demo@ultra-book.pro     # tout courriel du site de demo part ici
 SESSION_DOMAIN=.ultra-book.pro        # session partagée portail / books
 
 LEGACY_BOOKS_PATH=/home/<compte>/users_2
@@ -127,7 +128,7 @@ Puis recréer l'arborescence sur **trois lettres** (voir
 
 ```bash
 php artisan ubdf:prod:dossiers-books --dry-run   # contrôle
-php artisan ubdf:prod:dossiers-books             # copie
+php artisan ubdf:prod:dossiers-books             # copie (--deplacer, --depuis=a --jusqua=f)
 php artisan storage:link
 ```
 

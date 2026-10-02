@@ -6,10 +6,10 @@ return [
      * Domaine racine des books creatifs.
      * Chaque book est servi sur <login>.<book_domain>.
      */
-    'book_domain' => env('BOOK_DOMAIN', 'ubdf2026.ultra-book.name'),
+    'book_domain' => (env('BOOK_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
 
     // Hote du portail : sert a cantonner le back-office.
-    'portail_domain' => env('PORTAIL_DOMAIN', 'ubdf2026.ultra-book.name'),
+    'portail_domain' => (env('PORTAIL_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
 
     /*
      * Racine des fichiers books du projet 2019 (lecture seule).

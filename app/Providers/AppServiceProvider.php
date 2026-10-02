@@ -13,6 +13,7 @@ use App\Observers\JournalAdmin;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
@@ -37,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Site de demonstration : aucun courriel n'atteint un vrai compte.
+        if ($adresse = config('mail.toujours_vers')) {
+            Mail::alwaysTo($adresse);
+        }
+
         /*
          | Un creatif et un visiteur ne partagent jamais une session : se
          | connecter sous l'un ferme l'autre, quel que soit le chemin
