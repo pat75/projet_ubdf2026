@@ -2046,5 +2046,8 @@
     "Trop de corrections demandées, réessayez dans un moment.": "Too many corrections requested, please try again in a moment.",
     "https://www.monsite.com": "https://www.mywebsite.com",
     "+33601020304": "+33601020304",
-    "Cette rubrique contient encore :n page. Supprimez-la d’abord, puis vous pourrez supprimer la rubrique.|Cette rubrique contient encore :n pages. Supprimez-les d’abord, puis vous pourrez supprimer la rubrique.": "This section still contains :n page. Delete it first, then you can delete the section.|This section still contains :n pages. Delete them first, then you can delete the section."
+    "Cette rubrique contient encore :n page. Supprimez-la d’abord, puis vous pourrez supprimer la rubrique.|Cette rubrique contient encore :n pages. Supprimez-les d’abord, puis vous pourrez supprimer la rubrique.": "This section still contains :n page. Delete it first, then you can delete the section.|This section still contains :n pages. Delete them first, then you can delete the section.",
+    "Book suivant": "Next book",
+    "Image précédente": "Previous image",
+    "Image suivante": "Next image"
 }

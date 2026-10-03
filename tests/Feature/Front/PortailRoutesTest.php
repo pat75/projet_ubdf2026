@@ -204,3 +204,35 @@ it('ne laisse aucune entite HTML dans les balises style et script', function (st
 
     expect($fautifs)->toBeEmpty();
 })->with(['/accueil', '/illustrateur', '/annuaire']);
+
+it('affiche le statut du creatif en clair dans la fiche de la carte', function (string $status, string $attendu) {
+    // Les fiches legacy portent l'indice de config('ubdf.statuts').
+    $this->book->update(['status' => $status]);
+
+    $html = $this->get(portail('/illustrateur'))->assertOk()->getContent();
+    preg_match('/data-user_detail="([^"]*)"/', $html, $detail);
+    $detail = json_decode(html_entity_decode($detail[1] ?? '{}'), true);
+
+    expect($detail['book_statut_libelle'] ?? null)->toBe($attendu);
+})->with([
+    'indice legacy' => ['2', 'Auto-entrepreneur'],
+    'libelle' => ['Freelance', 'Freelance'],
+    'a definir' => ['0', ''],
+    'inconnu' => ['42', ''],
+]);
+
+it('sert la carte d un book demande par son ancre, meme hors du premier ecran', function () {
+    // /illustrateur#pat10 : la carte peut n'arriver qu'au defilement ; le
+    // JavaScript la demande alors seule pour ouvrir la visionneuse.
+    $html = $this->get(portail('/carte/pat10'))->assertOk()->json('html');
+
+    expect($html)->toContain('id="user_pat10"')->toContain('data-slider="');
+});
+
+it('refuse la carte d un book absent du portail', function () {
+    $this->get(portail('/carte/inconnu'))->assertNotFound();
+
+    // Diffusion coupee : le book ne doit pas sortir par cette porte.
+    $this->book->bookSetting->update(['diffuse_ub' => false]);
+    $this->get(portail('/carte/pat10'))->assertNotFound();
+});

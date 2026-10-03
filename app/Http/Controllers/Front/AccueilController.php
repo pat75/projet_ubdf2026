@@ -102,6 +102,22 @@ class AccueilController extends Controller
     }
 
     /**
+     * Carte seule d'un book, pour l'ancre « #login » : sa carte peut ne pas
+     * figurer dans le premier ecran de la page (defilement infini), la
+     * visionneuse s'ouvre alors a partir de celle-ci.
+     */
+    public function carte(Request $request, string $login): JsonResponse
+    {
+        $book = $this->books->parLogin($login, $request->attributes->get('brand', 'ub'));
+
+        abort_if($book === null, 404);
+
+        return response()->json([
+            'html' => view('front.partials.cartes', ['books' => collect([$book])])->render(),
+        ]);
+    }
+
+    /**
      * Defilement infini du portail.
      *
      * Contrat repris du legacy : GET /accueil__<page>__<sel|ult|lub>__<type>

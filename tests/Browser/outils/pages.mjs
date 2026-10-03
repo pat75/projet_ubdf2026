@@ -130,19 +130,19 @@ const grille = {
     },
     'visionneuse': async page => {
         await page.locator('#accueil_portfolio .ui.card a.image').first().click();
-        await visible(page, '#swipebox-overlay');
-        await visible(page, '#book_open h2.header');
-        const premiere = await page.locator('#swipebox-slider .slide.current img').getAttribute('src');
+        await visible(page, '#vn');
+        await visible(page, '#vn .vn-nom');
+        const premiere = await page.locator('#vn .vn-diapo.vn-courante img').getAttribute('src');
         await page.keyboard.press('ArrowRight');
         await page.waitForTimeout(500);
-        const seconde = await page.locator('#swipebox-slider .slide.current img').getAttribute('src');
+        const seconde = await page.locator('#vn .vn-diapo.vn-courante img').getAttribute('src');
         if (premiere === seconde) throw new Error('la fleche droite ne change pas d\'image');
         await page.keyboard.press('Escape');
-        await page.locator('#swipebox-overlay').waitFor({ state: 'hidden', timeout: 3000 });
+        await page.locator('#vn').waitFor({ state: 'hidden', timeout: 3000 });
     },
     'contact du créatif, captcha refusé': async page => {
         await page.locator('#accueil_portfolio .ui.card a.image').first().click();
-        await page.locator('#msg_send').click({ timeout: 5000 });
+        await page.locator('#vn-contacter').click({ timeout: 5000 });
         // Le formulaire est remis a zero a l'ouverture : attendre avant de saisir.
         await page.waitForTimeout(500);
         const f = page.locator('#intermediate_form');
@@ -156,8 +156,8 @@ const grille = {
     'mémo book': async page => {
         await page.evaluate(() => localStorage.removeItem('books'));
         await page.locator('#accueil_portfolio .ui.card a.image').first().click();
-        await page.locator('.memobook_add').click({ timeout: 5000 });
-        await visible(page, '#book_open .heart.red');
+        await page.locator('#vn .vn-memo').click({ timeout: 5000 });
+        await visible(page, '#vn .vn-memo.vn-memorise');
         await visible(page, '#nav_memobook .memo_nb:has-text("1")');
     },
 };

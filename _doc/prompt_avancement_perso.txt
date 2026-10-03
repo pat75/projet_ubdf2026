@@ -13,8 +13,19 @@ le bon éditeur
 
 
 
++ prévoir la création de boutique avec des propres systèmes de paiement type paypal ou Stripe du créatif
 
++ prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
+ aux contenu par API ou proxy.
  
++ prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
+
+
+
+
+
+
+
 
 
 

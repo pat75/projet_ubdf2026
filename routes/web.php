@@ -210,6 +210,11 @@ Route::group([], function () {
         ->where(['categorie' => '[-a-z]+', 'page' => '[0-9]{1,3}'])
         ->name('cartes');
 
+    // Carte seule d'un book, pour ouvrir sa visionneuse depuis « #login ».
+    Route::get('/carte/{login}', [AccueilController::class, 'carte'])
+        ->where('login', '[-a-zA-Z0-9_]+')
+        ->name('carte');
+
     // Ancien contrat JSON du legacy, conserve pour le JavaScript repris tel quel.
     Route::get('/accueil__{page}__{selection}__{type}', [AccueilController::class, 'ajax'])
         ->where(['page' => '[0-9]{1,3}', 'selection' => 'sel|ult|lub', 'type' => '[-a-z_]+'])

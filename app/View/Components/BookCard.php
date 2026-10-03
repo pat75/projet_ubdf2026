@@ -30,10 +30,13 @@ class BookCard extends Component
             'book_type_titre' => $this->book->status ?? '',
             'book_prenom_nom' => $this->book->fullName(),
             'book_ville' => $this->book->city ?? '',
-            'book_pays' => $this->book->country ?? '',
+            // Quelques fiches legacy portent un code numerique (« 3 ») au lieu
+            // d'un nom de pays : il s'affichait tel quel apres la ville.
+            'book_pays' => is_numeric($this->book->country) ? '' : ($this->book->country ?? ''),
             'book_lat' => (string) ($this->book->latitude ?? ''),
             'book_lng' => (string) ($this->book->longitude ?? ''),
             'book_statut' => $this->book->status ?? '',
+            'book_statut_libelle' => $this->statut(),
             'book_bio' => $this->book->bookSetting?->bio_photo ?? '',
             'book_dispo' => $this->book->is_available ? 'true' : 'false',
             'book_key' => $this->book->publicKey(),
@@ -57,6 +60,23 @@ class BookCard extends Component
             'book_type' => '',
             'book_prenom_nom' => $this->book->fullName(),
         ];
+    }
+
+    /**
+     * Statut professionnel en clair (« Auto-entrepreneur »). Les anciennes
+     * fiches portent l'indice de config('ubdf.statuts') au lieu du libelle ;
+     * « A définir » (indice 0) et une valeur inconnue ne s'affichent pas.
+     */
+    private function statut(): string
+    {
+        $statuts = config('ubdf.statuts');
+        $valeur = trim((string) $this->book->status);
+
+        if (ctype_digit($valeur)) {
+            $valeur = $statuts[(int) $valeur] ?? '';
+        }
+
+        return in_array($valeur, $statuts, true) && $valeur !== $statuts[0] ? $valeur : '';
     }
 
     public function render(): View

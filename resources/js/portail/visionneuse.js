@@ -1,8 +1,8 @@
 /*
  * Visionneuse d'un book ouverte depuis sa carte (partials/visionneuse),
  * ex-ub_ill_plus_de_book.btn_slide de js_core_cards.js et le plugin
- * jQuery Swipebox. Le HTML reprend celui de Swipebox et du gabarit
- * tpl_book_open : les feuilles du front 2018 le mettent en forme.
+ * jQuery Swipebox. Mise en page propre (#vn, styles dans portail.css),
+ * independante de Swipebox et de core.css.
  *
  * La carte porte ses donnees (<x-book-card>) : data-user,
  * data-user_detail (fiche) et data-slider (visuels).
@@ -165,9 +165,31 @@ export default function visionneuse(Alpine) {
         index: 0,
         suivant: null, // carte du book suivant dans la grille
         contactOuvert: false, // formulaire de contact a la place du diaporama
+        glissement: '', // passage au book suivant : 'sortie' puis 'entree'
+        position: 0, // diapo affichee dans la piste, copies de bout comprises
+        sansTransition: false, // recalage invisible apres un passage en boucle
 
         get image() {
             return this.images[this.index] ?? {};
+        },
+
+        // Piste du diaporama : la derniere image copiee en tete et la
+        // premiere en queue, pour boucler en glissant dans le meme sens.
+        get diapos() {
+            const n = this.images.length;
+            return n > 1 ? [this.images[n - 1], ...this.images, this.images[0]] : this.images;
+        },
+
+        // Pastille sans avatar : deux initiales du nom.
+        get initiales() {
+            const mots = (this.fiche.book_prenom_nom ?? '').trim().split(/\s+/).filter(Boolean);
+            if (mots.length >= 2) return (mots[0][0] + mots[mots.length - 1][0]).toUpperCase();
+            return (mots[0] ?? '').slice(0, 2).toUpperCase();
+        },
+
+        // Localisation sous le domaine : « Bordeaux, France ».
+        get lieu() {
+            return [this.fiche.book_ville, this.fiche.book_pays].filter((v) => (v ?? '').trim()).join(', ');
         },
 
         ouvrir(carte) {
@@ -188,6 +210,8 @@ export default function visionneuse(Alpine) {
                 titre: nomDeFichier.test((v.title ?? '').trim()) ? '' : (v.title ?? ''),
             }));
             this.index = 0;
+            this.position = this.images.length > 1 ? 1 : 0;
+            this.sansTransition = false;
             this.suivant = carte.nextElementSibling?.matches('.ui.card[data-user]') ? carte.nextElementSibling : null;
             this.contactOuvert = false;
             this.ouverte = true;
@@ -208,10 +232,24 @@ export default function visionneuse(Alpine) {
             history.replaceState(null, '', window.location.pathname + window.location.search);
         },
 
+        // Boucle : apres la derniere, la piste glisse sur la copie de la
+        // premiere, puis se recale sans transition sur la vraie premiere
+        // (et inversement avant la premiere).
         allerA(index) {
             const total = this.images.length;
-            if (!total) return;
-            this.index = (index + total) % total; // boucle, comme loopAtEnd
+            if (total < 2) return;
+            this.index = (index + total) % total;
+            this.sansTransition = false;
+            this.position = index + 1;
+
+            clearTimeout(this.recalage);
+            if (this.position === 0 || this.position === total + 1) {
+                this.recalage = setTimeout(() => {
+                    this.sansTransition = true;
+                    this.position = this.index + 1;
+                    requestAnimationFrame(() => requestAnimationFrame(() => { this.sansTransition = false; }));
+                }, 400);
+            }
         },
 
         suivante() {
@@ -222,10 +260,18 @@ export default function visionneuse(Alpine) {
             this.allerA(this.index - 1);
         },
 
+        // Passage au book suivant : le book courant sort vers la gauche,
+        // le suivant entre par la droite (classes vn-sortie / vn-entree).
         bookSuivant() {
-            if (this.suivant) {
-                this.ouvrir(this.suivant);
-            }
+            if (!this.suivant || this.glissement) return;
+            const suivant = this.suivant;
+            this.glissement = 'sortie';
+            setTimeout(() => {
+                this.ouvrir(suivant);
+                this.glissement = 'entree';
+                // Deux images : la position de depart est peinte avant le retour.
+                requestAnimationFrame(() => requestAnimationFrame(() => { this.glissement = ''; }));
+            }, 250);
         },
 
         // Contact du creatif : le formulaire prend la place du diaporama.

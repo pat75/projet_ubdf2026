@@ -54,6 +54,15 @@ class BookRepository
     }
 
     /**
+     * Un book du portail par son login (ancre « #login » d'une page), aux
+     * memes conditions de diffusion que les grilles.
+     */
+    public function parLogin(string $login, string $brand = 'ub'): ?User
+    {
+        return $this->baseQuery($brand)->where('login', $login)->first();
+    }
+
+    /**
      * Nombre de books par categorie, en une requete.
      *
      * Affiche sur la derniere carte de chaque bloc de l'accueil

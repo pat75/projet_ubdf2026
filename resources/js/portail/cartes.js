@@ -16,6 +16,29 @@ function reveler(cartes) {
     cartes.forEach((carte, i) => setTimeout(() => carte.classList.remove('newitem_hide'), i * 40));
 }
 
+/*
+ * #login : la carte du book est ouverte si elle est dans la page ; sinon
+ * (elle n'arriverait qu'au defilement), elle est demandee seule au serveur,
+ * rendue par le meme composant, et la visionneuse s'ouvre avec elle.
+ */
+async function ouvrirDepuisAncre(Alpine, login) {
+    let carte = document.getElementById(`user_${login}`);
+
+    if (!carte) {
+        try {
+            const reponse = await fetch(`/carte/${encodeURIComponent(login)}`, { headers: { Accept: 'application/json' } });
+            if (!reponse.ok) return;
+            const gabarit = document.createElement('template');
+            gabarit.innerHTML = (await reponse.json()).html; // HTML rendu par le serveur (partials.cartes)
+            carte = gabarit.content.querySelector('.ui.card');
+        } catch {
+            return;
+        }
+    }
+
+    if (carte?.dataset.slider) Alpine.store('visionneuse').ouvrir(carte);
+}
+
 export default function cartes(Alpine) {
     document.addEventListener('click', (e) => {
         const carte = e.target.closest('.ui.card[data-user][data-slider]');
@@ -31,9 +54,8 @@ export default function cartes(Alpine) {
         if (ancre === 'create-book') {
             // Ancien lien vers la fenetre d'inscription, devenue une page.
             window.location.href = window.ubdf?.inscription ?? '/creer-un-book';
-        } else if (/^[a-z0-9_-]+$/.test(ancre)) {
-            const carte = document.getElementById(`user_${ancre}`);
-            if (carte?.dataset.slider) Alpine.store('visionneuse').ouvrir(carte);
+        } else if (/^[a-z0-9_-]+$/i.test(ancre)) {
+            ouvrirDepuisAncre(Alpine, ancre);
         }
     });
 

@@ -1,109 +1,101 @@
 {{-- Visionneuse d'un book, ouverte depuis sa carte ($store.visionneuse,
-     resources/js/portail/visionneuse.js). HTML repris de Swipebox et du
-     gabarit Handlebars tpl_book_open : les feuilles du front 2018 (swipebox,
-     core.css #book_open) le mettent en forme. --}}
-<div id="swipebox-overlay" x-data x-show="$store.visionneuse.ouverte" x-cloak
-     x-transition.opacity.duration.500ms
-     @touchstart.passive="$el._x = $event.changedTouches[0].clientX"
-     @touchend="(d => Math.abs(d) > 50 && (d < 0 ? $store.visionneuse.suivante() : $store.visionneuse.precedente()))($event.changedTouches[0].clientX - $el._x)">
+     resources/js/portail/visionneuse.js). Mise en page propre (#vn, classes
+     vn-*, styles dans resources/css/portail.css) : plus rien de Swipebox ni
+     de core.css. Mobile : une colonne (barre, fiche, actions, image,
+     legende, compteur) ; desktop : fiche et actions sur une ligne. --}}
+<div id="vn" x-data x-show="$store.visionneuse.ouverte" x-cloak
+     :class="$store.visionneuse.glissement && 'vn-' + $store.visionneuse.glissement"
+     x-transition.opacity.duration.300ms
+     role="dialog" aria-modal="true" :aria-label="$store.visionneuse.fiche.book_prenom_nom">
+    <div class="vn-cadre">
+        {{-- Barre du haut : fermer, book suivant. --}}
+        <div class="vn-barre">
+            {{-- Croix et « book suivant » de la version precedente : deux
+                 traits fins, et un chevron en filet de 1px. --}}
+            <button type="button" class="vn-fermer" @click="$store.visionneuse.fermer()" aria-label="{{ __('Fermer') }}"></button>
+            <button type="button" class="vn-suivant" x-show="$store.visionneuse.suivant" @click="$store.visionneuse.bookSuivant()">
+                <span class="vn-suivant-legende">book suivant</span>
+                <span class="vn-chevron" aria-hidden="true"></span>
+            </button>
+        </div>
 
-    {{-- x-show et :style sur un meme element : Alpine restaure mal le
-         display d'origine au retour. Le masquage passe donc par :style,
-         avec les deux proprietes ensemble. --}}
-    <div id="swipebox-slider" class="mfp-btn_next" style="transition: transform .4s ease;"
-         :style="{ transform: `translateX(${-100 * $store.visionneuse.index}%)`, display: $store.visionneuse.contactOuvert ? 'none' : 'block' }"
-         @click="$store.visionneuse.suivante()">
-        <template x-for="(image, i) in $store.visionneuse.images" :key="i">
-            <div class="slide" :class="{ current: i === $store.visionneuse.index }">
-                {{-- Seules l'image courante et ses voisines sont chargees. --}}
-                <template x-if="Math.abs(i - $store.visionneuse.index) <= 1">
-                    <img :src="image.src" :alt="image.titre">
+        {{-- Fiche du createur et actions. --}}
+        <div class="vn-entete">
+            <div class="vn-identite">
+                <div class="vn-avatar">
+                    <img x-show="$store.visionneuse.avatar" :src="$store.visionneuse.avatar" alt="">
+                    <span x-show="! $store.visionneuse.avatar" x-text="$store.visionneuse.initiales"></span>
+                </div>
+                <div class="vn-noms">
+                    <div class="vn-nom" x-text="$store.visionneuse.fiche.book_prenom_nom"></div>
+                    {{-- Domaine / statut / lieu sur une seule ligne, meme taille :
+                         seules la graisse et la teinte de gris les distinguent. --}}
+                    <div class="vn-domaine" x-show="$store.visionneuse.fiche.book_type || $store.visionneuse.fiche.book_statut_libelle || $store.visionneuse.lieu">
+                        <span class="vn-type" x-text="$store.visionneuse.fiche.book_type"></span><span class="vn-statut" x-show="$store.visionneuse.fiche.book_statut_libelle" x-text="$store.visionneuse.fiche.book_statut_libelle"></span><span class="vn-lieu" x-show="$store.visionneuse.lieu"><span class="vn-barre-oblique" x-show="$store.visionneuse.fiche.book_type || $store.visionneuse.fiche.book_statut_libelle">/</span><span x-text="$store.visionneuse.lieu"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vn-actions">
+                {{-- Memoriser (store Alpine `memo`) : un second clic retire. --}}
+                <button type="button" class="vn-action vn-memo"
+                        :aria-label="$store.memo.contient($store.visionneuse.login) ? @js(__('Mémorisé')) : @js(__('Mémoriser'))"
+                        :class="{ 'vn-memorise': $store.memo.contient($store.visionneuse.login) }"
+                        :aria-pressed="$store.memo.contient($store.visionneuse.login)"
+                        @click="$store.memo.contient($store.visionneuse.login) ? $store.visionneuse.oublier() : $store.visionneuse.memoriser()">
+                    <svg class="vn-icone vn-icone-petite" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>
+                    </svg>
+                    <span class="vn-memo-libelle" x-text="$store.memo.contient($store.visionneuse.login) ? @js(__('Mémorisé')) : @js(__('Mémoriser'))">{{ __('Mémoriser') }}</span>
+                </button>
+                <a class="vn-action" :href="$store.visionneuse.urlBook" target="_blank" rel="noopener">
+                    <svg class="vn-icone vn-icone-petite" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"/>
+                    </svg>
+                    <span>{{ __('Book complet') }}</span>
+                </a>
+                <button type="button" class="vn-action vn-action-plein" id="vn-contacter"
+                        :class="{ 'vn-actif': $store.visionneuse.contactOuvert }"
+                        @click="$store.visionneuse.contactOuvert ? $store.visionneuse.contactOuvert = false : $store.visionneuse.contacter()">
+                    <svg class="vn-icone vn-icone-petite" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3.5 6.5h17v11h-17zM3.5 7l8.5 6.5L20.5 7"/>
+                    </svg>
+                    <span>{{ __('Contacter') }}</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- Image : un clic avance, glisser au doigt change d'image. --}}
+        <div class="vn-scene" x-show="! $store.visionneuse.contactOuvert"
+             style="cursor: url('/img_front/ub_f_droite.png'), pointer"
+             @touchstart.passive="$el._x = $event.changedTouches[0].clientX"
+             @touchend="(d => Math.abs(d) > 50 && (d < 0 ? $store.visionneuse.suivante() : $store.visionneuse.precedente()))($event.changedTouches[0].clientX - $el._x)">
+            <div class="vn-piste" :class="{ 'vn-sans-transition': $store.visionneuse.sansTransition }"
+                 :style="`transform: translateX(${-100 * $store.visionneuse.position}%)`"
+                 @click="$store.visionneuse.suivante()">
+                <template x-for="(image, i) in $store.visionneuse.diapos" :key="i">
+                    <div class="vn-diapo" :class="{ 'vn-courante': i === $store.visionneuse.position }">
+                        {{-- Seules l'image courante et ses voisines sont chargees. --}}
+                        <template x-if="Math.abs(i - $store.visionneuse.position) <= 1">
+                            <img :src="image.src" :alt="image.titre">
+                        </template>
+                    </div>
                 </template>
             </div>
-        </template>
-    </div>
+        </div>
 
-    <div id="swipebox-caption" x-show="! $store.visionneuse.contactOuvert && $store.visionneuse.image.titre" x-text="$store.visionneuse.image.titre"></div>
+        <div class="vn-legende" x-show="! $store.visionneuse.contactOuvert" x-text="$store.visionneuse.image.titre"></div>
 
-    <div id="swipebox-action" x-show="! $store.visionneuse.contactOuvert">
-        <a id="swipebox-prev" class="hide-desktop" @click.stop="$store.visionneuse.precedente()"></a>
-        <a id="swipebox-next" class="hide-desktop" @click.stop="$store.visionneuse.suivante()"></a>
-    </div>
-    <a id="swipebox-close" @click="$store.visionneuse.fermer()"></a>
+        <div class="vn-contact" x-show="$store.visionneuse.contactOuvert" x-cloak>
+            @include('partials.visionneuse-contact')
+        </div>
 
-    <div class="mfp-container">
-        <div id="book_open">
-            <div id="book_fd_top"></div>
-
-            <template x-if="$store.visionneuse.suivant">
-                <div id="mfp-book_suivant" @click="$store.visionneuse.bookSuivant()">
-                    <a id="mfp-book_suivant_lien">
-                        <div class="suivant_legende">book suivant</div>
-                        <div class="suivant"></div>
-                    </a>
-                </div>
-            </template>
-
-            <div class="ui container no-margin">
-                <h2 class="ui header">
-                    <img :src="$store.visionneuse.avatar" class="ui circular image" :alt="$store.visionneuse.fiche.book_prenom_nom"
-                         x-show="$store.visionneuse.avatar">
-                    <div class="content">
-                        <span x-text="$store.visionneuse.fiche.book_prenom_nom"></span>
-                        {{-- Memoriser le book (store Alpine `memo`) : un coeur et un
-                             mot, a droite du nom. Un second clic le retire. --}}
-                        <button type="button" class="memo_nom cursor_effect"
-                                :class="{ memorise: $store.memo.contient($store.visionneuse.login) }"
-                                :title="$store.memo.contient($store.visionneuse.login) ? @js(__('Retirer du mémoBook')) : @js(__('Ajouter au mémoBook'))"
-                                @click="$store.memo.contient($store.visionneuse.login) ? $store.visionneuse.oublier() : $store.visionneuse.memoriser()">
-                            <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 20.5S2 14.4 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 6.8-10 12.9-10 12.9z"/>
-                            </svg>
-                            <span x-text="$store.memo.contient($store.visionneuse.login) ? @js(__('Mémorisé')) : @js(__('Mémoriser'))">{{ __('Mémoriser') }}</span>
-                        </button>
-                        <div class="sub header">
-                            <span x-text="$store.visionneuse.fiche.book_type"></span>
-                        </div>
-                    </div>
-
-                    <div class="ui list">
-                        <div class="item localise_" x-show="$store.visionneuse.fiche.book_ville">
-                            <i class="map marker alternate icon"></i>
-                            <div class="ville"
-                                 x-text="$store.visionneuse.fiche.book_pays ? $store.visionneuse.fiche.book_ville + ', ' + $store.visionneuse.fiche.book_pays : $store.visionneuse.fiche.book_ville"></div>
-                        </div>
-                        <div class="item link_goto_book_ sans_cadre">
-                            <a :href="$store.visionneuse.urlBook" target="_blank" rel="noopener">
-                                <svg class="icone_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
-                                </svg>
-                                Book complet
-                            </a>
-                        </div>
-                        <div class="item action_" x-show="! $store.visionneuse.contactOuvert">
-                            <div id="msg_send" class="ui left labeled button ubdf_bouton link_ultra-book_contact cursor_effect transition visible"
-                                 title="Je souhaiterais vous contacter" @click="$store.visionneuse.contacter()">
-                                <div class="ui grey right pointing label">
-                                    <i class="envelope icon"></i>
-                                </div>
-                                <div class="ui basic inverted button">Contacter</div>
-                            </div>
-                        </div>
-                    </div>
-
-                </h2>
-
-                <div class="ub_img_action" x-show="! $store.visionneuse.contactOuvert">
-                    <div class="ub_icone precedent mfp-btn_prev cursor_effect" @click="$store.visionneuse.precedente()"></div>
-                    <div class="ub_img_nb">
-                        <strong x-text="$store.visionneuse.index + 1"></strong> /
-                        <span class="ub_img_nb_total" x-text="$store.visionneuse.images.length"></span>
-                    </div>
-                    <div class="ub_icone suivant big mfp-btn_next cursor_effect" @click="$store.visionneuse.suivante()"></div>
-                </div>
-
-                @include('partials.visionneuse-contact')
-            </div>
+        {{-- Folio de la version precedente : chevron fin, « 1 / 6 », grand
+             chevron. Le precedent est masque sur mobile (glisser au doigt). --}}
+        <div class="vn-folio" x-show="! $store.visionneuse.contactOuvert">
+            <button type="button" class="vn-folio-precedent" @click="$store.visionneuse.precedente()" aria-label="{{ __('Image précédente') }}"></button>
+            <span class="vn-folio-nb"><strong x-text="$store.visionneuse.index + 1"></strong> / <span x-text="$store.visionneuse.images.length"></span></span>
+            <button type="button" class="vn-folio-suivant" @click="$store.visionneuse.suivante()" aria-label="{{ __('Image suivante') }}"></button>
         </div>
     </div>
 </div>
