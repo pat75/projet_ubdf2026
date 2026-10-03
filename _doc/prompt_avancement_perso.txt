@@ -1,12 +1,8 @@
  
- +  revoir et terminer la page mon compte
-    Notamment pour le mot de passe et l'e-mails
 
 
 +   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner 
 le bon éditeur
-
-
 
 
 
@@ -23,6 +19,17 @@ le bon éditeur
 
 
 ================ ok
+ +  revoir et terminer la page mon compte -ok
+    Notamment pour le mot de passe et l'e-mails
+
++ maintenance admin - ok
+lorsque le site est mis en maintenance, il faudrait pouvoir ajouter un message dans l'admin
+
+
+
+
+
+
 + Quota - ok
 sur les comptes, créatifs, vérifier le système de comptabilité des images
 Avec notamment le quota empois et le quota en nombre d'images

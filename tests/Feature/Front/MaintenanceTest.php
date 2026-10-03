@@ -97,6 +97,35 @@ it('enregistre la maintenance depuis la page d administration', function () {
     expect(Reglage::enMaintenance())->toBeTrue();
 });
 
+it('affiche le message de l administrateur sur la page de maintenance', function () {
+    $admin = Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']);
+
+    Livewire::actingAs($admin, 'admin')
+        ->test(AccueilPage::class)
+        ->set('data.'.Reglage::MAINTENANCE, true)
+        ->set('data.'.Reglage::MESSAGE_MAINTENANCE, "Retour à 14 h\n<b>promis</b>")
+        ->call('save');
+
+    $this->get($this->portail.'/')
+        ->assertStatus(503)
+        ->assertSee('Retour à 14 h<br />', false)
+        ->assertSee('&lt;b&gt;promis&lt;/b&gt;', false);
+});
+
+it('conserve le message quand on rouvre le site', function () {
+    $admin = Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']);
+    Reglage::definir(Reglage::MAINTENANCE, true);
+    Reglage::definirTexte(Reglage::MESSAGE_MAINTENANCE, 'Retour à 14 h');
+
+    Livewire::actingAs($admin, 'admin')
+        ->test(AccueilPage::class)
+        ->set('data.'.Reglage::MAINTENANCE, false)
+        ->call('save');
+
+    expect(Reglage::enMaintenance())->toBeFalse()
+        ->and(Reglage::texte(Reglage::MESSAGE_MAINTENANCE))->toBe('Retour à 14 h');
+});
+
 it('ferme aussi le portail pour un administrateur connecte', function () {
     $admin = Admin::create(['name' => 'Pat', 'email' => 'chef@example.test', 'password' => 'mot-de-passe-long']);
     Reglage::definir(Reglage::MAINTENANCE, true);

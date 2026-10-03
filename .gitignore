@@ -67,3 +67,9 @@ liens_books_acces.TXT
 /data_source
 
 /deploy/logs/
+/data_sql/
+
+# Sauvegarde externe : config reelle et journaux
+/script_bkp_externe/bkp.config
+/script_bkp_externe/logs
+/script_bkp_externe/pull.config

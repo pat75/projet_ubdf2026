@@ -1,0 +1,19 @@
+# Cote O2SWITCH : dump quotidien de la base (bkp.sh, restaurer-test.sh).
+# Copier en "bkp.config" (ignore par git). Aucun mot de passe ici : la base
+# passe par ~/.my.cnf (chmod 600, cree par deploy/bkp-install.sh).
+
+DB_NAME="sc4tapa2662_ultra-book-prod"
+MYSQL_DEFAULTS_FILE="$HOME/.my.cnf"           # [client] user= password=
+
+BKP_DIR="$HOME/bkp_mysql"                    # dumps gzip horodates (tires par giga)
+KEEP_LOCAL=3                                 # dumps conserves
+
+# Le rapport principal part de giga : ici, mail seulement en cas d'echec.
+MAIL_TO="log2017@polygun.fr"
+MAIL_FROM="backup@ultra-book.pro"
+MAIL_ON="erreur"                             # toujours | erreur
+
+# Test de restauration : base vide creee une fois dans cPanel, accessible par
+# l'utilisateur de ~/.my.cnf. Ses tables sont supprimees a chaque test.
+TEST_DB="sc4tapa2662_bkptest"
+LOG_DAYS=30

@@ -13,8 +13,8 @@
      id="user_{{ $book->login }}"
      data-user="{{ $book->login }}"
      data-us_="us_prenom_nom"
-     data-user_detail='@json($detail, JSON_UNESCAPED_UNICODE)'
-     data-slider='@json($slider, JSON_UNESCAPED_UNICODE)'
+     data-user_detail="{{ json_encode($detail, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"
+     data-slider="{{ json_encode($slider, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}"
      data-motcles=''
      @if ($apparition !== null) x-apparition.{{ $apparition }} @endif
 >

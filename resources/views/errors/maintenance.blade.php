@@ -23,6 +23,9 @@
             <p style="text-align:center">
                 {!! __('Elle peut durer de <strong>quelques minutes à quelques heures</strong>.') !!}
             </p>
+            @if ($annonce = \App\Models\Reglage::texte(\App\Models\Reglage::MESSAGE_MAINTENANCE))
+                <p class="ub-message-maintenance" style="text-align:center;margin-top:1.5em">{!! nl2br(e($annonce)) !!}</p>
+            @endif
         </div>
     </div>
 @endsection

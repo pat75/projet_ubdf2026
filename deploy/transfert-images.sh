@@ -19,14 +19,10 @@
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-: "${OLD_SSH_USER:?manque OLD_SSH_USER dans deploy.config}"
-: "${OLD_SSH_HOST:?manque OLD_SSH_HOST dans deploy.config}"
+source "$(dirname "$0")/lib-ancien.sh"
 : "${OLD_USERS_PATH:?manque OLD_USERS_PATH dans deploy.config}"
-OLD_SSH_PORT="${OLD_SSH_PORT:-22}"
 DATA_SOURCE="${DATA_SOURCE:-data_source}"
 CIBLE="$REMOTE_PATH/$DATA_SOURCE"
-ANCIEN="${OLD_SSH_USER}@${OLD_SSH_HOST}"
-SSH_ANCIEN="ssh -p $OLD_SSH_PORT -o StrictHostKeyChecking=accept-new -o PubkeyAuthentication=no"
 
 # Seuls les dossiers d'originaux sont rapatries (voir LegacyFiles) : les
 # declinaisons (img_ptf_small, img_iph_*…) se regenerent, inutile de les copier.
@@ -34,55 +30,11 @@ FILTRE="'--include=/*/' '--include=/*/*/' '--include=/*/*/*/' \
 '--include=/*/*/*/img_/***' '--include=/*/*/*/img_adm_medium/***' '--include=/*/*/*/img_ptf_medium/***' \
 '--include=/*/*/*/cms_pref/***' '--include=/*/*/*/img_cms/***' '--exclude=*'"
 
-# Journal de chaque lancement, cote poste : deploy/logs/transfert-images-<date>.log
-JOURNAL_DIR="$SCRIPT_DIR/logs"
-mkdir -p "$JOURNAL_DIR"
-JOURNAL="$JOURNAL_DIR/transfert-images-$(date +%Y%m%d-%H%M%S)-${1:-aide}.log"
-exec > >(tee -a "$JOURNAL") 2>&1
-echo "# $(date '+%F %T')  $0 $*  (journal : $JOURNAL)"
-
-# Port joignable depuis O2switch ? « ouvert », « refuse » ou « muet » (expire).
-port_depuis_o2switch() {
-    ssh_run "timeout 6 bash -c '</dev/tcp/$1/$2' 2>/dev/null && echo ouvert || { [ \$? -eq 124 ] && echo muet || echo refuse; }"
-}
-
-# Execute sur O2switch, avec terminal (saisie du mot de passe de l'ancien serveur).
-sur_o2switch() {
-    $SSH_CMD -t "$REMOTE" "cd '$REMOTE_PATH' && $*"
-}
+journaliser transfert-images "$@"
 
 case "${1:-}" in
     diagnostic)
-        etape "1) Depuis ce poste -> ${OLD_SSH_HOST}:${OLD_SSH_PORT}"
-        if nc -z -G 6 "$OLD_SSH_HOST" "$OLD_SSH_PORT" 2>/dev/null; then ok "port ouvert depuis le poste"; else alerte "port ferme depuis le poste aussi : sshd arrete, autre port, ou pare-feu de l'ancien serveur"; fi
-
-        etape "2) IP de sortie d'O2switch (celle a autoriser sur l'ancien serveur)"
-        echo "   $(ssh_run 'curl -s --max-time 6 https://ifconfig.me || echo inconnue')"
-
-        etape "3) Depuis O2switch -> ${OLD_SSH_HOST}:${OLD_SSH_PORT}"
-        ETAT="$(port_depuis_o2switch "$OLD_SSH_HOST" "$OLD_SSH_PORT")"
-        echo "   ${OLD_SSH_HOST}:${OLD_SSH_PORT} : $ETAT"
-
-        etape "4) Filtre sortant d'O2switch (portquiz.net ecoute sur tous les ports)"
-        for p in "$OLD_SSH_PORT" 2083 443; do
-            echo "   sortie vers le port $p : $(port_depuis_o2switch portquiz.net "$p")"
-        done
-        QUIZ="$(port_depuis_o2switch portquiz.net "$OLD_SSH_PORT")"
-
-        etape "Conclusion"
-        case "$ETAT" in
-            ouvert) ok "reseau OK : lancer ./deploy/transfert-images.sh test (mot de passe)";;
-            muet)   alerte "paquets perdus : pare-feu de l'ancien serveur (DROP). Y autoriser l'IP de l'etape 2.";;
-            refuse) if [ "$QUIZ" != ouvert ]; then
-                        alerte "filtre SORTANT d'O2switch : le port $OLD_SSH_PORT ne sort pas, vers aucun serveur."
-                        alerte "L'ancien serveur n'y est pour rien. Faire ecouter son SSH sur 2083 (autorise par O2switch,"
-                        alerte "ouvert dans csf.allow) et mettre OLD_SSH_PORT=\"2083\" dans deploy.config."
-                    else
-                        alerte "O2switch laisse sortir le port $OLD_SSH_PORT : c'est l'ancien serveur qui refuse"
-                        alerte "(CSF : csf -g <IP de l etape 2>, blocage LFD ?). Voir csf.allow / csf.ignore."
-                    fi
-                    alerte "Voir tutoriel_transfert_data_image.txt, section BLOCAGE SSH SORTANT.";;
-        esac
+        diagnostic_ancien
         ;;
 
     test)

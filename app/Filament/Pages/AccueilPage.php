@@ -6,6 +6,7 @@ use App\Models\AccueilBloc;
 use App\Models\Reglage;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -46,6 +47,7 @@ class AccueilPage extends Page
     {
         $this->form->fill(AccueilBloc::etats() + [
             Reglage::MAINTENANCE => Reglage::enMaintenance(),
+            Reglage::MESSAGE_MAINTENANCE => Reglage::texte(Reglage::MESSAGE_MAINTENANCE),
         ]);
     }
 
@@ -71,7 +73,14 @@ class AccueilPage extends Page
                             ->label('Mettre le site en maintenance')
                             ->helperText('Le portail affiche « Site en maintenance » : plus de connexion, plus d’inscription, plus de création de book. Les comptes créatifs et visiteurs déjà connectés sont déconnectés.')
                             ->onColor('danger')
-                            ->onIcon(Heroicon::ExclamationTriangle),
+                            ->onIcon(Heroicon::ExclamationTriangle)
+                            ->live(),
+                        Textarea::make(Reglage::MESSAGE_MAINTENANCE)
+                            ->label('Message aux visiteurs')
+                            ->helperText('Facultatif. Affiché sur la page de maintenance, sous le texte standard (ex. « Retour prévu à 14 h »).')
+                            ->rows(3)
+                            ->maxLength(1000)
+                            ->visible(fn ($get) => (bool) $get(Reglage::MAINTENANCE)),
                     ]),
 
                 Section::make('Blocs de la page d’accueil')
@@ -113,9 +122,17 @@ class AccueilPage extends Page
         // Le reglage de maintenance vit dans sa propre table : il est
         // retire avant la boucle sur les blocs d'accueil.
         $maintenance = (bool) ($etat[Reglage::MAINTENANCE] ?? false);
-        unset($etat[Reglage::MAINTENANCE]);
+        // Champ masque quand la maintenance est coupee : absent de l'etat,
+        // le message deja enregistre est conserve pour la prochaine fois.
+        $aMessage = array_key_exists(Reglage::MESSAGE_MAINTENANCE, $etat);
+        $message = $etat[Reglage::MESSAGE_MAINTENANCE] ?? null;
+        unset($etat[Reglage::MAINTENANCE], $etat[Reglage::MESSAGE_MAINTENANCE]);
 
         Reglage::definir(Reglage::MAINTENANCE, $maintenance);
+
+        if ($aMessage) {
+            Reglage::definirTexte(Reglage::MESSAGE_MAINTENANCE, $message);
+        }
 
         foreach ($etat as $cle => $actif) {
             AccueilBloc::definir($cle, (bool) $actif);

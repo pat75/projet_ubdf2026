@@ -18,6 +18,12 @@ class Reglage extends Model
     public const MAINTENANCE = 'maintenance';
 
     /**
+     * Message libre de l'administrateur, affiche sur la page de
+     * maintenance sous le texte standard. Vide : rien de plus.
+     */
+    public const MESSAGE_MAINTENANCE = 'message_maintenance';
+
+    /**
      * Bouton « Continuer avec Google » retire des fenetres de connexion et
      * de creation de compte (App\Filament\Pages\ConfigurationPage). Cle
      * negative : absente, Google reste propose, comme avant ce reglage.
@@ -41,6 +47,22 @@ class Reglage extends Model
     {
         self::query()->updateOrCreate(['cle' => $cle], ['valeur' => $actif ? '1' : '0']);
         Cache::forget('reglage_'.$cle);
+    }
+
+    /** Valeur texte d'un reglage, null si absente ou vide. */
+    public static function texte(string $cle): ?string
+    {
+        return Cache::remember(
+            'reglage_texte_'.$cle,
+            3600,
+            fn () => self::query()->where('cle', $cle)->value('valeur'),
+        ) ?: null;
+    }
+
+    public static function definirTexte(string $cle, ?string $valeur): void
+    {
+        self::query()->updateOrCreate(['cle' => $cle], ['valeur' => filled($valeur) ? trim($valeur) : null]);
+        Cache::forget('reglage_texte_'.$cle);
     }
 
     /** Le site est-il ferme au public ? */

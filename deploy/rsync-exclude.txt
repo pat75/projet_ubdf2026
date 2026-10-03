@@ -45,3 +45,5 @@ deploy/
 
 # --- Images recues de l ancien serveur (transfert-images.sh) ---
 data_source/
+/data_sql/
+script_bkp_externe/

@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\MarketingOffer;
 use App\Models\Media;
 use App\Models\Message;
+use App\Models\NewsletterMail;
 use App\Models\PromoCode;
 use App\Models\Referral;
 use App\Models\User;
@@ -59,6 +60,9 @@ final class LegacyMigrator
     /** Valeurs coupees a la longueur de leur colonne, toutes instances confondues. */
     private static int $tronquees = 0;
 
+    /** @var array<string, array{nombre: int, exemples: list<string>}> troncatures par table.colonne */
+    private static array $detailTronquees = [];
+
     /**
      * @param  LegacyLogins|null  $logins  conversion des logins a « _ » / « . » (mise en production)
      */
@@ -91,6 +95,20 @@ final class LegacyMigrator
         return self::$tronquees;
     }
 
+    /**
+     * Troncatures par `table.colonne`, avec trois exemples (identifiant
+     * legacy de la ligne quand il existe) : de quoi retrouver la valeur
+     * d'origine dans la base legacy.
+     *
+     * @return array<string, array{nombre: int, exemples: list<string>}>
+     */
+    public static function detailTroncatures(): array
+    {
+        ksort(self::$detailTronquees);
+
+        return self::$detailTronquees;
+    }
+
     private static function ajuster(Model $modele): void
     {
         $table = $modele->getTable();
@@ -100,13 +118,41 @@ final class LegacyMigrator
             ->mapWithKeys(fn (array $c) => [$c['name'] => (int) preg_replace('/\D/', '', $c['type'])])
             ->all();
 
+        /*
+         | Champs recopies sans LegacyText (code postal, telephone, liens) :
+         | un varchar legacy coupe au milieu d'un caractere (« Paris 19 \xC3 »)
+         | y laisse un octet orphelin que MySQL refuse, ce qui arretait la
+         | reprise. Toute chaine invalide est reparee ici, quelle que soit
+         | la colonne, et comptee avec les troncatures.
+         */
+        foreach ($modele->getAttributes() as $colonne => $valeur) {
+            if (is_string($valeur) && ! mb_check_encoding($valeur, 'UTF-8')) {
+                $modele->setAttribute($colonne, rtrim((string) LegacyText::clean($valeur)));
+                self::noter($modele, $table.'.'.$colonne.' (octets invalides repares)');
+            }
+        }
+
         foreach (self::$longueurs[$table] as $colonne => $max) {
             $valeur = $modele->getAttributes()[$colonne] ?? null;
 
             if (is_string($valeur) && mb_strlen($valeur) > $max) {
                 $modele->setAttribute($colonne, rtrim(mb_substr($valeur, 0, $max)));
                 self::$tronquees++;
+
+                self::noter($modele, $table.'.'.$colonne);
             }
+        }
+    }
+
+    /** Compte une valeur modifiee pour `$cle`, avec trois exemples d'id. */
+    private static function noter(Model $modele, string $cle): void
+    {
+        self::$detailTronquees[$cle] ??= ['nombre' => 0, 'exemples' => []];
+        self::$detailTronquees[$cle]['nombre']++;
+
+        if (count(self::$detailTronquees[$cle]['exemples']) < 3) {
+            $id = $modele->getAttribute('legacy_id') ?? $modele->getAttribute('email') ?? $modele->getKey();
+            self::$detailTronquees[$cle]['exemples'][] = (string) $id;
         }
     }
 
@@ -791,6 +837,53 @@ final class LegacyMigrator
         }
 
         $this->counts['promo_codes'] = $count;
+    }
+
+    /**
+     * Abonnes de la newsletter de l'ancien site (nl_newsletter), seuls
+     * abonnes repris : `--fresh` vide la table avant. Une adresse invalide
+     * ou deja vue est ecartee et comptee ; `nl_envoi_etat = off` donne un
+     * abonne desinscrit. Tous sont rattaches a Ultra-book, la seule marque
+     * qui avait une newsletter.
+     */
+    public function migrateNewsletter(): void
+    {
+        $repris = 0;
+        $invalides = 0;
+        $doublons = 0;
+        $vues = [];
+
+        foreach ($this->rows('nl_newsletter') as $row) {
+            $email = mb_strtolower(trim((string) $row->nl_mail));
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $invalides++;
+
+                continue;
+            }
+
+            if (isset($vues[$email])) {
+                $doublons++;
+
+                continue;
+            }
+
+            $vues[$email] = true;
+            $inscription = $this->date($row->nl_date_insc) ?? now();
+
+            $abonne = NewsletterMail::updateOrCreate(['email' => $email], [
+                'brand' => 'ub',
+                'ip' => $row->nl_ip ?: null,
+                'desabonne_at' => $row->nl_envoi_etat === 'off' ? $inscription : null,
+            ]);
+            $abonne->forceFill(['created_at' => $inscription])->saveQuietly();
+
+            $repris++;
+        }
+
+        $this->counts['abonnes_newsletter'] = $repris;
+        $this->counts['abonnes_adresse_invalide'] = $invalides;
+        $this->counts['abonnes_doublons'] = $doublons;
     }
 
     /**

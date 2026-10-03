@@ -20,7 +20,8 @@ class MigrateLegacyCommand extends Command
         {--depuis=0 : Avec --tous, reprend apres ce us_id (relance apres interruption)}
         {--max-paquets=0 : Avec --tous, s\'arrete apres N paquets (essai ; 0 = tous)}
         {--fresh : Vide les tables cibles avant reprise}
-        {--skip-files : N\'effectue pas la copie des visuels}';
+        {--skip-files : N\'effectue pas la copie des visuels}
+        {--rapport= : Ecrit le rapport (volumes, troncatures par champ, comptes ecartes) dans ce fichier}';
 
     protected $description = 'Reprend les donnees de la base ub2020 vers 2026_ubdf (lecture seule sur la source)';
 
@@ -55,6 +56,18 @@ class MigrateLegacyCommand extends Command
         $this->table(['Element', 'Volume'], collect($this->rapport)->map(
             fn ($value, $key) => [str_replace('_', ' ', $key), $value]
         )->values());
+
+        $troncatures = LegacyMigrator::detailTroncatures();
+
+        if ($troncatures !== []) {
+            $this->components->warn('Valeurs coupees a la longueur de leur colonne :');
+            $this->table(['Champ', 'Valeurs', 'Exemples (id legacy)'], collect($troncatures)
+                ->map(fn (array $t, string $champ) => [$champ, $t['nombre'], implode(', ', $t['exemples'])])->values());
+        }
+
+        if ($fichier = $this->option('rapport')) {
+            $this->ecrireRapport($fichier, $troncatures, $logins->ecartes());
+        }
 
         $this->components->info('Reprise terminee. La base ub2020 n\'a pas ete modifiee.');
 
@@ -174,6 +187,45 @@ class MigrateLegacyCommand extends Command
         $this->components->task('messagerie', fn () => $migrator->migrateMessaging($resolver));
         $this->components->task('parrainages', fn () => $migrator->migrateReferrals($resolver));
         $this->components->task('codes promo', fn () => $migrator->migratePromoCodes());
+        $this->components->task('abonnes newsletter', fn () => $migrator->migrateNewsletter());
+    }
+
+    /**
+     * Rapport lisible hors du terminal : volumes, troncatures par champ,
+     * logins ecartes. Lu par deploy/transfert-base.sh pour la synthese.
+     *
+     * @param  array<string, array{nombre: int, exemples: list<string>}>  $troncatures
+     * @param  list<string>  $ecartes
+     */
+    private function ecrireRapport(string $fichier, array $troncatures, array $ecartes): void
+    {
+        $lignes = ['REPRISE LEGACY '.now()->format('Y-m-d H:i'), '', 'VOLUMES'];
+
+        foreach ($this->rapport as $cle => $valeur) {
+            $lignes[] = sprintf('  %-34s %s', str_replace('_', ' ', $cle), $valeur);
+        }
+
+        $lignes[] = '';
+        $lignes[] = 'VALEURS COUPEES (table.colonne : nombre, exemples d\'id legacy)';
+
+        foreach ($troncatures as $champ => $t) {
+            $lignes[] = sprintf('  %-34s %d  (%s)', $champ, $t['nombre'], implode(', ', $t['exemples']));
+        }
+
+        if ($troncatures === []) {
+            $lignes[] = '  aucune';
+        }
+
+        $lignes[] = '';
+        $lignes[] = 'LOGINS SANS CONVERSION POSSIBLE (comptes non repris) : '.count($ecartes);
+
+        foreach (array_chunk($ecartes, 10) as $paquet) {
+            $lignes[] = '  '.implode(', ', $paquet);
+        }
+
+        @mkdir(dirname($fichier), 0o755, true);
+        file_put_contents($fichier, implode(PHP_EOL, $lignes).PHP_EOL);
+        $this->components->info("Rapport : {$fichier}");
     }
 
     /** Additionne les compteurs d'un paquet au rapport general. */
@@ -190,10 +242,23 @@ class MigrateLegacyCommand extends Command
      */
     private function truncateTargets(): void
     {
+        /*
+         | Tout ce qui pointe vers un compte createur, plus ce que la reprise
+         | recharge (codes promo, offres, abonnes) : sans cela il resterait
+         | des lignes orphelines ou des doublons. Le back-office (admins,
+         | reglages, pages CMS, actualites, campagnes, categories,
+         | selections) n'est pas touche ; l'historique d'envoi des campagnes
+         | (campaign_sends) pointe vers les comptes, il est vide avec eux.
+         */
         $tables = [
             'messages', 'conversations', 'visit_stats', 'invoices',
             'book_articles', 'book_sections', 'media', 'galleries',
             'book_settings', 'selection_user', 'users',
+            'billing_profiles', 'visitor_book_visits', 'visitors',
+            'memo_partages', 'memo_books', 'referrals', 'data_exports',
+            'page_images', 'subscription_reminders', 'user_password_resets',
+            'campaign_sends',
+            'promo_codes', 'marketing_offers', 'newsletter_mails',
         ];
 
         DB::statement('SET FOREIGN_KEY_CHECKS=0');

@@ -42,9 +42,11 @@ a) deploy/deploy.config, section "Transfert des images" :
       DATA_SOURCE     data_source (dossier de reception)
    Le mot de passe n'est JAMAIS ecrit : il est demande a chaque lancement.
 
-b) Etape 2 seulement : la base ub2020 (copie legacy) doit etre en place sur
-   O2switch et declaree dans .env.prod (DB_LEGACY_*) : la commande y lit la
-   liste des comptes vivants et la conversion des logins.
+b) Etape 2 seulement : les tables legacy doivent etre importees dans
+   sc4tapa2662_ultra-book-prod et declarees dans .env.prod (DB_LEGACY_*) : la commande y lit la liste des
+   comptes vivants et la conversion des logins. Elle est creee par
+      ./deploy/transfert-base.sh recuperer   puis   analyser
+   (voir Transfer-mysql.txt). Ne les supprimer qu'apres « organiser ».
 
 c) Le site doit etre deploye : copie/deplacement, --lettres et la ligne
    de progression font partie du code (ubdf:prod:dossiers-books).
@@ -254,6 +256,6 @@ Permission denied (password)    mauvais mot de passe, ou l'ancien serveur
                                 n'accepte que les cles : y autoriser le mot
                                 de passe, ou demander.
 "Racine legacy introuvable"     etape 1 non faite ou DATA_SOURCE errone.
-Erreur base legacy (etape 2)    DB_LEGACY_* de .env.prod, puis
-                                ./deploy/deploy-prod.sh sync
+Erreur base legacy (etape 2)    tables legacy absentes : ./deploy/transfert-base.sh
+                                analyser (Transfer-mysql.txt)
 Images absentes sur le book     ./deploy/ssh-prod.sh "php artisan storage:link"

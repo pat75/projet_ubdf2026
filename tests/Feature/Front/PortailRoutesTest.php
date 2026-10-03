@@ -30,7 +30,9 @@ beforeEach(function () {
     Media::create([
         'user_id' => $this->book->id,
         'filename' => 'visuel.jpg',
-        'title' => 'Un visuel',
+        // Apostrophe voulue : elle coupait l'attribut data-slider quand il
+        // etait borne par des apostrophes (24 cartes sur 90 en demo).
+        'title' => "L'atelier d'Amélie",
         'status' => 'published',
     ]);
 });
@@ -100,13 +102,14 @@ it('remplit les attributs data des cartes', function () {
     // carte n'ouvrirait aucun book.
     $html = $this->get(portail('/illustrateur'))->assertOk()->getContent();
 
-    preg_match("/data-slider='([^']*)'/", $html, $slider);
-    preg_match("/data-user_detail='([^']*)'/", $html, $detail);
+    preg_match('/data-slider="([^"]*)"/', $html, $slider);
+    preg_match('/data-user_detail="([^"]*)"/', $html, $detail);
 
     $slider = json_decode(html_entity_decode($slider[1] ?? '{}'), true);
     $detail = json_decode(html_entity_decode($detail[1] ?? '{}'), true);
 
     expect($slider['book_img'] ?? [])->not->toBeEmpty()
+        ->and($slider['book_img'][0]['title'] ?? '')->toBe("L'atelier d'Amélie")
         ->and($detail['book_prenom_nom'] ?? '')->toBe('Amélie Falière');
 });
 
@@ -160,7 +163,7 @@ it('sert au defilement des cartes activables par le JavaScript du front', functi
         ->toContain('data-user="pat10"')
         ->toContain('newitem_hide');
 
-    preg_match("/data-slider='([^']*)'/", $html, $slider);
+    preg_match('/data-slider="([^"]*)"/', $html, $slider);
     $slider = json_decode(html_entity_decode($slider[1] ?? '{}'), true);
 
     expect($slider['book_img'] ?? [])->not->toBeEmpty();

@@ -1,43 +1,56 @@
 TRANSFERT DE LA BASE MYSQL — ancienne prod -> O2switch (ultra-book.pro)
 =========================================================================
+Script : ./deploy/transfert-base.sh   (depuis la racine du projet, sur le Mac)
 Base source : db_ultra_book_2019 (ancien serveur 163.172.103.215), format
 legacy : memes tables que la copie locale ub2020.
 Base cible  : sc4tapa2662_ultra-book-prod (O2switch), schema 2026.
-
-ETAT : les etapes 1 et 2 (export, rapatriement) se font des maintenant.
-Le script deploy/importer-legacy.sh (etapes 3 et suivantes) est PREVU,
-PAS ENCORE CODE : ce tutoriel decrit son fonctionnement a venir.
+UNE SEULE BASE : les tables legacy (inc_*, ub2_*, bn_*, df2_*, nl_*,
+wp_import) sont importees DANS sc4tapa2662_ultra-book-prod, a cote des
+tables 2026 (aucune collision de nom), puis converties vers ces tables.
+Avant CHAQUE modification de cette base : sauvegarde horodatee en gzip,
+verifiee, dans ~/backups_deploy/ (arret si elle est invalide).
 
 
 PRINCIPE
 --------
-1) EXPORTER   mysqldump sur l'ancien serveur, sans reencodage (latin1).
-2) RAPATRIER  le fichier .sql.gz sur le Mac.
-3) IMPORTER   le dump dans une base LEGACY creee sur O2switch, declaree
-              dans .env.prod (DB_LEGACY_*). Elle sert aussi a « organiser »
-              les images (conversion des logins) : on ne la supprime
-              qu'a la toute fin.
-4) CONVERTIR  ubdf:migrate-legacy --tous : les donnees legacy passent au
-              schema 2026 (comptes, books, visuels, messages, factures,
-              stats, codes promo, offres marketing, abonnes newsletter).
-5) RAPPORT    synthese : volumes, controles, risques par table et champ.
+0) EXPORTER   mysqldump a la main sur l'ancien serveur (etape 1 ci-dessous).
+1) RECUPERER  O2switch tire le dump de l'ancien serveur (rsync, mot de
+              passe) -> ~/ultra-book.pro/data_sql/   (hors public/, exclu
+              du deploiement et de git).
+2) ANALYSER   sauvegarde, puis import des tables legacy dans
+              sc4tapa2662_ultra-book-prod, connexion DB_LEGACY_* dans
+              .env.prod (meme base, latin1), puis analyse : integrite,
+              encodage, tables non reprises, troncatures par champ. Les
+              tables 2026 ne sont pas touchees.
+3) CONVERTIR  apres lecture du rapport et confirmation : sauvegarde de la
+              prod, maintenance, reprise ubdf:migrate-legacy --tous vers
+              le schema 2026, fin de maintenance, rapport final.
+4) SUPPRIMER  a la toute fin : sauvegarde, puis retrait du dump et des
+              tables legacy (elles servent aussi a « organiser » les
+              images : les garder jusque-la).
 
-Toujours une SAUVEGARDE de la base de prod avant l'etape 4.
-
-
-ECARTS DE STRUCTURE (ancienne prod / ub2020)
---------------------------------------------
-Releves le 02/10/2026 sur db_ultra_book_2019_structure.sql. Identiques,
-sauf :
-- inc_user.us_pass en varchar(100), pas de us_pass_old (ub2020 : 255 +
-  us_pass_old). Sans effet : la conversion ne lit que us_pass.
-- table ub2_dispo absente de l'ancienne prod. Sans effet : non lue.
-Comptes : dernier us_id 85 975 (ub2020 : 78 123), soit ~7 800 comptes
-crees depuis la copie de 2020. Aucun changement de code necessaire.
+Meme logique que le transfert des images (tutoriel_transfert_data_image.txt) :
+reglages OLD_* communs, port 2083, screen, journal dans deploy/logs/.
 
 
-ETAPE 1 — EXPORTER (sur l'ancien serveur)
------------------------------------------
+AVANT DE COMMENCER
+------------------
+a) deploy/deploy.config :
+      OLD_SSH_USER / OLD_SSH_HOST / OLD_SSH_PORT   communs avec les images
+                                                   (OLD_SSH_PORT="2083")
+      OLD_DUMP   chemin du dump sur l'ancien serveur, ex.
+                 /home/adminpat/db_ultra_book_2019_2026-10-02.sql.gz
+      DATA_SQL   data_sql (dossier de reception)
+b) Liaison O2switch -> ancien serveur :
+      ./deploy/transfert-base.sh diagnostic     (attendu : « reseau OK »)
+   En cas de blocage : tutoriel_transfert_data_image.txt, section
+   BLOCAGE SSH SORTANT (port 2083, CSF).
+c) Le code doit etre deploye : ubdf:prod:analyser-legacy, et la reprise
+   des abonnes / le detail des troncatures font partie du code.
+
+
+ETAPE 1 — EXPORTER (a la main, sur l'ancien serveur)
+----------------------------------------------------
 Connexion SSH a l'ancien serveur, dans un dossier avec quelques Go libres :
 
    mysqldump -u ultrabook2019 -p \
@@ -49,162 +62,172 @@ Connexion SSH a l'ancien serveur, dans un dossier avec quelques Go libres :
      db_ultra_book_2019 \
      | gzip > db_ultra_book_2019_$(date +%F).sql.gz
 
-« Access denied ... when using LOCK TABLES » (erreur 1044) : l'utilisateur
-de l'ancien site n'a pas le droit LOCK TABLES. --skip-lock-tables exporte
-sans verrou ; le dump n'est alors coherent que si personne n'ecrit pendant
-l'export : le lancer la nuit, ou fermer l'ancien site le temps de l'export.
---routines/--triggers retires : le legacy n'en a pas, et ils exigent des
-droits que cet utilisateur n'a pas non plus.
-
-
-
-
-
-
-- UTILISATEUR : l'utilisateur MySQL qui a acces a la base (root, ou
-  celui de l'ancien site).
 - -p sans valeur : le mot de passe est DEMANDE. Ne pas ecrire -pMOTDEPASSE
-  dans la commande (il resterait dans l'historique et la liste des
-  processus).
+  (il resterait dans l'historique et la liste des processus).
 - --default-character-set=latin1 : INDISPENSABLE. Les tables sont
-  declarees latin1 mais contiennent des octets UTF-8 bruts ; latin1 les
-  exporte tels quels. Un export phpMyAdmin (SET NAMES utf8mb4) les
-  reencode et peut abimer des accents.
-- --hex-blob : champs binaires exportes sans alteration.
-- --quick : ligne a ligne (ub2_gal_img compte ~2 millions de lignes).
-- Tables MyISAM : mysqldump les verrouille en lecture le temps de
-  l'export (quelques minutes). Le faire a une heure creuse.
+  declarees latin1 mais contiennent de l'UTF-8 brut ; latin1 les exporte
+  tels quels. Un export phpMyAdmin les reencode et peut abimer des accents.
+- --skip-lock-tables : l'utilisateur de l'ancien site n'a pas le droit
+  LOCK TABLES (erreur 1044 sinon). Sans verrou, le dump n'est coherent que
+  si personne n'ecrit : le lancer la nuit, ou fermer l'ancien site.
+- --hex-blob : champs binaires intacts. --quick : ligne a ligne.
 
-Verifier que l'export est complet :
-
+Verifier :
    ls -lh db_ultra_book_2019_*.sql.gz
-   zcat db_ultra_book_2019_*.sql.gz | tail -1
-   -> attendu : « -- Dump completed on ... »
+   zcat db_ultra_book_2019_*.sql.gz | tail -1     -> « -- Dump completed on ... »
+
+Si le nom du fichier change (autre date), mettre a jour OLD_DUMP dans
+deploy.config, ou passer --chemin= a « recuperer ».
 
 
-ETAPE 2 — RAPATRIER (sur le Mac)
---------------------------------
-   scp -P 22 adminpat@163.172.103.215:~/db_ultra_book_2019_*.sql.gz ~/Downloads/
+ETAPE 2 — RECUPERER
+-------------------
+   ./deploy/transfert-base.sh recuperer
+   -> confirmation, puis mot de passe de l'ANCIEN serveur (SSH adminpat).
 
-(Adapter le chemin si le dump n'est pas dans le dossier personnel.)
+Dans « screen » sur O2switch : continue si le Mac se met en veille.
+   Ctrl-A puis D                         se detacher
+   ./deploy/transfert-base.sh suivre     revenir voir la progression
+A la fin : code rsync (0 = complet), gzip intact, « Dump completed ».
+Relancer recuperer reprend un fichier coupe.
 
-
-ETAPE 3 — ANALYSER, SANS RIEN ECRIRE EN PROD  (script a venir)
---------------------------------------------------------------
-   ./deploy/importer-legacy.sh ~/Downloads/db_ultra_book_2019_<date>.sql.gz --analyse
-
-Ce que fait le script :
-a) Controles locaux : taille, derniere ligne « Dump completed », nombre
-   d'INSERT par table.
-b) Envoi sur O2switch (rsync, compresse).
-c) Creation de la base legacy sur O2switch (cPanel / uapi Mysql), droits
-   pour l'utilisateur de la prod, import avec le jeu de caracteres du
-   dump, ajout de DB_LEGACY_* dans .env.prod.
-d) Analyse :
-   - integrite : lignes importees par table / dernier identifiant ;
-   - encodage : recherche de double encodage (« Ã© ») et de « ? » de
-     remplacement sur les champs texte ;
-   - tables non reprises par la conversion, avec leur nombre de lignes ;
-   - simulation des troncatures : table.colonne, nombre de valeurs trop
-     longues pour le schema 2026, exemples (us_id).
-Rien n'est ecrit dans la base de prod.
+Controle a tout moment :
+   ./deploy/transfert-base.sh verifier
+   -> taille, gzip intact, « Dump completed », empreinte.
 
 
-ETAPE 4 — CONVERTIR  (script a venir)
--------------------------------------
-   ./deploy/importer-legacy.sh ~/Downloads/db_ultra_book_2019_<date>.sql.gz
+ETAPE 3 — ANALYSER (les tables 2026 ne sont pas touchees)
+---------------------------------------------------------
+   ./deploy/transfert-base.sh analyser
 
-Etapes 3a a 3d, puis :
-e) SAUVEGARDE de la base de prod (mysqldump, verifiee non vide ; arret si
-   elle echoue) dans ~/backups_deploy/base-<date>.sql.gz sur O2switch.
-f) Rappel : tables videes, tables gardees, pertes annoncees par
-   l'analyse. Confirmation demandee : rien ne part sans elle.
-g) Site en maintenance (reglage du back-office).
-h) php artisan migrate --force (schema a jour du code).
-i) ubdf:migrate-legacy --tous --fresh --skip-files, dans « screen »
-   (survit a une coupure SSH), progression sur une ligne.
-   Duree : 1 h 30 a 2 h (rechiffrement bcrypt de ~85 000 mots de passe).
-j) Fin de maintenance, cache:clear.
-k) Rapport final : ecran, deploy/logs/ (Mac) et storage/logs/ (O2switch).
+1) verifie le dump (arret s'il est absent ou incomplet) ;
+2) controle les tables du dump : seules les tables legacy (inc_*, ub2_*,
+   bn_*, df2_*, nl_*, wp_import) sont acceptees ; une autre (users,
+   media...) arrete tout, pour ne jamais ecraser une table 2026 ;
+3) SAUVEGARDE horodatee de sc4tapa2662_ultra-book-prod :
+      ~/backups_deploy/base-<date>-avant-import-legacy.sql.gz
+   verifiee (gzip, taille) ; arret si elle est invalide ;
+4) importe le dump dans sc4tapa2662_ultra-book-prod (latin1, comme
+   l'export) ; relancable : le dump recree ses propres tables ;
+5) propose d'ajouter DB_LEGACY_* a .env.prod (confirmation) : meme base,
+   connexion en latin1, protegee en ecriture par l'application ;
+6) lance l'analyse et ecrit le rapport :
+      storage/logs/analyse-legacy-<date>.txt   (serveur)
+      deploy/logs/analyse-legacy-<date>.txt    (copie sur le Mac)
+
+Le rapport (lignes « ! » = points a lire) :
+   1) INTEGRITE    lignes par table, tables absentes, comptes vivants /
+                   supprimes (non repris)
+   2) ENCODAGE     valeurs doublement encodees (« Ã© ») ou abimees, par
+                   table.colonne, avec des id
+   3) NON REPRISES tables que la reprise ne lit pas, et leur nombre de lignes
+   4) TRONCATURES  valeurs plus longues que la colonne 2026, par
+                   table.colonne -> table.colonne, avec des id
+
+Resultat sur ub2020 (copie 2020, pour reference) : 1 description
+suspecte (ub2_gal_img.img_desc, id 562678), 2 telephones trop longs
+(inc_user.us_telephone -> users.phone, id 11219 et 14003).
+
+A SAVOIR : bn_ultranews_art_tab_default (corps des actualites d'avant
+2015, ancien modele) n'est pas reprise. Sur ub2020 : 62 682 actualites de
+18 874 comptes vivants arriveraient SANS texte. Beaucoup sont des textes
+par defaut (« Vous pouvez bien sur la modifier... »), mais pas toutes.
+A trancher avant la conversion (la reprise peut etre etendue).
+
+
+ETAPE 4 — CONVERTIR
+-------------------
+   ./deploy/transfert-base.sh convertir
+
+1) refuse de partir sans analyse du MEME dump (empreinte comparee) ;
+   rappelle les points « ! » de l'analyse ;
+2) rappelle les tables videes / gardees ; taper CONVERTIR pour lancer ;
+3) SAUVEGARDE horodatee de sc4tapa2662_ultra-book-prod :
+      ~/backups_deploy/base-<date>-avant-reprise.sql.gz
+   verifiee (gzip, taille) ; arret si elle est invalide ;
+4) dans « screen » : maintenance, php artisan migrate --force,
+   ubdf:migrate-legacy --tous --fresh --skip-files, cache:clear, fin de
+   maintenance, rapport. Duree : 1 h 30 a 2 h (rechiffrement de ~60 000
+   mots de passe).
+   En cas d'echec : le site RESTE EN MAINTENANCE ; relancer la reprise a
+   partir du dernier us_id affiche (--depuis=), ou restaurer la sauvegarde.
+
+Rapport final :
+   ./deploy/transfert-base.sh rapport
+   -> volumes repris, valeurs coupees par table.colonne (exemples d'id
+      legacy), logins sans conversion possible, duree. Copie dans
+      deploy/logs/.
 
 Les images ne sont pas concernees (--skip-files) : voir
 tutoriel_transfert_data_image.txt (recuperer, organiser).
 
 
-CE QUI EST REMPLACE / GARDE
----------------------------
-Decisions du 02/10/2026.
-
+CE QUI EST REMPLACE / GARDE (decisions du 02/10/2026)
+----------------------------------------------------
 Vide puis recharge depuis l'ancienne prod :
    users, book_settings, book_sections, book_articles, galleries, media,
    conversations, messages, invoices, billing_profiles, visit_stats,
    visitors, visitor_book_visits, memo_books, memo_partages, referrals,
-   selection_user, data_exports,
-   promo_codes (codes de l'ancienne prod ; ceux de la demo sont perdus),
+   selection_user, data_exports, page_images, subscription_reminders,
+   user_password_resets, campaign_sends (historique d'envoi, lie aux comptes),
+   promo_codes (ceux de l'ancienne prod ; ceux de la demo sont perdus),
    marketing_offers (idem),
-   newsletter_mails (UNIQUEMENT les abonnes de l'ancien site, nl_newsletter).
+   newsletter_mails (UNIQUEMENT les abonnes de l'ancien site).
+Garde : admins, admin_activities, reglages, accueil_blocs, cms_pages,
+   cms_posts, actualites, campaigns, categories, selections.
+Jamais touche : migrations, cache, sessions, jobs.
 
-Garde tel qu'en prod (saisi dans le back-office) :
-   admins, admin_activities, reglages, accueil_blocs, cms_pages,
-   cms_posts, actualites, campaigns, campaign_sends, categories,
-   page_images, selections.
-
-Jamais touche (technique) : migrations, cache, sessions, jobs.
-
-Abonnes newsletter (nl_newsletter -> newsletter_mails) :
-   nl_mail -> adresse, nl_ip -> IP, nl_date_insc -> date d'inscription,
-   nl_envoi_etat = off -> desinscrit. Adresses invalides et doublons
-   ecartes et comptes. Marque : Ultra-book (nl_list a verifier sur le
-   dump : une liste Dustfolio serait rattachee a df).
+Abonnes (nl_newsletter -> newsletter_mails) : adresse en minuscules,
+IP, date d'inscription ; nl_envoi_etat = off -> desinscrit ; adresses
+invalides et doublons ecartes et comptes ; marque Ultra-book.
 
 
-RISQUES DE PERTE (affiches par l'analyse, table et champ)
----------------------------------------------------------
-1) Encodage : tous les champs texte, surtout inc_user.us_nom/us_prenom,
-   ub2_gal_img.img_titre/img_desc, ub2_gal_rub.rub_nom,
-   ub2_intermediate_form.mf_message, inc_user_pref.us_pf_descp.
-   Risque ecarte par l'export latin1 de l'etape 1 ; controle a l'etape 3.
-2) Dump tronque : verifie par « Dump completed » et les comptages.
-3) Tables NON reprises par la conversion (donnees absentes du nouveau
-   site) : bn_ultranews_*_cmsfront, bn_ultranews_art_tab_default (CMS de
-   l'ancien portail), inc_user_token, inc_comt (vide), df2_mail_relance,
-   inc_auto_selection, inc_auto_selection_user, ub2_stats_mcles, wp_import.
-4) Textes plus longs que leur colonne 2026 : coupes. Le rapport donne
-   table.colonne, le nombre et des exemples.
-5) Comptes ecartes : comptes supprimes (us_delete), logins sans
-   conversion possible, mots de passe illisibles (le compte passe par
-   « mot de passe oublie »). Listes dans le rapport.
-
-
-EXEMPLE DE RAPPORT FINAL
-------------------------
-   REPRISE 2026-10-0x 21:40   dump : db_ultra_book_2019_2026-10-0x.sql.gz (1,2 Go)
-   Sauvegarde prod : ~/backups_deploy/base-2026100x-2140.sql.gz (58 Mo)
-   Comptes repris : 60 112 / 85 974   ecartes : supprimes 25 401, logins 12
-   Visuels 1 204 331   messages 33 900   factures 10 920   abonnes 39 870
-   RISQUES
-     users.phone        3 valeurs > 30 car. coupees (us_id 4512, 8890, 12001)
-     media.title       12 valeurs > 255 car. coupees
-     wp_import          table non reprise : 5 757 lignes
-   CONTROLES  encodage OK   integrite OK
-   Duree : 1 h 52
+SUIVI
+-----
+   ./deploy/transfert-base.sh etat
+   -> dump recu, derniere analyse, dernieres sauvegardes, sessions
+      screen en cours, espace disque, tables legacy dans la base.
+Journal de chaque lancement : deploy/logs/transfert-base-<date>-<commande>.log
 
 
 REVENIR EN ARRIERE
 ------------------
-Restaurer la sauvegarde de l'etape 4e :
+Chaque etape qui modifie la base laisse sa sauvegarde horodatee :
+   base-<date>-avant-import-legacy.sql.gz      (analyser)
+   base-<date>-avant-reprise.sql.gz            (convertir)
+   base-<date>-avant-suppression-legacy.sql.gz (supprimer)
+Restaurer la bonne :
 
-   ./deploy/ssh-prod.sh 'gunzip -c ~/backups_deploy/base-<date>.sql.gz | mysql --defaults-extra-file=<cnf> sc4tapa2662_ultra-book-prod'
+   ./deploy/ssh-prod.sh
+   puis, sur le serveur :
+   gunzip -c ~/backups_deploy/base-<date>-<etape>.sql.gz | mysql -u sc4tapa2662_ultra-book-prod -p sc4tapa2662_ultra-book-prod
+   (mot de passe : DB_PASSWORD de .env.prod)
+   php artisan cache:clear
 
-(ou ./deploy/deploy-prod.sh rollback, qui liste les sauvegardes.)
+
+A LA FIN : SUPPRIMER
+--------------------
+Quand la reprise est validee ET que « organiser » a tourne sur toutes les
+lettres (il lit les tables legacy pour convertir les logins) :
+
+   ./deploy/transfert-base.sh supprimer      (taper SUPPRIMER)
+
+Sauvegarde horodatee, puis supprime les tables legacy de
+sc4tapa2662_ultra-book-prod (les tables 2026 restent), le dump de
+data_sql/ et DB_LEGACY_* de .env.prod (renvoye au serveur).
 
 
-A LA FIN : SUPPRIMER LA BASE LEGACY
------------------------------------
-Seulement quand la reprise est validee ET que « organiser » a tourne sur
-toutes les lettres (il lit la base legacy pour convertir les logins) :
-
-   ./deploy/importer-legacy.sh supprimer-legacy     (script a venir)
-
-Supprime la base legacy d'O2switch apres confirmation, retire DB_LEGACY_*
-de .env.prod. La sauvegarde de la base de prod reste le retour arriere.
+DEPANNAGE
+---------
+Connection refused (recuperer)  ./deploy/transfert-base.sh diagnostic
+                                (port 2083 / CSF, voir tutoriel images)
+Permission denied (password)    mot de passe SSH de adminpat
+« PAS de Dump completed »        export coupe : refaire l'etape 1
+« tables hors legacy »          le dump contient une table 2026 : mauvais
+                                fichier ; rien n'a ete importe
+SAUVEGARDE INVALIDE             disque plein ou mot de passe DB : rien n'a
+                                ete modifie ; ./deploy/transfert-base.sh etat
+« le dump a change depuis        relancer analyser (nouveau dump)
+  l'analyse »
+Echec en cours de reprise        site en maintenance ; screen -r pour lire
+                                l'erreur ; relance avec --depuis=<us_id>

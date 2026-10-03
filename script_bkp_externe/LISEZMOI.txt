@@ -1,0 +1,122 @@
+SAUVEGARDE EXTERNE ULTRA-BOOK  (giga tire depuis o2switch)
+==========================================================
+
+Principe
+  - o2switch fait chaque nuit un dump gzip de la base dans ~/bkp_mysql
+    (3 versions gardees) : bkp.sh, cron cPanel.
+  - giga (serveur Ubuntu) tire tous les 4 jours le code + storage/ (sans
+    .git, node_modules, caches) et les dumps, en versions datees
+    incrementales (8 gardees) : pull.sh, cron Ubuntu.
+  - C'est giga qui se connecte : sa cle privee ne quitte jamais giga, et un
+    o2switch compromis ne peut ni joindre giga ni effacer les sauvegardes.
+  - Mail de rapport a log2017@polygun.fr depuis giga a chaque tirage (et
+    en cas d'echec) ; o2switch n'ecrit qu'en cas d'echec du dump.
+
+Fichiers
+  o2switch : bkp.sh, restaurer-test.sh, lib-bkp.sh, bkp.config
+  giga     : pull.sh, lib-bkp.sh, pull.config
+
+
+1) O2SWITCH
+-----------
+
+  Sur le poste :
+    cp script_bkp_externe/bkp.config.example script_bkp_externe/bkp.config
+    ./deploy/bkp-install.sh installer
+    ./deploy/bkp-install.sh tester          dump + mail d'essai
+
+  Creer dans cPanel une base vide pour le test de restauration (TEST_DB)
+  et y donner tous les droits a l'utilisateur MySQL de l'app.
+
+  Cron cPanel (Taches Cron) :
+    0 2 * * *   $HOME/script_bkp_externe/bkp.sh dump >/dev/null 2>&1
+    30 4 1 * *  $HOME/script_bkp_externe/restaurer-test.sh >/dev/null 2>&1
+
+
+2) GIGA : UTILISATEUR, DOSSIER, MAIL (en root)
+----------------------------------------------
+
+  adduser --disabled-password --gecos "" backupub
+  mkdir -p /srv/backup/ultra-book && chown backupub: /srv/backup/ultra-book
+  apt install rsync msmtp msmtp-mta
+
+  Envoi des mails (msmtp-mta fournit /usr/sbin/sendmail) : /etc/msmtprc,
+  chmod 640, groupe msmtp — compte SMTP de polygun.fr ou d'o2switch :
+      defaults
+      auth on
+      tls on
+      logfile /var/log/msmtp.log
+      account defaut
+      host mail.polygun.fr
+      port 587
+      from backup@ultra-book.pro
+      user log2017@polygun.fr
+      password ********
+      account default : defaut
+
+  Aucun port SSH n'a besoin d'etre ouvert sur giga vers l'exterieur.
+
+
+3) GIGA : CLE SSH (en backupub : sudo -iu backupub)
+---------------------------------------------------
+
+  mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  ssh-keygen -t ed25519 -N "" -C "giga-pull-o2switch" -f ~/.ssh/id_ed25519_o2switch
+
+  -N "" : pas de phrase de passe, indispensable pour le cron. La cle privee
+  reste dans ~/.ssh de backupub (600), lisible par lui seul. Ne jamais la
+  copier ailleurs.
+
+  Recuperer la cle PUBLIQUE sur le poste (elle n'a rien de secret) :
+    scp backupub@IP_GIGA:.ssh/id_ed25519_o2switch.pub ~/Desktop/
+
+  L'autoriser sur o2switch, restreinte a l'IP fixe de giga, sans shell
+  interactif ni tunnel :
+    ./deploy/bkp-install.sh autoriser-cle ~/Desktop/id_ed25519_o2switch.pub IP_GIGA
+
+  cPanel > Acces SSH : si o2switch filtre les IP (Autorisation SSH),
+  y ajouter l'IP de giga.
+
+  Premiere connexion depuis giga (enregistre l'empreinte d'o2switch) :
+    ssh -i ~/.ssh/id_ed25519_o2switch -o StrictHostKeyChecking=accept-new sc4tapa2662@ultra-book.pro true && echo OK
+
+
+4) GIGA : SCRIPTS ET CRON (en backupub)
+---------------------------------------
+
+  Depuis le poste :
+    scp script_bkp_externe/{pull.sh,lib-bkp.sh,pull.config.example} backupub@IP_GIGA:script_bkp_externe/
+  (creer d'abord le dossier : ssh backupub@IP_GIGA mkdir -p script_bkp_externe)
+
+  Sur giga :
+    cd ~/script_bkp_externe && cp pull.config.example pull.config && chmod 600 pull.config
+    -> renseigner SRC_HOST, SRC_USER, DEST_DIR...
+    chmod +x pull.sh
+    ./pull.sh test-ssh
+    ./pull.sh test-mail
+    ./pull.sh tirer                 premier tirage (long : tout storage/)
+
+  crontab -e :
+    0 4 * * *  $HOME/script_bkp_externe/pull.sh tout >/dev/null 2>&1
+
+  Le cron est quotidien : le tirage ne part que si le dernier date d'au
+  moins INTERVAL_DAYS jours (« */4 » de cron repart a zero chaque mois).
+  Les jours sans tirage, pas de mail, sauf alerte (aucun tirage reussi
+  depuis ALERTE_DAYS jours).
+
+
+COMMANDES
+---------
+
+  o2switch : bkp.sh dump | verifier | etat | test-mail ; restaurer-test.sh
+  giga     : pull.sh tout | tirer | etat | test-ssh | test-mail
+  Journaux : ~/script_bkp_externe/logs/ (30 jours), des deux cotes
+
+
+RESTAURER
+---------
+
+  Sur giga : /srv/backup/ultra-book/latest/ (ou une version datee)
+    app/        code + storage
+    bkp_mysql/  dumps gzip
+  Base : zcat dump.sql.gz | mysql nom_de_base

@@ -1,0 +1,30 @@
+# Cote GIGA (serveur de backup Ubuntu) : tirage depuis o2switch (pull.sh).
+# Copier en "pull.config" (ignore par git). Aucun mot de passe ici : la
+# connexion a o2switch passe par la cle SSH de giga.
+
+# --- Source : o2switch ---
+SRC_USER="sc4tapa2662"
+SRC_HOST="ultra-book.pro"                    # ou l'hote SSH donne par o2switch
+SRC_PORT="22"
+SSH_KEY="$HOME/.ssh/id_ed25519_o2switch"
+SRC_APP="/home/sc4tapa2662/ultra-book.pro"   # code + storage/ (sans .git)
+SRC_DUMPS="/home/sc4tapa2662/bkp_mysql"      # dumps faits par bkp.sh
+
+# Exclus de la copie de SRC_APP (motifs rsync, separes par un espace).
+EXCLUDES=".git node_modules storage/framework/cache/* storage/framework/sessions/* storage/framework/views/* data_sql data_source"
+
+# --- Destination sur giga ---
+DEST_DIR="/srv/backup/ultra-book"            # versions AAAA-MM-JJ_HHMM/ + lien latest
+KEEP_VERSIONS=8                              # 8 x 4 jours ~ 1 mois
+
+# --- Cadence ---
+INTERVAL_DAYS=4                              # tirage au plus tous les N jours (cron quotidien)
+ALERTE_DAYS=5                                # alerte si aucun tirage reussi depuis N jours
+DUMP_MAX_HOURS=36                            # alerte si le dernier dump d'o2switch est plus vieux
+
+# --- Rapport (msmtp-mta fournit /usr/sbin/sendmail) ---
+MAIL_TO="log2017@polygun.fr"
+MAIL_FROM="backup@ultra-book.pro"
+MAIL_ON="toujours"                           # toujours | erreur
+SENDMAIL="/usr/sbin/sendmail"
+LOG_DAYS=30
