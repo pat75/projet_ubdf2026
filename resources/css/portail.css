@@ -887,6 +887,9 @@
 #vn .vn-action-plein:hover, #vn .vn-action-plein.vn-actif { background: var(--vn-accent); border-color: var(--vn-accent); color: #fff; }
 #vn .vn-memo .vn-icone { width: 20px; height: 20px; }
 #vn .vn-memo-libelle { display: none; }
+/* « Envoyer » du formulaire de contact : contour plus clair que les autres. */
+#vn .vn-envoyer { border-color: #999; }
+#vn .vn-envoyer:hover { border-color: #fff; }
 #vn .vn-memorise, #vn .vn-memorise:hover { color: var(--vn-accent); border-color: transparent; }
 #vn .vn-memorise .vn-icone { fill: currentColor; }
 
@@ -931,7 +934,7 @@
     #vn #vn-contacter { padding: 0 30.8px; }
     #vn .vn-action { height: 44px; font-size: 14.85px; gap: 6.9px; }
     #vn .vn-action .vn-icone { width: 17.6px; height: 17.6px; }
-    #vn .vn-memo .vn-icone { width: 19.8px; height: 19.8px; }
+    #vn .vn-memo .vn-icone { width: 22.8px; height: 22.8px; } /* coeur +15 % */
 }
 
 /* Contact : le formulaire prend la place de l'image (partials/visionneuse-contact,
@@ -940,7 +943,14 @@
 #vn #visionneuse_contact { position: static; inset: auto; padding: 8px 16px 24px; overflow: visible; }
 #vn #visionneuse_contact, #vn #visionneuse_contact * { pointer-events: auto; user-select: text; }
 #vn #visionneuse_contact input::placeholder { text-transform: none; letter-spacing: normal; }
-#vn #visionneuse_contact .visionneuse_contact_retour { position: static; transform: none; display: inline-block; margin-bottom: 12px; }
+/* « Retour » : au-dessus de « Je souhaite contacter » sur mobile ; en
+   desktop sur sa ligne, dans la marge, 30px avant son debut. */
+#vn #visionneuse_contact .visionneuse_contact_titre { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+#vn #visionneuse_contact .visionneuse_contact_retour { position: static; transform: none; flex-shrink: 0; margin: 0 !important; }
+@media only screen and (min-width: 768px) {
+    #vn #visionneuse_contact .visionneuse_contact_titre { display: block; }
+    #vn #visionneuse_contact .visionneuse_contact_retour { position: absolute; right: calc(100% + 30px); top: 50%; transform: translateY(-50%); }
+}
 
 @media only screen and (min-width: 768px) {
     #vn .vn-barre { justify-content: flex-end; gap: 32px; height: 72px; padding: 16px 40px 0; }
