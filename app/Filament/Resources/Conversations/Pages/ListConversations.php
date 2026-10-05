@@ -6,7 +6,9 @@ use App\Filament\Resources\Conversations\ConversationResource;
 use App\Models\Conversation;
 use App\Services\Messagerie\DetecteurSpamIA;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\HtmlString;
 
 /**
  * Comme la messagerie du createur (App\Livewire\Espace\Messages), la
@@ -38,6 +40,21 @@ class ListConversations extends ListRecords
 
         // La page affichee a change : on relit ses lignes.
         $this->flushCachedTableRecords();
+    }
+
+    /** Jev injoignable : l'administrateur le voit en tete de liste. */
+    public function getSubheading(): string|Htmlable|null
+    {
+        $panne = app(DetecteurSpamIA::class)->indisponibilite();
+
+        if (! $panne || ! config('messagerie.spam_filter.active')) {
+            return null;
+        }
+
+        return new HtmlString('<span style="color:rgb(220 38 38);font-weight:600">'
+            .e('Analyse IA des spams suspendue : Jev (OpenRouter) ne répond pas depuis le '.$panne['depuis']
+                .'. Nouvel essai à '.$panne['reprise'].'.').'</span>'
+            .'<br><span style="font-size:.875rem;color:rgb(107 114 128)">'.e($panne['erreur']).'</span>');
     }
 
     public function getFooter(): ?View

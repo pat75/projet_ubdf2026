@@ -174,7 +174,7 @@ return [
 
     /*
      | Detection IA complementaire (config('messagerie.spam_filter.active')) :
-     | interroge un modele de decision (Jev, via OpenRouter) sur le premier
+     | interroge Jev (TypeSafe, via OpenRouter) sur le premier
      | message d'une conversation, au fil de l'affichage de la messagerie du
      | createur (App\Livewire\Espace\Messages::analyser), avec une seule question calibree —
      | « est-ce probablement un spam ? » — et affiche un label si la
@@ -186,7 +186,16 @@ return [
      */
     'spam_filter' => [
         'active' => (bool) env('MESSAGERIE_SPAM_FILTER', true),
-        'modele' => 'typesafe/jev-latest',
+        // Alternatives Jev (TypeSafe), essayees dans l'ordre. « api » dit
+        // par quelle porte d'OpenRouter passer : « decisions » (probabilite
+        // calibree, /api/alpha/decisions) ou « chat » (/chat/completions,
+        // reponse JSON). Si aucune ne repond, l'analyse est suspendue
+        // (`pause` minutes) et le back-office le signale.
+        'modeles' => [
+            ['modele' => '~typesafe/jev-latest', 'api' => 'decisions'],
+            ['modele' => 'typesafe/jev-router', 'api' => 'chat'],
+        ],
+        'pause' => 30,
         // Probabilite calibree a partir de laquelle le label s'affiche.
         'seuil' => 0.6,
     ],

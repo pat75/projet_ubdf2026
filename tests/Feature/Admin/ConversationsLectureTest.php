@@ -30,3 +30,14 @@ it('analyse par IA les demandes de la page affichee', function () {
 
     expect($c->fresh()->spam_ia)->toBeTrue();
 });
+
+it('signale dans le back-office que Jev est indisponible', function () {
+    config(['services.openrouter.api_key' => 'test-key', 'messagerie.spam_filter.active' => true]);
+    Illuminate\Support\Facades\Http::fake(['openrouter.ai/*' => Illuminate\Support\Facades\Http::response(['error' => ['message' => 'indisponible']], 503)]);
+    app(App\Services\Messagerie\DetecteurSpamIA::class)->evaluer('Bonjour');
+    $this->actingAs(Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+
+    Livewire::test(ListConversations::class)
+        ->assertSee('Analyse IA des spams suspendue')
+        ->assertDontSeeHtml('wire:init="analyserSpamIA"');
+});
