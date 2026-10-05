@@ -27,25 +27,6 @@ class EvaluerSpamIAConversation implements ShouldQueue
 
     public function handle(DetecteurSpamIA $detecteur): void
     {
-        if (! $detecteur->actif()) {
-            return;
-        }
-
-        $premier = $this->conversation->messages()->where('from_owner', false)->oldest()->first();
-
-        if (! $premier) {
-            return;
-        }
-
-        $probabilite = $detecteur->evaluer($premier->body);
-
-        if ($probabilite === null) {
-            return;
-        }
-
-        $this->conversation->forceFill([
-            'spam_ia_probabilite' => $probabilite,
-            'spam_ia' => $probabilite >= $detecteur->seuil(),
-        ])->save();
+        $detecteur->analyser($this->conversation);
     }
 }

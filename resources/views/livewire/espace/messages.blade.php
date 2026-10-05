@@ -46,6 +46,13 @@
         </section>
     @endunless
 
+    {{-- Analyse IA au fil de l'affichage : tant qu'il reste des demandes a
+         analyser, l'element se rend avec une cle neuve et relance
+         l'analyse (trois demandes par appel). --}}
+    @if ($analyseRestante)
+        <div wire:key="analyse-{{ $analyseRestante }}-{{ count($analyseEchouee) }}" wire:init="analyser" class="hidden"></div>
+    @endif
+
     <div class="space-y-4">
 
             {{-- Les deux dossiers, en onglets qui rejoignent directement le

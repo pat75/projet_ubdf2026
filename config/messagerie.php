@@ -175,7 +175,8 @@ return [
     /*
      | Detection IA complementaire (config('messagerie.spam_filter.active')) :
      | interroge un modele de decision (Jev, via OpenRouter) sur le premier
-     | message d'une conversation, avec une seule question calibree —
+     | message d'une conversation, au fil de l'affichage de la messagerie du
+     | createur (App\Livewire\Espace\Messages::analyser), avec une seule question calibree —
      | « est-ce probablement un spam ? » — et affiche un label si la
      | probabilite depasse le seuil.
      |
@@ -184,7 +185,7 @@ return [
      | signaler (spam_ia sur la conversation), sans jamais rien masquer.
      */
     'spam_filter' => [
-        'active' => (bool) env('MESSAGERIE_SPAM_FILTER', false),
+        'active' => (bool) env('MESSAGERIE_SPAM_FILTER', true),
         'modele' => 'typesafe/jev-latest',
         // Probabilite calibree a partir de laquelle le label s'affiche.
         'seuil' => 0.6,

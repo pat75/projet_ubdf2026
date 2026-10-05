@@ -2,6 +2,7 @@
 
 namespace App\Services\Messagerie;
 
+use App\Models\Conversation;
 use App\Services\IA\Decisions\DecisionsClient;
 use RuntimeException;
 
@@ -28,6 +29,38 @@ class DetecteurSpamIA
     public function seuil(): float
     {
         return (float) config('messagerie.spam_filter.seuil');
+    }
+
+    /**
+     * Evalue le premier message recu d'une conversation et enregistre le
+     * resultat (`spam_ia_probabilite`, `spam_ia`). Renvoie false si rien
+     * n'a pu etre evalue (detection coupee, pas de message, appel en
+     * echec) : la conversation reste alors a evaluer.
+     */
+    public function analyser(Conversation $conversation): bool
+    {
+        if (! $this->actif()) {
+            return false;
+        }
+
+        $premier = $conversation->messages()->where('from_owner', false)->oldest()->first();
+
+        if (! $premier) {
+            return false;
+        }
+
+        $probabilite = $this->evaluer($premier->body);
+
+        if ($probabilite === null) {
+            return false;
+        }
+
+        $conversation->forceFill([
+            'spam_ia_probabilite' => $probabilite,
+            'spam_ia' => $probabilite >= $this->seuil(),
+        ])->save();
+
+        return true;
     }
 
     /**

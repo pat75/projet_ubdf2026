@@ -246,17 +246,8 @@ it('sert une image de captcha', function () {
     expect(session('captcha.contact'))->toHaveLength(Captcha::LONGUEUR);
 });
 
-it('declenche la detection IA du spam quand elle est activee', function () {
+it('n appelle pas l IA au depot : l analyse se fait a l affichage de la messagerie', function () {
     config(['messagerie.spam_filter.active' => true]);
-    Queue::fake();
-
-    $this->postJson(portail_url('/intermediate_send'), demande())->assertOk();
-
-    Queue::assertPushed(EvaluerSpamIAConversation::class, fn ($job) => $job->conversation->is(Conversation::first()));
-});
-
-it('ne declenche rien si la detection IA est desactivee', function () {
-    config(['messagerie.spam_filter.active' => false]);
     Queue::fake();
 
     $this->postJson(portail_url('/intermediate_send'), demande())->assertOk();

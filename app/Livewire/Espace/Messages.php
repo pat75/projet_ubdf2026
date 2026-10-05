@@ -3,6 +3,7 @@
 namespace App\Livewire\Espace;
 
 use App\Models\Conversation;
+use App\Services\Messagerie\DetecteurSpamIA;
 use App\Models\Message;
 use App\Services\IA\CorrectionMessage;
 use App\Services\Messagerie\Intermediation;
@@ -46,6 +47,12 @@ class Messages extends Component
     public ?string $erreurIA = null;
 
     public bool $alerteEscroquerieMasquee = false;
+
+    /** Demandes dont l'analyse a echoue pendant cette visite : on ne reessaie pas en boucle. */
+    public array $analyseEchouee = [];
+
+    /** Demandes analysees par appel : la liste se remplit au fil de l'eau, sans bloquer la page. */
+    private const ANALYSES_PAR_APPEL = 3;
 
     /** Le cookie qui retient que l'utilisateur a ferme la note de securite. */
     private const COOKIE_ALERTE = 'espace_messages_alerte_masquee';
@@ -173,6 +180,41 @@ class Messages extends Component
         $this->ouvert = null;
     }
 
+    /**
+     * Analyse IA des demandes de la page affichee qui ne l'ont pas encore
+     * ete, quelques-unes a la fois. Declenchee apres l'affichage
+     * (wire:init) : la liste apparait tout de suite, les badges
+     * « Probable spam » suivent. Chaque resultat est garde en base, une
+     * demande n'est analysee qu'une fois.
+     */
+    public function analyser(DetecteurSpamIA $detecteur): void
+    {
+        if (! $detecteur->actif() || $this->dossier === 'poubelle') {
+            return;
+        }
+
+        $this->aAnalyser()->take(self::ANALYSES_PAR_APPEL)->get()
+            ->each(function (Conversation $conversation) use ($detecteur) {
+                if (! $detecteur->analyser($conversation)) {
+                    $this->analyseEchouee[] = $conversation->id;
+                }
+            });
+    }
+
+    /** Demandes de la page courante jamais analysees (hors indesirables deja ecartes). */
+    private function aAnalyser()
+    {
+        $ids = $this->requete()
+            ->orderByDesc('last_message_at')->orderByDesc('id')
+            ->forPage($this->getPage(), 14)->pluck('conversations.id');
+
+        return Auth::user()->conversations()
+            ->whereIn('id', $ids)
+            ->where('is_spam', false)
+            ->whereNull('spam_ia_probabilite')
+            ->whereNotIn('id', $this->analyseEchouee);
+    }
+
     /** Retire le signalement d'une demande, qu'il vienne de l'administration ou de l'IA. */
     public function rendreLegitime(int $id): void
     {
@@ -210,6 +252,8 @@ class Messages extends Component
                 ->withCount(['messages as non_lus' => fn (Builder $q) => $q->where('from_owner', false)->whereNull('read_at')])
                 ->orderByDesc('last_message_at')->orderByDesc('id')->paginate(14),
             'fil' => $fil,
+            'analyseRestante' => app(DetecteurSpamIA::class)->actif() && $this->dossier !== 'poubelle'
+                ? $this->aAnalyser()->count() : 0,
             'nbIndesirables' => $this->dossier === 'contacts' ? $this->indesirables()->count() : 0,
         ]);
     }

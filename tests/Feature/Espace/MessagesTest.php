@@ -249,3 +249,28 @@ it('rend legitime une demande signalee', function () {
     expect($this->conversation->fresh()->is_spam)->toBeFalse()
         ->and($this->conversation->fresh()->spam_ia)->toBeFalse();
 });
+
+it('analyse les demandes au fil de l affichage et signale les spams', function () {
+    config(['services.openrouter.api_key' => 'test-key', 'messagerie.spam_filter.active' => true, 'messagerie.spam_filter.seuil' => 0.6]);
+    Http::fake(['openrouter.ai/*' => Http::response(['answers' => ['spam' => ['type' => 'noul', 'noul' => 0.93]]])]);
+
+    Livewire::test(Messages::class)->call('analyser');
+
+    $c = $this->conversation->fresh();
+    expect($c->spam_ia)->toBeTrue()->and($c->spam_ia_probabilite)->toBe(0.93);
+
+    // Deja analysee : aucun second appel.
+    Livewire::test(Messages::class)->call('analyser');
+    Http::assertSentCount(1);
+});
+
+it('ne reessaie pas en boucle une analyse en echec', function () {
+    config(['services.openrouter.api_key' => 'test-key', 'messagerie.spam_filter.active' => true]);
+    Http::fake(['openrouter.ai/*' => Http::response(['error' => ['message' => 'indisponible']], 500)]);
+
+    Livewire::test(Messages::class)->call('analyser')
+        ->assertSet('analyseEchouee', [$this->conversation->id])
+        ->assertDontSeeHtml('wire:init="analyser"');
+
+    expect($this->conversation->fresh()->spam_ia_probabilite)->toBeNull();
+});
