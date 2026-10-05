@@ -30,6 +30,14 @@ class ConversationsTable
                 // normal, croix rouge pour un indesirable.
                 IconColumn::make('legitime')->label('Indésirable')->boolean()
                     ->getStateUsing(fn (Conversation $c) => ! $c->is_spam),
+                // Probabilite de spam donnee par l'IA (Jev via OpenRouter),
+                // en rouge au-dela du seuil ; « … » tant qu'elle n'est pas
+                // calculee (analyse en cours sur la page).
+                TextColumn::make('spam_ia_probabilite')->label('IA')
+                    ->formatStateUsing(fn ($state) => number_format((float) $state * 100, 0).' %')
+                    ->placeholder('…')
+                    ->badge()
+                    ->color(fn (Conversation $c) => $c->spam_ia ? 'danger' : 'gray'),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->with('messages'))
             ->defaultSort('created_at', 'desc')
