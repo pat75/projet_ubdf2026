@@ -31,13 +31,17 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 COMMIT="$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo '?')"
 RSYNC_OPTS=(-az --no-perms --exclude-from="$EXCLUDE" -e "$SSH_CMD")
 EN_MAINTENANCE=0
+VITE_ARRETE=0
 
-# En cas d'echec ou d'interruption, ne jamais laisser le site en maintenance.
+# En sortie (succes, echec ou interruption) : ne jamais laisser le site en
+# maintenance, et relancer Vite s'il a ete arrete au debut.
 sortie_maintenance() {
     if [ "$EN_MAINTENANCE" = "1" ]; then
         echo; alerte "Interruption : remise en ligne (artisan up)…"
         artisan up || true
     fi
+    [ "$VITE_ARRETE" = "1" ] && relancer_vite
+    return 0
 }
 trap sortie_maintenance EXIT
 
@@ -49,7 +53,30 @@ ligne
 # 1) Controles locaux.
 etape "1) Controles locaux"
 [ -f "$PROJECT_DIR/.env.prod" ] || echec ".env.prod absent du projet."
-[ -e "$PROJECT_DIR/public/hot" ] && echec "public/hot present : arreter 'npm run dev' (Vite)."
+# Vite (npm run dev) laisse public/hot : les pages chargeraient les assets
+# du serveur de dev. On l'arrete le temps du deploiement, et on le relance
+# en arriere-plan a la fin (succes ou echec), journal dans deploy/logs/vite.log.
+vite_pids() {
+    local pid
+    for pid in $(pgrep -f 'vite' 2>/dev/null); do
+        [ "$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')" = "$PROJECT_DIR" ] && echo "$pid"
+    done
+}
+relancer_vite() {
+    mkdir -p "$SCRIPT_DIR/logs"
+    ( cd "$PROJECT_DIR" && nohup npm run dev > "$SCRIPT_DIR/logs/vite.log" 2>&1 & )
+    echo "   Vite relance en arriere-plan (journal : deploy/logs/vite.log)."
+}
+if [ -e "$PROJECT_DIR/public/hot" ]; then
+    PIDS="$(vite_pids)"
+    if [ -n "$PIDS" ]; then
+        alerte "Vite (npm run dev) tourne : arret le temps du deploiement."
+        kill $PIDS 2>/dev/null || true
+        for _ in 1 2 3 4 5 6 7 8 9 10; do [ -z "$(vite_pids)" ] && break; sleep 0.5; done
+        VITE_ARRETE=1
+    fi
+    rm -f "$PROJECT_DIR/public/hot"
+fi
 BRANCHE="$(git -C "$PROJECT_DIR" branch --show-current)"
 if [ -n "$DEPLOY_BRANCH" ] && [ "$BRANCHE" != "$DEPLOY_BRANCH" ]; then
     confirm "Branche '$BRANCHE' au lieu de '$DEPLOY_BRANCH'. Continuer ?" || exit 0
