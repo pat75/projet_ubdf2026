@@ -25,7 +25,7 @@ class Reglage extends Model
 
     /**
      * Bouton « Continuer avec Google » retire des fenetres de connexion et
-     * de creation de compte (App\Filament\Pages\ConfigurationPage). Cle
+     * de creation de compte (App\Filament\Pages\AccueilPage). Cle
      * negative : absente, Google reste propose, comme avant ce reglage.
      */
     public const GOOGLE_MASQUE = 'google_masque';

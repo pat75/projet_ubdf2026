@@ -23,6 +23,8 @@ use Filament\Support\Icons\Heroicon;
  * Page d'accueil du portail : afficher ou masquer chacun de ses blocs
  * d'accroche (partials/accueil-hero.blade.php), un par un. Les cles
  * possibles et leurs intitules sont dans App\Models\AccueilBloc::CLES.
+ * Elle porte aussi les reglages globaux du portail : maintenance et
+ * connexion Google.
  */
 class AccueilPage extends Page
 {
@@ -48,6 +50,9 @@ class AccueilPage extends Page
         $this->form->fill(AccueilBloc::etats() + [
             Reglage::MAINTENANCE => Reglage::enMaintenance(),
             Reglage::MESSAGE_MAINTENANCE => Reglage::texte(Reglage::MESSAGE_MAINTENANCE),
+            // Le formulaire parle en positif (« proposer Google »), la
+            // table en negatif (cle absente = Google propose).
+            'google' => Reglage::googleActif(),
         ]);
     }
 
@@ -81,6 +86,13 @@ class AccueilPage extends Page
                             ->rows(3)
                             ->maxLength(1000)
                             ->visible(fn ($get) => (bool) $get(Reglage::MAINTENANCE)),
+                    ]),
+
+                Section::make('Connexion et création de compte')
+                    ->schema([
+                        Toggle::make('google')
+                            ->label('Proposer la connexion avec Google')
+                            ->helperText('Désactivé : le bouton « Continuer avec Google » disparaît des fenêtres de connexion et de création de book, et les adresses /auth/google refusent l’accès. Les comptes déjà liés à Google se connectent avec leur identifiant et leur mot de passe.'),
                     ]),
 
                 Section::make('Blocs de la page d’accueil')
@@ -126,9 +138,11 @@ class AccueilPage extends Page
         // le message deja enregistre est conserve pour la prochaine fois.
         $aMessage = array_key_exists(Reglage::MESSAGE_MAINTENANCE, $etat);
         $message = $etat[Reglage::MESSAGE_MAINTENANCE] ?? null;
-        unset($etat[Reglage::MAINTENANCE], $etat[Reglage::MESSAGE_MAINTENANCE]);
+        $google = (bool) ($etat['google'] ?? true);
+        unset($etat[Reglage::MAINTENANCE], $etat[Reglage::MESSAGE_MAINTENANCE], $etat['google']);
 
         Reglage::definir(Reglage::MAINTENANCE, $maintenance);
+        Reglage::definir(Reglage::GOOGLE_MASQUE, ! $google);
 
         if ($aMessage) {
             Reglage::definirTexte(Reglage::MESSAGE_MAINTENANCE, $message);

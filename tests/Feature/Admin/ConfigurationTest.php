@@ -1,6 +1,6 @@
 <?php
 
-use App\Filament\Pages\ConfigurationPage;
+use App\Filament\Pages\AccueilPage;
 use App\Models\Admin;
 use App\Models\Reglage;
 use Livewire\Livewire;
@@ -17,10 +17,10 @@ it('propose Google par defaut', function () {
     $this->get($this->portail.'/creer-un-book')->assertSee('S’inscrire avec Google');
 });
 
-it('masque Google depuis la page Configuration', function () {
+it('masque Google depuis la page d accueil', function () {
     $this->actingAs(Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin');
 
-    Livewire::test(ConfigurationPage::class)
+    Livewire::test(AccueilPage::class)
         ->assertSet('data.google', true)
         ->set('data.google', false)
         ->call('save');
