@@ -840,7 +840,8 @@
 
     /* Bloc de recherche remonte de 30px de plus, titre centre. */
     /* Carte de recherche centree verticalement dans le bandeau video bleu. */
-    .bloc_rechercher { margin-top: -190px !important; position: relative; top: -64px; }
+    /* Accueil seulement : /search a son propre bloc de recherche. */
+    body.page_accueil .bloc_rechercher { margin-top: -190px !important; position: relative; top: -64px; }
     .bloc_rechercher .accueil_titre_definition { margin: 0 auto; }
     .bloc_rechercher .accueil_titre_definition h1,
     .bloc_rechercher .accueil_titre_definition h2 { text-align: center !important; }
@@ -917,6 +918,26 @@
     margin: 0 0 8px !important; font-size: 18px !important;
 }
 .ui.popup.popup_ptf.plein_ecran li .nuancier { width: 52px !important; height: 52px !important; margin-right: 16px !important; flex-shrink: 0; }
+
+/* /search, mobile : huit « recherches du moment » au plus, pas de
+   « portfolios du moment ». */
+@media only screen and (max-width: 767px) {
+    /* Bloc de recherche remonte de 60px (300 -> 240px) ; espace sous lui
+       avant « Les recherches du moment » reduit de 50 % (82 -> 41px). */
+    body.page_recherche .container.bloc_rechercher { margin-top: 240px !important; margin-bottom: 1px !important; }
+    .recherches_populaires .segment > a.label:nth-of-type(n + 9) { display: none !important; }
+    .portfolios_du_moment { display: none !important; }
+}
+
+/* Pages metier, mobile : titre du domaine descendu de 20px, texte de
+   description reduit de 20 % (17 -> 13,6px). */
+@media only screen and (max-width: 767px) {
+    .bloc_titre h1.metier_group { margin-top: 20px; }
+    .container.bloc_portfolios .bloc_titre .metier_intro { font-size: 13.6px; line-height: 20px; margin-top: 12px; padding-bottom: 6px; }
+    /* Bloc titre compacte : moins de vide entre titre, compteur et description. */
+    .bloc_titre h1.metier_group { margin-bottom: 4px; }
+    .bloc_titre .sub_title { margin-top: 0; }
+}
 
 /* Pages metier : introduction et questions frequentes (SEO / GEO). */
 .bloc_titre .metier_intro {
