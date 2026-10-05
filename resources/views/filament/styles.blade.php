@@ -256,7 +256,7 @@
      | texte noir reste lisible.
      */
     .fi-wi-stats-overview-stat.ub-stat-creatifs { background-color: rgb(211 213 222); }  /* graphiste #757c98 */
-    .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(233 215 210); }  /* photographe #bb8372 */
+    .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(219 219 228); }  /* moyenne graphiste #757c98 et architecte #a79fbc */
     .fi-wi-stats-overview-stat.ub-stat-demandes { background-color: rgb(227 224 234); }  /* architecte #a79fbc */
     .ub-encaissements .ub-encaissement-1 { background-color: rgb(223 225 234); }  /* webdesigner #9ca1bc */
     .ub-encaissements .ub-encaissement-2 { background-color: rgb(229 217 222); }  /* designer objet #af8897 */
@@ -264,7 +264,7 @@
     .ub-encaissements .ub-encaissement-4 { background-color: rgb(222 221 217); }  /* illustrateur jeunesse #979689 */
 
     .dark .fi-wi-stats-overview-stat.ub-stat-creatifs { background-color: rgb(117 124 152 / .28); }
-    .dark .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(187 131 114 / .28); }
+    .dark .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(142 142 170 / .28); }
     .dark .fi-wi-stats-overview-stat.ub-stat-demandes { background-color: rgb(167 159 188 / .28); }
     .dark .ub-encaissements .ub-encaissement-1 { background-color: rgb(156 161 188 / .28); }
     .dark .ub-encaissements .ub-encaissement-2 { background-color: rgb(175 136 151 / .28); }
@@ -276,5 +276,38 @@
     .ub-creatif-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
     .ub-creatif-login { font-weight: 600; }
     .ub-creatif-nom { color: rgb(107 114 128); }
+    /*
+     | Colonne avatar des listes (creatifs, visiteurs, derniers inscrits...) :
+     | 8px exactement entre l'avatar et le texte de la colonne suivante.
+     | Filament laisse 12px de chaque cote (24px en tout) : on retire le
+     | remplissage cote avatar et cote texte, puis on pose les 8px.
+     */
+    .ub-cellule-avatar .fi-ta-image {
+        padding-inline-end: 0;
+    }
+
+    .ub-cellule-avatar + .fi-ta-cell {
+        padding-inline-start: 8px;
+    }
+
+    .ub-cellule-avatar + .fi-ta-cell :is(.fi-ta-col, .fi-ta-text, .fi-ta-text-item, .fi-ta-image) {
+        padding-inline-start: 0;
+    }
+
+    /* Conversations : avatar colle a deux lignes de texte. */
+    .ub-personne { display: inline-flex; align-items: center; gap: .5rem; }
+    .ub-personne-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
+    .ub-personne-textes { display: flex; flex-direction: column; line-height: 1.25; }
+    .ub-personne-titre { font-weight: 500; }
+    .ub-personne-dessous { font-size: .8125rem; color: rgb(107 114 128); }
+    .dark .ub-personne-dessous { color: rgb(161 161 170); }
+
+    /* Label « Createur » / « Visiteur » des dernieres desinscriptions. */
+    .ub-label-compte { padding: 1px 8px; border-radius: 9999px; font-size: .75rem; font-weight: 600; }
+    .ub-label-creatif { background: rgb(219 234 254); color: rgb(30 64 175); }
+    .ub-label-visiteur { background: rgb(228 228 231); color: rgb(63 63 70); }
+    .dark .ub-label-creatif { background: rgb(59 130 246 / .2); color: rgb(147 197 253); }
+    .dark .ub-label-visiteur { background: rgb(255 255 255 / .12); color: rgb(212 212 216); }
+
     .dark .ub-creatif-nom { color: rgb(161 161 170); }
 </style>

@@ -32,6 +32,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class UsersTable
 {
@@ -62,14 +63,20 @@ class UsersTable
                  | case vide : l'oeil retrouve une ligne bien plus vite sur
                  | une pastille de couleur que sur un identifiant.
                  */
-                ImageColumn::make('avatar')->label('')->circular()->imageSize(36)
+                ImageColumn::make('avatar')->label('')->extraCellAttributes(['class' => 'ub-cellule-avatar'])->circular()->imageSize(36)
                     ->getStateUsing(fn (User $u) => app(AffichageProfil::class)->photoUrl($u))
                     ->defaultImageUrl(fn (User $u) => app(AffichageProfil::class)->medaillonCreatif($u)),
 
                 TextColumn::make('login')->label('Identifiant')->searchable()->sortable()
-                    ->description(fn (User $u) => trim($u->firstname.' '.$u->lastname) ?: null)
-                    ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true)
-                    ->wrap(),
+                    // Identifiant et nom sur une seule ligne (styles dans
+                    // filament/styles.blade.php) ; recherche et tri restent sur le login.
+                    ->formatStateUsing(fn (User $u): HtmlString => new HtmlString(
+                        '<span class="ub-creatif"><span class="ub-creatif-login">'.e($u->login).'</span>'
+                        .(($nom = trim($u->firstname.' '.$u->lastname)) !== '' ? '<span class="ub-creatif-nom">'.e($nom).'</span>' : '')
+                        .'</span>'
+                    ))
+                    ->html()
+                    ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true),
 
                 /*
                  | Un compte bloque se voit d'un coup d'oeil, sans ouvrir sa

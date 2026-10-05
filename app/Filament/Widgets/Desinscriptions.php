@@ -16,9 +16,8 @@ class Desinscriptions extends ComparaisonAnnuelle
 {
     protected static ?int $sort = 5;
 
-    // Seule sur sa ligne, sous les deux courbes d'inscriptions : c'est
-    // leur contrepoint, on la lit apres elles et non a cote de l'une.
-    protected int|string|array $columnSpan = 'full';
+    // A gauche de la liste des dernieres desinscriptions.
+    protected int|string|array $columnSpan = 1;
 
     protected ?string $heading = 'Désinscriptions';
 

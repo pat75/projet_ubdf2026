@@ -41,3 +41,18 @@ it('signale dans le back-office que Jev est indisponible', function () {
         ->assertSee('Analyse IA des spams suspendue')
         ->assertDontSeeHtml('wire:init="analyserSpamIA"');
 });
+
+it('affiche l avatar colle au nom du createur, et celui de l emetteur quand il a un compte', function () {
+    $this->actingAs(Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+    $createur = User::factory()->create(['login' => 'ariane9', 'firstname' => 'Ariane', 'lastname' => 'Martin']);
+    App\Models\Visitor::factory()->create(['email' => 'lea@example.test']);
+    Conversation::create(['user_id' => $createur->id, 'channel' => 'book', 'subject' => 'x', 'sender_name' => 'Léa', 'sender_email' => 'lea@example.test']);
+    Conversation::create(['user_id' => $createur->id, 'channel' => 'book', 'subject' => 'x', 'sender_name' => 'Inconnu', 'sender_email' => 'inconnu@example.test']);
+
+    $html = Livewire::test(ListConversations::class)->assertSuccessful()
+        ->assertSeeHtml('<span class="ub-personne-titre">ariane9</span><span class="ub-personne-dessous">Ariane Martin</span>')
+        ->html();
+
+    // Deux lignes : 2 avatars de createur + 1 d'emetteur (« Inconnu » n'a pas de compte).
+    expect(substr_count($html, 'class="ub-personne-avatar"'))->toBe(3);
+});

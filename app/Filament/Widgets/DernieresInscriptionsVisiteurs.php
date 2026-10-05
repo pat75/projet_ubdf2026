@@ -21,7 +21,7 @@ use Filament\Widgets\TableWidget;
  */
 class DernieresInscriptionsVisiteurs extends TableWidget
 {
-    protected static ?int $sort = 7;
+    protected static ?int $sort = 8;
 
     protected int|string|array $columnSpan = 1;
 
@@ -41,7 +41,7 @@ class DernieresInscriptionsVisiteurs extends TableWidget
             ->columns([
                 // Un visiteur ne depose pas de photo : c'est toujours le
                 // medaillon d'initiales, aux couleurs des creatifs.
-                ImageColumn::make('avatar')->label('')->circular()->imageSize(32)
+                ImageColumn::make('avatar')->label('')->extraCellAttributes(['class' => 'ub-cellule-avatar'])->circular()->imageSize(32)
                     ->getStateUsing(fn (Visitor $v) => app(AffichageProfil::class)
                         ->medaillon($v->initiales(), $v->couleur())),
 

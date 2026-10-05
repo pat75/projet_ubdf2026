@@ -155,3 +155,11 @@ it('montre le calendrier de selection sur la fiche', function () {
         ->assertSee('Se connecter en tant que')
         ->assertSee('Réinitialiser le mot de passe');
 });
+
+it('affiche identifiant et nom sur une seule ligne dans la liste des createurs', function () {
+    $this->actingAs(App\Models\Admin::create(['name' => 'Pat', 'email' => 'admin2@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+    App\Models\User::factory()->create(['login' => 'ariane9', 'firstname' => 'Ariane', 'lastname' => 'Martin']);
+
+    Livewire::test(App\Filament\Resources\Users\Pages\ListUsers::class)
+        ->assertSeeHtml('<span class="ub-creatif-login">ariane9</span><span class="ub-creatif-nom">Ariane Martin</span>');
+});

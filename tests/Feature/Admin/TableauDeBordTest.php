@@ -111,3 +111,22 @@ it('offre la selection et la prise d’identite sur un creatif, la seule prise d
         ->assertTableActionExists('prise_identite')
         ->assertTableActionDoesNotExist('selection');
 });
+
+it('liste les quatre dernieres desinscriptions, createurs et visiteurs reunis', function () {
+    // Dates distinctes : a la seconde pres, l'ordre serait indetermine.
+    foreach (range(1, 5) as $i) {
+        User::factory()->create()->delete();
+        User::onlyTrashed()->latest('id')->first()->forceFill(['deleted_at' => now()->subDays(10 - $i)])->saveQuietly();
+    }
+    $visiteur = App\Models\Visitor::factory()->create(['email' => 'parti@example.test']);
+    $visiteur->delete();
+    $visiteur->forceFill(['deleted_at' => now()->subDays(2)])->saveQuietly();
+
+    Livewire::test(App\Filament\Widgets\DernieresDesinscriptions::class)
+        ->assertSuccessful()
+        ->assertSee('parti@example.test');
+
+    $html = Livewire::test(App\Filament\Widgets\DernieresDesinscriptions::class)->html();
+
+    expect(substr_count($html, 'ub-creatif-login'))->toBe(4);
+});

@@ -3,15 +3,20 @@
 namespace App\Filament\Resources\Conversations\Tables;
 
 use App\Models\Conversation;
+use App\Models\User;
+use App\Models\Visitor;
+use App\Services\Espace\AffichageProfil;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class ConversationsTable
@@ -21,9 +26,20 @@ class ConversationsTable
         return $table
             ->columns([
                 TextColumn::make('created_at')->label('Reçue le')->dateTime('d/m/Y H:i')->sortable(),
-                TextColumn::make('user.login')->label('Créatif')->searchable()->sortable(),
+                // Avatar collé au texte : identifiant, puis nom et prénom dessous.
+                TextColumn::make('user.login')->label('Créatif')->searchable()->sortable()
+                    ->formatStateUsing(fn (Conversation $c) => $c->user ? self::personne(
+                        app(AffichageProfil::class)->photoUrl($c->user) ?? app(AffichageProfil::class)->medaillonCreatif($c->user),
+                        $c->user->login,
+                        trim($c->user->firstname.' '.$c->user->lastname),
+                    ) : null)
+                    ->html(),
+                // Avatar de l'emetteur seulement s'il a un compte, adresse dessous.
                 TextColumn::make('sender_name')->label('Émetteur')->searchable()
-                    ->description(fn (Conversation $c) => $c->sender_email),
+                    ->formatStateUsing(fn (Conversation $c) => self::personne(
+                        self::avatarEmetteur($c->sender_email), $c->sender_name, (string) $c->sender_email,
+                    ))
+                    ->html(),
                 TextColumn::make('subject')->label('Objet')->formatStateUsing(fn (Conversation $c) => $c->objet())->toggleable(),
                 TextColumn::make('messages_count')->label('Messages')->counts('messages'),
                 // Etat lu comme « legitime » : coche verte pour un message
@@ -39,7 +55,7 @@ class ConversationsTable
                     ->badge()
                     ->color(fn (Conversation $c) => $c->spam_ia ? 'danger' : 'gray'),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('messages'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['messages', 'user.bookSetting']))
             ->defaultSort('created_at', 'desc')
             // Indesirable : texte de la ligne en rouge (voir styles.blade.php).
             ->recordClasses(fn (Conversation $record) => $record->is_spam ? 'ub-conversation-spam' : null)
@@ -73,5 +89,41 @@ class ConversationsTable
         $texte = trim(strip_tags((string) ($c->messages->first()?->body ?: $c->request_detail)));
 
         return $texte === '' ? 'Aucun message.' : Str::limit($texte, 600);
+    }
+
+    /**
+     * Avatar du compte portant l'adresse de l'emetteur : un createur
+     * (photo, sinon initiales), a defaut un visiteur (initiales). Null
+     * sans compte. Memorise par adresse : un meme emetteur revient souvent.
+     */
+    private static function avatarEmetteur(?string $email): ?string
+    {
+        static $memo = [];
+
+        if (blank($email)) {
+            return null;
+        }
+
+        return $memo[$email] ??= (function () use ($email): ?string {
+            $profil = app(AffichageProfil::class);
+
+            if ($createur = User::where('email', $email)->first()) {
+                return $profil->photoUrl($createur) ?? $profil->medaillonCreatif($createur);
+            }
+
+            $visiteur = Visitor::where('email', $email)->first();
+
+            return $visiteur ? $profil->medaillon($visiteur->initiales(), $visiteur->couleur()) : null;
+        })();
+    }
+
+    /** Avatar (facultatif) collé a un titre et a une ligne grise dessous. */
+    private static function personne(?string $avatar, ?string $titre, string $dessous): HtmlString
+    {
+        return new HtmlString('<span class="ub-personne">'
+            .($avatar ? '<img src="'.e($avatar).'" alt="" class="ub-personne-avatar">' : '')
+            .'<span class="ub-personne-textes"><span class="ub-personne-titre">'.e((string) $titre).'</span>'
+            .($dessous !== '' ? '<span class="ub-personne-dessous">'.e($dessous).'</span>' : '')
+            .'</span></span>');
     }
 }

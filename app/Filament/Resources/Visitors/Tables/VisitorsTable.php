@@ -52,7 +52,7 @@ class VisitorsTable
              | visiteur sans memo book ni visite n'a servi a rien.
              */
             ->columns([
-                ImageColumn::make('avatar')->label('')->circular()->imageSize(36)
+                ImageColumn::make('avatar')->label('')->extraCellAttributes(['class' => 'ub-cellule-avatar'])->circular()->imageSize(36)
                     // Un visiteur ne depose pas de photo : c'est toujours le
                     // medaillon d'initiales, aux couleurs des creatifs.
                     ->getStateUsing(fn (Visitor $v) => app(AffichageProfil::class)
