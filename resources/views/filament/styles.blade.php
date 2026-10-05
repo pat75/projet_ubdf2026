@@ -66,6 +66,37 @@
         gap: 30px;
     }
 
+    /*
+     | Code promo deja utilise : toute la ligne hachuree, traits obliques
+     | de 4px a 30 % d'opacite. Pose sur chaque cellule, dont le fond
+     | masquerait sinon un degrade pose sur la ligne.
+     */
+    .ub-code-utilise > td {
+        background-image: repeating-linear-gradient(
+            45deg,
+            rgb(107 114 128 / .3) 0,
+            rgb(107 114 128 / .3) 4px,
+            transparent 4px,
+            transparent 8px
+        );
+    }
+
+    /* Conversation indesirable : tout le texte de la ligne en rouge. */
+    .ub-conversation-spam .fi-ta-text-item,
+    .ub-conversation-spam .fi-ta-text-item * {
+        color: rgb(220 38 38);
+    }
+
+    .dark .ub-conversation-spam .fi-ta-text-item,
+    .dark .ub-conversation-spam .fi-ta-text-item * {
+        color: rgb(248 113 113);
+    }
+
+    /* Table qui veut le filtre a gauche de la recherche. */
+    .ub-filtre-gauche .fi-ta-header-toolbar > :not(.fi-ta-actions) {
+        flex-direction: row-reverse;
+    }
+
     /* Le bloc recherche + filtres + colonnes passe devant les actions. */
     .fi-ta-header-toolbar > :not(.fi-ta-actions) {
         order: -1;

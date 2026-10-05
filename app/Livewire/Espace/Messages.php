@@ -167,10 +167,29 @@ class Messages extends Component
     /** Supprime pour de bon toutes les demandes de la poubelle. */
     public function viderCorbeille(): void
     {
-        Auth::user()->conversations()->where('is_spam', false)->onlyTrashed()->get()
+        Auth::user()->conversations()->onlyTrashed()->get()
             ->each(fn (Conversation $conversation) => $conversation->forceDelete());
 
         $this->ouvert = null;
+    }
+
+    /** Retire le signalement d'une demande, qu'il vienne de l'administration ou de l'IA. */
+    public function rendreLegitime(int $id): void
+    {
+        $this->conversation($id)->forceFill(['is_spam' => false, 'spam_ia' => false])->save();
+    }
+
+    /**
+     * Envoie a la poubelle toutes les demandes indesirables du dossier
+     * Contacts : marquees par l'administration (`is_spam`) ou signalees
+     * par l'IA (`spam_ia`). Restaurables depuis la poubelle.
+     */
+    public function supprimerIndesirables(): void
+    {
+        $this->indesirables()->get()->each(fn (Conversation $conversation) => $conversation->delete());
+
+        $this->ouvert = null;
+        $this->resetPage();
     }
 
     public function render(): View
@@ -191,6 +210,7 @@ class Messages extends Component
                 ->withCount(['messages as non_lus' => fn (Builder $q) => $q->where('from_owner', false)->whereNull('read_at')])
                 ->orderByDesc('last_message_at')->orderByDesc('id')->paginate(14),
             'fil' => $fil,
+            'nbIndesirables' => $this->dossier === 'contacts' ? $this->indesirables()->count() : 0,
         ]);
     }
 
@@ -220,7 +240,9 @@ class Messages extends Component
      */
     private function dossiers(): array
     {
-        $nonLus = fn ($q) => $q->whereHas('messages', fn (Builder $m) => $m->where('from_owner', false)->whereNull('read_at'));
+        // Un indesirable ne compte pas dans les non lus : la pastille ne
+        // doit pas reclamer l'attention pour un spam.
+        $nonLus = fn ($q) => $q->where('is_spam', false)->where(fn (Builder $q) => $q->where('spam_ia', false)->orWhereNull('spam_ia'))->whereHas('messages', fn (Builder $m) => $m->where('from_owner', false)->whereNull('read_at'));
 
         return [
             ['cle' => 'contacts', 'libelle' => __('Contacts'), 'non_lus' => $nonLus($this->parDossier('contacts'))->count()],
@@ -241,7 +263,9 @@ class Messages extends Component
 
     private function parDossier(string $dossier)
     {
-        $base = Auth::user()->conversations()->where('is_spam', false);
+        // Les indesirables restent dans la liste, signales par un badge :
+        // le createur doit les voir pour les supprimer (ou les garder).
+        $base = Auth::user()->conversations();
 
         return match ($dossier) {
             'poubelle' => $base->onlyTrashed(),
@@ -251,6 +275,13 @@ class Messages extends Component
 
     private function conversation(int $id): Conversation
     {
-        return Auth::user()->conversations()->withTrashed()->where('is_spam', false)->findOrFail($id);
+        return Auth::user()->conversations()->withTrashed()->findOrFail($id);
+    }
+
+    /** Demandes indesirables du dossier Contacts (administration ou IA). */
+    private function indesirables()
+    {
+        return $this->parDossier('contacts')
+            ->where(fn (Builder $q) => $q->where('is_spam', true)->orWhere('spam_ia', true));
     }
 }

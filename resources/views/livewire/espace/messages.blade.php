@@ -74,7 +74,21 @@
                 </nav>
 
                 <div class="flex items-center justify-between gap-3 border-b border-ub-filet px-5 py-4">
-                    <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ $dossierLibelle }}</h2>
+                    {{-- Titre du dossier, et juste a sa droite : les indesirables
+                         (administration ou IA) d'un geste a la poubelle, d'ou
+                         ils restent restaurables. --}}
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ $dossierLibelle }}</h2>
+
+                        @if ($nbIndesirables)
+                            <button type="button" wire:click="supprimerIndesirables"
+                                    wire:confirm="{{ __('Envoyer les :n demandes indésirables à la poubelle ?', ['n' => $nbIndesirables]) }}"
+                                    class="bouton-espace bouton-espace-petit px-3.5">
+                                <x-espace.picto nom="poubelle" class="h-4 w-4 shrink-0" />
+                                {{ trans_choice('Supprimer :n indésirable|Supprimer les :n indésirables', $nbIndesirables, ['n' => $nbIndesirables]) }}
+                            </button>
+                        @endif
+                    </div>
 
                     <div class="flex items-center gap-4">
                         @if ($conversations->total())
@@ -131,7 +145,9 @@
                                     {{-- Detection IA, complementaire des regles qui masquent
                                          deja les demandes les plus evidentes : celle-ci se
                                          contente de signaler, jamais de masquer. --}}
-                                    @if ($c->spam_ia)
+                                    @if ($c->is_spam)
+                                        <span class="shrink-0 rounded-full bg-ub-danger-bord px-2 py-0.5 text-[11px] font-bold uppercase tracking-[.04em] text-ub-danger">{{ __('Indésirable') }}</span>
+                                    @elseif ($c->spam_ia)
                                         <span class="shrink-0 rounded-full bg-ub-danger-bord px-2 py-0.5 text-[11px] font-bold uppercase tracking-[.04em] text-ub-danger">{{ __('Probable spam') }}</span>
                                     @endif
                                 </span>
@@ -145,6 +161,18 @@
                                     <span class="sr-only">{{ __('Restaurer') }}</span>
                                 </button>
                             @else
+                                {{-- Indesirable (administration ou IA) : le rendre
+                                     legitime, juste a gauche de la poubelle. --}}
+                                @if ($c->is_spam || $c->spam_ia)
+                                    <x-espace.info-bulle :texte="__('Rendre légitime')">
+                                        <button type="button" wire:click.stop="rendreLegitime({{ $c->id }})"
+                                                class="shrink-0 p-2 text-ub-texte4 hover:text-ub-succes">
+                                            <x-espace.picto nom="valider" class="h-4.5 w-4.5" />
+                                            <span class="sr-only">{{ __('Rendre légitime') }}</span>
+                                        </button>
+                                    </x-espace.info-bulle>
+                                @endif
+
                                 <button type="button" wire:click.stop="supprimer({{ $c->id }})" title="{{ __('Supprimer') }}"
                                         class="shrink-0 p-2 text-ub-texte4 hover:text-ub-danger">
                                     <x-espace.picto nom="poubelle" class="h-4.5 w-4.5" />

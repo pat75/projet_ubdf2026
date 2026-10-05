@@ -40,12 +40,29 @@ it('repond et previent l emetteur', function () {
         && str_contains($m->envelope()->subject, $this->creatif->fullName()));
 });
 
-it('masque les indesirables et les demandes des autres', function () {
+it('masque les demandes des autres', function () {
     $autre = User::factory()->create()->conversations()->create(['channel' => 'book', 'sender_name' => 'Autre', 'selector' => str_repeat('b', 24)]);
-    $this->creatif->conversations()->create(['channel' => 'book', 'sender_name' => 'Spammeur', 'is_spam' => true, 'selector' => str_repeat('c', 24)]);
 
-    $this->get(route('espace.messages'))->assertDontSee('Spammeur')->assertDontSee('Autre');
+    $this->get(route('espace.messages'))->assertDontSee('Autre');
     Livewire::test(Messages::class)->call('ouvrir', $autre->id)->assertNotFound();
+});
+
+it('signale les indesirables et les envoie tous a la poubelle d un clic', function () {
+    $admin = $this->creatif->conversations()->create(['channel' => 'book', 'sender_name' => 'Spammeur', 'is_spam' => true, 'selector' => str_repeat('c', 24), 'last_message_at' => now()]);
+    $ia = $this->creatif->conversations()->create(['channel' => 'book', 'sender_name' => 'Robot', 'selector' => str_repeat('e', 24), 'last_message_at' => now()]);
+    $ia->forceFill(['spam_ia' => true])->save();
+
+    $this->get(route('espace.messages'))->assertOk()
+        ->assertSee('Spammeur')->assertSee('Indésirable')
+        ->assertSee('Supprimer les 2 indésirables');
+
+    Livewire::test(Messages::class)->call('supprimerIndesirables');
+
+    expect($admin->fresh()->trashed())->toBeTrue()
+        ->and($ia->fresh()->trashed())->toBeTrue()
+        ->and($this->conversation->fresh()->trashed())->toBeFalse();
+
+    $this->get(route('espace.messages'))->assertDontSee('indésirables');
 });
 
 it('regroupe toutes les demandes actives dans Contacts, quel que soit leur sujet', function () {
@@ -222,4 +239,13 @@ it('limite les corrections IA par createur', function () {
         ->assertSet('erreurIA', 'Trop de corrections demandées, réessayez dans un moment.');
 
     Http::assertNothingSent();
+});
+
+it('rend legitime une demande signalee', function () {
+    $this->conversation->forceFill(['is_spam' => true, 'spam_ia' => true])->save();
+
+    Livewire::test(Messages::class)->call('rendreLegitime', $this->conversation->id);
+
+    expect($this->conversation->fresh()->is_spam)->toBeFalse()
+        ->and($this->conversation->fresh()->spam_ia)->toBeFalse();
 });
