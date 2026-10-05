@@ -7,7 +7,7 @@
 #   ./deploy/transfert-images.sh recuperer   1) rsync ancien users_2 -> data_source/ (tire depuis O2switch, dans screen)
 #   ./deploy/transfert-images.sh suivre      revenir sur le transfert en cours
 #   ./deploy/transfert-images.sh organiser   2) data_source/ -> storage/app/public/books/a/d/o/login
-#        [--dry-run] [--lettres=a-f | --depuis=m --jusqua=f] [--copier | --deplacer]
+#        [--dry-run] [--lettre=m | --lettres=a-f | --depuis=m --jusqua=f] [--copier | --deplacer]
 #        Sans --copier/--deplacer, le mode est demande ; il est toujours
 #        rappele et confirme juste avant l'execution.
 #   ./deploy/transfert-images.sh suivre-organiser   revenir sur le rangement en cours
@@ -78,13 +78,16 @@ EOF
                 --copier)      MODE=copier ;;
                 --deplacer)    MODE=deplacer ;;
                 --lettres=?-?) DEPUIS="${a:10:1}"; JUSQUA="${a:12:1}" ;;
+                --lettre=?)    DEPUIS="${a:9:1}"; JUSQUA="${a:9:1}" ;;
+                --lettres=?)   DEPUIS="${a:10:1}"; JUSQUA="${a:10:1}" ;;
                 --depuis=*)    DEPUIS="${a#--depuis=}" ;;
                 --jusqua=*)    JUSQUA="${a#--jusqua=}" ;;
-                *) echec "option inconnue : $a (--copier, --deplacer, --lettres=a-f, --depuis=m, --jusqua=f, --dry-run)" ;;
+                *) echec "option inconnue : $a (--copier, --deplacer, --lettre=m, --lettres=a-f, --depuis=m, --jusqua=f, --dry-run)" ;;
             esac
         done
         PLAGE="toutes les lettres"
         [ -n "$DEPUIS$JUSQUA" ] && PLAGE="lettres ${DEPUIS:-debut} a ${JUSQUA:-fin}"
+        [ -n "$DEPUIS" ] && [ "$DEPUIS" = "$JUSQUA" ] && PLAGE="lettre $DEPUIS seulement"
         OPTIONS="--source='$CIBLE'"
         [ -n "$DEPUIS" ] && OPTIONS="$OPTIONS --depuis=$DEPUIS"
         [ -n "$JUSQUA" ] && OPTIONS="$OPTIONS --jusqua=$JUSQUA"
@@ -110,18 +113,34 @@ EOF
         fi
         [ "$MODE" = "deplacer" ] && OPTIONS="$OPTIONS --deplacer"
 
+        # Nombre de dossiers du perimetre, compte par la commande elle-meme
+        # (meme filtre de lettres) : simple liste de repertoires, rapide.
+        # « || true » : sous set -euo pipefail, un echec (commande pas encore
+        # deployee, sans --compter) arretait le script sans un mot.
+        NB_DOSSIERS="$(artisan ubdf:prod:dossiers-books $OPTIONS --compter 2>/dev/null | tail -1 | tr -dc '0-9' || true)"
+        [ -z "$NB_DOSSIERS" ] && alerte "Nombre de dossiers indisponible (commande a jour deployee ?)."
+
+
         ligne
         echo "  2) ${CIBLE}/a/d/login -> storage/app/public/books/a/d/o/login"
         echo "     Perimetre : ${GRAS}${PLAGE}${RAZ}"
+        echo "     Dossiers  : ${GRAS}${NB_DOSSIERS:-?}${RAZ} a traiter"
         if [ "$MODE" = "copier" ]; then
             echo "     Mode      : ${GRAS}${VERT}COPIER${RAZ} (data_source n'est pas modifie ;"
             echo "                 une relance ne recopie que les fichiers changes)"
-            ssh_run "echo \"     Espace    : data_source \$(du -sh '$CIBLE' 2>/dev/null | cut -f1), libre \$(df -h . | awk 'NR==2{print \$4}')\""
+            # Le poids total de data_source parcourt tous les fichiers : long
+            # sur des centaines de milliers d'images. Calcule seulement si
+            # l'operateur le demande ; l'espace libre, lui, est instantane.
+            if confirm "     Afficher le poids de l'ensemble des fichiers a traiter (calcul long) ?"; then
+                ssh_run "echo \"     Espace    : data_source \$(du -sh '$CIBLE' 2>/dev/null | cut -f1), libre \$(df -h . | awk 'NR==2{print \$4}')\""
+            else
+                ssh_run "echo \"     Espace    : libre \$(df -h . | awk 'NR==2{print \$4}')\""
+            fi
         else
             echo "     Mode      : ${GRAS}${ROUGE}DEPLACER${RAZ} (data_source se vide de ce qui est repris)"
         fi
         ligne
-        confirm "Confirmer : $(echo "$MODE" | tr '[:lower:]' '[:upper:]'), $PLAGE ?" || exit 0
+        confirm "Confirmer : $(echo "$MODE" | tr '[:lower:]' '[:upper:]'), $PLAGE, ${NB_DOSSIERS:-?} dossiers ?" || exit 0
 
         # Dans screen, comme recuperer : progression sur une ligne, survit a une
         # coupure SSH (Ctrl-A puis D pour detacher). Journal complet, resume

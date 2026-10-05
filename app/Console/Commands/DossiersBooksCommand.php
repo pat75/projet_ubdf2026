@@ -38,7 +38,8 @@ class DossiersBooksCommand extends Command
         {--depuis= : Premiere lettre traitee (reprise apres interruption)}
         {--jusqua= : Derniere lettre traitee (ex. --depuis=a --jusqua=f)}
         {--deplacer : Deplace les originaux au lieu de les copier (la source est videe de ce qui est repris)}
-        {--dry-run : Liste les correspondances sans rien copier}';
+        {--dry-run : Liste les correspondances sans rien copier}
+        {--compter : Affiche seulement le nombre de dossiers a traiter, puis s arrete}';
 
     protected $description = 'Recree les dossiers des books : users_2/<a>/<b>/<login> -> books/<a>/<b>/<c>/<login>';
 
@@ -70,11 +71,32 @@ class DossiersBooksCommand extends Command
                 && ($jusqua === '' || strcmp($initiale, $jusqua) <= 0);
         }));
 
+        // Lu par deploy/transfert-images.sh avant la confirmation : un
+        // nombre seul, sur une ligne.
+        if ($this->option('compter')) {
+            $this->line((string) count($dossiers));
+
+            return self::SUCCESS;
+        }
+
         $this->components->info(($fichiers->deplace() ? 'DEPLACEMENT' : 'COPIE').' de '.count($dossiers).' dossiers'
             .($depuis.$jusqua !== '' ? ' (lettres '.($depuis ?: '…').' a '.($jusqua ?: '…').')' : ''));
 
         $debut = microtime(true);
         $dernier = 0.0;
+        $rang = 0;
+        $login = '';
+
+        // Progression aussi pendant un book : sinon la ligne reste figee
+        // tant qu'un gros portfolio (des milliers de fichiers) se copie.
+        if (! $essai) {
+            $fichiers->apresFichier = function () use ($fichiers, &$rang, &$login, &$dernier, $dossiers, $debut) {
+                if (microtime(true) - $dernier >= 0.5) {
+                    $dernier = microtime(true);
+                    $this->progression($fichiers, $rang, count($dossiers), $debut, $login);
+                }
+            };
+        }
 
         foreach ($dossiers as $rang => $dossier) {
             $login = mb_strtolower(basename($dossier));

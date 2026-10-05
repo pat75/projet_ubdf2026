@@ -37,6 +37,13 @@ final class LegacyFiles
     private int $missingBooks = 0;
 
     /**
+     * Appele apres chaque fichier transfere : la commande de mise en
+     * production y rafraichit sa progression pendant un gros book, au lieu
+     * de la laisser figee jusqu'au book suivant.
+     */
+    public ?\Closure $apresFichier = null;
+
+    /**
      * $deplacer : deplace les originaux au lieu de les copier (mise en
      * production, meme disque : instantane et sans doubler l'espace). Les
      * declinaisons et les fichiers ecartes restent dans la source.
@@ -150,6 +157,10 @@ final class LegacyFiles
 
         $this->copiedFiles++;
         $this->copiedBytes += $taille;
+
+        if ($this->apresFichier) {
+            ($this->apresFichier)();
+        }
     }
 
     /** users_2/p/a/pat10 — sharding sur les deux premieres lettres du login. */
