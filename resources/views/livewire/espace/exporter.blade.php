@@ -19,11 +19,12 @@
                 titres: true,
                 legendes: false,
                 proteges: false,
+                qr: false,
                 async generer() {
                     this.enCours = true;
                     this.erreur = false;
                     try {
-                        const reponse = await fetch(@js(route(nom_route('espace.pdf'))) + '?titres=' + (this.titres ? 1 : 0) + '&legendes=' + (this.legendes ? 1 : 0) + '&proteges=' + (this.proteges ? 1 : 0), { credentials: 'same-origin' });
+                        const reponse = await fetch(@js(route(nom_route('espace.pdf'))) + '?titres=' + (this.titres ? 1 : 0) + '&legendes=' + (this.legendes ? 1 : 0) + '&proteges=' + (this.proteges ? 1 : 0) + '&qr=' + (this.qr ? 1 : 0), { credentials: 'same-origin' });
                         if (! reponse.ok) throw new Error(reponse.status);
                         const nom = (reponse.headers.get('Content-Disposition') ?? '').match(/filename=&quot;?([^&quot;;]+)/)?.[1] ?? 'book.pdf';
                         const lien = Object.assign(document.createElement('a'), { href: URL.createObjectURL(await reponse.blob()), download: nom });
@@ -57,7 +58,7 @@
                         <x-espace.picto nom="angle-bas" x-show="ouvert" x-cloak class="h-4 w-4 shrink-0 text-ub-texte" />
                     </button>
                     <div x-show="ouvert" x-cloak class="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2.5">
-                        @foreach (['titres' => __('Afficher le nom des rubriques'), 'legendes' => __('Afficher les titres des visuels'), 'proteges' => __('Inclure les portfolios protégés')] as $option => $libelle)
+                        @foreach (['titres' => __('Afficher le nom des rubriques'), 'legendes' => __('Afficher les titres des visuels'), 'proteges' => __('Inclure les portfolios protégés'), 'qr' => __('Afficher un QR code en couverture')] as $option => $libelle)
                             <label class="inline-flex cursor-pointer items-center gap-2.5 text-[15.5px] font-semibold text-ub-texte">
                                 <button type="button" role="switch" :aria-pressed="{{ $option }}" @click="{{ $option }} = ! {{ $option }}"
                                         class="flex h-4 w-7 shrink-0 cursor-pointer rounded-lg p-0.5 transition-colors duration-200"

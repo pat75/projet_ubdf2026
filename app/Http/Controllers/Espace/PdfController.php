@@ -16,8 +16,9 @@ class PdfController extends Controller
 
         // Interrupteurs de la page Exporter : ?titres=0 masque le nom des
         // rubriques, ?legendes=1 ajoute le titre des visuels, ?proteges=1
-        // inclut les portfolios proteges par mot de passe.
-        $contenu = $pdf->generer($request->user(), $request->boolean('titres', true), $request->boolean('legendes'), $request->boolean('proteges'));
+        // inclut les portfolios proteges par mot de passe, ?qr=1 pose le
+        // code QR du book en bas de la couverture.
+        $contenu = $pdf->generer($request->user(), $request->boolean('titres', true), $request->boolean('legendes'), $request->boolean('proteges'), $request->boolean('qr'));
 
         return response($contenu, 200, [
             'Content-Type' => 'application/pdf',

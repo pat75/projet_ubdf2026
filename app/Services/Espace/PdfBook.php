@@ -22,7 +22,7 @@ use Intervention\Image\ImageManager;
  */
 class PdfBook
 {
-    public function __construct(private readonly ImageManager $images) {}
+    public function __construct(private readonly ImageManager $images, private readonly CodeQr $qr) {}
 
     public const PAGES_GRATUITE = 6;
 
@@ -30,10 +30,13 @@ class PdfBook
 
     public const PAGES_DEVELOPPEMENT = 8;
 
-    private const COTE = 210;
+    /** A4 portrait, en mm. */
+    private const LARGEUR = 210;
+
+    private const HAUTEUR = 297;
 
     /** Zone utile des visuels, en mm : sous le titre, au-dessus du pied. */
-    private const ZONE = ['x' => 15, 'y' => 24, 'l' => 180, 'h' => 163];
+    private const ZONE = ['x' => 15, 'y' => 24, 'l' => 180, 'h' => 245];
 
     /** Hauteur reservee au titre sous un visuel, en mm. */
     private const LEGENDE = 6;
@@ -54,10 +57,11 @@ class PdfBook
      * @param  bool  $titres  nom de la rubrique en tete de ses pages
      * @param  bool  $legendes  titre de chaque visuel sous l'image
      * @param  bool  $proteges  inclure les portfolios proteges par mot de passe
+     * @param  bool  $qr  code QR du book en bas de la couverture
      */
-    public function generer(User $creatif, bool $titres = true, bool $legendes = false, bool $proteges = false): string
+    public function generer(User $creatif, bool $titres = true, bool $legendes = false, bool $proteges = false, bool $qr = false): string
     {
-        $pdf = new class('P', 'mm', [self::COTE, self::COTE]) extends FPDF
+        $pdf = new class('P', 'mm', [self::LARGEUR, self::HAUTEUR]) extends FPDF
         {
             public string $piedDePage = '';
 
@@ -68,20 +72,21 @@ class PdfBook
                 }
 
                 $this->SetY(-13);
-                $this->SetFont('Helvetica', '', 6);
+                $this->SetFont('Roboto', '', 6);
                 $this->SetTextColor(90, 90, 90);
                 $this->Cell(0, 4, $this->piedDePage, 0, 1, 'C');
                 $this->Cell(0, 5, $this->PageNo().'/{nb}', 0, 0, 'C');
             }
         };
 
-        $pdf->piedDePage = $this->latin1($creatif->fullName().' / '.now()->format('j.m.Y'));
+        $pdf->AddFont('Roboto', '', 'Roboto-Regular.json', resource_path('fonts').'/');
+        $pdf->piedDePage = $this->latin1($creatif->fullName().' / '.self::dateEnLettres());
         $pdf->SetMargins(15, 15, 15);
         $pdf->SetAutoPageBreak(false);
         $pdf->AliasNbPages();
         $pdf->SetTitle($this->latin1($creatif->fullName()));
 
-        $this->couverture($pdf, $creatif);
+        $this->couverture($pdf, $creatif, $qr);
 
         $restantes = self::pagesMax($creatif);
         $galeries = $creatif->galleries()->published()->whereNull('parent_id')->orderBy('position')
@@ -114,28 +119,96 @@ class PdfBook
         return $pdf->Output('S');
     }
 
-    private function couverture(FPDF $pdf, User $creatif): void
+    private function couverture(FPDF $pdf, User $creatif, bool $qr): void
     {
         $pdf->AddPage();
 
-        // Visuel de profil, carre, au-dessus du nom.
+        // Visuel de profil en rond, au-dessus du nom.
         $profil = $creatif->bookSetting?->thumbnail;
-        $y = 60;
-        if ($profil && ($jpeg = $this->jpeg(DossierBook::chemin($creatif->login, basename($profil)), carre: true))) {
-            $pdf->Image($jpeg, (self::COTE - 44) / 2, 34, 44, 44, 'JPG');
-            @unlink($jpeg);
-            $y = 88;
+        $y = 105;
+        if ($profil && ($rond = $this->rond(DossierBook::chemin($creatif->login, basename($profil))))) {
+            $pdf->Image($rond, (self::LARGEUR - 56) / 2, 62, 56, 56, 'PNG');
+            @unlink($rond);
+            $y = 135;
+        }
+
+        // Prenom et nom sur une seule ligne, reduits si elle deborde.
+        $nom = $this->latin1(mb_strtoupper(trim($creatif->firstname.' '.($creatif->lastname ?: $creatif->login))));
+        $taille = 24;
+        $pdf->SetFont('Roboto', '', $taille);
+        while ($taille > 14 && $pdf->GetStringWidth($nom) > self::LARGEUR - 30) {
+            $pdf->SetFont('Roboto', '', --$taille);
         }
 
         $pdf->SetY($y);
-        $pdf->SetFont('Helvetica', '', 24);
-        $pdf->Cell(0, 10, $this->latin1(mb_strtoupper((string) $creatif->firstname)), 0, 2, 'C');
-        $pdf->Cell(0, 10, $this->latin1(mb_strtoupper((string) ($creatif->lastname ?: $creatif->login))), 0, 2, 'C');
-        $pdf->Line(100, $y + 25, 110, $y + 25);
-        $pdf->SetFont('Helvetica', '', 10);
-        $pdf->Ln(10);
+        $pdf->Cell(0, 10, $nom, 0, 2, 'C');
+        $pdf->Line(100, $y + 16, 110, $y + 16);
+        $pdf->SetFont('Roboto', '', 10);
+        $pdf->Ln(14);
         $pdf->Cell(0, 7, preg_replace('#^https?://#', '', $creatif->bookUrl()), 0, 2, 'C', false, $creatif->bookUrl());
-        $pdf->Cell(0, 7, now()->format('j.m.Y'), 0, 2, 'C');
+        $pdf->Cell(0, 7, $this->latin1(self::dateEnLettres()), 0, 2, 'C');
+
+        if ($qr && ($fichier = $this->fichierQr($creatif->bookUrl()))) {
+            $pdf->Image($fichier, (self::LARGEUR - 28) / 2, self::HAUTEUR - 28 - 32, 28, 28, 'PNG');
+            @unlink($fichier);
+        }
+    }
+
+    /** « 5 juin 2026 », quelle que soit la langue de l'application. */
+    private static function dateEnLettres(): string
+    {
+        return now()->locale('fr')->translatedFormat('j F Y');
+    }
+
+    /** PNG temporaire du code QR de l'adresse donnee. */
+    private function fichierQr(string $adresse): ?string
+    {
+        $fichier = tempnam(sys_get_temp_dir(), 'pdfqr').'.png';
+
+        return @file_put_contents($fichier, base64_decode($this->qr->pngBase64($adresse))) ? $fichier : null;
+    }
+
+    /**
+     * Visuel de profil decoupe en rond (PNG temporaire) : recadre en carre,
+     * puis les coins hors du cercle passent au blanc de la page, avec un bord
+     * adouci d'un pixel. Null si le fichier est inutilisable.
+     */
+    private function rond(string $fichier): ?string
+    {
+        if (! ($carre = $this->jpeg($fichier, carre: true))) {
+            return null;
+        }
+
+        $source = @imagecreatefromjpeg($carre);
+        @unlink($carre);
+        if (! $source) {
+            return null;
+        }
+
+        $d = 600;
+        $image = imagecreatetruecolor($d, $d);
+        imagecopyresampled($image, $source, 0, 0, 0, 0, $d, $d, imagesx($source), imagesy($source));
+        imagedestroy($source);
+
+        $r = $d / 2;
+        for ($py = 0; $py < $d; $py++) {
+            for ($px = 0; $px < $d; $px++) {
+                // Part du pixel hors du cercle : 0 dedans, 1 dehors, degrade sur 1 px.
+                $dehors = max(0, min(1, hypot($px + .5 - $r, $py + .5 - $r) - $r + .5));
+                if ($dehors <= 0) {
+                    continue;
+                }
+                $c = imagecolorat($image, $px, $py);
+                $m = fn (int $v) => (int) round($v + (255 - $v) * $dehors);
+                imagesetpixel($image, $px, $py, imagecolorallocate($image, $m(($c >> 16) & 255), $m(($c >> 8) & 255), $m($c & 255)));
+            }
+        }
+
+        $png = tempnam(sys_get_temp_dir(), 'pdfrond').'.png';
+        imagepng($image, $png);
+        imagedestroy($image);
+
+        return $png;
     }
 
     /**
@@ -165,7 +238,7 @@ class PdfBook
         // Nom du portfolio en tete de page, si le createur l'a garde.
         if ($galerie !== null) {
             $pdf->SetXY(self::ZONE['x'], 11);
-            $pdf->SetFont('Helvetica', '', 9);
+            $pdf->SetFont('Roboto', '', 9);
             $pdf->SetTextColor(60, 60, 60);
             $pdf->Cell(self::ZONE['l'], 6, $this->latin1(mb_strtoupper($galerie)), 0, 0, 'L');
             $pdf->SetTextColor(0, 0, 0);
@@ -186,7 +259,7 @@ class PdfBook
 
             if ($legende !== '') {
                 $pdf->SetXY($x, $py + $ph + 1.5);
-                $pdf->SetFont('Helvetica', '', 7.5);
+                $pdf->SetFont('Roboto', '', 7.5);
                 $pdf->SetTextColor(70, 70, 70);
                 $pdf->Cell($l, 4, $this->couper($pdf, $this->latin1($legende), $l), 0, 0, 'C');
                 $pdf->SetTextColor(0, 0, 0);
