@@ -22,7 +22,7 @@ beforeEach(function () {
 
 it('ouvre l espace du creatif sous son identite', function () {
     $this->actingAs($this->admin, 'admin')
-        ->post('/admin/prise-identite/'.$this->creatif->login)
+        ->post('/admin_/prise-identite/'.$this->creatif->login)
         ->assertRedirect(route('espace'));
 
     expect(Auth::guard('web')->id())->toBe($this->creatif->id)
@@ -33,7 +33,7 @@ it('ouvre l espace du creatif sous son identite', function () {
 });
 
 it('affiche un bandeau de retour dans l espace emprunte', function () {
-    $this->actingAs($this->admin, 'admin')->post('/admin/prise-identite/'.$this->creatif->login);
+    $this->actingAs($this->admin, 'admin')->post('/admin_/prise-identite/'.$this->creatif->login);
 
     // `actingAs` a fait de `admin` la garde par defaut du test ; dans un
     // vrai navigateur, l'espace repond sous la garde `web`.
@@ -45,22 +45,22 @@ it('affiche un bandeau de retour dans l espace emprunte', function () {
 });
 
 it('rend la main et revient au back-office', function () {
-    $this->actingAs($this->admin, 'admin')->post('/admin/prise-identite/'.$this->creatif->login);
+    $this->actingAs($this->admin, 'admin')->post('/admin_/prise-identite/'.$this->creatif->login);
 
-    $this->post('/admin/prise-identite')->assertRedirect('/admin/users');
+    $this->post('/admin_/prise-identite')->assertRedirect('/admin_/users');
 
     expect(Auth::guard('web')->check())->toBeFalse()
         ->and(session()->has(PriseIdentiteController::SESSION))->toBeFalse();
 });
 
 it('refuse la prise d identite sans session administrateur', function () {
-    $this->post('/admin/prise-identite/'.$this->creatif->login)->assertRedirect();
+    $this->post('/admin_/prise-identite/'.$this->creatif->login)->assertRedirect();
 
     expect(Auth::guard('web')->check())->toBeFalse();
 });
 
 it('journalise la prise d identite', function () {
-    $this->actingAs($this->admin, 'admin')->post('/admin/prise-identite/'.$this->creatif->login);
+    $this->actingAs($this->admin, 'admin')->post('/admin_/prise-identite/'.$this->creatif->login);
 
     $trace = AdminActivity::where('action', 'prise_identite')->sole();
 
@@ -149,7 +149,7 @@ it('montre le calendrier de selection sur la fiche', function () {
     // rien a dire tant que l'interrupteur est ferme.
     $this->creatif->update(['in_home_selection' => true]);
 
-    $this->actingAs($this->admin, 'admin')->get('/admin/users/'.$this->creatif->login.'/edit')
+    $this->actingAs($this->admin, 'admin')->get('/admin_/users/'.$this->creatif->login.'/edit')
         ->assertOk()
         ->assertSee('Date de la sélection')
         ->assertSee('Se connecter en tant que')

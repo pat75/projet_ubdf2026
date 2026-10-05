@@ -37,6 +37,6 @@ it('donne la facture et son PDF a un administrateur', function () {
     $admin = Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']);
 
     $this->actingAs($admin, 'admin');
-    $this->get('/admin/factures/'.$this->facture->id)->assertOk()->assertSee('Atelier Martin');
+    $this->get('/admin_/factures/'.$this->facture->id)->assertOk()->assertSee('Atelier Martin');
     $this->get(route('admin.facture.pdf', $this->facture))->assertOk();
 });

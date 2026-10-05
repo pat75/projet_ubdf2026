@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Mot de passe HTTP devant le back-office (/admin et /admin/*), en plus de
+# Mot de passe HTTP devant le back-office (/admin_ et /admin_/*), en plus de
 # la connexion Filament. Apache seulement (O2switch) : Valet (nginx)
 # ignore les .htaccess, le back-office local reste sans cette barriere.
 #
@@ -41,7 +41,7 @@ case "${1:-status}" in
         htaccess_bloc admin <<EOT
 # Back-office : mot de passe HTTP. Retrait : ./deploy/admin-auth.sh off
 # THE_REQUEST = requete d'origine, insensible a la reecriture vers index.php.
-<If "%{THE_REQUEST} =~ m#^\\S+ /admin(/|\\?|\\s)#">
+<If "%{THE_REQUEST} =~ m#^\\S+ /admin_(/|\\?|\\s)#">
     AuthType Basic
     AuthName "Ultra-book - administration"
     AuthUserFile $PASSWD_DIR/admin

@@ -28,10 +28,13 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            // /admin_ : adresse historique du back-office d'Ultra-book.
+            ->path('admin_')
             // Le back-office ne repond que sur le portail : sans cela il
-            // serait aussi servi sur chaque sous-domaine de book.
-            ->domain(config('ubdf.portail_domain'))
+            // serait aussi servi sur chaque sous-domaine de book. Avec et
+            // sans « www » : le portail repond sous les deux formes (la demo
+            // ultra-book.pro rendait une 404 sur /admin sans le www).
+            ->domains(self::domainesPortail())
             ->authGuard('admin')
             ->brandName('Ultra-book classique V3')
             ->login()
@@ -99,5 +102,14 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /** Domaine du portail, avec et sans « www ». */
+    private static function domainesPortail(): array
+    {
+        $domaine = (string) config('ubdf.portail_domain');
+        $nu = preg_replace('/^www\./', '', $domaine);
+
+        return array_values(array_unique([$domaine, $nu, 'www.'.$nu]));
     }
 }

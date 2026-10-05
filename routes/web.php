@@ -431,7 +431,7 @@ $portail = function (?string $langue = null) {
      | Les memes factures, pour le back-office : un administrateur n'est pas
      | le proprietaire, il lui faut donc sa propre porte d'entree.
      */
-    Route::middleware('auth:admin')->prefix('admin/factures')->name('admin.facture')->group(function () {
+    Route::middleware('auth:admin')->prefix('admin_/factures')->name('admin.facture')->group(function () {
         Route::get('/{facture}', [FormuleController::class, 'facture']);
         Route::get('/{facture}/pdf', [FormuleController::class, 'facturePdf'])->name('.pdf');
     });
@@ -443,19 +443,19 @@ $portail = function (?string $langue = null) {
      | pouvoir rendre la main meme si la session admin a expire entre
      | temps ; le controleur verifie alors le temoin de session.
      */
-    Route::get('/admin/prise-identite/{creatif}', [PriseIdentiteController::class, 'relais'])
+    Route::get('/admin_/prise-identite/{creatif}', [PriseIdentiteController::class, 'relais'])
         ->middleware('auth:admin')->name('admin.prise-identite.relais');
-    Route::post('/admin/prise-identite/{creatif}', [PriseIdentiteController::class, 'prendre'])
+    Route::post('/admin_/prise-identite/{creatif}', [PriseIdentiteController::class, 'prendre'])
         ->middleware('auth:admin')->name('admin.prise-identite');
-    Route::post('/admin/prise-identite', [PriseIdentiteController::class, 'rendre'])
+    Route::post('/admin_/prise-identite', [PriseIdentiteController::class, 'rendre'])
         ->name('admin.prise-identite.rendre');
 
     // Meme geste pour un compte visiteur, sur sa propre garde.
-    Route::get('/admin/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'relais'])
+    Route::get('/admin_/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'relais'])
         ->middleware('auth:admin')->name('admin.prise-identite-visiteur.relais');
-    Route::post('/admin/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'prendre'])
+    Route::post('/admin_/prise-identite-visiteur/{visiteur}', [PriseIdentiteVisiteurController::class, 'prendre'])
         ->middleware('auth:admin')->name('admin.prise-identite-visiteur');
-    Route::post('/admin/prise-identite-visiteur', [PriseIdentiteVisiteurController::class, 'rendre'])
+    Route::post('/admin_/prise-identite-visiteur', [PriseIdentiteVisiteurController::class, 'rendre'])
         ->name('admin.prise-identite-visiteur.rendre');
 
     // Desabonnement newsletter : lien signe present dans chaque campagne.

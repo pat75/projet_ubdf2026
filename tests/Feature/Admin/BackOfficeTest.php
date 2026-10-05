@@ -10,18 +10,18 @@ beforeEach(function () {
 });
 
 it('demande une authentification pour entrer', function () {
-    $this->get('/admin')->assertRedirect();
-    $this->get('/admin/login')->assertOk();
+    $this->get('/admin_')->assertRedirect();
+    $this->get('/admin_/login')->assertOk();
 });
 
 it('refuse un compte createur', function () {
-    $this->actingAs(User::factory()->create())->get('/admin')->assertRedirect();
+    $this->actingAs(User::factory()->create())->get('/admin_')->assertRedirect();
 });
 
 it('refuse un administrateur desactive', function () {
     $this->admin->update(['is_active' => false]);
 
-    $this->actingAs($this->admin, 'admin')->get('/admin')->assertForbidden();
+    $this->actingAs($this->admin, 'admin')->get('/admin_')->assertForbidden();
 });
 
 it('liste les creatifs, les factures et les demandes', function () {
@@ -31,13 +31,13 @@ it('liste les creatifs, les factures et les demandes', function () {
     Conversation::create(['user_id' => $creatif->id, 'channel' => 'book', 'sender_name' => 'Client Dupont', 'selector' => str_repeat('a', 24)]);
 
     $this->actingAs($this->admin, 'admin');
-    $this->get('/admin/users')->assertOk()->assertSee('ariane');
-    $this->get('/admin/invoices')->assertOk();
-    $this->get('/admin/conversations')->assertOk()->assertSee('Client Dupont');
+    $this->get('/admin_/users')->assertOk()->assertSee('ariane');
+    $this->get('/admin_/invoices')->assertOk();
+    $this->get('/admin_/conversations')->assertOk()->assertSee('Client Dupont');
 });
 
 it('permet de creer un code promo utilisable par un creatif', function () {
-    $this->actingAs($this->admin, 'admin')->get('/admin/promo-codes/create')->assertOk();
+    $this->actingAs($this->admin, 'admin')->get('/admin_/promo-codes/create')->assertOk();
 
     PromoCode::create(['code' => 'ADMIN2026', 'discount' => 3, 'discount_type' => PromoCode::MOIS, 'max_uses' => 1]);
     $creatif = User::factory()->create(['plan' => 0]);
@@ -49,19 +49,19 @@ it('permet de creer un code promo utilisable par un creatif', function () {
 it('ouvre chaque ecran du back-office', function () {
     $this->actingAs($this->admin, 'admin');
 
-    $this->get('/admin')->assertOk()->assertSee('Créatifs');
+    $this->get('/admin_')->assertOk()->assertSee('Créatifs');
 
     foreach (['users', 'conversations', 'invoices', 'promo-codes', 'selections', 'campaigns', 'categories', 'admins'] as $ecran) {
-        $this->get('/admin/'.$ecran)->assertOk();
+        $this->get('/admin_/'.$ecran)->assertOk();
     }
 
     foreach (['promo-codes', 'selections', 'campaigns', 'admins'] as $ecran) {
-        $this->get('/admin/'.$ecran.'/create')->assertOk();
+        $this->get('/admin_/'.$ecran.'/create')->assertOk();
     }
 });
 
 it('affiche le titre et la bascule clair sombre en haut', function () {
-    $this->actingAs($this->admin, 'admin')->get('/admin/users')->assertOk()
+    $this->actingAs($this->admin, 'admin')->get('/admin_/users')->assertOk()
         ->assertSee('Ultra-book classique')
         ->assertSee('fi-topbar-theme-switcher', escape: false)
         // Les retouches d'aspect (fond de la colonne de navigation)
@@ -73,6 +73,6 @@ it('ouvre la fiche d un creatif', function () {
     $creatif = App\Models\User::factory()->create(['login' => 'ariane']);
 
     // Le book est identifie par son login, jusque dans le back-office.
-    $this->actingAs($this->admin, 'admin')->get('/admin/users/'.$creatif->login.'/edit')
+    $this->actingAs($this->admin, 'admin')->get('/admin_/users/'.$creatif->login.'/edit')
         ->assertOk()->assertSee('ariane');
 });

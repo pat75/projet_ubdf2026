@@ -78,11 +78,11 @@ it('laisse le back-office accessible et affiche le badge', function () {
     $admin = Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']);
 
     $this->actingAs($admin, 'admin');
-    $this->get($this->portail.'/admin/accueil-page')->assertOk()->assertDontSee('ub-badge-maintenance', false);
+    $this->get($this->portail.'/admin_/accueil-page')->assertOk()->assertDontSee('ub-badge-maintenance', false);
 
     Reglage::definir(Reglage::MAINTENANCE, true);
 
-    $this->get($this->portail.'/admin/accueil-page')->assertOk()->assertSee('ub-badge-maintenance', false);
+    $this->get($this->portail.'/admin_/accueil-page')->assertOk()->assertSee('ub-badge-maintenance', false);
 });
 
 it('enregistre la maintenance depuis la page d administration', function () {

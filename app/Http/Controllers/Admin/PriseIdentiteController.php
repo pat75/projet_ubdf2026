@@ -65,6 +65,6 @@ class PriseIdentiteController extends Controller
 
         Auth::guard('web')->logout();
 
-        return redirect('/admin/users');
+        return redirect('/admin_/users');
     }
 }

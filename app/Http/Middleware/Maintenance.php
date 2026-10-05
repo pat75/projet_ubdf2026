@@ -78,7 +78,7 @@ class Maintenance
          | quoi il croit le site ouvert depuis le navigateur ou il vient
          | justement de le fermer.
          */
-        if ($requete->is('admin', 'admin/*')) {
+        if ($requete->is('admin_', 'admin_/*')) {
             return true;
         }
 
@@ -98,7 +98,7 @@ class Maintenance
 
     /**
      * Le back-office parle a ses composants par `livewire-<hash>/update`,
-     * hors de /admin : sans cette exception, le bouton « Enregistrer » de
+     * hors de /admin_ : sans cette exception, le bouton « Enregistrer » de
      * la page d'accueil recevait lui aussi la 503, et un site mis en
      * maintenance ne pouvait plus etre rouvert. Idem pour le formulaire de
      * connexion du back-office.

@@ -36,8 +36,8 @@ it('exporte en CSV la liste telle qu elle est filtree', function () {
 it('propose l export depuis la liste des creatifs', function () {
     User::factory()->create(['brand' => 'ub']);
 
-    $this->get('/admin/users')->assertOk()->assertSee('Exporter en CSV');
-    $this->get('/admin/invoices')->assertOk()->assertSee('Exporter en CSV');
+    $this->get('/admin_/users')->assertOk()->assertSee('Exporter en CSV');
+    $this->get('/admin_/invoices')->assertOk()->assertSee('Exporter en CSV');
 });
 
 it('journalise les modifications faites depuis le back-office', function () {
@@ -55,7 +55,7 @@ it('journalise les modifications faites depuis le back-office', function () {
         ->and($ligne->changes)->toHaveKeys(['plan', 'plan_months'])
         ->and($ligne->changes['plan'])->toBe(['avant' => 0, 'apres' => 1]);
 
-    $this->get('/admin/admin-activities')->assertOk()->assertSee('ariane');
+    $this->get('/admin_/admin-activities')->assertOk()->assertSee('ariane');
 });
 
 it('ne journalise pas ce qui vient du site', function () {

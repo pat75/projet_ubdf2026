@@ -166,9 +166,9 @@ Fichiers : ~/ultra-book.pro/.htaccess (hors public/, le deploiement n'y
 touche pas) et ~/.htpasswds/ultra-book.pro/passwd. Effet sous ~1 minute.
 
 
-11. MOT DE PASSE DU BACK-OFFICE (/admin)
+11. MOT DE PASSE DU BACK-OFFICE (/admin_)
 ----------------------------------------
-/admin et /admin/* demandent ubdf / ubdf+2026-pat, avant la connexion
+/admin_ et /admin_/* demandent ubdf / ubdf+2026-pat, avant la connexion
 Filament. Apache seulement : en local (Valet, nginx), pas de barriere.
 
    ./deploy/admin-auth.sh status   active ou non
@@ -209,7 +209,7 @@ LKJLMKjfgh+654654az
 
    php artisan tinker --execute="App\Models\Admin::all(['id','name','email','is_active'])->each(fn(\$a)=>print(\$a->toJson().PHP_EOL));"
 
-Puis se connecter sur https://www.ultra-book.pro/admin (identifiants
+Puis se connecter sur https://ultra-book.pro/admin_ (identifiants
 HTTP du point 11, puis l'adresse et le mot de passe crees ici). Les
 administrateurs suivants peuvent etre crees depuis le back-office :
 Reglages -> Administrateurs.

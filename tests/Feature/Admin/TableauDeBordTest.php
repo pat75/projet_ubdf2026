@@ -27,7 +27,7 @@ beforeEach(function () {
 });
 
 it('pose les quatre courbes et les deux listes sur l’accueil', function () {
-    $this->get('/admin')->assertOk();
+    $this->get('/admin_')->assertOk();
 
     expect(Filament::getWidgets())->toContain(
         ChiffreAffairesAnnuel::class,

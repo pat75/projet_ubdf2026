@@ -61,6 +61,6 @@ class PriseIdentiteVisiteurController extends Controller
 
         Auth::guard('visitor')->logout();
 
-        return redirect('/admin/visitors');
+        return redirect('/admin_/visitors');
     }
 }
