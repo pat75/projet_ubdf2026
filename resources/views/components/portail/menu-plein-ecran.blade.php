@@ -46,6 +46,41 @@
             .menu-plein-ecran .mpe-large { display: flex; }
             .menu-plein-ecran .mpe-etapes { grid-template-columns: auto auto auto auto auto; justify-content: start; }
         }
+        /* Mobile : logo reduit de 20 %, « Une mine de creatifs » juste sous
+           le logo, etapes en fleches verticales imbriquees, categories en
+           lignes pleine largeur comme le filtre par metiers. */
+        @@media (max-width: 767px) {
+            .menu-plein-ecran .mpe-logo { width: 88px !important; } /* 130 -> 104 -> 88px */
+            .menu-plein-ecran > header { border-bottom: 0 !important; padding-bottom: 4px !important; }
+            .menu-plein-ecran > main { padding-top: 8px !important; }
+            .menu-plein-ecran .mpe-etapes { gap: 0; }
+            /* Petite fleche centree (20px de large, 10px de haut) sous chaque
+               bloc ; le bloc suivant s'echancre pour la recevoir, avec un filet
+               regulier de 4px. Titre centre, numero cale a gauche. */
+            .menu-plein-ecran .mpe-etape {
+                position: relative; justify-content: center; border: 0 !important; border-radius: 0 !important;
+                padding: 22px 52px 26px !important; margin-top: -6px;
+                clip-path: polygon(0 0, calc(50% - 14px) 0, 50% 10px, calc(50% + 14px) 0, 100% 0,
+                    100% calc(100% - 10px), calc(50% + 10px) calc(100% - 10px), 50% 100%, calc(50% - 10px) calc(100% - 10px), 0 calc(100% - 10px));
+            }
+            .menu-plein-ecran .mpe-etape-1 { margin-top: 0; padding-top: 18px !important; background: #2a2928 !important;
+                clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(50% + 10px) calc(100% - 10px), 50% 100%, calc(50% - 10px) calc(100% - 10px), 0 calc(100% - 10px)); }
+            .menu-plein-ecran .mpe-etape-2 { background: #33312f !important; }
+            .menu-plein-ecran .mpe-etape-3 { background: #3d3b39 !important; padding-bottom: 18px !important;
+                clip-path: polygon(0 0, calc(50% - 14px) 0, 50% 10px, calc(50% + 14px) 0, 100% 0, 100% 100%, 0 100%); }
+            .menu-plein-ecran .mpe-etape .mpe-num { position: absolute; left: 16px; top: 50%; transform: translateY(calc(-50% - 2px)); }
+            .menu-plein-ecran .mpe-etape-3 .mpe-num { transform: translateY(calc(-50% + 3px)); }
+            .menu-plein-ecran .mpe-etape-1 .mpe-num { transform: translateY(calc(-50% - 5px)); }
+            .menu-plein-ecran .mpe-cats { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .menu-plein-ecran .mpe-cat {
+                height: 52px; padding: 0 !important; gap: 16px !important; border: 0 !important; border-radius: 0 !important;
+                background: linear-gradient(90deg, #3a3a3a, #4a4a4a) !important;
+            }
+            .menu-plein-ecran .mpe-cat:hover { transform: none; }
+            .menu-plein-ecran .mpe-cat .mpe-nuancier { width: 52px !important; height: 52px !important; border-radius: 0 !important; }
+            .menu-plein-ecran .mpe-cat .mpe-nom { font-size: 18px !important; font-weight: 400 !important; }
+            .menu-plein-ecran .mpe-cat .mpe-fleche { display: none; }
+        }
     </style>
 
     <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-[#2a2928] px-[clamp(20px,4vw,56px)] py-5">
@@ -55,7 +90,7 @@
             <span class="mpe-large">Fermer</span>
         </button>
 
-        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="block h-auto w-[130px] invert"></a>
+        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mpe-logo block h-auto w-[130px] invert"></a>
 
         {{-- Colonne conservee meme vide : la grille 1fr/auto/1fr garde le
              logo centre. Un utilisateur connecte a deja son portfolio. --}}
@@ -82,8 +117,8 @@
                             <svg width="28" height="10" viewBox="0 0 28 10"><path d="M0 5h26M22 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </li>
                     @endif
-                    <li class="flex items-center gap-3 whitespace-nowrap rounded-xl border border-[#2a2928] bg-[#1c1b1a] p-4">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-full text-[14px] font-bold text-white" style="background: {{ $rouge }}">{{ $i + 1 }}</span>
+                    <li class="mpe-etape mpe-etape-{{ $i + 1 }} flex items-center gap-3 whitespace-nowrap rounded-xl border border-[#2a2928] bg-[#1c1b1a] p-4">
+                        <span class="mpe-num flex h-7 w-7 items-center justify-center rounded-full text-[14px] font-bold text-white" style="background: {{ $rouge }}">{{ $i + 1 }}</span>
                         <span class="text-[15px] font-semibold leading-tight">{{ $etape }}</span>
                     </li>
                 @endforeach
@@ -93,11 +128,11 @@
         <div class="mpe-bas flex flex-wrap gap-x-16 gap-y-12 border-t border-[#2a2928] pt-10">
             <section class="flex min-w-0 flex-[2_1_520px] flex-col gap-[18px]">
                 <p class="m-0 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#8a8784]">Rechercher par catégories</p>
-                <div class="grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+                <div class="mpe-cats grid gap-2.5 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
                     @foreach ($categories as [$url, $nom, $couleur])
                         <a href="{{ $url }}" class="mpe-cat flex items-center gap-3 rounded-[10px] border border-[#302f2d] bg-[#262524] p-4 hover:border-[#454341] hover:bg-[#2e2d2b]">
-                            <span class="h-3.5 w-3.5 flex-none rounded-[3px]" style="background: {{ $couleur }}"></span>
-                            <span class="min-w-0 flex-1 text-[16px] font-semibold">{{ $nom }}</span>
+                            <span class="mpe-nuancier h-3.5 w-3.5 flex-none rounded-[3px]" style="background: {{ $couleur }}"></span>
+                            <span class="mpe-nom min-w-0 flex-1 text-[16px] font-semibold">{{ $nom }}</span>
                             <span class="mpe-fleche text-[#6e6b68]">→</span>
                         </a>
                     @endforeach

@@ -885,6 +885,39 @@
     }
 }
 
+/* Menu du haut : icones Connexion et Creer un book, mobile seulement. */
+.icone_menu_mobile { display: none !important; }
+@media only screen and (max-width: 767px) {
+    #menu-top-fixed .icone_menu_mobile { display: flex !important; align-items: center; padding-left: 4px !important; padding-right: 4px !important; }
+    #menu-top-fixed .icone_menu_mobile button,
+    #menu-top-fixed .icone_menu_mobile a { display: flex; padding: 0; border: 0; background: none; color: #1b1b1b; cursor: pointer; }
+    #menu-top-fixed .icone_menu_mobile svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+    /* Filtre et loupe a la hauteur du dessin de l'icone Connexion (17px). */
+    #menu-top-fixed .icon_domaine svg,
+    #menu-top-fixed .link_rechercher svg { width: 17px !important; height: 17px !important; display: block; }
+    #menu-top-fixed .icon_domaine, #menu-top-fixed .link_rechercher { display: flex !important; align-items: center; }
+    /* Logo reduit de 10 % puis 5 % (120 -> 103px, Dustfolio 168 -> 143px). */
+    #menu-top-fixed .item.logo img.logo_normal { width: 103px !important; }
+    body.marque_df #menu-top-fixed .item.logo img.logo_normal { width: 143px !important; }
+    /* Pas de bulle d'aide sur l'icone Rechercher. */
+    body .ui.popup.popup_rechercher, body .ui.popup.popup_rechercher.visible { display: none !important; visibility: hidden !important; }
+}
+
+/* Mobile : panneau « Filtres par metiers » en plein ecran sous le menu
+   (place par la directive x-infobulle, classe plein_ecran). */
+.ui.popup.popup_ptf.plein_ecran {
+    border-radius: 0 !important; overflow-y: auto; padding: 28px 20px 40px !important; box-shadow: none !important;
+}
+.ui.popup.popup_ptf.plein_ecran::before { display: none !important; }
+.ui.popup.popup_ptf.plein_ecran .grid, .ui.popup.popup_ptf.plein_ecran .column { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+.ui.popup.popup_ptf.plein_ecran h4.ui.header { font-size: 24px !important; margin: 0 0 20px !important; }
+.ui.popup.popup_ptf.plein_ecran ul { margin: 0 !important; padding: 0 !important; }
+.ui.popup.popup_ptf.plein_ecran li {
+    display: flex !important; align-items: center; width: 100% !important; height: 52px !important;
+    margin: 0 0 8px !important; font-size: 18px !important;
+}
+.ui.popup.popup_ptf.plein_ecran li .nuancier { width: 52px !important; height: 52px !important; margin-right: 16px !important; flex-shrink: 0; }
+
 /* Pages metier : introduction et questions frequentes (SEO / GEO). */
 .bloc_titre .metier_intro {
     max-width: 760px;

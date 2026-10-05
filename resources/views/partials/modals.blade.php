@@ -156,6 +156,18 @@
                                 </a>
                             </div>
                         @else
+                            {{-- Mobile seulement (portail.css .icone_menu_mobile) : les
+                                 deux boutons texte ci-dessous y sont masques. --}}
+                            <div class="item icone_menu_mobile">
+                                <button type="button" x-data @click="$store.modale.ouvrir('connexion')" aria-label="{{ __('Connexion') }}">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+                                </button>
+                            </div>
+                            <div class="item icone_menu_mobile">
+                                <a href="{{ lien('inscription.page') }}" aria-label="{{ __('Créer un book') }}">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg>
+                                </a>
+                            </div>
                             <div class="item btn_connection_ mobile-hidden  cursor_effect">
                                 <a class="ui black basic button btn_connection" x-data @click="$store.modale.ouvrir('connexion')">{{ __('Connexion') }}</a>
                             </div>

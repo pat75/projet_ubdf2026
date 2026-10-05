@@ -30,7 +30,23 @@ function infobulle(Alpine) {
          * des positions forcees (.popup_memobook margin-left -100px,
          * .popup_ptf 76px/16px, top/right sur mobile) qui les decalaient.
          */
+        // Mobile : le panneau des metiers occupe tout l'ecran sous le menu.
+        const pleinEcran = () => window.innerWidth < 768 && popup.matches('.popup_ptf');
+
         const placer = () => {
+            popup.classList.toggle('plein_ecran', pleinEcran());
+            if (pleinEcran()) {
+                const menu = document.querySelector('#menu-top-fixed')?.getBoundingClientRect();
+                const plein = {
+                    position: 'fixed', top: `${menu ? menu.bottom : 0}px`, left: '0', right: '0', bottom: '0',
+                    width: 'auto', 'max-width': 'none', margin: '0', transform: 'none',
+                };
+                for (const [propriete, valeur] of Object.entries(plein)) {
+                    popup.style.setProperty(propriete, valeur, 'important');
+                }
+                return;
+            }
+            for (const propriete of ['width', 'max-width']) popup.style.removeProperty(propriete);
             const cible = el.getBoundingClientRect();
             const largeur = popup.offsetWidth;
             const gauche = Math.min(
@@ -50,8 +66,10 @@ function infobulle(Alpine) {
                 popup.style.setProperty(propriete, valeur, 'important');
             }
         };
+        let ouvertA = 0;
         const montrer = () => {
             clearTimeout(minuterie);
+            if (!popup.classList.contains('visible')) ouvertA = Date.now();
             popup.classList.remove('hidden');
             popup.classList.add('visible', 'bottom', 'center');
             placer();
@@ -73,11 +91,23 @@ function infobulle(Alpine) {
          */
         const garder = () => clearTimeout(minuterie);
 
+        // Plein ecran (mobile) : un second toucher sur le declencheur referme.
+        const basculer = (e) => {
+            // Au toucher, le clic suit le survol qui vient d'ouvrir : l'ignorer.
+            if (!pleinEcran() || !popup.classList.contains('visible') || Date.now() - ouvertA < 500) return;
+            e.preventDefault();
+            clearTimeout(minuterie);
+            popup.classList.remove('visible');
+            popup.classList.add('hidden');
+        };
+        el.addEventListener('click', basculer);
+
         el.addEventListener('mouseenter', montrer);
         el.addEventListener('mouseleave', cacher);
         popup.addEventListener('mouseenter', garder);
         popup.addEventListener('mouseleave', cacher);
         cleanup(() => {
+            el.removeEventListener('click', basculer);
             el.removeEventListener('mouseenter', montrer);
             el.removeEventListener('mouseleave', cacher);
             popup.removeEventListener('mouseenter', garder);
