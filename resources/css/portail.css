@@ -929,6 +929,15 @@
     .portfolios_du_moment { display: none !important; }
 }
 
+/* Pages metier, desktop : titre agrandi de 20 % puis encore 20 % (28 -> 40,3px) et descendu
+   de 20px ; titre, compteur et description resserres pour former un seul
+   bloc typographique. */
+@media only screen and (min-width: 768px) {
+    .bloc_titre h1.metier_group { font-size: 40.3px; line-height: 46px; margin-top: 20px; margin-bottom: 4px; } /* 28 -> 33,6 -> 40,3px */
+    .bloc_titre .sub_title { margin-top: 0; }
+    .container.bloc_portfolios .bloc_titre .metier_intro { margin-top: 12px; padding-bottom: 8px; line-height: 25px; }
+}
+
 /* Pages metier, mobile : titre du domaine descendu de 20px, texte de
    description reduit de 20 % (17 -> 13,6px). */
 @media only screen and (max-width: 767px) {
