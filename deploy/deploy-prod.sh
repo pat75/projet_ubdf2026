@@ -160,6 +160,9 @@ done
 # Pas de --chmod : le rsync de macOS (openrsync / 2.6.9) ne le connait pas.
 rsync -a -e "$SSH_CMD" "$PROJECT_DIR/.env.prod" "$REMOTE:$REMOTE_PATH/.env.prod"
 ssh_run "chmod 600 .env.prod"
+# rsync recopie les droits d'un fichier neuf : un fichier cree en 600 sur le
+# poste arrivait illisible par le serveur web (404, ex. visuel de la page 404).
+ssh_run "find public -type f ! -perm -o+r ! -path 'public/storage/*' -exec chmod a+r {} +"
 ok "code et .env.prod envoyes"
 
 # 7) Dependances, migrations, caches.
