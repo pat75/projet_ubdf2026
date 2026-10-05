@@ -113,7 +113,7 @@
                 <label class="flex cursor-pointer items-center gap-3 text-[15px] font-light text-white/80">
                     <input type="checkbox" name="compte" value="1" x-model="compte"
                            class="size-4 rounded-none border-white/40 bg-transparent text-white focus:ring-0">
-                    {{ __('Créer mon compte visiteur, ou me connecter au mien') }}
+                    {{ __('Créer mon compte visiteur gratuit') }}
                 </label>
                 <div x-show="compte" x-cloak x-transition.opacity class="mt-4">
                     <div class="relative" x-data="{ voir: false }">

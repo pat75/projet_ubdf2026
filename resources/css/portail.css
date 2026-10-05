@@ -776,6 +776,28 @@
     .bloc_accueil_entreprise2020_stats .grid .left.column h2,
     .bloc_accueil_ubsitepro .grid .left.column h2 { font-size: 52px; line-height: 52px; margin-bottom: -14px; }
     .bloc_rechercher #bloc_rechercher h2 { margin: -12px 0 30px 0; font-size: 28px; }
+
+    /* « Une selection de qualite » : typographie de core.css, dont les
+       regles visent des h3/h5/h6 alors que le gabarit pose des p.t-h3...
+       (elles ne s'appliquaient pas) ; chiffres reduits pour le mobile. */
+    .bloc_accueil_entreprise2020_stats .grid .left.column h2 { margin-bottom: 28px; }
+    .bloc_accueil_entreprise2020_stats .grid .t-h5 {
+        text-transform: uppercase; font-size: 12px; letter-spacing: .08em; color: #ddd; margin-bottom: 6px;
+    }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .t-h3 {
+        font-family: 'Lato', sans-serif; font-weight: 300; margin: 0;
+    }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .t-h6 {
+        text-transform: uppercase; letter-spacing: .04em; margin: 4px 0 0;
+    }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbselection .t-h3 { font-size: 72px; line-height: 72px; color: #fff; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbselection .t-h6 { font-size: 16px; color: #fff; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook { margin-top: 24px; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook .t-h3 { font-size: 48px; line-height: 52px; color: #00d6cf; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook .t-h6 { font-size: 13px; color: #00d6cf; }
+    /* Phrase « Trouver et contacter… » et les trois boutons : masques. */
+    .bloc_accueil_entreprise2020_stats .grid .t-h4,
+    .bloc_accueil_entreprise2020_stats .grid .ubdf_principes { display: none !important; }
 }
 
 /*
@@ -795,6 +817,71 @@
         max-width: 100% !important;
         background-size: contain !important;
         background-position: center !important;
+        /* Remonte de 40px. */
+        position: relative;
+        top: -40px;
+    }
+
+    /* « Creer votre portfolio » : bloc ramene de 520 a 416px (-20 %), texte
+       resserre, visuel a la hauteur de son image (plus de vide autour). */
+    .bloc_accueil_modele2020 { height: 416px !important; overflow: hidden; } /* 548 -> 438 -> 416px : le bas du visuel est coupe, choix assume */
+    .bloc_accueil_modele2020 > .grid { padding-top: 14px !important; }
+    .bloc_accueil_modele2020 .grid > .column:first-child { padding: 0 !important; }
+    .bloc_accueil_modele2020 .grid .t-h5 { margin: 0 0 4px; }
+    .bloc_accueil_modele2020 .grid h2 { margin: 0 0 8px !important; }
+    .bloc_accueil_modele2020 .grid .t-h4 { margin: 0 0 4px; }
+    .bloc_accueil_modele2020 .grid .col_visuel_mdl_book { padding: 0 !important; }
+    .bloc_accueil_modele2020 .grid .col_visuel_mdl_book .accueil_mdl_book_visuel {
+        height: 314px !important; margin-top: 0 !important; top: 8px; /* agrandi (+10 %, +15 %, +10 %), descendu de 30px au total */
+        /* Toute la largeur de l'ecran : a cette hauteur l'image (369px) depasse la colonne. */
+        width: calc(100% + 40px) !important; max-width: none !important; margin-left: -20px !important;
+        background-size: auto 100% !important;
+    }
+
+    /* Bloc de recherche remonte de 30px de plus, titre centre. */
+    /* Carte de recherche centree verticalement dans le bandeau video bleu. */
+    .bloc_rechercher { margin-top: -190px !important; position: relative; top: -64px; }
+    .bloc_rechercher .accueil_titre_definition { margin: 0 auto; }
+    .bloc_rechercher .accueil_titre_definition h1,
+    .bloc_rechercher .accueil_titre_definition h2 { text-align: center !important; }
+
+    /* « Une selection de qualite » : bloc reduit d'environ 10 % (vide sous
+       les chiffres retire), visuel agrandi de 20 %. */
+    .bloc_accueil_entreprise2020_stats { padding: 28px 0 !important; }
+    .bloc_accueil_entreprise2020_stats .grid img { width: 239px !important; max-width: none !important; } /* 199 -> 239px */
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook { margin-bottom: 0 !important; }
+    /* Accueil : phrase de definition masquee, titre « Trouvez les meilleurs
+       portfolios » centre verticalement au-dessus du champ. */
+    .accueil_definition {
+        display: none;
+    }
+    .accueil_titre_definition {
+        position: relative;
+        top: 0;
+    }
+}
+
+/*
+ | Accueil, « Une selection de qualite » en desktop : mise en forme d'origine
+ | de core.css (.accueil_stats h3/h5/h6), reprise sur les p.t-h* du gabarit
+ | actuel que ces regles ne visaient plus.
+ */
+@media only screen and (min-width: 768px) {
+    .bloc_accueil_entreprise2020_stats .grid .t-h5 {
+        text-transform: uppercase; margin-bottom: 0; font-size: 12px; font-weight: 400; color: #ddd;
+    }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .t-h3 { font-family: 'Lato', sans-serif; font-weight: 300; margin: 0; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .t-h6 {
+        font-family: 'Lato', sans-serif; text-transform: uppercase; margin: -20px 0 0; font-size: 16px; font-weight: 400; color: #00d6cf;
+    }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbselection { float: left; margin-right: 42px; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbselection .t-h3 { font-size: 118px; line-height: 118px; color: #fff; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbselection .t-h6 { margin-top: 0; color: #fff; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook { margin-top: 10px; margin-bottom: 90px; padding-top: 6px; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook .t-h3 { font-size: 48px; line-height: 58px; color: #00d6cf; }
+    .bloc_accueil_entreprise2020_stats .accueil_stats .stats_nbbook .t-h6 { margin-top: 0; font-size: 13px; }
+    .bloc_accueil_entreprise2020_stats .grid .t-h4 {
+        font-family: 'Lato', sans-serif; font-weight: 300; margin-top: 20px; font-size: 25px; line-height: 32px;
     }
 }
 
