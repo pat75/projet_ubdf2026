@@ -46,12 +46,43 @@
             .menu-plein-ecran .mpe-large { display: flex; }
             .menu-plein-ecran .mpe-etapes { grid-template-columns: auto auto auto auto auto; justify-content: start; }
         }
+        /* Desktop : croix seule tout a gauche, « Creer un portfolio » tout a
+           droite, logo (-10 %) au droit du debut du titre ; les trois sur une
+           meme ligne. Le logo suit la marge de <main> (max 1280px centre). */
+        @@media (min-width: 768px) {
+            .menu-plein-ecran > header {
+                display: flex !important; align-items: center; justify-content: space-between;
+                position: relative; min-height: 84px; padding: 0 24px !important;
+            }
+            .menu-plein-ecran .mpe-fermer {
+                border: 0 !important; background: none !important; padding: 8px !important; border-radius: 0 !important;
+            }
+            .menu-plein-ecran .mpe-fermer:hover { opacity: .7; }
+            .menu-plein-ecran .mpe-fermer svg { width: 20px; height: 20px; }
+            .menu-plein-ecran .mpe-fermer .mpe-large { display: none !important; }
+            .menu-plein-ecran .mpe-logo-lien {
+                position: absolute; top: 50%; transform: translateY(-50%);
+                /* Meme retrait que le titre (marge de <main> ci-dessous). */
+                left: calc(max(0px, (100% - 1280px) / 2) + var(--mpe-retrait));
+            }
+            .menu-plein-ecran .mpe-logo { width: 117px !important; } /* 130 -> 117px */
+            /* Retrait du contenu : celui d'origine, mais jamais a moins de 80px
+               du bord de l'ecran, pour que le logo (cale dessus) ne passe pas
+               sous la croix sur un ecran etroit. */
+            .menu-plein-ecran { --mpe-retrait: max(clamp(20px, 4vw, 56px), calc(80px - max(0px, (100% - 1280px) / 2))); }
+            .menu-plein-ecran > main { padding-left: var(--mpe-retrait) !important; }
+        }
         /* Mobile : logo reduit de 20 %, « Une mine de creatifs » juste sous
            le logo, etapes en fleches verticales imbriquees, categories en
            lignes pleine largeur comme le filtre par metiers. */
         @@media (max-width: 767px) {
             .menu-plein-ecran .mpe-logo { width: 88px !important; } /* 130 -> 104 -> 88px */
-            .menu-plein-ecran > header { border-bottom: 0 !important; padding-bottom: 4px !important; }
+            /* Croix calee a gauche, logo centre sur la largeur, sur la meme ligne. */
+            .menu-plein-ecran > header {
+                display: flex !important; align-items: center; position: relative;
+                border-bottom: 0 !important; padding-bottom: 4px !important;
+            }
+            .menu-plein-ecran .mpe-logo-lien { position: absolute; left: 50%; top: 50%; transform: translate(-50%, calc(-50% + 8px)); }
             .menu-plein-ecran > main { padding-top: 8px !important; }
             .menu-plein-ecran .mpe-etapes { gap: 0; }
             /* Petite fleche centree (20px de large, 10px de haut) sous chaque
@@ -84,13 +115,13 @@
     </style>
 
     <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-[#2a2928] px-[clamp(20px,4vw,56px)] py-5">
-        <button type="button" @click="$store.menu.basculer()"
-                class="flex cursor-pointer items-center gap-2.5 justify-self-start rounded-full border border-[#333130] bg-transparent py-2.5 pl-3.5 pr-[18px] text-[14px] font-semibold text-[#f2f0ed] hover:border-[#4a4846] hover:bg-[#222120]">
+        <button type="button" @click="$store.menu.basculer()" aria-label="Fermer"
+                class="mpe-fermer flex cursor-pointer items-center gap-2.5 justify-self-start rounded-full border border-[#333130] bg-transparent py-2.5 pl-3.5 pr-[18px] text-[14px] font-semibold text-[#f2f0ed] hover:border-[#4a4846] hover:bg-[#222120]">
             <svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
             <span class="mpe-large">Fermer</span>
         </button>
 
-        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mpe-logo block h-auto w-[130px] invert"></a>
+        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}" class="mpe-logo-lien"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mpe-logo block h-auto w-[130px] invert"></a>
 
         {{-- Colonne conservee meme vide : la grille 1fr/auto/1fr garde le
              logo centre. Un utilisateur connecte a deja son portfolio. --}}
