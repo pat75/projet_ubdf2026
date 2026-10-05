@@ -78,13 +78,16 @@ if [ -e "$PROJECT_DIR/public/hot" ]; then
     rm -f "$PROJECT_DIR/public/hot"
 fi
 BRANCHE="$(git -C "$PROJECT_DIR" branch --show-current)"
-if [ -n "$DEPLOY_BRANCH" ] && [ "$BRANCHE" != "$DEPLOY_BRANCH" ]; then
-    confirm "Branche '$BRANCHE' au lieu de '$DEPLOY_BRANCH'. Continuer ?" || exit 0
-fi
-if [ -n "$(git -C "$PROJECT_DIR" status --porcelain)" ]; then
-    alerte "Arbre git non propre (modifications non commitees) :"
-    git -C "$PROJECT_DIR" status --short | head -20
-    confirm "Deployer quand meme ?" || exit 0
+# Mode sync : pas de controle git (branche, arbre non propre).
+if [ "$MODE" != "sync" ]; then
+    if [ -n "$DEPLOY_BRANCH" ] && [ "$BRANCHE" != "$DEPLOY_BRANCH" ]; then
+        confirm "Branche '$BRANCHE' au lieu de '$DEPLOY_BRANCH'. Continuer ?" || exit 0
+    fi
+    if [ -n "$(git -C "$PROJECT_DIR" status --porcelain)" ]; then
+        alerte "Arbre git non propre (modifications non commitees) :"
+        git -C "$PROJECT_DIR" status --short | head -20
+        confirm "Deployer quand meme ?" || exit 0
+    fi
 fi
 ok "branche $BRANCHE, commit $COMMIT"
 

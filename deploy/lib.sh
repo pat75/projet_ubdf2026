@@ -89,14 +89,16 @@ caches() {
 #   htaccess_bloc nom --retirer    retire le bloc (et le fichier s'il est vide)
 #   htaccess_a_bloc nom            vrai si le bloc est pose
 htaccess_bloc() {
-    local nom="$1" actuel nouveau
-    actuel="$(ssh_run "cat .htaccess 2>/dev/null || true")"
+    local nom="$1" actuel nouveau contenu=""
+    # Lire le contenu AVANT tout ssh : ssh avalerait l'entree standard.
+    [ "${2:-}" != "--retirer" ] && contenu="$(cat)"
+    actuel="$(ssh_run "cat .htaccess 2>/dev/null || true" </dev/null)"
     nouveau="$(printf '%s\n' "$actuel" | awk -v n="$nom" '
         $0 == "# BEGIN " n { saute = 1; next }
         $0 == "# END " n   { saute = 0; next }
         !saute')"
     if [ "${2:-}" != "--retirer" ]; then
-        nouveau="$(printf '%s\n\n# BEGIN %s\n%s\n# END %s' "$nouveau" "$nom" "$(cat)" "$nom")"
+        nouveau="$(printf '%s\n\n# BEGIN %s\n%s\n# END %s' "$nouveau" "$nom" "$contenu" "$nom")"
     fi
     nouveau="$(printf '%s\n' "$nouveau" | sed '/./,$!d')"
     if [ -z "$nouveau" ]; then
