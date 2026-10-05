@@ -55,11 +55,11 @@ class StatistiquesAnnuelles
     }
 
     /**
-     * Les deux courbes d'un graphique, plus l'ecart entre les deux annees
+     * Les trois courbes d'un graphique (annee en cours et deux precedentes), plus l'ecart entre les deux annees
      * arretees a la meme date.
      *
      * @param  array<int, array{0: Builder, 1: string, 2: string|null}>  $sources
-     * @return array{serie: array<int, float|null>, serie_precedente: array<int, float|null>, total: float, total_precedent: float, ecart: float|null, annee: int, annee_precedente: int}
+     * @return array{serie: array<int, float|null>, serie_precedente: array<int, float|null>, serie_anterieure: array<int, float|null>, total: float, total_precedent: float, ecart: float|null, annee: int, annee_precedente: int, annee_anterieure: int}
      */
     public function comparaison(array $sources, ?string $cle = null): array
     {
@@ -68,6 +68,9 @@ class StatistiquesAnnuelles
 
         $serie = $this->cumul($sources, $annee, $cle);
         $precedente = $this->cumul($this->cloner($sources), $annee - 1, $cle);
+        // Troisieme courbe, en repere : une seule annee de recul ne dit pas
+        // si l'ecart est une tendance ou un accident.
+        $anterieure = $this->cumul($this->cloner($sources), $annee - 2, $cle);
 
         $total = (float) ($serie[$semaine - 1] ?? 0.0);
         $totalPrecedent = (float) ($precedente[$semaine - 1] ?? 0.0);
@@ -75,6 +78,7 @@ class StatistiquesAnnuelles
         return [
             'serie' => $serie,
             'serie_precedente' => $precedente,
+            'serie_anterieure' => $anterieure,
             'total' => $total,
             'total_precedent' => $totalPrecedent,
             // Sans point de comparaison, pas de pourcentage : « +100 % »
@@ -84,6 +88,7 @@ class StatistiquesAnnuelles
                 : null,
             'annee' => $annee,
             'annee_precedente' => $annee - 1,
+            'annee_anterieure' => $annee - 2,
         ];
     }
 

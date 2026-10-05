@@ -20,7 +20,7 @@
     <x-filament::section :heading="__('Encaissé')">
         <div class="ub-encaissements-grille">
             @foreach ($this->lignes() as $ligne)
-                <div class="ub-encaissement">
+                <div class="ub-encaissement ub-encaissement-{{ $loop->iteration }}">
                     <div class="ub-encaissement-tete">
                         <span class="ub-encaissement-libelle">{{ $ligne['libelle'] }}</span>
 

@@ -7,10 +7,10 @@ use App\Filament\Support\ActionsCompte;
 use App\Models\User;
 use App\Services\Espace\AffichageProfil;
 use Filament\Actions\Action;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
+use Illuminate\Support\HtmlString;
 
 /**
  * Les dix derniers comptes createurs ouverts, a cote de ceux des
@@ -43,14 +43,23 @@ class DernieresInscriptionsCreatifs extends TableWidget
             ->query(User::query()->latest('created_at')->limit(10))
             ->paginated(false)
             ->columns([
-                ImageColumn::make('avatar')->label('')->circular()->imageSize(32)
-                    ->getStateUsing(fn (User $u) => app(AffichageProfil::class)->photoUrl($u))
-                    ->defaultImageUrl(fn (User $u) => app(AffichageProfil::class)->medaillonCreatif($u)),
+                // Avatar, identifiant et nom dans une seule cellule, sur une
+                // ligne : deux colonnes laissaient un blanc entre la photo
+                // et le nom.
+                TextColumn::make('login')->label(__('Créatif'))
+                    ->formatStateUsing(function (User $u): HtmlString {
+                        $profil = app(AffichageProfil::class);
+                        $photo = $profil->photoUrl($u) ?? $profil->medaillonCreatif($u);
+                        $nom = trim($u->firstname.' '.$u->lastname);
 
-                TextColumn::make('login')->label(__('Identifiant'))
-                    ->description(fn (User $u) => trim($u->firstname.' '.$u->lastname) ?: null)
-                    ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true)
-                    ->wrap(),
+                        return new HtmlString('<span class="ub-creatif">'
+                            .'<img src="'.e($photo).'" alt="" class="ub-creatif-avatar">'
+                            .'<span class="ub-creatif-login">'.e($u->login).'</span>'
+                            .($nom !== '' ? '<span class="ub-creatif-nom">'.e($nom).'</span>' : '')
+                            .'</span>');
+                    })
+                    ->html()
+                    ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true),
 
                 TextColumn::make('created_at')->label(__('Inscrit'))
                     ->since()->tooltip(fn (User $u) => $u->created_at?->format('d/m/Y H:i'))

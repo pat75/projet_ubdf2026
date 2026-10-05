@@ -67,12 +67,13 @@ it('affiche chaque bloc du tableau de bord sans erreur', function () {
     }
 });
 
-it('trace deux annees, l’annee en cours et la precedente', function () {
+it('trace trois annees, l’annee en cours et les deux precedentes', function () {
     $donnees = donnees(Livewire::test(ChiffreAffairesAnnuel::class)->instance());
 
-    expect($donnees['datasets'])->toHaveCount(2)
+    expect($donnees['datasets'])->toHaveCount(3)
         ->and($donnees['datasets'][0]['label'])->toBe((string) now()->year)
         ->and($donnees['datasets'][1]['label'])->toBe((string) now()->subYear()->year)
+        ->and($donnees['datasets'][2]['label'])->toBe((string) now()->subYears(2)->year)
         ->and($donnees['labels'])->toHaveCount(53);
 });
 

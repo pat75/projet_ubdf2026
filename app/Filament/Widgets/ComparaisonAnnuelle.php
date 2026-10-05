@@ -8,9 +8,9 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Deux annees sur un meme graphique : l'annee en cours en trait plein,
- * l'annee precedente en pointille gris, toutes deux cumulees depuis le
- * 1er janvier.
+ * Trois annees sur un meme graphique : l'annee en cours en bleu plein,
+ * les deux precedentes en pointille gris puis gris clair, toutes cumulees
+ * depuis le 1er janvier.
  *
  * La courbe de l'annee en cours s'arrete au jour present ; la description
  * du graphique donne l'ecart avec l'annee precedente arretee a la meme
@@ -94,6 +94,16 @@ abstract class ComparaisonAnnuelle extends ChartWidget
                     'pointRadius' => 0,
                     'borderWidth' => 2,
                 ],
+                [
+                    'label' => (string) $c['annee_anterieure'],
+                    'data' => $c['serie_anterieure'],
+                    'borderColor' => '#d1d5db',
+                    'borderDash' => [4, 4],
+                    'fill' => false,
+                    'tension' => .3,
+                    'pointRadius' => 0,
+                    'borderWidth' => 2,
+                ],
             ],
             'labels' => $stats->libelles($c['annee']),
         ];
@@ -105,7 +115,8 @@ abstract class ComparaisonAnnuelle extends ChartWidget
             'maintainAspectRatio' => false,
             'plugins' => [
                 'legend' => ['display' => true, 'position' => 'bottom',
-                    'labels' => ['boxWidth' => 12, 'usePointStyle' => true]],
+                    // padding : ecart entre les legendes des annees (~30px).
+                    'labels' => ['boxWidth' => 12, 'usePointStyle' => true, 'padding' => 30]],
             ],
             'scales' => [
                 // 53 dates ne tiennent pas sur la largeur d'une demi-page :

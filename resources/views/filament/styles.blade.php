@@ -218,4 +218,32 @@
             background-color: rgb(251 146 60 / .12);
             color: rgb(253 186 116);
         }
+    /*
+     | Tableau de bord : fonds des chiffres cles (ChiffresCles) et des
+     | quatre cases du bloc « Encaisse », aux couleurs des metiers du
+     | portail (core.css, .coultxt_*), meme teinte eclaircie pour que le
+     | texte noir reste lisible.
+     */
+    .fi-wi-stats-overview-stat.ub-stat-creatifs { background-color: rgb(211 213 222); }  /* graphiste #757c98 */
+    .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(233 215 210); }  /* photographe #bb8372 */
+    .fi-wi-stats-overview-stat.ub-stat-demandes { background-color: rgb(227 224 234); }  /* architecte #a79fbc */
+    .ub-encaissements .ub-encaissement-1 { background-color: rgb(223 225 234); }  /* webdesigner #9ca1bc */
+    .ub-encaissements .ub-encaissement-2 { background-color: rgb(229 217 222); }  /* designer objet #af8897 */
+    .ub-encaissements .ub-encaissement-3 { background-color: rgb(225 210 206); }  /* plasticien #a27365 */
+    .ub-encaissements .ub-encaissement-4 { background-color: rgb(222 221 217); }  /* illustrateur jeunesse #979689 */
+
+    .dark .fi-wi-stats-overview-stat.ub-stat-creatifs { background-color: rgb(117 124 152 / .28); }
+    .dark .fi-wi-stats-overview-stat.ub-stat-formules { background-color: rgb(187 131 114 / .28); }
+    .dark .fi-wi-stats-overview-stat.ub-stat-demandes { background-color: rgb(167 159 188 / .28); }
+    .dark .ub-encaissements .ub-encaissement-1 { background-color: rgb(156 161 188 / .28); }
+    .dark .ub-encaissements .ub-encaissement-2 { background-color: rgb(175 136 151 / .28); }
+    .dark .ub-encaissements .ub-encaissement-3 { background-color: rgb(162 115 101 / .28); }
+    .dark .ub-encaissements .ub-encaissement-4 { background-color: rgb(151 150 137 / .28); }
+
+    /* Derniers creatifs inscrits : avatar colle a l'identifiant et au nom. */
+    .ub-creatif { display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap; }
+    .ub-creatif-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
+    .ub-creatif-login { font-weight: 600; }
+    .ub-creatif-nom { color: rgb(107 114 128); }
+    .dark .ub-creatif-nom { color: rgb(161 161 170); }
 </style>
