@@ -52,7 +52,10 @@ class RelanceAbonnementEchu extends Page implements HasTable
                 ->where('plan_expires_at', '<', now())
                 ->withCount(['relancesFormule as nb_relances' => fn (Builder $query) => $query
                     ->where('days_before', Relances::JALON_ECHU)
-                    ->whereColumn('expires_on', 'users.plan_expires_at')])
+                    // Relances envoyees depuis l'echeance actuelle : expires_on
+                    // est une date, plan_expires_at une date-heure, l'egalite
+                    // ne tomberait jamais juste.
+                    ->whereColumn('sent_at', '>=', 'users.plan_expires_at')])
                 ->withMax(['relancesFormule as derniere_relance' => fn (Builder $query) => $query
                     ->where('days_before', Relances::JALON_ECHU)], 'sent_at')
                 ->withCasts(['derniere_relance' => 'datetime']))
@@ -71,7 +74,7 @@ class RelanceAbonnementEchu extends Page implements HasTable
             ->paginated([25, 50, 100])
             ->defaultPaginationPageOption(50)
             ->filters([
-                Filter::make('relancables')->label('Relançables (aucune relance depuis '.Relances::DELAI_RELANCE_ECHU.' jours)')->default()
+                Filter::make('relancables')->label('Relançables (aucune relance depuis '.Relances::DELAI_RELANCE_ECHU.' jours)')
                     ->query(fn (Builder $query) => $query->whereDoesntHave('relancesFormule', fn (Builder $query) => $query
                         ->where('days_before', Relances::JALON_ECHU)
                         ->where('sent_at', '>', now()->subDays(Relances::DELAI_RELANCE_ECHU)))),
