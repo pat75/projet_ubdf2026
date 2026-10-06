@@ -31,9 +31,25 @@ class IdentifierCompte
     {
         $compte = $this->reconnaitre($identifiant, $motDePasse);
 
-        return $compte instanceof User || $compte instanceof Visitor
-            ? ($compte->estBloque() ? self::BLOQUE : $compte)
-            : $compte;
+        if (! $compte instanceof User && ! $compte instanceof Visitor) {
+            return $compte;
+        }
+
+        $this->remettreAuCout($compte, $motDePasse);
+
+        return $compte->estBloque() ? self::BLOQUE : $compte;
+    }
+
+    /**
+     * La reprise legacy hache a un cout reduit pour convertir vite
+     * (LegacyMigrator::password()) : le mot de passe, connu a cet instant,
+     * est rehache au cout de la config.
+     */
+    private function remettreAuCout(User|Visitor $compte, string $motDePasse): void
+    {
+        if (Hash::needsRehash($compte->password)) {
+            $compte->forceFill(['password' => Hash::make($motDePasse)])->saveQuietly();
+        }
     }
 
     /** @return User|Visitor|self::AMBIGU|null */

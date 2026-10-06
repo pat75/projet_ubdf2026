@@ -52,6 +52,9 @@ final class LegacyMigrator
     /** Taille des listes d'identifiants passees a un whereIn. */
     private const LOT = 1000;
 
+    /** Cout bcrypt des mots de passe repris (voir password()). */
+    private const COUT_BCRYPT_REPRISE = 10;
+
     /** @var array<string, array<string, int>> table => colonne texte => longueur max */
     private static array $longueurs = [];
 
@@ -1035,6 +1038,10 @@ final class LegacyMigrator
      * Le legacy chiffre les mots de passe de facon reversible : on les
      * rehashe en bcrypt. Les rares valeurs illisibles sont remplacees par
      * une valeur aleatoire, le compte passant alors par « mot de passe oublie ».
+     *
+     * Cout bcrypt 10 et non celui de la config (12) : 60 ms au lieu de 310 ms
+     * par compte sur O2switch, soit 1 h au lieu de 6 h pour 67 000 comptes.
+     * IdentifierCompte le remet au cout de la config a la premiere connexion.
      */
     private function password(object $row): string
     {
@@ -1045,7 +1052,7 @@ final class LegacyMigrator
             $plain = Str::random(32);
         }
 
-        return Hash::make($plain);
+        return Hash::make($plain, ['rounds' => self::COUT_BCRYPT_REPRISE]);
     }
 
     private function categoryId(?string $type): ?int
