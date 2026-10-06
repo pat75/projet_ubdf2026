@@ -2,15 +2,26 @@
 
 namespace App\Providers;
 
+use App\Models\AccueilBloc;
+use App\Models\Actualite;
 use App\Models\Admin;
+use App\Models\AdminActivity;
 use App\Models\Campaign;
 use App\Models\Category;
+use App\Models\CmsPage;
+use App\Models\CmsPost;
+use App\Models\Conversation;
+use App\Models\Invoice;
+use App\Models\MarketingOffer;
+use App\Models\NewsletterMail;
 use App\Models\PromoCode;
+use App\Models\Reglage;
 use App\Models\Selection;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Observers\JournalAdmin;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -61,8 +72,31 @@ class AppServiceProvider extends ServiceProvider
          | modifient. L'observateur ne retient que les ecritures faites par
          | un administrateur connecte.
          */
-        foreach ([User::class, Visitor::class, PromoCode::class, Selection::class, Campaign::class, Category::class, Admin::class] as $modele) {
+        foreach ([
+            User::class, Visitor::class, PromoCode::class, Selection::class, Campaign::class, Category::class, Admin::class,
+            NewsletterMail::class, Actualite::class, Invoice::class, Conversation::class, Reglage::class,
+            CmsPage::class, CmsPost::class, AccueilBloc::class, MarketingOffer::class,
+        ] as $modele) {
             $modele::observe(JournalAdmin::class);
+        }
+
+        // Connexions et deconnexions du back-office.
+        foreach ([Login::class => 'login', Logout::class => 'logout'] as $evenement => $action) {
+            Event::listen($evenement, function ($e) use ($action) {
+                if ($e->guard !== 'admin' || ! $e->user) {
+                    return;
+                }
+
+                AdminActivity::create([
+                    'admin_id' => $e->user->getKey(),
+                    'admin_name' => $e->user->name,
+                    'action' => $action,
+                    'subject_type' => Admin::class,
+                    'subject_id' => (string) $e->user->getKey(),
+                    'subject_label' => $e->user->name,
+                    'ip' => request()->ip(),
+                ]);
+            });
         }
     }
 }

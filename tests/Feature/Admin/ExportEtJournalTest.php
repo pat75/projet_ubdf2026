@@ -63,7 +63,8 @@ it('ne journalise pas ce qui vient du site', function () {
 
     User::factory()->create()->update(['city' => 'Lyon']);
 
-    expect(AdminActivity::count())->toBe(0);
+    // Seule la deconnexion de l'administrateur est notee.
+    expect(AdminActivity::pluck('action')->all())->toBe(['logout']);
 });
 
 it('ne recopie jamais un mot de passe dans le journal', function () {

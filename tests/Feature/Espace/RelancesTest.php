@@ -64,3 +64,35 @@ it('ecrit au createur avec le domaine de sa marque', function () {
             && str_contains($rendu, '/espace/formule');
     });
 });
+
+it('relance un abonnement echu au plus une fois tous les 7 jours', function () {
+    $echu = abonneJusqua(now()->subDays(20)->toDateString(), ['email' => 'echu@example.test']);
+    $relances = app(\App\Services\Paiement\Relances::class);
+
+    expect($relances->relancerEchu($echu))->toBeTrue();
+
+    $this->travel(3)->days();
+    expect($relances->relancerEchu($echu))->toBeFalse();
+
+    $this->travel(4)->days();
+    expect($relances->relancerEchu($echu))->toBeTrue();
+
+    Mail::assertQueued(RelanceFormule::class, fn ($m) => $m->hasTo('echu@example.test') && $m->joursRestants === -1);
+    Mail::assertQueuedCount(2);
+    expect(SubscriptionReminder::where('days_before', -1)->count())->toBe(2);
+});
+
+it('compte les abonnements repris apres une relance', function () {
+    $relances = app(\App\Services\Paiement\Relances::class);
+    $repris = abonneJusqua(now()->subDays(10)->toDateString(), ['email' => 'repris@example.test']);
+    $toujoursEchu = abonneJusqua(now()->subDays(10)->toDateString(), ['email' => 'echu@example.test']);
+    abonneJusqua(now()->addMonths(3)->toDateString(), ['email' => 'jamais-relance@example.test']);
+
+    $relances->relancerEchu($repris);
+    $relances->relancerEchu($toujoursEchu);
+
+    // Renouvellement : nouvelle echeance dans un an.
+    $repris->update(['plan_started_at' => now(), 'plan_months' => 12]);
+
+    expect($relances->reprises())->toBe(1);
+});

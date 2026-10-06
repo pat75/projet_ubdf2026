@@ -238,6 +238,11 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
+    public function relancesFormule(): HasMany
+    {
+        return $this->hasMany(SubscriptionReminder::class);
+    }
+
     /** Identite d'entreprise, si le createur facture en professionnel. */
     public function billingProfile(): HasOne
     {

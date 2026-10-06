@@ -18,6 +18,9 @@ class JournalAdmin
     /** Champs jamais recopies dans le journal. */
     private const SECRETS = ['password', 'remember_token'];
 
+    /** Calculs automatiques (analyse Jev) : pas une action de l'administrateur. */
+    private const AUTOMATIQUES = ['updated_at', 'spam_ia', 'spam_ia_probabilite'];
+
     public function created(Model $modele): void
     {
         $this->noter('created', $modele, []);
@@ -28,7 +31,7 @@ class JournalAdmin
         $changements = [];
 
         foreach ($modele->getChanges() as $champ => $apres) {
-            if ($champ === 'updated_at') {
+            if (in_array($champ, self::AUTOMATIQUES, true)) {
                 continue;
             }
 

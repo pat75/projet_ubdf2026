@@ -54,6 +54,10 @@ class AdminPanelProvider extends PanelProvider
                 fn (): View => view('filament.badge-maintenance'),
             )
             ->renderHook(
+                PanelsRenderHook::TOPBAR_LOGO_AFTER,
+                fn (): View => view('filament.lien-site'),
+            )
+            ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn (): View => view('filament.bascule-theme'),
             )

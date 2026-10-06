@@ -78,7 +78,8 @@ class ConversationsTable
                 BulkActionGroup::make([
                     BulkAction::make('spam')->label('Marquer indésirables')->icon('heroicon-o-shield-exclamation')
                         ->requiresConfirmation()
-                        ->action(fn (Collection $records) => Conversation::whereKey($records->pluck('id'))->update(['is_spam' => true])),
+                        // Un par un : une mise a jour groupee echapperait au journal des actions.
+                        ->action(fn (Collection $records) => $records->each->update(['is_spam' => true])),
                 ]),
             ]);
     }
