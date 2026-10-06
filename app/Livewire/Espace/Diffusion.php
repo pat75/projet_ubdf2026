@@ -45,9 +45,6 @@ class Diffusion extends Component
         Auth::user()->bookSetting()->updateOrCreate([], [self::COLONNES[$champ] => $this->{$champ}]);
     }
 
-    /** Une demande de selection vaut pour ce nombre de jours : pas de relance avant. */
-    public const DELAI_DEMANDE_JOURS = 30;
-
     /** Demande a figurer dans la selection (us_formule_ask_date du legacy). */
     public function demanderSelection(): void
     {
@@ -60,9 +57,22 @@ class Diffusion extends Component
         $user->forceFill(['selection_requested_at' => now()])->saveQuietly();
     }
 
+    /** Au-dela, une demande restee sans suite peut etre renouvelee. */
+    public const DELAI_DEMANDE_JOURS = 30;
+
+    /**
+     * Une demande est « en cours d'examen » pendant DELAI_DEMANDE_JOURS
+     * jours, tant que l'equipe n'a pas mis le book en selection apres elle.
+     */
     private function demandeEnCours($user): bool
     {
-        return $user->selection_requested_at?->gt(now()->subDays(self::DELAI_DEMANDE_JOURS)) ?? false;
+        $demande = $user->selection_requested_at;
+
+        if (! $demande || $demande->lt(now()->subDays(self::DELAI_DEMANDE_JOURS))) {
+            return false;
+        }
+
+        return ! $user->home_selection_at || $user->home_selection_at->lt($demande);
     }
 
     public function render(): View

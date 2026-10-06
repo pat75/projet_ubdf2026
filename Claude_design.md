@@ -255,3 +255,33 @@ gras `text-ub-texte2`, date `text-ub-texte3`, 12px.
 
 Bloc de contenu : utilitaire `carte-espace` (fond blanc, rayon et ombre
 de la charte).
+
+## Textes d'aide et descriptions
+
+Les phrases d'explication (sous un libellé, dans une carte, une fenêtre,
+un mail) se lisent d'un coup d'œil : **une phrase par ligne**.
+
+- **Retour à la ligne après chaque point** dès qu'un texte compte deux
+  phrases ou plus. La deuxième phrase ne doit jamais commencer en fin de
+  ligne, à la suite de la première.
+- Chaque phrase est **sa propre chaîne de traduction**, dans son propre
+  `<span class="block">` : jamais de `<br>` ni de HTML à l'intérieur d'un
+  `__()`, que le traducteur casserait.
+- `text-pretty` sur tout bloc de texte d'aide : pas de mot isolé seul sur
+  la dernière ligne.
+- Césure (`hyphens-auto`) seulement dans les colonnes étroites (moins de
+  300px environ), où un long mot laisserait un grand vide ; jamais sur un
+  titre, un libellé ou un bouton. Elle s'appuie sur le `lang` de `<html>`,
+  déjà posé par les layouts.
+- Phrase courte, sans « L'équipe… » ni tournure passive : on parle au
+  créatif à la première personne du pluriel (« Nous examinons chaque
+  demande. »).
+- Dans un mail (tableaux, styles en ligne), même règle avec `<br>` entre
+  les phrases d'un même paragraphe.
+
+```blade
+<span class="text-[13px] text-ub-texte2 text-pretty">
+    <span class="block">{{ __('Les books sélectionnés sont mis en avant sur la page d’accueil.') }}</span>
+    <span class="block">{{ __('Nous examinons chaque demande.') }}</span>
+</span>
+```

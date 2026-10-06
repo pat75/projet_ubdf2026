@@ -45,13 +45,21 @@
         <div class="carte-espace flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4.5">
             <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                 <span class="text-[16px] font-bold text-ub-texte">{{ __('Figurer dans la sélection') }}</span>
-                <span class="text-[13px] text-ub-texte2 text-pretty">{{ __('Les books sélectionnés sont mis en avant sur la page d’accueil. L’équipe examine chaque demande.') }}</span>
+                <span class="text-[13px] text-ub-texte2 text-pretty">
+                    <span class="block">{{ __('Les books sélectionnés sont mis en avant sur la page d’accueil.') }}</span>
+                    <span class="block">{{ __('Nous examinons chaque demande.') }}</span>
+                </span>
             </div>
 
             @if ($enSelection)
-                <span class="text-[13px] font-bold text-ub-accent-texte">{{ __('Votre book fait partie de la sélection') }}</span>
+                {{-- Meme pilule que « ★ Sélection » sous l'avatar du menu de droite, agrandie de 20 %. --}}
+                <span class="rounded-full bg-ub-formule-fond px-[28px] py-[10px] text-[14.4px] font-bold text-ub-formule">★ {{ __('Votre book fait partie de la sélection') }}</span>
             @elseif ($demandeLe)
-                <span class="text-[13px] font-bold text-ub-texte3">{{ __('Demande envoyée le :date', ['date' => $demandeLe->translatedFormat('j F Y')]) }}</span>
+                {{-- Date d'envoi a gauche, alignee sur le label (couleur du lien « Voir mon book »). --}}
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="text-[12px] text-ub-texte3">{{ __('Envoyée le :date', ['date' => $demandeLe->translatedFormat('j F Y')]) }}</span>
+                    <span class="inline-flex items-center gap-2 rounded-sm bg-ub-accent-fonce px-3.5 py-2 text-[13px] font-bold text-white">{{ __('Demande en cours d’examen') }}</span>
+                </div>
             @else
                 <x-espace.bouton type="button" wire:click="demanderSelection">
                     {{ __('Demander à être sélectionné') }}

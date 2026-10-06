@@ -97,6 +97,8 @@ class VisitorsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
+            // Compte bloque : ligne hachuree de rouge (voir styles.blade.php).
+            ->recordClasses(fn (Visitor $v) => $v->estBloque() ? 'ub-compte-bloque' : null)
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(50)
             ->filters([
@@ -152,6 +154,8 @@ class VisitorsTable
                         'visiteurs',
                     )),
                 BulkActionGroup::make([
+                    ActionsCompte::bloquerSelection(),
+                    ActionsCompte::debloquerSelection(),
                     RestoreBulkAction::make(),
                 ]),
             ]);

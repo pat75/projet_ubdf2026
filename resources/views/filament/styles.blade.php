@@ -360,4 +360,20 @@
     .ub-bouton-filtres .fi-btn-badge-ctn {
         display: none !important;
     }
+
+    /*
+     | Compte bloque (creatifs, visiteurs) : toute la ligne hachuree de
+     | traits obliques rouges a 7,5 %, posee sur chaque cellule comme pour
+     | les codes promo utilises. Le fond raye neutralise celui des lignes
+     | alternees (`striped`).
+     */
+    .ub-compte-bloque > td {
+        background-image: repeating-linear-gradient(
+            45deg,
+            rgb(220 38 38 / .075) 0,
+            rgb(220 38 38 / .075) 4px,
+            transparent 4px,
+            transparent 8px
+        ) !important;
+    }
 </style>

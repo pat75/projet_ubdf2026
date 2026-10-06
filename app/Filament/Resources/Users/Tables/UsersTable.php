@@ -77,7 +77,9 @@ class UsersTable
                         .'</span>'
                     ))
                     ->html()
-                    ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true),
+                    // Meme adresse signee que « Ouvrir les books » : le book
+                    // s'ouvre avec la barre de selection en tete.
+                    ->url(fn (User $u) => app(RevueBooks::class)->url($u, (int) Auth::guard('admin')->id()), shouldOpenInNewTab: true),
 
                 /*
                  | Un compte bloque se voit d'un coup d'oeil, sans ouvrir sa
@@ -147,6 +149,8 @@ class UsersTable
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
+            // Compte bloque : ligne hachuree de rouge (voir styles.blade.php).
+            ->recordClasses(fn (User $u) => $u->estBloque() ? 'ub-compte-bloque' : null)
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(50)
             ->filters([
@@ -263,6 +267,8 @@ class UsersTable
                         'creatifs',
                     )),
                 BulkActionGroup::make([
+                    ActionsCompte::bloquerSelection(),
+                    ActionsCompte::debloquerSelection(),
                     RestoreBulkAction::make(),
                     self::purger(),
                 ]),

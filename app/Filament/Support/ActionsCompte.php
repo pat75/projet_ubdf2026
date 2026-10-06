@@ -5,6 +5,9 @@ namespace App\Filament\Support;
 use App\Models\User;
 use App\Models\Visitor;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Forms\Components\Textarea;
+use Illuminate\Support\Collection;
 use Filament\Notifications\Notification;
 
 /**
@@ -89,5 +92,54 @@ class ActionsCompte
             ->color('gray')
             ->iconButton()
             ->action(fn (Visitor $v) => redirect()->route('admin.prise-identite-visiteur.relais', ['visiteur' => $v]));
+    }
+
+    /**
+     * Bloque d'un coup les comptes coches (creatifs ou visiteurs). Les
+     * comptes deja bloques gardent leur date et leur motif d'origine.
+     */
+    public static function bloquerSelection(): BulkAction
+    {
+        return BulkAction::make('bloquer')
+            ->label(__('Bloquer la sélection'))
+            ->icon('heroicon-o-lock-closed')
+            ->color('danger')
+            ->modalHeading(__('Bloquer les comptes sélectionnés'))
+            ->modalDescription(__('Ils ne pourront plus se connecter. Rien n’est effacé : books, visuels et factures sont conservés.'))
+            ->schema([
+                Textarea::make('motif')->label(__('Motif'))->rows(2)->maxLength(255)
+                    ->helperText(__('Note interne, la même pour tous les comptes : ils ne la voient pas.')),
+            ])
+            ->modalSubmitActionLabel(__('Bloquer'))
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records, array $data) {
+                $aBloquer = $records->reject->estBloque();
+                $aBloquer->each->bloquer($data['motif'] ?? null);
+
+                Notification::make()
+                    ->title(trans_choice(':n compte bloqué|:n comptes bloqués', $aBloquer->count(), ['n' => $aBloquer->count()])
+                        .($records->count() > $aBloquer->count() ? ' — '.($records->count() - $aBloquer->count()).' déjà bloqué(s)' : ''))
+                    ->warning()->send();
+            });
+    }
+
+    public static function debloquerSelection(): BulkAction
+    {
+        return BulkAction::make('debloquer')
+            ->label(__('Débloquer la sélection'))
+            ->icon('heroicon-o-lock-open')
+            ->requiresConfirmation()
+            ->modalHeading(__('Débloquer les comptes sélectionnés'))
+            ->modalDescription(__('Ils pourront de nouveau se connecter.'))
+            ->modalSubmitActionLabel(__('Débloquer'))
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records) {
+                $aDebloquer = $records->filter->estBloque();
+                $aDebloquer->each->debloquer();
+
+                Notification::make()
+                    ->title(trans_choice(':n compte débloqué|:n comptes débloqués', $aDebloquer->count(), ['n' => $aDebloquer->count()]))
+                    ->success()->send();
+            });
     }
 }

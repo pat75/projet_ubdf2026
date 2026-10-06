@@ -97,9 +97,24 @@ it('laisse le createur demander a etre selectionne', function () {
     $creatif = User::factory()->create();
     $this->actingAs($creatif);
 
-    Livewire::test(Diffusion::class)->call('demanderSelection')->assertSee('Demande envoyée');
+    Livewire::test(Diffusion::class)->assertSee('Demander à être sélectionné')
+        ->call('demanderSelection')
+        ->assertSee('Demande en cours d’examen')->assertDontSee('Demander à être sélectionné');
 
     expect($creatif->fresh()->selection_requested_at)->not->toBeNull();
+
+    // Apres 30 jours sans suite, le createur peut refaire une demande.
+    $creatif->forceFill(['selection_requested_at' => now()->subDays(29)])->save();
+    Livewire::test(Diffusion::class)->assertSee('Demande en cours d’examen');
+
+    $creatif->forceFill(['selection_requested_at' => now()->subDays(31)])->save();
+    Livewire::test(Diffusion::class)->assertSee('Demander à être sélectionné')->call('demanderSelection')
+        ->assertSee('Demande en cours d’examen');
+    expect($creatif->fresh()->selection_requested_at->isToday())->toBeTrue();
+
+    // Mise en selection apres la demande : plus rien a examiner.
+    $creatif->forceFill(['in_home_selection' => true, 'home_selection_at' => now()])->saveQuietly();
+    Livewire::test(Diffusion::class)->assertSee('fait partie de la sélection')->assertDontSee('Demande en cours');
 });
 
 it('filtre par boutons directs : formule payante oui / non, marque', function () {
@@ -127,4 +142,31 @@ it('filtre les visiteurs par boutons directs', function () {
     Livewire::test(\App\Filament\Resources\Visitors\Pages\ListVisitors::class)
         ->filterTable('brand', ['valeur' => 'df'])
         ->assertCanSeeTableRecords([$df])->assertCanNotSeeTableRecords([$ub]);
+});
+
+it('bloque et debloque plusieurs comptes d un coup', function () {
+    $this->actingAs($this->admin, 'admin');
+    [$a, $b] = User::factory()->count(2)->create();
+    $v = \App\Models\Visitor::factory()->create();
+
+    Livewire::test(ListUsers::class)->callTableBulkAction('bloquer', [$a, $b], ['motif' => 'spam']);
+    expect($a->fresh()->estBloque())->toBeTrue()->and($b->fresh()->blocked_reason)->toBe('spam');
+
+    Livewire::test(ListUsers::class)->callTableBulkAction('debloquer', [$a, $b]);
+    expect($a->fresh()->estBloque())->toBeFalse()->and($b->fresh()->estBloque())->toBeFalse();
+
+    Livewire::test(\App\Filament\Resources\Visitors\Pages\ListVisitors::class)->callTableBulkAction('bloquer', [$v]);
+    expect($v->fresh()->estBloque())->toBeTrue();
+});
+
+it('ouvre le book depuis l identifiant avec la barre de selection', function () {
+    $this->actingAs($this->admin, 'admin');
+    $creatif = User::factory()->create(['login' => 'revue-test']);
+    $url = app(\App\Services\Admin\RevueBooks::class)->url($creatif, $this->admin->id);
+
+    Livewire::test(ListUsers::class)
+        ->assertTableColumnStateSet('login', 'revue-test', record: $creatif)
+        ->assertSeeHtml(e($url));
+
+    $this->get($url)->assertOk()->assertSee('Pas en sélection');
 });
