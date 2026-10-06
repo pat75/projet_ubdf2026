@@ -1,0 +1,152 @@
+TRANSFERT ET CONVERSION DE LA BASE MYSQL — ancienne prod -> O2switch (ultra-book.pro)
+=======================================================================================
+Script : ./deploy/transfert_mySQL.sh   (depuis la racine du projet, sur le Mac)
+
+Base source    : db_ultra_book_2019 (ancien serveur 163.172.103.215), format legacy.
+Base cible     : sc4tapa2662_ultra-book-prod (O2switch), schema 2026.
+Reference      : STRUCTURE de la base locale 2026_ubdf (.env.dev), exportee
+                 sans donnees a chaque lancement.
+
+Deux gestes en tout :
+   1) exporter le dump a la main sur l'ancien serveur (ETAPE 1) ;
+   2) lancer le script avec le lien de ce dump (ETAPE 2).
+
+
+ETAPE 1 — EXPORTER (a la main, sur l'ancien serveur)
+----------------------------------------------------
+Connexion SSH a l'ancien serveur, dans un dossier avec quelques Go libres :
+
+   mysqldump -u ultrabook2019 -p \
+     --default-character-set=latin1 \
+     --hex-blob \
+     --quick \
+     --no-tablespaces \
+     --skip-lock-tables \
+     db_ultra_book_2019 \
+     | gzip > db_ultra_book_2019_$(date +%F).sql.gz
+
+- -p sans valeur : le mot de passe est DEMANDE. Ne pas ecrire -pMOTDEPASSE
+  (il resterait dans l'historique et la liste des processus).
+- --default-character-set=latin1 : INDISPENSABLE. Les tables sont
+  declarees latin1 mais contiennent de l'UTF-8 brut ; latin1 les exporte
+  tels quels. Un export phpMyAdmin les reencode et peut abimer des accents.
+- --skip-lock-tables : l'utilisateur de l'ancien site n'a pas le droit
+  LOCK TABLES (erreur 1044 sinon). Sans verrou, le dump n'est coherent que
+  si personne n'ecrit : le lancer la nuit, ou fermer l'ancien site.
+- --hex-blob : champs binaires intacts. --quick : ligne a ligne.
+
+Verifier :
+   ls -lh db_ultra_book_2019_*.sql.gz
+   zcat db_ultra_book_2019_*.sql.gz | tail -1     -> « -- Dump completed on ... »
+
+Noter le chemin complet du fichier, ex. :
+   /home/adminpat/db_ultra_book_2019_2026-10-06.sql.gz
+
+
+ETAPE 2 — LANCER LE TRANSFERT (sur le Mac)
+------------------------------------------
+Prealables : MAMP demarre (structure de reference), code a jour deploye
+sur O2switch, deploy/deploy.config renseigne (OLD_SSH_PORT="2083").
+
+   ./deploy/transfert_mySQL.sh adminpat@163.172.103.215:/home/adminpat/db_ultra_book_2019_2026-10-06.sql.gz
+
+Le script resume ce qui va se passer ; taper TRANSFERER. Il exporte la
+structure de 2026_ubdf, renseigne DB_LEGACY_* dans .env.prod si besoin,
+puis tout se deroule sur O2switch, dans « screen ». Seule saisie ensuite :
+le mot de passe SSH de l'ANCIEN serveur (adminpat), a l'etape 1.
+
+   Ctrl-A puis D                        se detacher (le Mac peut se mettre en veille)
+   ./deploy/transfert_mySQL.sh          se rattacher, ou reprendre apres un arret
+   ./deploy/transfert_mySQL.sh --etat   ou en est-on
+
+Les 9 etapes, affichees « ════ [n/9] ... » :
+
+ 1 RECUPERATION     rsync du dump vers data_sql/ ; gzip intact, « Dump completed »,
+                    empreinte. Un fichier coupe reprend ou il s'etait arrete.
+ 2 CONTROLE         le dump ne contient que des tables legacy (inc_*, ub2_*, bn_*,
+                    df2_*, nl_*, wp_import), sinon arret : rien n'est touche.
+ 3 SAUVEGARDE       site EN MAINTENANCE, puis sauvegarde complete de la prod :
+                    ~/backups_deploy/base-<date>-avant-transfert.sql.gz
+                    verifiee (gzip, taille, « Dump completed ») ; arret si invalide.
+                    Les tables gardees sont recomptees ligne a ligne.
+ 4 IMPORT           tables legacy importees dans la base de prod (latin1), avec
+                    pourcentage d'avancement.
+ 5 INTEGRITE AVANT  toutes les tables du dump presentes, lignes par table,
+                    comptes vivants, abonnes, analyse (encodage, troncatures,
+                    tables non reprises) ; les points « ! » sont affiches.
+ 6 STRUCTURE        migrations, puis comparaison colonne par colonne avec 2026_ubdf :
+                    - table absente               -> creee selon la reference
+                    - table rechargee differente  -> recreee selon la reference
+                    - table GARDEE differente     -> ARRET (la modifier perdrait des
+                      donnees) : deployer la migration manquante, relancer.
+ 7 CONVERSION       ubdf:migrate-legacy --tous (paquets de 2 000 comptes, environ
+                    1 h 30). Une interruption reprend au dernier paquet termine.
+ 8 INTEGRITE APRES  tables gardees : memes lignes qu'avant ; comptes repris =
+                    vivants - logins ecartes ; tables principales non vides ;
+                    aucune cle etrangere orpheline ; structure = 2026_ubdf.
+                    Un ecart : le site RESTE en maintenance ; taper VALIDER pour
+                    l'accepter, ou restaurer la sauvegarde.
+ 9 REMISE EN LIGNE  cache vide, fin de maintenance, rapport :
+                    storage/transfert_mySQL/rapport.txt (copie dans deploy/logs/).
+
+Duree totale : 2 h 30 a 3 h, site en maintenance de l'etape 3 a la fin.
+Journal sur le Mac   : deploy/logs/transfert_mySQL-<date>-<mode>.log
+Journal sur O2switch : storage/transfert_mySQL/run.log
+
+
+CE QUI EST REMPLACE / GARDE (decisions du 02/10/2026)
+----------------------------------------------------
+Vide puis recharge depuis l'ancienne prod :
+   users, book_settings, book_sections, book_articles, galleries, media,
+   conversations, messages, invoices, billing_profiles, visit_stats,
+   visitors, visitor_book_visits, memo_books, memo_partages, referrals,
+   selection_user, data_exports, page_images, subscription_reminders,
+   user_password_resets, campaign_sends, promo_codes, marketing_offers,
+   newsletter_mails (uniquement les abonnes de l'ancien site).
+Garde : admins, admin_activities, reglages, accueil_blocs, cms_pages,
+   cms_posts, actualites, campaigns, categories, selections.
+Jamais touche : migrations, cache, sessions, jobs.
+Non repris : bn_ultranews_art_tab_default (actualites d'avant 2015).
+Images : non concernees, voir tutoriel_transfert_data_image.txt.
+
+
+REPRISE
+-------
+Toute etape terminee est notee dans storage/transfert_mySQL/etat. Apres
+un arret (erreur, coupure, screen ferme) : corriger si besoin, puis
+   ./deploy/transfert_mySQL.sh
+Le script repart a l'etape interrompue.
+Un NOUVEAU lien de dump repart de l'etape 1 (confirmation demandee).
+
+
+REVENIR EN ARRIERE
+------------------
+   ./deploy/ssh-prod.sh
+   gunzip -c ~/backups_deploy/base-<date>-avant-transfert.sql.gz | mysql -u sc4tapa2662_ultra-book-prod -p sc4tapa2662_ultra-book-prod
+   php artisan cache:clear
+(mot de passe : DB_PASSWORD de .env.prod). Le chemin exact est affiche
+par le script et par --etat.
+
+
+A LA FIN : NETTOYER
+-------------------
+Quand le transfert est valide ET que « organiser » (images) a tourne sur
+toutes les lettres (il lit les tables legacy) :
+
+   ./deploy/transfert_mySQL.sh --nettoyer      (taper NETTOYER)
+
+Sauvegarde, puis suppression des tables legacy, du dump et de DB_LEGACY_*
+dans .env.prod.
+
+
+DEPANNAGE
+---------
+Connection refused (etape 1)     ./deploy/transfert-images.sh diagnostic
+                                 (port 2083 / CSF, voir tutoriel images)
+Permission denied (password)     mot de passe SSH de adminpat
+« pas de Dump completed »        export coupe : refaire l'ETAPE 1
+« tables hors legacy »           mauvais fichier ; rien n'a ete importe
+SAUVEGARDE INVALIDE              disque plein ou mot de passe DB ; rien n'a
+                                 ete modifie (site en maintenance : relancer)
+« table GARDEE ... differente »  deployer le code a jour (migrations), relancer
+dump de structure impossible     demarrer MAMP

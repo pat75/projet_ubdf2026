@@ -1,0 +1,99 @@
+MISE A JOUR DE LA STRUCTURE MYSQL — prod O2switch (ultra-book.pro) <- 2026_ubdf local
+=======================================================================================
+Script : ./deploy/mise_a_jour_MySQL.sh   (depuis la racine du projet, sur le Mac)
+
+Reference : STRUCTURE de la base locale 2026_ubdf (.env.dev), sans ses donnees.
+Cible     : sc4tapa2662_ultra-book-prod (O2switch).
+But       : aligner la structure de la prod sur celle du developpement en
+            CONSERVANT toutes les donnees de la prod.
+
+Meme fonctionnement que transfert_mySQL.sh : une commande, tout se deroule
+sur O2switch dans « screen », etapes « ════ [n/5] », reprise possible.
+
+
+LANCER
+------
+Prealable : MAMP demarre (structure de reference).
+
+   ./deploy/mise_a_jour_MySQL.sh
+
+   Ctrl-A puis D                         se detacher
+   ./deploy/mise_a_jour_MySQL.sh         se rattacher, ou reprendre apres un arret
+   ./deploy/mise_a_jour_MySQL.sh --etat  ou en est-on
+
+Les 5 etapes :
+
+ 1 SAUVEGARDE      sauvegarde complete de la prod, AVANT toute operation :
+                   ~/backups_deploy/base-<date>-avant-mise-a-jour-structure.sql.gz
+                   verifiee (gzip, taille, « Dump completed ») ; arret si invalide.
+ 2 COMPARAISON     structure de la prod / structure de 2026_ubdf. Affiche TOUTES
+                   les modifications, table par table :
+                     + ajout (table, colonne, index, cle etrangere)
+                     ~ modification (ancienne definition -> nouvelle)
+                     - index ou cle etrangere retire
+                   puis ce qui est CONSERVE en prod, et les migrations qui
+                   seront notees comme jouees.
+ 3 CONFIRMATION    taper MAJ (Entree seule : abandon, rien ne change).
+ 4 APPLICATION     site en maintenance, lignes de chaque table comptees, puis
+                   les modifications, en mode strict.
+ 5 CONTROLES       memes lignes qu'avant dans chaque table, structure identique
+                   a 2026_ubdf ; cache vide, site remis en ligne.
+
+Duree : quelques minutes. Maintenance pendant les etapes 4 et 5 seulement.
+
+
+CE QUI PROTEGE LES DONNEES
+--------------------------
+- Rien n'est supprime qui contienne des donnees : une table ou une colonne
+  presente en prod mais absente de 2026_ubdf est CONSERVEE (et listee).
+  Seuls les index et cles etrangeres absents de la reference sont retires :
+  ils ne contiennent aucune donnee.
+- Mode strict : si une modification de colonne devait couper une valeur
+  (texte plus long que la nouvelle taille, NULL dans une colonne qui devient
+  obligatoire...), elle ECHOUE au lieu de tronquer. « [TYPE CHANGE] » dans
+  le plan signale ces modifications a lire avec attention.
+- Un nouvel index unique refuse les doublons existants : il echoue aussi,
+  sans rien toucher.
+- Controle final : nombre de lignes de chaque table identique avant / apres.
+
+La table migrations recoit les migrations de 2026_ubdf absentes en prod :
+sans cela, le prochain « php artisan migrate » (deploiement) essaierait de
+les rejouer sur une structure deja a jour.
+
+
+EN CAS D'ARRET
+--------------
+Le script s'arrete a l'instruction refusee ; les precedentes restent
+appliquees, le site RESTE EN MAINTENANCE. Corriger la cause (souvent une
+valeur trop longue ou un doublon), puis :
+   ./deploy/mise_a_jour_MySQL.sh
+La comparaison repart de l'etat reel : seul ce qui reste est applique.
+
+
+REVENIR EN ARRIERE
+------------------
+   ./deploy/ssh-prod.sh
+   gunzip -c ~/backups_deploy/base-<date>-avant-mise-a-jour-structure.sql.gz | mysql -u sc4tapa2662_ultra-book-prod -p sc4tapa2662_ultra-book-prod
+   php artisan cache:clear
+(mot de passe : DB_PASSWORD de .env.prod). Le chemin exact est affiche par
+le script et par --etat.
+
+
+FICHIERS
+--------
+deploy/mise_a_jour_MySQL.sh    script (Mac -> O2switch)
+deploy/mise_a_jour_MySQL.php   comparaison des structures (executee sur O2switch)
+storage/mise_a_jour_MySQL/     dossier de travail sur O2switch : etat, plan,
+                               rapport.txt, run.log
+deploy/logs/                   journal de chaque lancement, copie du rapport
+
+
+DEPANNAGE
+---------
+structure locale illisible       demarrer MAMP
+SAUVEGARDE INVALIDE              disque plein ou mot de passe DB ; rien n'a change
+Data truncated / Data too long   une valeur ne tient plus : corriger la donnee
+                                 ou la colonne de reference, relancer
+Duplicate entry (index unique)   doublons en prod : les traiter, relancer
+« lignes differentes »           ne devrait pas arriver : lire l'ecart, restaurer
+                                 la sauvegarde si besoin
