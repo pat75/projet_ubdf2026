@@ -26,7 +26,7 @@ class User extends Authenticatable
         'accepts_sms', 'shares_link',
         'plan', 'plan_started_at', 'plan_months', 'plan_expires_at',
         'storage_used', 'media_count',
-        'signup_ip', 'signup_referer', 'admin_note',
+        'signup_ip', 'signup_referer', 'admin_note', 'last_login_at', 'selection_requested_at',
         'blocked_at', 'blocked_reason',
     ];
 
@@ -36,6 +36,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'selection_requested_at' => 'datetime',
             'password' => 'hashed',
             'plan_started_at' => 'datetime',
             'plan_expires_at' => 'datetime',

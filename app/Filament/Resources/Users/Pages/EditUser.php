@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Actions\Admin\RenommerCreatif;
 use App\Filament\Resources\Users\UserResource;
 use App\Mail\NouveauMotDePasse;
 use App\Models\User;
@@ -11,10 +12,12 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class EditUser extends EditRecord
 {
@@ -33,6 +36,7 @@ class EditUser extends EditRecord
     {
         return [
             $this->actionPriseIdentite(),
+            $this->actionRenommer(),
             $this->actionReinitialiserMotDePasse(),
             $this->actionEnvoyerMotDePasse(),
             DeleteAction::make(),
@@ -61,6 +65,39 @@ class EditUser extends EditRecord
                 // Filament ne sait pas soumettre un POST : on passe par une
                 // page intermediaire qui poste le formulaire d'elle-meme.
                 return redirect()->route('admin.prise-identite.relais', ['creatif' => $this->record]);
+            });
+    }
+
+    /**
+     * Change l'identifiant, donc l'adresse du book : l'ancien sous-domaine
+     * cesse de repondre et l'identifiant redevient libre.
+     */
+    private function actionRenommer(): Action
+    {
+        return Action::make('renommer')
+            ->label('Changer l’identifiant')
+            ->icon(Heroicon::OutlinedPencilSquare)
+            ->color('gray')
+            ->modalHeading('Changer l’identifiant du book')
+            ->modalDescription(fn () => 'L’adresse du book change : '.$this->record->login.'.… cessera de répondre, les liens déjà partagés ne mèneront plus nulle part.')
+            ->fillForm(fn () => ['login' => $this->record->login])
+            ->schema([
+                TextInput::make('login')->label('Nouvel identifiant')->required()->maxLength(50)
+                    ->helperText('Lettres minuscules, chiffres, - et _.'),
+            ])
+            ->modalSubmitActionLabel('Changer')
+            ->action(function (array $data, RenommerCreatif $renommer, Action $action) {
+                try {
+                    $renommer($this->record, $data['login']);
+                } catch (ValidationException $e) {
+                    // La fenetre reste ouverte, le message sous les yeux.
+                    Notification::make()->title(collect($e->errors())->flatten()->first())->danger()->send();
+                    $action->halt();
+                }
+
+                $this->refreshFormData(['login']);
+
+                Notification::make()->title('Identifiant changé : '.$this->record->login)->success()->send();
             });
     }
 

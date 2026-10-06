@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Actions\Admin\PurgerCreatifsNonConfirmes;
 use App\Filament\Support\ActionsCompte;
+use App\Filament\Support\FiltreBoutons;
 use App\Filament\Support\FiltrePeriode;
 use App\Filament\Support\MenuTri;
 use App\Models\User;
@@ -11,6 +13,7 @@ use App\Services\Admin\RevueBooks;
 use App\Services\Espace\AffichageProfil;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreBulkAction;
@@ -26,8 +29,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -121,7 +122,13 @@ class UsersTable
                     ->size(TextColumnSize::Small)
                     ->description(fn (User $u) => $u->plan_months ? __(':n mois', ['n' => $u->plan_months]) : null),
                 TextColumn::make('created_at')->label('Inscription')->date('d/m/Y')->sortable()
-                    ->size(TextColumnSize::Small),
+                    ->size(TextColumnSize::Small)
+                    // Adresse jamais confirmee : signalee sous la date.
+                    ->description(fn (User $u) => $u->email_verified_at ? null : __('non confirmé'), position: 'below'),
+                TextColumn::make('last_login_at')->label('Dernier accès')->date('d/m/Y')->sortable()->placeholder('—')
+                    ->size(TextColumnSize::Small)->toggleable(),
+                TextColumn::make('selection_requested_at')->label('Demande de sélection')->date('d/m/Y')->sortable()->placeholder('—')
+                    ->size(TextColumnSize::Small)->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('bookSetting.diffuse_web')->label('En ligne')->boolean()
                     ->alignCenter()->toggleable(),
                 IconColumn::make('billingProfile.siret')->label('Pro')->boolean()
@@ -143,31 +150,44 @@ class UsersTable
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(50)
             ->filters([
-                SelectFilter::make('brand')->label('Marque')
-                    ->options(['ub' => 'Ultra-book', 'df' => 'Dustfolio']),
+                FiltreBoutons::make('brand', 'Marque', [
+                    'ub' => ['Ultra-book', fn (Builder $query) => $query->where('brand', 'ub')],
+                    'df' => ['Dustfolio', fn (Builder $query) => $query->where('brand', 'df')],
+                ]),
                 SelectFilter::make('category_id')->label('Métier')->relationship('category', 'name')->searchable(),
-                TernaryFilter::make('plan')->label('Formule payante')
-                    ->queries(
-                        true: fn (Builder $q) => $q->where('plan', '>', 0),
-                        false: fn (Builder $q) => $q->where('plan', 0),
-                    ),
-                TernaryFilter::make('in_home_selection')->label('En sélection'),
+                FiltreBoutons::ouiNon('plan', 'Formule payante',
+                    fn (Builder $query) => $query->where('plan', '>', 0),
+                    fn (Builder $query) => $query->where('plan', 0)),
+                FiltreBoutons::ouiNon('in_home_selection', 'En sélection',
+                    fn (Builder $query) => $query->where('in_home_selection', true),
+                    fn (Builder $query) => $query->where('in_home_selection', false)),
                 FiltrePeriode::make('selection_recente', 'Sélectionné', 'home_selection_at', jamais: true),
                 FiltrePeriode::make('formule_recente', 'Formule prise', 'plan_started_at', jamais: true),
                 FiltrePeriode::make('inscription_recente', 'Inscrit', 'created_at'),
-                TernaryFilter::make('bloque')->label('Compte bloqué')
-                    ->queries(
-                        true: fn (Builder $q) => $q->whereNotNull('blocked_at'),
-                        false: fn (Builder $q) => $q->whereNull('blocked_at'),
-                    ),
-                TernaryFilter::make('facturation')->label('Facturation électronique')
-                    ->queries(
-                        true: fn (Builder $q) => $q->whereHas('billingProfile'),
-                        false: fn (Builder $q) => $q->whereDoesntHave('billingProfile'),
-                    ),
+                FiltreBoutons::ouiNon('bloque', 'Compte bloqué',
+                    fn (Builder $query) => $query->whereNotNull('blocked_at'),
+                    fn (Builder $query) => $query->whereNull('blocked_at')),
+                FiltreBoutons::ouiNon('facturation', 'Facturation électronique',
+                    fn (Builder $query) => $query->whereHas('billingProfile'),
+                    fn (Builder $query) => $query->whereDoesntHave('billingProfile')),
+                Filter::make('non_confirmes')->label('Adresse non confirmée')
+                    ->query(fn (Builder $query) => $query->whereNull('email_verified_at')),
+                // Jamais revenu apres l'inscription (par_unjour du legacy).
+                Filter::make('un_jour')->label('Books d’un jour')
+                    ->query(fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                        ->whereNull('last_login_at')
+                        ->orWhereRaw('DATE(last_login_at) = DATE(created_at)'))),
+                // Demande faite depuis l'espace, pas encore suivie d'une selection.
+                Filter::make('demande_selection')->label('Demande de sélection')
+                    ->query(fn (Builder $query) => $query->whereNotNull('selection_requested_at')
+                        ->where(fn (Builder $query) => $query->whereNull('home_selection_at')
+                            ->orWhereColumn('home_selection_at', '<', 'selection_requested_at'))),
                 Filter::make('echue')->label('Formule échue')
                     ->query(fn (Builder $q) => $q->where('plan', '>', 0)->where('plan_expires_at', '<', now())),
-                TrashedFilter::make()->label('Comptes supprimés'),
+                FiltreBoutons::make('trashed', 'Comptes supprimés', [
+                    'avec' => ['Inclus', fn (Builder $query) => $query->withTrashed()],
+                    'seuls' => ['Seulement', fn (Builder $query) => $query->onlyTrashed()],
+                ]),
             ])
             /*
              | Filtres derriere un bouton, sur la meme ligne que la
@@ -178,7 +198,7 @@ class UsersTable
              | rendait illisible.
              */
             ->filtersLayout(FiltersLayout::Dropdown)
-            ->filtersFormWidth(Width::FourExtraLarge)
+            ->filtersFormWidth(Width::SixExtraLarge)
             ->filtersFormColumns(['default' => 1, 'md' => 2, 'xl' => 3])
             /*
              | Quatre gestes quotidiens en icones nues, directement sur la
@@ -212,6 +232,8 @@ class UsersTable
                     'Dernières sélections' => ['home_selection_at', 'desc'],
                     'Dernières formules payantes' => ['plan_started_at', 'desc'],
                     'Derniers inscrits' => ['created_at', 'desc'],
+                    'Derniers accès' => ['last_login_at', 'desc'],
+                    'Dernières demandes de sélection' => ['selection_requested_at', 'desc'],
                     'Plus de visuels' => ['media_count', 'desc'],
                 ]),
                 Action::make('exporter')->label('Exporter en CSV')->icon('heroicon-o-arrow-down-tray')
@@ -242,8 +264,36 @@ class UsersTable
                     )),
                 BulkActionGroup::make([
                     RestoreBulkAction::make(),
+                    self::purger(),
                 ]),
             ]);
+    }
+
+    /**
+     * Suppression definitive des comptes jamais confirmes, inscrits depuis
+     * plus de deux mois (book_supp_nonvalide.php du legacy). Les autres
+     * comptes de la selection sont ignores, quoi qu'on ait coche.
+     */
+    private static function purger(): BulkAction
+    {
+        return BulkAction::make('purger')
+            ->label(__('Purger les non confirmés'))
+            ->icon('heroicon-o-trash')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalHeading(__('Purger les comptes jamais confirmés ?'))
+            ->modalDescription(__('Seuls les comptes dont l’adresse n’a jamais été confirmée et inscrits depuis plus de :n mois sont supprimés, définitivement, avec leurs visuels. Les autres sont ignorés.', ['n' => PurgerCreatifsNonConfirmes::DELAI_MOIS]))
+            ->modalSubmitActionLabel(__('Purger'))
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records) {
+                $purges = app(PurgerCreatifsNonConfirmes::class)($records);
+
+                Notification::make()
+                    ->title(trans_choice(':n compte purgé|:n comptes purgés', $purges, ['n' => $purges])
+                        .($records->count() > $purges ? ' — '.($records->count() - $purges).' ignoré(s)' : ''))
+                    ->{$purges ? 'success' : 'warning'}()
+                    ->send();
+            });
     }
 
     /**

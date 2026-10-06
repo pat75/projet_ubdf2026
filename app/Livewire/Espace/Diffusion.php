@@ -45,6 +45,26 @@ class Diffusion extends Component
         Auth::user()->bookSetting()->updateOrCreate([], [self::COLONNES[$champ] => $this->{$champ}]);
     }
 
+    /** Une demande de selection vaut pour ce nombre de jours : pas de relance avant. */
+    public const DELAI_DEMANDE_JOURS = 30;
+
+    /** Demande a figurer dans la selection (us_formule_ask_date du legacy). */
+    public function demanderSelection(): void
+    {
+        $user = Auth::user();
+
+        if ($user->in_home_selection || $this->demandeEnCours($user)) {
+            return;
+        }
+
+        $user->forceFill(['selection_requested_at' => now()])->saveQuietly();
+    }
+
+    private function demandeEnCours($user): bool
+    {
+        return $user->selection_requested_at?->gt(now()->subDays(self::DELAI_DEMANDE_JOURS)) ?? false;
+    }
+
     public function render(): View
     {
         $user = Auth::user();
@@ -52,6 +72,8 @@ class Diffusion extends Component
         $marque = \App\Support\Marque::depuisCode($user->brand ?: 'ub')->nom;
 
         return view('livewire.espace.diffusion', [
+            'enSelection' => (bool) $user->in_home_selection,
+            'demandeLe' => $this->demandeEnCours($user) ? $user->selection_requested_at : null,
             'canaux' => [
                 'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],
                 'portail' => [__('Diffusion sur :marque', ['marque' => $marque]), __('Votre book apparaît dans l’annuaire et les recherches :marque.', ['marque' => $marque]), 'https://'.config('ubdf.portail_domain').'#'.$user->login],

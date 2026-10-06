@@ -303,4 +303,61 @@
     .dark .ub-label-visiteur { background: rgb(255 255 255 / .12); color: rgb(212 212 216); }
 
     .dark .ub-creatif-nom { color: rgb(161 161 170); }
+
+    /*
+     | Panneau des filtres : fond legerement grise, boutons de choix
+     | (App\Filament\Support\FiltreBoutons) et libelles plus petits, pour
+     | qu'une ligne de choix tienne d'un coup d'oeil.
+     */
+    .fi-ta-filters-dropdown .fi-dropdown-panel {
+        background: rgb(243 244 246);
+    }
+
+    .dark .fi-ta-filters-dropdown .fi-dropdown-panel {
+        background: rgb(31 41 55);
+    }
+
+    .fi-ta-filters-dropdown .fi-fo-field-label-content {
+        font-size: 12px;
+    }
+
+    /* Boutons de choix : blancs au repos, anthracite + texte blanc une fois choisis. */
+    .fi-fo-toggle-buttons .fi-btn {
+        font-size: 12px !important;
+        padding: 4px 10px !important;
+        background: #fff !important;
+        color: rgb(55 65 81) !important;
+    }
+
+    .dark .fi-fo-toggle-buttons .fi-btn {
+        background: rgb(55 65 81) !important;
+        color: rgb(229 231 235) !important;
+    }
+
+    .fi-fo-toggle-buttons .fi-fo-toggle-buttons-input:checked + .fi-btn,
+    .dark .fi-fo-toggle-buttons .fi-fo-toggle-buttons-input:checked + .fi-btn {
+        background: #383e42 !important;
+        color: #fff !important;
+    }
+
+    /* Bouton « Filtres » des listes : fond anthracite, texte et icone blancs. */
+    .ub-bouton-filtres {
+        background: #383e42 !important;
+        color: #fff !important;
+    }
+
+    .ub-bouton-filtres:hover {
+        background: #4a5157 !important;
+    }
+
+    .ub-bouton-filtres * {
+        color: #fff !important;
+    }
+
+    /* Pas de pastille du nombre de filtres actifs sur le bouton. */
+    .ub-bouton-filtres .fi-badge,
+    .ub-bouton-filtres + .fi-badge,
+    .ub-bouton-filtres .fi-btn-badge-ctn {
+        display: none !important;
+    }
 </style>

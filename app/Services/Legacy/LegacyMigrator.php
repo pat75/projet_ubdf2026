@@ -254,6 +254,13 @@ final class LegacyMigrator
                 continue;
             }
 
+            // Demande de selection : 72 000 comptes portent la date de mise
+            // en service du champ (2019-09-24 10:20:57), pas une vraie demande.
+            $demande = $row->us_formule_ask_date ?? null;
+            if ($demande && ! str_starts_with($demande, '2019-09-24 10:20:57') && ($date = $this->date($demande))) {
+                User::whereKey($userId)->update(['selection_requested_at' => $date]);
+            }
+
             BookSetting::updateOrCreate(
                 ['user_id' => $userId],
                 [
@@ -770,6 +777,13 @@ final class LegacyMigrator
 
             if ($userId === null || $date === null) {
                 continue;
+            }
+
+            // Derniere connexion du createur a son espace.
+            if ($acces = $this->date($row->st_admin_date)) {
+                User::whereKey($userId)
+                    ->where(fn ($q) => $q->whereNull('last_login_at')->orWhere('last_login_at', '<', $acces))
+                    ->update(['last_login_at' => $acces]);
             }
 
             VisitStat::updateOrCreate(

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visitors\Tables;
 
 use App\Filament\Support\ActionsCompte;
+use App\Filament\Support\FiltreBoutons;
 use App\Filament\Support\FiltrePeriode;
 use App\Filament\Support\MenuTri;
 use App\Models\Visitor;
@@ -20,9 +21,6 @@ use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -102,25 +100,26 @@ class VisitorsTable
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(50)
             ->filters([
-                SelectFilter::make('brand')->label('Marque')
-                    ->options(['ub' => 'Ultra-book', 'df' => 'Dustfolio']),
-                TernaryFilter::make('bloque')->label('Compte bloqué')
-                    ->queries(
-                        true: fn (Builder $q) => $q->whereNotNull('blocked_at'),
-                        false: fn (Builder $q) => $q->whereNull('blocked_at'),
-                    ),
-                TernaryFilter::make('memo')->label('A un memo book')
-                    ->queries(
-                        true: fn (Builder $q) => $q->whereHas('memoBooks'),
-                        false: fn (Builder $q) => $q->whereDoesntHave('memoBooks'),
-                    ),
+                FiltreBoutons::make('brand', 'Marque', [
+                    'ub' => ['Ultra-book', fn (Builder $query) => $query->where('brand', 'ub')],
+                    'df' => ['Dustfolio', fn (Builder $query) => $query->where('brand', 'df')],
+                ]),
+                FiltreBoutons::ouiNon('bloque', 'Compte bloqué',
+                    fn (Builder $query) => $query->whereNotNull('blocked_at'),
+                    fn (Builder $query) => $query->whereNull('blocked_at')),
+                FiltreBoutons::ouiNon('memo', 'A un memo book',
+                    fn (Builder $query) => $query->whereHas('memoBooks'),
+                    fn (Builder $query) => $query->whereDoesntHave('memoBooks')),
                 FiltrePeriode::make('inscription_recente', 'Inscrit', 'created_at'),
-                TrashedFilter::make()->label('Comptes supprimés'),
+                FiltreBoutons::make('trashed', 'Comptes supprimés', [
+                    'avec' => ['Inclus', fn (Builder $query) => $query->withTrashed()],
+                    'seuls' => ['Seulement', fn (Builder $query) => $query->onlyTrashed()],
+                ]),
             ])
             // Meme barre que chez les creatifs : filtres, recherche, export
             // et organisation des colonnes sur une seule ligne.
             ->filtersLayout(FiltersLayout::Dropdown)
-            ->filtersFormWidth(Width::FourExtraLarge)
+            ->filtersFormWidth(Width::SixExtraLarge)
             ->filtersFormColumns(['default' => 1, 'md' => 2, 'xl' => 3])
             ->recordActions([
                 self::blocage(),

@@ -39,6 +39,27 @@
         </div>
     </section>
 
+    <section class="mt-7 flex flex-col gap-3.5">
+        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Sélection') }}</h2>
+
+        <div class="carte-espace flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4.5">
+            <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
+                <span class="text-[16px] font-bold text-ub-texte">{{ __('Figurer dans la sélection') }}</span>
+                <span class="text-[13px] text-ub-texte2 text-pretty">{{ __('Les books sélectionnés sont mis en avant sur la page d’accueil. L’équipe examine chaque demande.') }}</span>
+            </div>
+
+            @if ($enSelection)
+                <span class="text-[13px] font-bold text-ub-accent-texte">{{ __('Votre book fait partie de la sélection') }}</span>
+            @elseif ($demandeLe)
+                <span class="text-[13px] font-bold text-ub-texte3">{{ __('Demande envoyée le :date', ['date' => $demandeLe->translatedFormat('j F Y')]) }}</span>
+            @else
+                <x-espace.bouton type="button" wire:click="demanderSelection">
+                    {{ __('Demander à être sélectionné') }}
+                </x-espace.bouton>
+            @endif
+        </div>
+    </section>
+
     <section class="mt-7 grid gap-5 md:grid-cols-2">
         <div class="flex flex-col gap-3.5">
             <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Version PDF') }}</h2>

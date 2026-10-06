@@ -20,6 +20,8 @@ use App\Models\Selection;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Observers\JournalAdmin;
+use Filament\Actions\Action;
+use Filament\Tables\Table;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +67,12 @@ class AppServiceProvider extends ServiceProvider
             if ($autre && Auth::guard($autre)->check()) {
                 Auth::guard($autre)->logout();
             }
+
+            // Derniere connexion du createur, hors prise d'identite par un
+            // administrateur. saveQuietly : ni journal, ni updated_at.
+            if ($connexion->guard === 'web' && ! session()->has(\App\Http\Controllers\Admin\PriseIdentiteController::SESSION)) {
+                $connexion->user->forceFill(['last_login_at' => now()])->saveQuietly();
+            }
         });
 
         /*
@@ -79,6 +87,22 @@ class AppServiceProvider extends ServiceProvider
         ] as $modele) {
             $modele::observe(JournalAdmin::class);
         }
+
+        /*
+         | Bouton « Filtres » de toutes les listes de l'admin : un vrai
+         | bouton libelle, au meme rendu que « Exporter en CSV », plutot
+         | qu'une petite icone qu'on ne voit pas. Le badge du nombre de
+         | filtres actifs reste ajoute par Filament.
+         */
+        Table::configureUsing(fn (Table $table) => $table->filtersTriggerAction(
+            fn (Action $action) => $action->button()->label('Filtres')->icon('heroicon-o-funnel')->extraAttributes(['class' => 'ub-bouton-filtres'])
+        )->filtersApplyAction(
+            // Le panneau se referme des qu'on applique : `close` est la methode
+            // Alpine du dropdown (filamentDropdown), dont le bouton est un enfant.
+            // x-init plutot que x-on:click / alpineClickHandler : ceux-ci
+            // remplacent le wire:click qui applique reellement les filtres.
+            fn (Action $action) => $action->extraAttributes(['x-init' => "\$el.addEventListener('click', () => close())"])
+        ));
 
         // Connexions et deconnexions du back-office.
         foreach ([Login::class => 'login', Logout::class => 'logout'] as $evenement => $action) {
