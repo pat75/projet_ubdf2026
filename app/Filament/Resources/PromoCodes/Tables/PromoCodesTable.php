@@ -52,8 +52,6 @@ class PromoCodesTable
                     ->modalHeading('Supprimer les codes sélectionnés ?')
                     ->modalDescription('Cette action est définitive.')
                     ->successNotificationTitle('Codes supprimés'),
-            ])
-            // Filtre a gauche de la recherche (voir styles.blade.php).
-            ->extraAttributes(['class' => 'ub-filtre-gauche']);
+            ]);
     }
 }

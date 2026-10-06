@@ -3,6 +3,7 @@
 namespace App\Services\Messagerie;
 
 use App\Models\Conversation;
+use App\Models\NewsletterMail;
 use App\Services\IA\Decisions\DecisionsClient;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
@@ -34,6 +35,11 @@ class DetecteurSpamIA
         'clients potentiels. Est-ce un spam ou une sollicitation commerciale non pertinente '.
         '(demarchage, hameconnage, arnaque au trop-percu, offre de service sans rapport avec une '.
         'prestation creative, lien suspect) plutot qu\'une demande de travail authentique ?';
+
+    private const CONSIGNE_MAIL = "Cette adresse mail s'est inscrite a la newsletter d'une plateforme ".
+        'de createurs freelances. Est-ce probablement une adresse indesirable (inscription par un robot, '.
+        'adresse jetable ou aleatoire, faute de frappe volontaire, domaine de spam) plutot que celle '.
+        "d'une vraie personne ?";
 
     public function __construct(private readonly DecisionsClient $decisions)
     {
@@ -92,20 +98,42 @@ class DetecteurSpamIA
         return true;
     }
 
+    /** Evalue une adresse inscrite a la newsletter et enregistre le resultat. */
+    public function analyserMail(NewsletterMail $mail): bool
+    {
+        if (! $this->actif()) {
+            return false;
+        }
+
+        $probabilite = $this->evaluer($mail->email, self::CONSIGNE_MAIL);
+
+        if ($probabilite === null) {
+            return false;
+        }
+
+        $mail->forceFill([
+            'spam_ia_probabilite' => $probabilite,
+            'spam_ia' => $probabilite >= $this->seuil(),
+        ])->save();
+
+        return true;
+    }
+
     /**
      * Probabilite (0 a 1) que le message soit un spam, ou null si aucune
      * alternative Jev n'a repondu — l'analyse est alors suspendue.
      */
-    public function evaluer(string $message): ?float
+    public function evaluer(string $message, ?string $consigne = null): ?float
     {
         $message = mb_substr($message, 0, 4000);
+        $consigne ??= self::CONSIGNE;
         $derniereErreur = 'Aucun modèle configuré.';
 
         foreach ((array) config('messagerie.spam_filter.modeles', []) as $alternative) {
             try {
                 $valeur = ($alternative['api'] ?? 'decisions') === 'chat'
-                    ? $this->parChat($alternative['modele'], $message)
-                    : $this->parDecisions($alternative['modele'], $message);
+                    ? $this->parChat($alternative['modele'], $message, $consigne)
+                    : $this->parDecisions($alternative['modele'], $message, $consigne);
             } catch (RuntimeException|ConnectionException $e) {
                 $derniereErreur = $alternative['modele'].' : '.$e->getMessage();
 
@@ -126,12 +154,12 @@ class DetecteurSpamIA
         return null;
     }
 
-    private function parDecisions(string $modele, string $message): ?float
+    private function parDecisions(string $modele, string $message, string $consigne): ?float
     {
         $reponses = $this->decisions->demander(
             modele: $modele,
             etat: ['message' => $message],
-            questions: ['spam' => ['type' => 'noul', 'instructions' => self::CONSIGNE]],
+            questions: ['spam' => ['type' => 'noul', 'instructions' => $consigne]],
         );
 
         $valeur = $reponses['spam']['noul'] ?? null;
@@ -139,7 +167,7 @@ class DetecteurSpamIA
         return is_numeric($valeur) ? (float) $valeur : null;
     }
 
-    private function parChat(string $modele, string $message): ?float
+    private function parChat(string $modele, string $message, string $consigne): ?float
     {
         $cle = config('services.openrouter.api_key');
 
@@ -151,7 +179,7 @@ class DetecteurSpamIA
             'model' => $modele,
             'temperature' => 0,
             'messages' => [
-                ['role' => 'system', 'content' => self::CONSIGNE.' Reponds uniquement en JSON : {"probabilite": nombre entre 0 et 1}.'],
+                ['role' => 'system', 'content' => $consigne.' Reponds uniquement en JSON : {"probabilite": nombre entre 0 et 1}.'],
                 ['role' => 'user', 'content' => $message],
             ],
         ]);

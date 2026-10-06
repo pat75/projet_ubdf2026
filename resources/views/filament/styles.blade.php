@@ -53,16 +53,32 @@
     }
 
     /*
-     | Recherche et selecteur de colonnes cales a gauche.
+     | Barre d'outils des listes : la recherche a gauche, tout le reste
+     | (filtres, colonnes, actions) cale a droite sur la meme ligne.
      |
-     | Filament les pousse a droite (la barre est en `space-between`), a
-     | l'oppose du regard qui balaie le tableau : sur une liste de plusieurs
-     | milliers de creatifs, on cherche dix fois pour une action groupee.
-     | On rend la barre alignee a gauche et on remonte le bloc
-     | recherche/filtres/colonnes devant les actions groupees.
+     | Le bloc recherche/filtres/colonnes de Filament est dissous
+     | (`display: contents`) pour que chaque element devienne un enfant de la
+     | barre : la recherche prend la marge automatique, qui pousse le reste
+     | contre le bord droit, et les actions passent en dernier.
      */
     .fi-ta-header-toolbar {
         justify-content: flex-start;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .fi-ta-header-toolbar > :not(.fi-ta-actions) {
+        display: contents;
+    }
+
+    .fi-ta-header-toolbar .fi-ta-search-field {
+        order: -1;
+        margin-inline-end: auto;
+    }
+
+    .fi-ta-header-toolbar > .fi-ta-actions {
+        order: 1;
+        margin-inline-start: 0;
         gap: 30px;
     }
 
@@ -90,29 +106,6 @@
     .dark .ub-conversation-spam .fi-ta-text-item,
     .dark .ub-conversation-spam .fi-ta-text-item * {
         color: rgb(248 113 113);
-    }
-
-    /* Table qui veut le filtre a gauche de la recherche. */
-    .ub-filtre-gauche .fi-ta-header-toolbar > :not(.fi-ta-actions) {
-        flex-direction: row-reverse;
-    }
-
-    /* Le bloc recherche + filtres + colonnes passe devant les actions. */
-    .fi-ta-header-toolbar > :not(.fi-ta-actions) {
-        order: -1;
-        display: flex;
-        align-items: center;
-        gap: 30px;
-    }
-
-    /*
-     | Filtres, tri et export prennent le meme ecart que le reste de la
-     | ligne. La marge automatique de Filament est annulee : elle poussait
-     | les actions contre le bord droit, et aucun ecart fixe n aurait tenu.
-     */
-    .fi-ta-header-toolbar > .fi-ta-actions {
-        margin-inline-start: 0;
-        gap: 30px;
     }
 
     /*
