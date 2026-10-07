@@ -239,7 +239,11 @@ arret()   {
     [ -f "$W/sauvegarde" ] && echo "Restaurer si besoin : gunzip -c $(cat "$W/sauvegarde") | mysql -u $(val DB_USERNAME) -p $BASE  (puis php artisan cache:clear)"
     fermer 1
 }
+# O2switch : mysql est un alias obsolete de mariadb (avertissement a chaque appel).
+command -v mariadb > /dev/null && mysql() { mariadb "$@"; }
 sql()     { mysql --defaults-extra-file="$CNF" -N -B "$BASE" -e "$1"; }
+# Pas de <( ) : /dev/fd n'existe pas sur O2switch.
+sauf()    { local a=() m; for m in $1; do a+=(-e "$m"); done; grep -vxF "${a[@]}"; }
 maintenance() { "$PHP" artisan tinker --execute="App\Models\Reglage::definir(App\Models\Reglage::MAINTENANCE, $1);" > /dev/null; }
 mo()      { echo $(( $1 / 1048576 )); }
 
@@ -260,8 +264,8 @@ suivre_taille() { # pid fichier
 }
 
 # Tables 2026 de la prod (hors legacy et techniques), puis celles gardees.
-tables_2026()    { sql "select table_name from information_schema.tables where table_schema='$BASE' and table_type='BASE TABLE' order by 1" | grep -vE "$MOTIF" | grep -vxF -f <(tr ' ' '\n' <<< "$TECHNIQUES"); }
-tables_gardees() { tables_2026 | grep -vxF -f <(tr ' ' '\n' <<< "$VIDEES"); }
+tables_2026()    { sql "select table_name from information_schema.tables where table_schema='$BASE' and table_type='BASE TABLE' order by 1" | grep -vE "$MOTIF" | sauf "$TECHNIQUES"; }
+tables_gardees() { tables_2026 | sauf "$VIDEES"; }
 compter()        { for t in $1; do printf '%s\t%s\n' "$t" "$(sql "select count(*) from \`$t\`")"; done; }
 
 # Colonnes normalisees (MySQL 5.7 local / MariaDB O2switch : largeur
@@ -316,6 +320,7 @@ if ! fait sauvegarde; then
     info "$S ($(du -h "$S" | cut -f1)), verifiee"
     # Lignes des tables gardees, avant toute modification.
     compter "$(tables_gardees)" > "$W/gardees-avant.tsv"
+    [ -s "$W/gardees-avant.tsv" ] || arret "aucune table 2026 gardee trouvee : controle impossible"
     info "$(wc -l < "$W/gardees-avant.tsv") tables gardees recomptees"
     noter sauvegarde
 fi
@@ -335,7 +340,8 @@ fi
 # ───────────────────────────────────────────── 5 integrite AVANT
 if ! fait integrite-avant; then
     bandeau 5 "Integrite AVANT conversion"
-    manquantes="$(grep -vxF -f <(sql "show tables" | grep -E "$MOTIF") "$W/tables-dump" || true)"
+    sql "show tables" | grep -E "$MOTIF" > "$W/tables-base" || true
+    manquantes="$(grep -vxF -f "$W/tables-base" "$W/tables-dump" || true)"
     [ -z "$manquantes" ] || arret "tables du dump absentes de la base : $manquantes"
     info "$(wc -l < "$W/tables-dump") tables legacy presentes"
     compter "$(cat "$W/tables-dump")" > "$W/legacy-lignes.tsv"
@@ -369,7 +375,9 @@ if ! fait structure; then
                 || arret "recreation de $t impossible"
             info "$t recreee selon la reference (table videe et rechargee de toute facon)"
         else
-            diff <(grep -P "^$t\t" "$W/ref.norm") <(grep -P "^$t\t" "$W/prod.norm") | sed 's/^/      /'
+            grep -P "^$t\t" "$W/ref.norm" > "$W/diff-ref.tmp" || true
+            grep -P "^$t\t" "$W/prod.norm" > "$W/diff-prod.tmp" || true
+            diff "$W/diff-ref.tmp" "$W/diff-prod.tmp" | sed 's/^/      /' || true
             arret "table GARDEE $t differente de la reference : la modifier ferait perdre des donnees. Deployer la migration manquante, puis relancer."
         fi
     done
@@ -403,7 +411,9 @@ if ! fait integrite-apres; then
     note() { echo "   $*" | tee -a "$W/integrite.txt"; }
 
     compter "$(cut -f1 "$W/gardees-avant.tsv")" > "$W/gardees-apres.tsv"
-    if diff -q "$W/gardees-avant.tsv" "$W/gardees-apres.tsv" > /dev/null; then
+    if [ ! -s "$W/gardees-avant.tsv" ]; then
+        ko=1; note "KO  tables gardees : releve AVANT vide (controle non fait ; la sauvegarde permet de comparer a la main)"
+    elif diff -q "$W/gardees-avant.tsv" "$W/gardees-apres.tsv" > /dev/null; then
         note "OK  tables gardees : $(wc -l < "$W/gardees-avant.tsv") tables, lignes identiques"
     else
         ko=1; note "KO  tables gardees modifiees :"
@@ -418,6 +428,10 @@ if ! fait integrite-apres; then
         note "OK  comptes : $users = $vivants vivants - $ecartes logins ecartes"
     else
         ko=1; note "KO  comptes : $users repris, $attendu attendus ($vivants vivants - $ecartes ecartes)"
+        sql "select i.us_id, i.us_login from inc_user i left join users u on u.legacy_id = i.us_id
+             where i.us_delete = 'false' and u.id is null order by i.us_id" > "$W/comptes-manquants.tsv"
+        note "    $(wc -l < "$W/comptes-manquants.tsv") comptes vivants absents de users (liste : $W/comptes-manquants.tsv), dont les ecartes ci-dessus :"
+        head -30 "$W/comptes-manquants.tsv" | sed 's/^/        /' | tee -a "$W/integrite.txt"
     fi
 
     for t in users book_settings galleries media newsletter_mails; do
@@ -426,11 +440,13 @@ if ! fait integrite-apres; then
     done
 
     orphelins=0
+    sql "select table_name, column_name, referenced_table_name, referenced_column_name from information_schema.key_column_usage
+         where table_schema='$BASE' and referenced_table_name is not null" | grep -vE "$MOTIF" > "$W/fk.tsv" || true
+    [ -s "$W/fk.tsv" ] || { ko=1; note "KO  cles etrangeres : aucune trouvee, controle impossible"; }
     while IFS=$'\t' read -r t c rt rc; do
         n=$(sql "select count(*) from \`$t\` e left join \`$rt\` p on e.\`$c\` = p.\`$rc\` where e.\`$c\` is not null and p.\`$rc\` is null")
         [ "$n" -eq 0 ] || { orphelins=1; note "KO  $t.$c -> $rt.$rc : $n lignes orphelines"; }
-    done < <(sql "select table_name, column_name, referenced_table_name, referenced_column_name from information_schema.key_column_usage
-                  where table_schema='$BASE' and referenced_table_name is not null" | grep -vE "$MOTIF")
+    done < "$W/fk.tsv"
     if [ "$orphelins" -eq 0 ]; then note "OK  cles etrangeres : aucune ligne orpheline"; else ko=1; fi
 
     colonnes_prod > "$W/prod.norm"

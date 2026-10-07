@@ -20,8 +20,13 @@ use Illuminate\Support\Facades\DB;
  */
 final class LegacyLogins
 {
-    /** Login source accepte : les caracteres a convertir compris. */
-    public const SOURCE = '^[a-z0-9][a-z0-9_.-]{1,48}$';
+    /**
+     * Login source accepte : les caracteres a convertir compris, y compris
+     * en tete et en queue (_miette, -sophie-) : ils sont retires a la
+     * conversion. Exiger une lettre en premier laissait ces comptes de cote
+     * sans meme les signaler comme ecartes.
+     */
+    public const SOURCE = '^[a-z0-9_.-]{2,49}$';
 
     /** Login cible : utilisable comme etiquette de nom d'hote. */
     private const CIBLE = '/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/';

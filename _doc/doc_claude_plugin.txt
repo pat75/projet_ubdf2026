@@ -1,0 +1,78 @@
+CLAUDE CODE : PLUGINS, SKILLS, OPTIMISATIONS
+Mis a jour le 2026-10-07
+
+== PLUGINS ==
+
+ponytail (v4.13.0)
+  Mode "developpeur paresseux" : la solution la plus courte qui marche.
+  Niveaux : lite (construit ce qui est demande, signale l'alternative), full (defaut), ultra.
+  Commandes : /ponytail lite|full|ultra, "stop ponytail" pour couper.
+  Autres : ponytail-audit, ponytail-debt, ponytail-gain, ponytail-help, ponytail-review.
+  A faire : badge de barre d'etat, ajouter a ~/.claude/settings.json :
+    "statusLine": { "type": "command", "command": "bash \"/Users/pat/.claude/ponytail-statusline.sh\"" }
+
+graphify
+  Transforme le code et les docs en graphe de connaissances (graphify-out/).
+  Commandes : graphify query "<question>", graphify path "<A>" "<B>", graphify explain "<concept>".
+  Le hook git post-commit reconstruit le graphe en tache de fond (incremental).
+  Ne pas lancer "graphify update ." a la main (~3 min). Sur un clone neuf : le lancer une fois.
+  graphify-out/ n'est pas versionne.
+
+Autres plugins actifs : ecc (everything-claude-code), code-simplifier, frontend-design,
+design, finance, productivity, pdf-viewer.
+
+== SKILLS ==
+
+Installes dans ~/.claude/skills/ (Matt Pocock + divers)
+  /grill-with-docs   avant toute feature non triviale ou PRD
+  /grill-me          stress-test d'un plan
+  /tdd               fonctionnalite avec logique metier testable
+  /diagnose          bug complexe ou reproductible
+  /improve-codebase-architecture   sur demande (hebdo)
+  /to-prd, /handoff, /write-a-skill, /caveman, /find-skills
+  /graphify          graphe de connaissances
+  laravel-security-audit-fr   audit securite Laravel (OWASP, IDOR, XSS, CSRF...)
+  web-design-engineer   ajoute le 2026-10-07 (conardli/garden-skills), artefacts HTML/React.
+                        Peut entrer en conflit avec Blade/Livewire et Claude_design.md : a invoquer a la demande.
+
+SEO : seo, seo-audit, seo-page, seo-technical, seo-content, seo-schema, seo-geo,
+      seo-local, seo-sitemap, seo-images, seo-hreflang, seo-google, seo-drift, etc.
+
+Securite : laravel-security-audit-fr, ecc:laravel-security, ecc:security-review,
+           security-review, ecc:security-scan.
+
+Dev / qualite : code-review, simplify, ecc:laravel-patterns, ecc:laravel-tdd,
+                ecc:laravel-verification, ecc:verification-loop, ecc:tdd-workflow.
+
+Installer un skill : npx skills add <owner>/<repo>@<skill> -g -a claude-code -y
+Chercher : npx skills find <mot>   (annuaire : agenticskills.io / skills.sh)
+Les skills tiers tournent avec les pleins droits de l'agent : lire le SKILL.md avant usage.
+
+== AUTRES OPTIMISATIONS ==
+
+RTK (Rust Token Killer)
+  Proxy CLI qui filtre les sorties de commandes (60-90 % de tokens en moins).
+  Hook automatique : git status -> rtk git status.
+  rtk gain (analytique), rtk discover (occasions manquees), rtk proxy <cmd> (sortie brute).
+
+CLAUDE.md
+  Global (~/.claude/CLAUDE.md) : francais, concis, stack Laravel/Livewire/Alpine/Tailwind, autonomie.
+  Projet (CLAUDE.md a la racine) : prevaut sur le global. Charte graphique dans Claude_design.md.
+  Design generique : ~/.claude/CLAUDE.Design.md.
+
+Sous-agents
+  Taches simples (lecture, recherche, formatage) : CLAUDE_CODE_SUBAGENT_MODEL=haiku.
+
+Memoire persistante
+  ~/.claude/projects/-Users-pat-Sites-2026-projet-ubdf2026/memory/ (index MEMORY.md).
+
+Hooks
+  GateGuard : bloque la 1re commande Bash et la 1re ecriture de fichier tant que les faits ne sont
+  pas enonces. Desactiver : ECC_GATEGUARD=off, GATEGUARD_BASH_ROUTINE_DISABLED=1 ou
+  GATEGUARD_EXEMPT_GLOBS pour des chemins precis.
+
+Habitudes
+  rg plutot que grep, fd plutot que find.
+  Interroger graphify avant de parcourir le code brut.
+  Modele : /model sonnet pour les taches courantes.
+  Binaire PHP du projet : /usr/local/opt/php@8.3/bin/php (le php du PATH est MAMP 8.1).

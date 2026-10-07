@@ -21,6 +21,42 @@ le bon éditeur
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
 
 
++  rechercher taggage des images par IA
+
+prévoir un système d'analyse pour chaque image de chaque book sélectionné.
+ L'objectif est à partir de chaque visuel de définir entre trois et huit mots-clés ainsi qu'un titre et une description d'une ligne.
+ De l'image.
+ Utiliser le service IA de  Open routeur.existant.
+ Ainsi, ces différents mots-clés  Serviront pour le moteur de recherche.
+ https://ubdf2026.ultra-book.name/search
+
+Sur l'admin, créer une. Rubrique recherche avec une page pour lancer
+ les analyses des book et des images des book pour extraire les mots-clés par IA 
+ celle-ci sont lancés sur les derniers book sélectionnés par paquet de 10.
+ En haut de cette page affichée, les statistiques des images déjà scanné des bouts, déjà scanné et le nombre total de mots-clés.
+
+
+
+sur la page /espace/diffusion il faudrait ajouter un switch  pour autoriser l'analyse du book par IA, 
+cette analyse permet de récupérer sur les images, les mots-clés et d'utiliser ses mots-clés pour les recherches sur le site
+(améliorer la formulation)
+
+
+Sur l'admin, créer une page pour voir les statistiques de progression des mots-clés avec un graphique.
+Et lister les créatifs dont  Les visuels ont été scannés par le système affiché le nombre de mots-clés.
+Et permettre de visualiser le détail créatif par créatif, des mots-clés enregistrés.
+
+
+ toujours dans l'admin,  avec un autre menu
+  la possibilité de voir sur une page les dernières recherches demandées par les visiteurs
+   afficher sur cette page des dernières recherches dans une colonne, les mots-clés, recherché
+    et dans l'autre colonne, les utilisateurs qui ont été demandés lors des recherches
+
+ Quand le système sera fonctionnel, créer un poste spécifique dans  Le dossier marketing.
+
+    Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
+
 
 
 

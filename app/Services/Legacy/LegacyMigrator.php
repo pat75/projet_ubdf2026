@@ -235,6 +235,11 @@ final class LegacyMigrator
             $user->forceFill([
                 'created_at' => $this->date($row->us_date) ?? $user->created_at ?? now(),
                 'email_verified_at' => $row->us_confirm_mail === 'true' ? ($user->email_verified_at ?? now()) : null,
+                // Le hook `saving` de User date la selection de l'instant :
+                // a l'import, chaque compte selectionne prenait l'heure de
+                // son paquet, et les derniers us_id passaient en tete de
+                // l'accueil. La vraie date vient de inc_stats (migrateStats).
+                'home_selection_at' => null,
             ]);
             $user->save();
             $repris++;
@@ -777,6 +782,15 @@ final class LegacyMigrator
         foreach ($this->legacyChunks('inc_stats', 'st_id_user', $resolver->legacyIds()) as $row) {
             $userId = $resolver->fromLegacyId((int) $row->st_id_user);
             $date = $this->date($row->st_public_date) ?? $this->date($row->st_admin_date);
+
+            // Date de selection : le legacy triait l'accueil sur
+            // st_selection_date DESC. Sans evenement, pour que le hook de
+            // User ne la remplace pas par l'heure de l'import.
+            if ($userId !== null && $selection = $this->date($row->st_selection_date)) {
+                User::whereKey($userId)->where('in_home_selection', true)
+                    ->where(fn ($q) => $q->whereNull('home_selection_at')->orWhere('home_selection_at', '<', $selection))
+                    ->update(['home_selection_at' => $selection]);
+            }
 
             if ($userId === null || $date === null) {
                 continue;
