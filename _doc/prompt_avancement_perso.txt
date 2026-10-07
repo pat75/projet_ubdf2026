@@ -31,8 +31,7 @@ le bon éditeur
 
  analyser la faisabilité pour ce type d'analyse d'images
 
- créer une page d'admin avec sélecteur IA dans le groupe Réglage
-  cette page affichera les après sélectionner avec le service Open routeur
+ créer une page d'admin
    et également le service API. NVIDIA., sur ce dernier, il faut pouvoir identifier la date d'expiration et pouvoir modifier la clé API.
 
 API key Nvidia
@@ -52,7 +51,18 @@ login : patrice2016@tardif.fr
 
 
 
+
+
+
+
 ================ ok
+
++ sélecteur  de modèles IA avec openrouteur (groupe Régalge) - ok
+  cette page affichera les modele sélectionne avec le service Open routeur, 
+   les modèles seront vérifiés pour connaître si ils sont toujours valides et.
+   l'administrateur pourra les modifier
+
+
 
 +  rechercher book et taggage des images des books par IA - ok
 

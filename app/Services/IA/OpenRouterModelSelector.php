@@ -2,6 +2,7 @@
 
 namespace App\Services\IA;
 
+use App\Models\Reglage;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -62,6 +63,26 @@ class OpenRouterModelSelector
             'anthropic/claude-3.7-sonnet',
         ],
     ];
+
+    /**
+     * Listes par defaut ; l'administrateur les remplace depuis
+     * App\Filament\Pages\ModelesIA (Reglage::MODELES_IA).
+     */
+    public const DEFAUTS = [
+        'text' => self::TEXT_MODELS_BY_COST,
+        'vision' => self::VISION_MODELS_BY_COST,
+    ];
+
+    /** Listes en vigueur : celles de l'administrateur, sinon les defauts. */
+    public static function listes(): array
+    {
+        $enregistre = Reglage::json(Reglage::MODELES_IA) ?? [];
+
+        return [
+            'text' => $enregistre['text'] ?? self::DEFAUTS['text'],
+            'vision' => $enregistre['vision'] ?? self::DEFAUTS['vision'],
+        ];
+    }
 
     public function chatCompletions(
         array $messages,
@@ -133,9 +154,7 @@ class OpenRouterModelSelector
 
     private function resolveCandidateModels(int $costLevel, ?string $defaultModel, string $capability): array
     {
-        $matrix = $capability === 'vision'
-            ? self::VISION_MODELS_BY_COST
-            : self::TEXT_MODELS_BY_COST;
+        $matrix = self::listes()[$capability === 'vision' ? 'vision' : 'text'];
 
         $orderedLevels = [$costLevel];
         foreach ([1, 2, 3, 4] as $level) {

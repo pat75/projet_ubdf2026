@@ -30,6 +30,13 @@ class Reglage extends Model
      */
     public const GOOGLE_MASQUE = 'google_masque';
 
+    /**
+     * Listes de modeles OpenRouter par capacite et niveau de cout, en
+     * JSON (App\Filament\Pages\ModelesIA). Absente : les defauts de
+     * App\Services\IA\OpenRouterModelSelector::DEFAUTS.
+     */
+    public const MODELES_IA = 'modeles_ia';
+
     protected $table = 'reglages';
 
     protected $fillable = ['cle', 'valeur'];
@@ -63,6 +70,17 @@ class Reglage extends Model
     {
         self::query()->updateOrCreate(['cle' => $cle], ['valeur' => filled($valeur) ? trim($valeur) : null]);
         Cache::forget('reglage_texte_'.$cle);
+    }
+
+    /** Valeur JSON d'un reglage, null si absente. */
+    public static function json(string $cle): ?array
+    {
+        return json_decode((string) self::texte($cle), true) ?: null;
+    }
+
+    public static function definirJson(string $cle, ?array $valeur): void
+    {
+        self::definirTexte($cle, $valeur === null ? null : json_encode($valeur));
     }
 
     /** Le site est-il ferme au public ? */

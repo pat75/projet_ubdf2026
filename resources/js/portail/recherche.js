@@ -197,6 +197,8 @@ export default function recherche(Alpine) {
             url.search = new URLSearchParams(new FormData(formulaire)).toString();
 
             zone.setAttribute('aria-busy', 'true');
+            // Loader Semantic UI a la place des anciens resultats, le temps de la requete.
+            zone.innerHTML = '<div class="ui container" style="padding: 60px 0"><div class="ui active centered inline large loader"></div></div>';
             try {
                 const reponse = await fetch(url, {
                     headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },

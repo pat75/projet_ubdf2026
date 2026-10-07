@@ -13,7 +13,7 @@
 @section('body_class', 'page_image')
 
 @section('content')
-    <div class="ui container bloc_portfolios page_image">
+    <div class="ui container bloc_portfolios page_image" style="padding: 30px 0">
         <div class="ui stackable two column grid">
             <div class="column">
                 <a href="{{ $creatif->bookUrl() }}" target="_blank">
