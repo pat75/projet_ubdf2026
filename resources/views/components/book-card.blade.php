@@ -50,16 +50,20 @@
         </div>
     </div>
 
+    {{-- Vues et coeurs repris du serveur de stats du legacy (ubdf:legacy:accueil).
+         Comme le legacy : pas de coeur en dessous de 2. --}}
     <div class="extra content">
         <div class="left floated">
             <div class="vues">
-                <i class="fonticon-eye3 icon"></i><span class="stats_vue"> </span>
+                <i class="fonticon-eye3 icon"></i><span class="stats_vue">{{ $book->legacy_views ?: '' }}</span>
             </div>
         </div>
-        <div class="right floated">
-            <div class="like">
-                <i class="fonticon-heart2 icon"></i><span class="stats_sel"> </span>
+        @if ($book->legacy_likes >= 2)
+            <div class="right floated">
+                <div class="like">
+                    <i class="fonticon-heart2 icon"></i><span class="stats_sel">{{ $book->legacy_likes }}</span>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 </div>

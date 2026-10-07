@@ -42,12 +42,12 @@ class BookRepository
             // editoriale en tete sans ecarter les autres books.
             ->when($selection === 'ult', fn (Builder $query) => $query->where('is_selected', true))
             ->when($selection === 'lub', fn (Builder $query) => $query->where('plan', '>', 0))
-            // Ordre du legacy, a l'identique : `us_affhome ASC, us_img_nb DESC`
-            // (enum 'true','false' : la selection d'abord), puis les books
-            // les plus fournis. Trier aussi par date de selection faisait
-            // passer le dernier selectionne devant (Aurore Nivet au lieu de
-            // Sandrine Creus en tete des illustrateurs).
+            // « Dernieres selections » du legacy (front/action.php) :
+            // `st.st_selection_date DESC`, reprise dans home_selection_at par
+            // ubdf:legacy:accueil --dates. La selection d'abord, les plus
+            // recentes en tete ; puis les books les plus fournis.
             ->orderByDesc('in_home_selection')
+            ->orderByDesc('home_selection_at')
             ->orderByDesc('media_count')
             ->orderBy('users.id')
             ->skip($page * $perPage)

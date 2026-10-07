@@ -235,13 +235,13 @@ final class LegacyMigrator
             $user->forceFill([
                 'created_at' => $this->date($row->us_date) ?? $user->created_at ?? now(),
                 'email_verified_at' => $row->us_confirm_mail === 'true' ? ($user->email_verified_at ?? now()) : null,
-                // Le hook `saving` de User date la selection de l'instant :
-                // a l'import, chaque compte selectionne prenait l'heure de
-                // son paquet, et les derniers us_id passaient en tete de
-                // l'accueil. La vraie date vient de inc_stats (migrateStats).
-                'home_selection_at' => null,
             ]);
             $user->save();
+            // Le hook `saving` de User vient de dater la selection de l'heure
+            // de l'import : le dernier compte importe passait en tete de
+            // l'accueil. Effacee sans evenement ; migrateStats pose la vraie
+            // date (inc_stats.st_selection_date).
+            User::whereKey($user->id)->update(['home_selection_at' => null]);
             $repris++;
         }
 
