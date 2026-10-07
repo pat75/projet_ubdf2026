@@ -9,6 +9,7 @@ le bon éditeur
 
 
 
++ comme sur les illustrateurs.com ajouter un agent automatique de réponse en bas à droite de la page
 
 
 
@@ -21,36 +22,73 @@ le bon éditeur
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
 
 
-+  rechercher taggage des images par IA
++ NVIDIA
 
-prévoir un système d'analyse pour chaque image de chaque book sélectionné.
+ je voudrais créer un service  l'utilisation de lia via la clé API NVIDIA
+ https://build.nvidia.com/explore/discover
+
+ celui-ci pourra  être utilisé pour des demandes d'analyse IA, notamment les analyses d'image pour extraire des mots-clés à partir d'une image
+
+ analyser la faisabilité pour ce type d'analyse d'images
+
+ créer une page d'admin avec sélecteur IA dans le groupe Réglage
+  cette page affichera les après sélectionner avec le service Open routeur
+   et également le service API. NVIDIA., sur ce dernier, il faut pouvoir identifier la date d'expiration et pouvoir modifier la clé API.
+
+API key Nvidia
+ID
+bdd16848-0553-4f5e-a69e-b2132021e743
+Name
+UBDF2026
+Expiration
+10/07/2027
+
+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
+
+
+login : patrice2016@tardif.fr
+
+
+
+
+
+================ ok
+
++  rechercher book et taggage des images des books par IA - ok
+
+prévoir un système d'analyse pour chaque image de chaque book sélectionné ou avec formule.
  L'objectif est à partir de chaque visuel de définir entre trois et huit mots-clés ainsi qu'un titre et une description d'une ligne.
  De l'image.
  Utiliser le service IA de  Open routeur.existant.
  Ainsi, ces différents mots-clés  Serviront pour le moteur de recherche.
  https://ubdf2026.ultra-book.name/search
 
-Sur l'admin, créer une. Rubrique recherche avec une page pour lancer
- les analyses des book et des images des book pour extraire les mots-clés par IA 
- celle-ci sont lancés sur les derniers book sélectionnés par paquet de 10.
- En haut de cette page affichée, les statistiques des images déjà scanné des bouts, déjà scanné et le nombre total de mots-clés.
+il faudra donc optimiser le processus de recherche en fonction de ces tags.
+ Ainsi, les résultats de recherche produiront 2 type de groupe 
+ - avec des books correspondant à la recherche 
+ - et/où  les images correspondant à la recherche.
 
-
-
-sur la page /espace/diffusion il faudrait ajouter un switch  pour autoriser l'analyse du book par IA, 
+sur la page /espace/diffusion du creatif  il faudrait ajouter un switch  pour  que le créatif autorise l'analyse du book par IA, 
 cette analyse permet de récupérer sur les images, les mots-clés et d'utiliser ses mots-clés pour les recherches sur le site
 (améliorer la formulation)
 
 
-Sur l'admin, créer une page pour voir les statistiques de progression des mots-clés avec un graphique.
+
+Sur l'admin, créer une. Rubrique recherche avec une page pour lancer
+ les analyses des book et des images des book pour extraire les mots-clés par IA  En utilisant les modèles d'analyse d'image.
+ celle-ci sont lancés sur les derniers book sélectionnés par paquet de 10.
+ dans un premier temps, uniquement l'administrateur lancera manuellement les analyses.
+ En haut de cette page affichée, les statistiques des images déjà scanné des books, déjà scanné et le nombre total de mots-clés.
+Permettre de voir les statistiques de progression des mots-clés avec un graphique.
 Et lister les créatifs dont  Les visuels ont été scannés par le système affiché le nombre de mots-clés.
 Et permettre de visualiser le détail créatif par créatif, des mots-clés enregistrés.
-
 
  toujours dans l'admin,  avec un autre menu
   la possibilité de voir sur une page les dernières recherches demandées par les visiteurs
    afficher sur cette page des dernières recherches dans une colonne, les mots-clés, recherché
     et dans l'autre colonne, les utilisateurs qui ont été demandés lors des recherches
+     ainsi que les résultats des recherches aussi bien au niveau des books que des images
+ afficher également les recherches qui n'ont pas donné de résultats
 
  Quand le système sera fonctionnel, créer un poste spécifique dans  Le dossier marketing.
 
@@ -65,7 +103,10 @@ Et permettre de visualiser le détail créatif par créatif, des mots-clés enre
 
 
 
-================ ok
+
+
+
+
  +  revoir et terminer la page mon compte -ok
     Notamment pour le mot de passe et l'e-mails
 
