@@ -9,7 +9,7 @@
 # Tout se deroule sur O2switch, dans screen (le Mac peut se mettre en veille) :
 #   1 sauvegarde complete de la prod   2 comparaison et affichage des modifications
 #   3 confirmation                      4 maintenance + application (mode strict)
-#   5 controles + remise en ligne
+#   5 controles + remise en ligne    (fin : maintenance toujours coupee depuis le Mac)
 # Chaque etape terminee est notee dans storage/mise_a_jour_MySQL/etat.
 # Jamais supprime : table ou colonne absente de la reference (listee).
 # Comparaison : deploy/mise_a_jour_MySQL.php. Tutoriel : mise_a_jour_MySQL.txt.
@@ -31,6 +31,24 @@ case "${1:-}" in
     *)         echec "option inconnue : $1 (voir --aide)" ;;
 esac
 
+# --- Fin : le site ne reste jamais en maintenance, meme apres un arret.
+# Sauf si la session tourne encore (simple detachement par Ctrl-A D) : la
+# couper en pleine application servirait le site sur une structure a moitie a jour.
+remettre_en_ligne() {
+    if ssh_run "screen -ls 2>/dev/null | grep -q '\.$SESSION'"; then
+        alerte "Mise a jour toujours en cours : le site reste en maintenance jusqu'a sa fin."
+        alerte "Revenir : ./deploy/mise_a_jour_MySQL.sh"
+        return
+    fi
+    etape "Remise en ligne du site"
+    local reste
+    reste="$(ssh_run "'$REMOTE_PHP' artisan tinker --execute='App\\Models\\Reglage::definir(App\\Models\\Reglage::MAINTENANCE, false); echo (int) App\\Models\\Reglage::enMaintenance();'" | tail -1)"
+    [ "$reste" = "0" ] || echec "le site est encore en maintenance : le couper depuis l'admin (Accueil)"
+    ok "site en ligne (maintenance coupee)"
+    ssh_run "grep -qx fin $W/etat 2>/dev/null" \
+        || alerte "La mise a jour ne s'est pas terminee (voir ci-dessus) : relancer ./deploy/mise_a_jour_MySQL.sh"
+}
+
 journaliser mise_a_jour_MySQL "$MODE"
 
 # ---------------------------------------------------------------- --etat
@@ -45,7 +63,8 @@ fi
 # ------------------------------------------------- lancement ou reprise
 if ssh_run "screen -ls 2>/dev/null | grep -q '\.$SESSION'"; then
     alerte "Une mise a jour tourne deja : on s'y rattache (Ctrl-A puis D pour se detacher)."
-    sur_o2switch "screen -r $SESSION"
+    sur_o2switch "screen -r $SESSION" || true
+    remettre_en_ligne
     exit 0
 fi
 
@@ -226,6 +245,8 @@ ok "dossier de travail : $REMOTE_PATH/$W"
 
 alerte "Ctrl-A puis D : se detacher. Revenir : ./deploy/mise_a_jour_MySQL.sh"
 # Toujours attache : le journal (tee) masque le terminal, lancer_screen detacherait.
-sur_o2switch "screen -S $SESSION bash -c 'bash $W/run.sh 2>&1 | tee -a $W/run.log'"
+sur_o2switch "screen -S $SESSION bash -c 'bash $W/run.sh 2>&1 | tee -a $W/run.log'" || true
 rsync -a -e "$SSH_CMD" "$REMOTE:$REMOTE_PATH/$W/rapport.txt" "$JOURNAL_DIR/mise_a_jour_MySQL-rapport-$(date +%Y%m%d-%H%M).txt" 2>/dev/null \
     && ok "rapport copie dans deploy/logs/" || true
+
+remettre_en_ligne
