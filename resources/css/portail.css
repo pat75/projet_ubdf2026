@@ -897,9 +897,9 @@
     #menu-top-fixed .icon_domaine svg,
     #menu-top-fixed .link_rechercher svg { width: 17px !important; height: 17px !important; display: block; }
     #menu-top-fixed .icon_domaine, #menu-top-fixed .link_rechercher { display: flex !important; align-items: center; }
-    /* Logo reduit de 10 % puis 5 % (120 -> 103px, Dustfolio 168 -> 143px). */
-    #menu-top-fixed .item.logo img.logo_normal { width: 103px !important; }
-    body.marque_df #menu-top-fixed .item.logo img.logo_normal { width: 143px !important; }
+    /* Logo reduit de 10 %, 5 % puis 5 % (120 -> 98px, Dustfolio 168 -> 136px). */
+    #menu-top-fixed .item.logo img.logo_normal { width: 98px !important; }
+    body.marque_df #menu-top-fixed .item.logo img.logo_normal { width: 136px !important; }
     /* Pas de bulle d'aide sur l'icone Rechercher. */
     body .ui.popup.popup_rechercher, body .ui.popup.popup_rechercher.visible { display: none !important; visibility: hidden !important; }
 }
@@ -1117,4 +1117,17 @@
     #vn .vn-scene { margin: 0 40px; }
     #vn .vn-folio-nb { font-size: 14px; color: var(--vn-lieu); }
     #vn .vn-folio-precedent { display: block; }
+}
+
+/*
+ | Accueil desktop : titre et phrase « Depuis 2007… » alignes sur le bord
+ | gauche du champ de recherche (meme segment, pleine largeur) ; titre
+ | remonte de 4px, phrase descendue de 8px.
+ */
+@media only screen and (min-width: 768px) {
+    .bloc_rechercher .accueil_titre_definition { display: block; margin: 0; text-align: left; }
+    .bloc_rechercher .accueil_titre_definition h1 { position: relative; top: -4px; }
+    .bloc_rechercher .accueil_titre_definition h1,
+    .bloc_rechercher .accueil_titre_definition .accueil_definition { text-align: left !important; }
+    .bloc_rechercher .accueil_definition { position: relative; top: 8px; }
 }

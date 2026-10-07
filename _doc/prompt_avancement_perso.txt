@@ -22,7 +22,17 @@ le bon éditeur
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
 
 
-+ NVIDIA API
+
+
+
+
+
+================ ok
+
+
+
+
++ NVIDIA API - ok
 
  je voudrais créer un service qui utilise de l'IA via la clé API NVIDIA
  https://build.nvidia.com/explore/discover
@@ -59,7 +69,13 @@ login : patrice2016@tardif.fr
 
 
 
-================ ok
+
+
+
+
+
+
+
 
 + sélecteur  de modèles IA avec openrouteur (groupe Régalge) - ok
   cette page affichera les modele sélectionne avec le service Open routeur, 

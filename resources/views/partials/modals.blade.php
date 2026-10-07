@@ -84,7 +84,7 @@
 		
         <div class="item logo">
             <a href="/" class=" cursor_effect">
-				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:{{ $marque->estDefaut() ? 120 : 168 }}px;">
+				                    <img class="logo_normal" src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="width:{{ $marque->estDefaut() ? 114 : 160 }}px;">
 				            </a>
         </div>
 
