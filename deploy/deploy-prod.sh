@@ -91,7 +91,8 @@ if [ "$MODE" != "sync" ]; then
 fi
 ok "branche $BRANCHE, commit $COMMIT"
 
-if confirm "Lancer 'npm run build' ?" O; then
+# sync : build lance d'office, sans question ; complet : sur confirmation.
+if [ "$MODE" = "sync" ] || confirm "Lancer 'npm run build' ?" O; then
     ( cd "$PROJECT_DIR" && npm run build )
 fi
 if [ "$MODE" = "full" ] && confirm "Lancer les tests (Pest) ?" N; then
