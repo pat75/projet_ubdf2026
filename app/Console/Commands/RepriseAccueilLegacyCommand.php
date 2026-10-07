@@ -74,10 +74,12 @@ class RepriseAccueilLegacyCommand extends Command
     private function stats(): void
     {
         // Le serveur de stats connait les logins d'origine, pas ceux convertis.
-        $logins = DB::connection('legacy')->table('inc_user')
-            ->whereIn('us_id', User::whereNotNull('legacy_id')->pluck('legacy_id'))
-            ->pluck('us_login', 'us_id');
+        // Sans whereIn : 66 000 identifiants depassent la limite de MySQL
+        // (65 535 parametres par requete).
         $ids = User::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        $logins = DB::connection('legacy')->table('inc_user')
+            ->pluck('us_login', 'us_id')
+            ->intersectByKeys($ids);
 
         $barre = $this->output->createProgressBar($logins->count());
         $repris = 0;

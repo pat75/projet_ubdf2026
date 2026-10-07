@@ -66,3 +66,25 @@ it('compte les books comme le legacy : comptes a mail confirme, sans condition d
         ->assertOk()
         ->assertJsonPath('menu_stats.nb_book', (string) User::whereNotNull('email_verified_at')->count());
 });
+
+it('reprend vues et coeurs depuis le serveur de stats du legacy', function () {
+    config(['database.connections.legacy' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
+    DB::purge('legacy');
+    Schema::connection('legacy')->create('inc_user', function ($t) {
+        $t->integer('us_id');
+        $t->string('us_login');
+    });
+    DB::connection('legacy')->table('inc_user')->insert([
+        ['us_id' => 20, 'us_login' => 'mapauvreamie'],
+        ['us_id' => 21, 'us_login' => 'inconnu'],
+        ['us_id' => 99, 'us_login' => 'non-repris'],
+    ]);
+    $matild = bookAccueilLegacy(['legacy_id' => 20]);
+    $inconnu = bookAccueilLegacy(['legacy_id' => 21]);
+    Http::fake(['extra-book.com/*' => Http::response('cb([{"st_book":183159,"st_memo":18},false]);')]);
+
+    $this->artisan('ubdf:legacy:accueil --stats')->assertSuccessful();
+
+    expect($matild->fresh())->legacy_views->toBe(183159)->legacy_likes->toBe(18)
+        ->and($inconnu->fresh()->legacy_views)->toBe(0);
+});
