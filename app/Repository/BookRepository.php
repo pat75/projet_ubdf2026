@@ -185,9 +185,53 @@ class BookRepository
 
         $conditions = implode(' + ', $pertinence);
 
+        // Candidats d'abord : sinon MySQL verifie la visibilite (whereHas media,
+        // 729k visuels) sur les 66k comptes avant de regarder les termes — 3 a 7 s
+        // par requete sur la prod, contre ~100 ms pour trouver les candidats.
+        $candidats = $this->candidats($termes, $recherche->mode === 'pseudo');
+
+        if ($candidats === []) {
+            return null;
+        }
+
         return $query
+            ->whereIntegerInRaw('users.id', $candidats)
             ->selectRaw("({$conditions}) AS pertinence", $valeurs)
             ->whereRaw("({$conditions}) > 0", $valeurs);
+    }
+
+    /**
+     * Ids des comptes qui portent au moins un terme (sur-ensemble : la
+     * requete principale reapplique les conditions exactes).
+     *
+     * @param  list<string>  $termes
+     * @return list<int>
+     */
+    private function candidats(array $termes, bool $pseudo): array
+    {
+        $ids = collect();
+
+        foreach ($termes as $terme) {
+            $motif = '%'.$this->echapper($terme).'%';
+
+            $ids = $ids->merge(DB::table('users')
+                ->where(fn ($q) => $q->where('login', 'like', $motif)
+                    ->orWhere('firstname', 'like', $motif)
+                    ->orWhere('lastname', 'like', $motif))
+                ->pluck('id'));
+
+            if (! $pseudo) {
+                $ids = $ids
+                    ->merge(DB::table('book_settings')->where('keywords', 'like', $motif)->pluck('user_id'))
+                    ->merge(DB::table('media')
+                        ->join('media_tag', 'media_tag.media_id', '=', 'media.id')
+                        ->join('tags', 'tags.id', '=', 'media_tag.tag_id')
+                        ->where('tags.label', 'like', $motif)
+                        ->pluck('media.user_id'));
+            }
+        }
+
+        return $ids->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 
     /** Un visuel publie du book, hors portfolio protege, porte un mot-cle IA qui contient le terme. */

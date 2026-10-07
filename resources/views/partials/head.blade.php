@@ -98,7 +98,7 @@
 <!-- SementicUI #2018-->
 
 
-<link rel="stylesheet"  href="/html_pages_v2018/_/lib/Semantic-UI-CSS-master2.3.1/semantic.min.css">
+<link rel="stylesheet"  href="/html_pages_v2018/_/lib/Semantic-UI-CSS-master2.3.1/semantic.min.css?v=2">
 <link rel="stylesheet"  href="/html_pages_v2018/_/lib/responsive-semantic-ui.min.css">
 <style>
     body { background-color: #ebebeb!important;}
@@ -108,13 +108,15 @@
 <!-- slides -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bxslider/4.2.15/jquery.bxslider.min.css"/>
 <!-- slider -->
-<link rel="stylesheet" href="/html_pages_v2018/_/js/swipebox-master/src/css/swipebox.min.css">
+<link rel="stylesheet" href="/html_pages_v2018/_/js/swipebox-master/src/css/swipebox.min.css" media="print" onload="this.media='all'">
 
 <!-- Icones ubdf #icomoon -->
 <link rel="stylesheet" href="/html_pages_v2018/_/font_icon/style.min.css">
 
 <!-- Fontes |Open+Sans|Raleway:300,700|Playfair+Display:400,700,900 -->
-<link rel="stylesheet"	href="https://fonts.googleapis.com/css?family=Lato:300,400,700|Source+Sans+Pro:200,300,400,500,600,700">
+{{-- Non bloquantes : l'aller-retour vers Google retardait le premier affichage mobile. --}}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400,700,400italic,700italic|Source+Sans+Pro:200,300,400,500,600,700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400,700,400italic,700italic|Source+Sans+Pro:200,300,400,500,600,700&display=swap"></noscript>
 
 
 
