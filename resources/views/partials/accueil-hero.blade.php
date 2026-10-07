@@ -343,7 +343,10 @@
         <header class="video_header">
             @if ($marque->estDefaut())
                 {{-- Ultra-book : la video d'origine du front 2018. --}}
+                {{-- poster : premiere image de la video (8 Ko), affichee tout de
+                     suite au lieu d'un cadre vide en attendant la video (2,9 Mo). --}}
                 <video autoplay loop muted playsinline webkit-playsinline
+                       poster="/_video/crea3-poster.webp"
                        class="video_source" id="myVideo">
                         <source src="/_video/crea3.mov" type="video/mp4">
                 </video>
