@@ -17,9 +17,19 @@ class LancerAnalyseLot
 {
     public const TAILLE = 10;
 
-    /** @return int nombre de visuels mis en file */
-    public function __invoke(int $taille = self::TAILLE): int
+    /**
+     * Analyse les visuels tout de suite, dans la requete : pas de worker a
+     * faire tourner pour un lot lance a la main.
+     *
+     * ponytail: ~5 s par image, soit ~1 min pour 10 ; repasser par la
+     * file (AnalyserMedia::dispatch) si les lots grossissent.
+     *
+     * @return array{ok: int, erreurs: int}
+     */
+    public function __invoke(int $taille = self::TAILLE): array
     {
+        set_time_limit(0);
+
         $medias = self::eligibles()
             ->whereNull('media.analysed_at')
             ->where(fn (Builder $q) => $q->whereNull('media.ai_status')->orWhere('media.ai_status', '!=', 'erreur'))
@@ -28,9 +38,18 @@ class LancerAnalyseLot
             ->limit($taille)
             ->get();
 
-        $medias->each(fn (Media $m) => AnalyserMedia::dispatch($m));
+        $erreurs = 0;
+        foreach ($medias as $media) {
+            try {
+                AnalyserMedia::dispatchSync($media);
+            } catch (\Throwable $e) {
+                // Le visuel est marque « erreur » et sort des lots suivants.
+                report($e);
+                $erreurs++;
+            }
+        }
 
-        return $medias->count();
+        return ['ok' => $medias->count() - $erreurs, 'erreurs' => $erreurs];
     }
 
     /** Visuels qui peuvent etre analyses, deja faits compris. */

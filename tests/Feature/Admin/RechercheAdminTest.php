@@ -7,7 +7,7 @@ use App\Models\Admin;
 use App\Models\SearchQuery;
 use App\Models\Tag;
 use App\Models\User;
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Bus;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -36,12 +36,12 @@ it('liste les creatifs analyses avec leurs compteurs et le detail des mots-cles'
 });
 
 it('lance un lot depuis la page', function () {
-    Queue::fake();
+    Bus::fake();
     $this->creatif->media()->create(['filename' => 'w.jpg', 'status' => 'published']);
 
-    Livewire::test(AnalyseIA::class)->callAction('lancer');
+    Livewire::test(AnalyseIA::class)->callAction('lancer')->assertNotified('1 image analysée');
 
-    Queue::assertPushed(AnalyserMedia::class, 1);
+    Bus::assertDispatchedSyncTimes(AnalyserMedia::class, 1);
 });
 
 it('filtre les recherches sans resultat', function () {

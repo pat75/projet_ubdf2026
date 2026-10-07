@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Services\IA\AnalyseImage;
 use App\Services\Images\GenerateurImages;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Bus;
 
 function creatifAnalysable(array $attributs = [], bool $accord = true): User
 {
@@ -70,7 +70,7 @@ it("n'appelle pas l'IA si le creatif a retire son accord", function () {
 });
 
 it('met en file les visuels eligibles seulement, par lot', function () {
-    Queue::fake();
+    Bus::fake();
 
     $selectionne = creatifAnalysable();
     $payant = creatifAnalysable(['in_home_selection' => false, 'plan' => 'pro', 'plan_started_at' => now()->subMonth(), 'plan_months' => 12]);
@@ -82,13 +82,13 @@ it('met en file les visuels eligibles seulement, par lot', function () {
     }
     visuel($selectionne)->forceFill(['analysed_at' => now()])->save();
 
-    expect((new LancerAnalyseLot)())->toBe(2);
-    Queue::assertPushed(AnalyserMedia::class, 2);
+    expect((new LancerAnalyseLot)())->toBe(['ok' => 2, 'erreurs' => 0]);
+    Bus::assertDispatchedSyncTimes(AnalyserMedia::class, 2);
 
     foreach (range(1, 12) as $i) {
         visuel($selectionne);
     }
-    expect((new LancerAnalyseLot)())->toBe(LancerAnalyseLot::TAILLE);
+    expect((new LancerAnalyseLot)()['ok'])->toBe(LancerAnalyseLot::TAILLE);
 });
 
 it("efface les resultats de l'analyse quand le creatif retire son accord", function () {

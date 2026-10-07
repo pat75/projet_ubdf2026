@@ -49,15 +49,16 @@ class AnalyseIA extends Page implements HasTable
             Action::make('lancer')
                 ->label('Analyser les '.LancerAnalyseLot::TAILLE.' images suivantes')
                 ->icon('heroicon-o-sparkles')
-                ->requiresConfirmation()
-                ->modalDescription('Books sélectionnés ou en formule payante active, dont le créatif a donné son accord. Les plus récemment sélectionnés passent en premier.')
+                ->tooltip('Books sélectionnés ou en formule payante active, avec l’accord du créatif. Les plus récemment sélectionnés d’abord.')
                 ->action(function () {
-                    $n = app(LancerAnalyseLot::class)();
+                    ['ok' => $ok, 'erreurs' => $erreurs] = app(LancerAnalyseLot::class)();
 
                     Notification::make()
-                        ->title($n ? $n.' image'.($n > 1 ? 's' : '').' en cours d’analyse' : 'Aucune image à analyser')
-                        ->body($n ? 'Les résultats arrivent au fil de la file d’attente : rechargez la page dans une minute.' : null)
-                        ->{$n ? 'success' : 'warning'}()
+                        ->title($ok + $erreurs === 0
+                            ? 'Aucune image à analyser'
+                            : $ok.' image'.($ok > 1 ? 's' : '').' analysée'.($ok > 1 ? 's' : ''))
+                        ->body($erreurs ? $erreurs.' en erreur (voir le journal)' : null)
+                        ->{$erreurs || ! $ok ? 'warning' : 'success'}()
                         ->send();
                 }),
         ];
