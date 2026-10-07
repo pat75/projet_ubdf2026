@@ -14,7 +14,9 @@
 
 @if ($diapos && $vue->presentation() !== 'image')
     @push('entete')
-        <link rel="preload" as="image" href="{{ $diapos[0]['grand'] }}" imagesrcset="{{ $diapos[0]['moyen'] }} 550w, {{ $diapos[0]['grand'] }} 1980w" imagesizes="(min-width: 1024px) 75vw, 100vw" fetchpriority="high">
+        {{-- « 180px » sous 768 px : volontairement faux, pour que le mobile (densite 3)
+             prenne la version 550 px et non la source 1980 px. --}}
+        <link rel="preload" as="image" href="{{ $diapos[0]['grand'] }}" imagesrcset="{{ $diapos[0]['moyen'] }} 550w, {{ $diapos[0]['grand'] }} 1980w" imagesizes="(min-width: 1024px) 75vw, (max-width: 767px) 180px, 100vw" fetchpriority="high">
     @endpush
 @endif
 
@@ -28,7 +30,7 @@
         <div class="flex flex-col gap-10">
             @foreach ($diapos as $i => $diapo)
                 <figure class="motion-safe:animate-apparition">
-                    <img src="{{ $diapo['moyen'] }}" srcset="{{ $diapo['moyen'] }} 550w, {{ $diapo['grand'] }} 1980w" sizes="(min-width: 1024px) 75vw, 100vw"
+                    <img src="{{ $diapo['moyen'] }}" srcset="{{ $diapo['moyen'] }} 550w, {{ $diapo['grand'] }} 1980w" sizes="(min-width: 1024px) 75vw, (max-width: 767px) 180px, 100vw"
                          alt="{{ $diapo['titre'] ?: $diapo['nom_rubrique'] }}"
                          @if ($diapo['largeur'] && $diapo['hauteur']) width="{{ $diapo['largeur'] }}" height="{{ $diapo['hauteur'] }}" @endif
                          loading="{{ $i < 2 ? 'eager' : 'lazy' }}" decoding="async" class="mx-auto h-auto max-h-[90vh] w-auto max-w-full">
@@ -56,7 +58,7 @@
                         {{-- La premiere est dans le HTML ; les autres chargent a l'approche. --}}
                         <img @if ($i === 0) src="{{ $diapo['grand'] }}" srcset="{{ $diapo['moyen'] }} 550w, {{ $diapo['grand'] }} 1980w" fetchpriority="high"
                              @else :src="proche({{ $i }}) ? @js($diapo['grand']) : null" :srcset="proche({{ $i }}) ? @js($diapo['moyen'].' 550w, '.$diapo['grand'].' 1980w') : null" @endif
-                             sizes="(min-width: 1024px) 75vw, 100vw"
+                             sizes="(min-width: 1024px) 75vw, (max-width: 767px) 180px, 100vw"
                              alt="{{ $diapo['titre'] ?: $diapo['nom_rubrique'] }}"
                              @if ($diapo['largeur'] && $diapo['hauteur']) width="{{ $diapo['largeur'] }}" height="{{ $diapo['hauteur'] }}" @endif
                              decoding="async" class="min-h-0 max-h-full w-auto max-w-full flex-1 object-contain">

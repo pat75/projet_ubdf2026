@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\Recherche;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -34,9 +35,33 @@ class BookRepository
     ): Collection {
         $perPage ??= self::PER_PAGE;
 
-        return $this->baseQuery($brand)
-            ->when($categorySlug && $categorySlug !== 'all',
-                fn (Builder $query) => $query->whereRelation('category', 'slug', $categorySlug))
+        $ids = array_slice($this->idsPortfolios($selection, $categorySlug, $brand), $page * $perPage, $perPage);
+
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        $books = $this->baseQuery($brand)->whereIntegerInRaw('users.id', $ids)->get()->keyBy('id');
+
+        // Ordre de la liste en cache ; un book devenu invisible entre-temps disparait.
+        return collect($ids)->map(fn ($id) => $books->get($id))->filter()->values();
+    }
+
+    /**
+     * Ids des books visibles d'une categorie, dans l'ordre d'affichage, en
+     * cache 10 minutes : le filtre de visibilite (whereHas media, 729k
+     * visuels) coutait 3 s a chaque lot du defilement sur les grands metiers.
+     *
+     * @return list<int>
+     */
+    private function idsPortfolios(string $selection, ?string $categorySlug, string $brand): array
+    {
+        $categorie = $categorySlug && $categorySlug !== 'all' ? $categorySlug : 'all';
+
+        return Cache::remember(self::cleIds($brand, $categorie, $selection), now()->addMinutes(10), fn () => $this->baseQuery($brand)
+            ->setEagerLoads([])
+            ->when($categorie !== 'all',
+                fn (Builder $query) => $query->whereRelation('category', 'slug', $categorie))
             // « sel » n'est pas un filtre mais un tri : le legacy classait
             // par `user.us_affhome ASC`, ce qui remonte la selection
             // editoriale en tete sans ecarter les autres books.
@@ -50,9 +75,28 @@ class BookRepository
             ->orderByDesc('home_selection_at')
             ->orderByDesc('media_count')
             ->orderBy('users.id')
-            ->skip($page * $perPage)
-            ->take($perPage)
-            ->get();
+            ->pluck('users.id')
+            ->map(fn ($id) => (int) $id)
+            ->all());
+    }
+
+    private static function cleIds(string $brand, string $categorie, string $selection): string
+    {
+        return "portfolios_ids_{$brand}_{$categorie}_{$selection}";
+    }
+
+    /** Vide les listes en cache (selection modifiee : voir AccueilController::viderCache). */
+    public static function viderCache(): void
+    {
+        $categories = ['all', ...\App\Models\Category::pluck('slug')->all()];
+
+        foreach (['ub', 'df'] as $brand) {
+            foreach ($categories as $categorie) {
+                foreach (['sel', 'ult', 'lub'] as $selection) {
+                    Cache::forget(self::cleIds($brand, $categorie, $selection));
+                }
+            }
+        }
     }
 
     /**
@@ -84,10 +128,7 @@ class BookRepository
 
     public function count(?string $categorySlug = null, string $brand = 'ub'): int
     {
-        return $this->baseQuery($brand)
-            ->when($categorySlug && $categorySlug !== 'all',
-                fn (Builder $query) => $query->whereRelation('category', 'slug', $categorySlug))
-            ->count();
+        return count($this->idsPortfolios('sel', $categorySlug, $brand));
     }
 
 

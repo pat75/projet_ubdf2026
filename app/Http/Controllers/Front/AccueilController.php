@@ -74,6 +74,8 @@ class AccueilController extends Controller
                 Cache::forget(self::cleCache($brand, $langue));
             }
         }
+
+        BookRepository::viderCache();
     }
 
     /**
