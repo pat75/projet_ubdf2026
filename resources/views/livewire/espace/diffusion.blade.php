@@ -59,12 +59,12 @@
                             <div x-show="ouvert" x-cloak class="mt-3 flex flex-wrap gap-2">
                                 @foreach ($motsCles as $motCle)
                                     <span wire:key="motcle-{{ $motCle->id }}"
-                                          class="inline-flex items-center gap-1.5 rounded-full bg-ub-accent/10 py-1 pr-1.5 pl-3 text-[13px] font-semibold text-ub-accent-texte">
+                                          class="inline-flex items-center gap-1.5 rounded-full bg-ub-fond py-1 pr-1.5 pl-3 text-[13px] font-semibold text-ub-texte">
                                         {{ $motCle->label }}
                                         <x-espace.info-bulle :texte="__('Supprimer ce mot-clé')">
                                             <button type="button" wire:click="supprimerMotCle({{ $motCle->id }})"
                                                     wire:loading.attr="disabled" wire:target="supprimerMotCle({{ $motCle->id }})"
-                                                    class="flex h-5 w-5 items-center justify-center rounded-full hover:bg-ub-accent hover:text-white"
+                                                    class="flex h-5 w-5 items-center justify-center rounded-full hover:bg-ub-texte hover:text-white"
                                                     aria-label="{{ __('Supprimer ce mot-clé') }}">
                                                 <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg>
                                             </button>
