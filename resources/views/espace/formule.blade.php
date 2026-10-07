@@ -272,6 +272,7 @@
                 <ul role="list" class="mt-6 space-y-3 text-[15px] {{ $vedette ? 'text-white/85' : 'text-ub-texte2' }}">
                     <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n visuels', ['n' => $limites['payante']['visuels']]) }}</li>
                     <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Pages illimitées') }}</li>
+                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Référencement automatique de vos images par IA') }}</li>
                     <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]) }}</li>
                     <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Paiement unique, sans reconduction automatique') }}</li>
                 </ul>

@@ -50,7 +50,7 @@ class ImageController extends Controller
 
         $images = Media::visiblesSurPortail($this->brand($request))
             ->whereHas('tags', fn ($query) => $query->whereKey($tags->modelKeys()))
-            ->with('user.category')
+            ->with(['user.category', 'user.bookSetting'])
             ->latest('analysed_at')
             ->limit(self::IMAGES_PAR_MOTCLE)
             ->get();

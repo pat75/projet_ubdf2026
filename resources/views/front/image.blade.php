@@ -2,8 +2,6 @@
 
 @php
     $nom = $creatif->fullName();
-    $metier = __(\App\Support\Metier::find($creatif->category?->slug ?? 'autre')['name'] ?? '');
-    $avatar = $creatif->thumbnailUrl('carre_183');
 @endphp
 
 @section('title', $media->ai_title.' — '.$nom.' | '.$marque->nom)
@@ -38,24 +36,8 @@
                     </div>
                 @endif
 
-                <div class="ui items createur">
-                    <div class="item">
-                        <a class="ui tiny circular image" href="{{ $creatif->bookUrl() }}" target="_blank">
-                            @if ($avatar)
-                                <img src="{{ $avatar }}" alt="{{ $nom }}" width="80" height="80">
-                            @else
-                                <span class="initiales">{{ mb_strtoupper(mb_substr($creatif->firstname, 0, 1).mb_substr($creatif->lastname, 0, 1)) }}</span>
-                            @endif
-                        </a>
-                        <div class="middle aligned content">
-                            <a class="header" href="{{ $creatif->bookUrl() }}" target="_blank">{{ $creatif->firstname }} {{ $creatif->lastname }}</a>
-                            @if ($metier)<div class="meta">{{ $metier }}</div>@endif
-                            <div class="extra">
-                                <a class="ui button" href="{{ $creatif->bookUrl() }}" target="_blank">{{ __('Voir le book complet') }}</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <x-portail.createur :creatif="$creatif" class="mt-6" />
+                <a class="ui button mt-4" href="{{ $creatif->bookUrl() }}" target="_blank">{{ __('Voir le book complet') }}</a>
             </div>
         </div>
 

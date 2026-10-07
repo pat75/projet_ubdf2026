@@ -45,6 +45,35 @@
                         <x-espace.interrupteur wire:click="basculer('{{ $champ }}')" :actif="$this->{$champ}" :libelle="$libelle" />
                     </div>
                     @endif
+
+                    {{-- Mots-cles trouves par l'analyse : le createur retire ceux qui ne lui conviennent pas. --}}
+                    @if ($champ === 'analyse' && $motsCles->isNotEmpty())
+                        <div class="basis-full border-t border-ub-filet pt-3" x-data="{ ouvert: false }">
+                            <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert"
+                                    class="flex w-full items-center justify-between gap-3 text-left text-[14px] font-bold text-ub-texte">
+                                {{ trans_choice('Voir le mot-clé trouvé dans mes visuels|Voir les :n mots-clés trouvés dans mes visuels', $motsCles->count(), ['n' => $motsCles->count()]) }}
+                                <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" x-show="! ouvert" />
+                                <x-espace.picto nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" x-show="ouvert" x-cloak />
+                            </button>
+
+                            <div x-show="ouvert" x-cloak class="mt-3 flex flex-wrap gap-2">
+                                @foreach ($motsCles as $motCle)
+                                    <span wire:key="motcle-{{ $motCle->id }}"
+                                          class="inline-flex items-center gap-1.5 rounded-full bg-ub-accent/10 py-1 pr-1.5 pl-3 text-[13px] font-semibold text-ub-accent-texte">
+                                        {{ $motCle->label }}
+                                        <x-espace.info-bulle :texte="__('Supprimer ce mot-clé')">
+                                            <button type="button" wire:click="supprimerMotCle({{ $motCle->id }})"
+                                                    wire:loading.attr="disabled" wire:target="supprimerMotCle({{ $motCle->id }})"
+                                                    class="flex h-5 w-5 items-center justify-center rounded-full hover:bg-ub-accent hover:text-white"
+                                                    aria-label="{{ __('Supprimer ce mot-clé') }}">
+                                                <svg class="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+                                            </button>
+                                        </x-espace.info-bulle>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>

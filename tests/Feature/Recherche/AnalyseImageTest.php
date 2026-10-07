@@ -150,3 +150,21 @@ it("reserve l'analyse IA aux books en selection ou avec une formule", function (
         ->call('basculer', 'analyse')
         ->assertSet('analyse', true);
 });
+
+it('montre au createur ses mots-cles et lui laisse retirer les siens seulement', function () {
+    $creatif = creatifAnalysable();
+    $autre = creatifAnalysable();
+    $renard = App\Models\Tag::create(['label' => 'renard', 'lang' => 'fr']);
+    $hiver = App\Models\Tag::create(['label' => 'hiver', 'lang' => 'fr']);
+    visuel($creatif)->tags()->attach([$renard->id, $hiver->id]);
+    visuel($autre)->tags()->attach($renard->id);
+
+    Livewire\Livewire::actingAs($creatif)->test(App\Livewire\Espace\Diffusion::class)
+        ->assertSee('Voir les 2 mots-clés trouvés dans mes visuels')
+        ->assertSee('renard')->assertSee('hiver')
+        ->call('supprimerMotCle', $renard->id)
+        ->assertSee('Voir le mot-clé trouvé dans mes visuels');
+
+    expect($renard->media()->where('media.user_id', $creatif->id)->count())->toBe(0)
+        ->and($renard->media()->where('media.user_id', $autre->id)->count())->toBe(1);
+});

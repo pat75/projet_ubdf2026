@@ -47,6 +47,7 @@
                 <ul>
                     <li>{{ __(':n visuels', ['n' => $payante['visuels']]) }}</li>
                     <li>{{ __('Pages illimitées') }}</li>
+                    <li>{{ __('Référencement automatique de vos images par IA') }}</li>
                     <li>{{ __(':n Mo d’espace', ['n' => round($payante['poids_ko'] / 1000)]) }}</li>
                     <li>{{ __('Paiement unique, sans reconduction automatique') }}</li>
                 </ul>

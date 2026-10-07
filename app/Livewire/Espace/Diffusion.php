@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Espace;
 
+use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -56,11 +58,23 @@ class Diffusion extends Component
         // Accord retire : les resultats de l'analyse disparaissent avec lui.
         if ($champ === 'analyse' && ! $this->analyse) {
             $ids = Auth::user()->media()->withTrashed()->pluck('id');
-            \Illuminate\Support\Facades\DB::table('media_tag')->whereIn('media_id', $ids)->delete();
+            DB::table('media_tag')->whereIn('media_id', $ids)->delete();
             \App\Models\Media::withTrashed()->whereIn('id', $ids)->update([
                 'ai_title' => null, 'ai_description' => null, 'ai_status' => null, 'ai_model' => null, 'analysed_at' => null,
             ]);
         }
+    }
+
+    /**
+     * Retire un mot-cle IA de tous les visuels du creatif. Une analyse ne
+     * repasse pas sur un visuel deja analyse : le mot ne revient pas.
+     */
+    public function supprimerMotCle(int $tag): void
+    {
+        DB::table('media_tag')
+            ->where('tag_id', $tag)
+            ->whereIn('media_id', Auth::user()->media()->select('id'))
+            ->delete();
     }
 
     /** Demande a figurer dans la selection (us_formule_ask_date du legacy). */
@@ -102,6 +116,12 @@ class Diffusion extends Component
         return view('livewire.espace.diffusion', [
             'enSelection' => (bool) $user->in_home_selection,
             'analyseDisponible' => $user->peutEtreAnalyseParIA(),
+            // Mots-cles en francais seulement : ceux que le createur lit.
+            'motsCles' => $this->analyse
+                ? Tag::where('lang', 'fr')
+                    ->whereHas('media', fn ($query) => $query->where('media.user_id', $user->id))
+                    ->orderBy('label')->get(['id', 'label'])
+                : collect(),
             'demandeLe' => $this->demandeEnCours($user) ? $user->selection_requested_at : null,
             'canaux' => [
                 'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],

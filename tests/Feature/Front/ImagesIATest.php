@@ -24,7 +24,7 @@ function imageTaguee(User $user, string $titre, array $tags): Media
 it("affiche la page d'une image, non indexee, avec ses mots-cles et son createur", function () {
     $media = imageTaguee(creatifTague('adolie'), 'Affiche décorative', ['décoratif', 'affiche vintage']);
 
-    $this->get(portail("/image/{$media->id}/affiche-decorative"))
+    $this->get(pageIA("/image/{$media->id}/affiche-decorative"))
         ->assertOk()
         ->assertSee('Affiche décorative')->assertSee('Une description.')
         ->assertSee('décoratif')->assertSee('/images/affiche-vintage')
@@ -35,20 +35,20 @@ it("affiche la page d'une image, non indexee, avec ses mots-cles et son createur
 it('redirige vers le bon slug', function () {
     $media = imageTaguee(creatifTague('adolie'), 'Affiche décorative', ['décoratif']);
 
-    $this->get(portail("/image/{$media->id}/autre-chose"))->assertRedirectContains("/image/{$media->id}/affiche-decorative");
+    $this->get(pageIA("/image/{$media->id}/autre-chose"))->assertRedirectContains("/image/{$media->id}/affiche-decorative");
 });
 
 it("ne montre pas l'image sans accord du createur", function () {
     $media = imageTaguee(creatifTague('adolie', accord: false), 'Affiche', ['décoratif']);
 
-    $this->get(portail("/image/{$media->id}/affiche"))->assertNotFound();
-    $this->get(portail('/images/decoratif'))->assertNotFound();
+    $this->get(pageIA("/image/{$media->id}/affiche"))->assertNotFound();
+    $this->get(pageIA('/images/decoratif'))->assertNotFound();
 });
 
 it("n'indexe une page mot-cle qu'au-dela du seuil", function () {
     imageTaguee(creatifTague('adolie'), 'Renard', ['renard']);
 
-    $this->get(portail('/images/renard'))->assertOk()->assertSee('Renard')->assertSee('noindex, follow', false);
+    $this->get(pageIA('/images/renard'))->assertOk()->assertSee('Renard')->assertSee('noindex, follow', false);
 
     foreach (range(1, Tag::INDEXABLE_CREATIFS) as $i) {
         $creatif = creatifTague('creatif'.$i);
@@ -57,9 +57,15 @@ it("n'indexe une page mot-cle qu'au-dela du seuil", function () {
         }
     }
 
-    $this->get(portail('/images/renard'))->assertOk()
+    $this->get(pageIA('/images/renard'))->assertOk()
         ->assertDontSee('noindex, follow', false)
-        ->assertSee('"@type":"CollectionPage"', false);
+        ->assertSee('"@type":"CollectionPage"', false)
+        ->assertSee('Creatif1 Créatif')->assertSee('rounded-full', false);
 
-    $this->get(portail('/sitemap-pages.xml'))->assertOk()->assertSee('/images/renard');
+    $this->get(pageIA('/sitemap-pages.xml'))->assertOk()->assertSee('/images/renard');
 });
+
+function pageIA(string $chemin): string
+{
+    return 'https://'.config('ubdf.book_domain').$chemin;
+}

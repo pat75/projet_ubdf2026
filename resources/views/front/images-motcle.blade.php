@@ -76,12 +76,9 @@
         </div>
 
         <h2>{{ __('Les créatifs') }}</h2>
-        <div class="ui list">
+        <div class="mb-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($creatifs as $creatif)
-                <div class="item">
-                    <a href="{{ $creatif->bookUrl() }}" target="_blank">{{ $creatif->fullName() }}</a>
-                    @if ($creatif->category)<span class="ui grey text">— {{ __($creatif->category->name) }}</span>@endif
-                </div>
+                <x-portail.createur :creatif="$creatif" />
             @endforeach
         </div>
     </div>

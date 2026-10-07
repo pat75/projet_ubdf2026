@@ -2061,5 +2061,8 @@
     ":motcle : illustrations, photos et créations": ":motcle: illustrations, photos and creations",
     ":n images « :motcle » de :c créatifs indépendants. Découvrez leurs portfolios et contactez-les directement sur :marque.": ":n “:motcle” images by :c independent creatives. Browse their portfolios and contact them directly on :marque.",
     ":n créatif|:n créatifs": ":n creative|:n creatives",
-    "Les créatifs": "The creatives"
+    "Les créatifs": "The creatives",
+    "Référencement automatique de vos images par IA": "Automatic AI indexing of your images",
+    "Voir le mot-clé trouvé dans mes visuels|Voir les :n mots-clés trouvés dans mes visuels": "See the keyword found in my images|See the :n keywords found in my images",
+    "Supprimer ce mot-clé": "Remove this keyword"
 }
