@@ -1,7 +1,7 @@
 {{-- Carte d'un book sur le portail.
      Structure et classes reprises telles quelles du front 2018 : les
      attributs data-* sont lus par resources/js/portail/visionneuse.js. --}}
-@props(['book', 'nouvelle' => false, 'apparition' => null])
+@props(['book', 'nouvelle' => false, 'apparition' => null, 'prioritaire' => false])
 
 @php
     $category = $book->category?->slug ?? 'autre';
@@ -32,13 +32,16 @@
             </div>
         </div>
 
+        {{-- Hors premiere rangee de l'accueil, le navigateur ne charge l'image
+             qu'a l'approche de l'ecran (175 images sur l'accueil). --}}
         <img src="{{ $cover?->url('front_desk') }}"
+             @if ($prioritaire) fetchpriority="high" @else loading="lazy" @endif decoding="async"
              alt="{{ filled($cover?->title) ? $cover->title.' - ' : '' }}{{ $name }}-{{ $category }}">
     </a>
 
     <div class="content center aligned">
         @if ($book->bookSetting?->thumbnail)
-            <img class="ui avatar image" data-us_="us_vign"
+            <img class="ui avatar image" data-us_="us_vign" @unless ($prioritaire) loading="lazy" @endunless decoding="async"
                  src="{{ $book->thumbnailUrl('carre_183') }}" alt="{{ $name }}-{{ $category }}" />
         @endif
 

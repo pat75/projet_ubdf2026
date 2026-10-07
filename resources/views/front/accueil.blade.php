@@ -55,7 +55,7 @@
 
         <div class="bloc_portfolios_">
             @foreach ($blocs as $bloc)
-                <x-bloc-metier :slug="$bloc['slug']" :books="$bloc['books']" :total="$bloc['total']" />
+                <x-bloc-metier :slug="$bloc['slug']" :books="$bloc['books']" :total="$bloc['total']" :premier="$loop->first" />
             @endforeach
         </div>
     </div>

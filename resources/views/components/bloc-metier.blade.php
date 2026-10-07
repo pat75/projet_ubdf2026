@@ -1,6 +1,6 @@
 {{-- Bloc d'une categorie sur l'accueil : titre, cartes, compteur et lien
      « voir tous ». Structure et classes reprises du front 2018. --}}
-@props(['slug', 'books', 'total'])
+@props(['slug', 'books', 'total', 'premier' => false])
 
 @php
     $url = lien_metier($slug);
@@ -22,7 +22,7 @@
         <div class="ui five doubling cards">
             @foreach ($books as $book)
                 {{-- Cartes en cascade : 70 ms de plus par carte, plafonne. --}}
-                <x-book-card :book="$book" :apparition="min($loop->index * 70, 420)" />
+                <x-book-card :book="$book" :apparition="min($loop->index * 70, 420)" :prioritaire="$premier && $loop->index < 5" />
             @endforeach
 
             {{-- Derniere carte du bloc : compteur et acces a la categorie. --}}
