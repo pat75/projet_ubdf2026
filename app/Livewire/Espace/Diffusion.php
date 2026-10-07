@@ -110,6 +110,7 @@ class Diffusion extends Component
                 'analyse' => [__('Indexation intelligente de mes visuels'), [
                     __('Nous analysons vos images pour leur attribuer des mots-clés.'),
                     __('Vos travaux apparaissent ainsi dans les recherches du site.'),
+                    __('Ils sont aussi présentés, avec votre nom, sur des pages thématiques ouvertes aux moteurs de recherche.'),
                 ], null],
             ],
         ]);

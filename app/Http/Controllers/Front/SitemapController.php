@@ -68,6 +68,18 @@ class SitemapController extends Controller
                     $urls[] = ['loc' => $this->url($marque, '/doc/'.$slug), 'priorite' => '0.50'];
                 }
 
+                // Pages mot-cle de l'analyse IA, seulement celles assez riches pour etre indexees.
+                foreach (\App\Models\Media::visiblesSurPortail($marque->code)
+                    ->join('media_tag', 'media_tag.media_id', '=', 'media.id')
+                    ->join('tags', 'tags.id', '=', 'media_tag.tag_id')
+                    ->where('tags.lang', \App\Models\Tag::langueCourante())
+                    ->groupBy('tags.slug')
+                    ->havingRaw('COUNT(DISTINCT media.id) >= ? AND COUNT(DISTINCT media.user_id) >= ?',
+                        [\App\Models\Tag::INDEXABLE_IMAGES, \App\Models\Tag::INDEXABLE_CREATIFS])
+                    ->pluck('tags.slug') as $slug) {
+                    $urls[] = ['loc' => $this->url($marque, '/images/'.$slug), 'priorite' => '0.50'];
+                }
+
                 foreach (CmsPost::query()->latest('published_at')->limit(200)->pluck('slug') as $slug) {
                     $urls[] = ['loc' => $this->url($marque, '/actus/'.$slug), 'priorite' => '0.40'];
                 }

@@ -2055,5 +2055,11 @@
     "Vos travaux apparaissent ainsi dans les recherches du site.": "Your work then shows up in the site's searches.",
     ":n image|:n images": ":n image|:n images",
     ":n portfolio|:n portfolios": ":n portfolio|:n portfolios",
-    "Option réservée aux créatifs ayant souscrit une formule.": "Option reserved for creatives with a subscription plan."
+    "Option réservée aux créatifs ayant souscrit une formule.": "Option reserved for creatives with a subscription plan.",
+    "Ils sont aussi présentés, avec votre nom, sur des pages thématiques ouvertes aux moteurs de recherche.": "They are also shown, with your name, on themed pages open to search engines.",
+    "Autres images de :nom": "More images by :nom",
+    ":motcle : illustrations, photos et créations": ":motcle: illustrations, photos and creations",
+    ":n images « :motcle » de :c créatifs indépendants. Découvrez leurs portfolios et contactez-les directement sur :marque.": ":n “:motcle” images by :c independent creatives. Browse their portfolios and contact them directly on :marque.",
+    ":n créatif|:n créatifs": ":n creative|:n creatives",
+    "Les créatifs": "The creatives"
 }

@@ -54,6 +54,26 @@ class Media extends Model
     }
 
     /** Hors des portfolios proteges par mot de passe : ce que le portail peut montrer. */
+    /**
+     * Visuels analyses montrables sur le portail : book diffuse de la marque,
+     * accord du creatif pour l'analyse IA, hors portfolios proteges.
+     */
+    public function scopeVisiblesSurPortail(Builder $query, string $brand): Builder
+    {
+        return $query->published()->horsProteges()
+            ->whereNotNull('media.analysed_at')
+            ->where('media.filename', '!=', '')
+            ->whereHas('user', fn (Builder $u) => $u->where('brand', $brand)
+                ->whereHas('bookSetting', fn (Builder $b) => $b
+                    ->where('diffuse_web', true)->where('diffuse_ub', true)->where('allow_ai_analysis', true)));
+    }
+
+    /** Page publique du visuel analyse (non indexee : voir front/image). */
+    public function pageUrl(): string
+    {
+        return lien('image', ['id' => $this->id, 'slug' => \Illuminate\Support\Str::slug($this->ai_title ?: 'image')]);
+    }
+
     public function scopeHorsProteges(Builder $query): Builder
     {
         return $query->whereDoesntHave('gallery', fn (Builder $g) => $g->whereNotNull('password'));

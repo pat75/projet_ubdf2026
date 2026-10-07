@@ -41,7 +41,8 @@
         '@type' => 'ImageObject',
         'contentUrl' => $media->url(),
         'thumbnailUrl' => $media->url('ptf_medium'),
-        'name' => $media->title ? texte_seo(pathinfo($media->title, PATHINFO_FILENAME)) : null,
+        'name' => $media->ai_title ?: ($media->title ? texte_seo(pathinfo($media->title, PATHINFO_FILENAME)) : null),
+        'description' => $media->ai_description,
         'creator' => ['@id' => $urlPage.'#createur'],
         'creditText' => $nom,
         'copyrightNotice' => '© '.$nom,
@@ -100,7 +101,7 @@
             @foreach ($book->media->take(20) as $media)
                 <div class="ui card">
                     <a class="ui fluid image" href="{{ $media->url() }}" target="_blank">
-                        <img src="{{ $media->url('ptf_medium') }}" alt="{{ $media->alt ?? $media->title }}">
+                        <img src="{{ $media->url('ptf_medium') }}" alt="{{ $media->alt ?: ($media->ai_title ?: $media->title) }}">
                     </a>
                     @if ($media->title)
                         <div class="content center aligned">

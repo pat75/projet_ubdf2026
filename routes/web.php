@@ -6,6 +6,7 @@ use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\Front\AccueilController;
 use App\Http\Controllers\Front\AnnuaireController;
 use App\Http\Controllers\Front\BookController;
+use App\Http\Controllers\Front\ImageController;
 use App\Http\Controllers\Front\BookMediaController;
 use App\Http\Controllers\Front\CmsController;
 use App\Http\Controllers\Front\ConnexionController;
@@ -347,6 +348,10 @@ $portail = function (?string $langue = null) {
     Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
     // Page ouverte par la loupe du menu : resultats charges en ajax sous le bloc.
     Route::get('/search', [RechercheController::class, 'search'])->name('search');
+
+    // Pages de l'analyse IA des visuels (ImageController).
+    Route::get('/images/{slug}', [ImageController::class, 'motCle'])->where('slug', '[a-z0-9-]+')->name('images.motcle');
+    Route::get('/image/{id}/{slug?}', [ImageController::class, 'show'])->whereNumber('id')->name('image');
 
     // Page « Creer un book », segment traduit (config/slugs.php). Les
     // segments des autres langues renvoient vers celui-ci.

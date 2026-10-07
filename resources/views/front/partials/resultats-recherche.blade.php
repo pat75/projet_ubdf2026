@@ -40,7 +40,7 @@
         </div>
         <div class="ui six doubling cards" id="resultats_images">
             @foreach ($images as $image)
-                <a class="ui card" href="{{ $image->user->bookUrl() }}" target="_blank" title="{{ $image->ai_title }}">
+                <a class="ui card" href="{{ $image->pageUrl() }}" title="{{ $image->ai_title }}">
                     <div class="image">
                         <img src="{{ $image->url('carre_183') }}" alt="{{ $image->ai_title }}" width="183" height="183" loading="lazy">
                     </div>
