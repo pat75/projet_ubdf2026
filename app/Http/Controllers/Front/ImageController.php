@@ -17,8 +17,8 @@ use Illuminate\View\View;
  *   Indexee seulement au-dela de Tag::INDEXABLE_* (contenu assez riche
  *   et varie) ; c'est elle qui vise les requetes de longue traine.
  * - /image/{id}/{slug} : le detail d'un visuel, pour le visiteur venu de
- *   la recherche. `noindex, follow` : une page par image serait du
- *   contenu mince produit en masse, et doublonnerait le book.
+ *   la recherche. Indexee seulement si son texte est assez riche (seuil
+ *   dans front/image), sinon `noindex, follow` : contenu mince.
  */
 class ImageController extends Controller
 {

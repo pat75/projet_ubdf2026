@@ -22,17 +22,19 @@ le bon éditeur
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
 
 
-+ NVIDIA
++ NVIDIA API
 
- je voudrais créer un service  l'utilisation de lia via la clé API NVIDIA
+ je voudrais créer un service qui utilise de l'IA via la clé API NVIDIA
  https://build.nvidia.com/explore/discover
 
- celui-ci pourra  être utilisé pour des demandes d'analyse IA, notamment les analyses d'image pour extraire des mots-clés à partir d'une image
+celui-ci sera utilisé pour des demandes d'analyse IA, notamment les analyses d'image pour extraire des mots-clés à partir d'une image
+son utilisation devrait être limité à 40 requêtes par minute. Si les demandes sont plus importantes, il faudra prévoir un Crown pour les envoyer au fur et à mesure.
 
- analyser la faisabilité pour ce type d'analyse d'images
+ainsi les opérations de taggage des images seront prises en charge par cet APi qui est gratuite
 
- créer une page d'admin
-   et également le service API. NVIDIA., sur ce dernier, il faut pouvoir identifier la date d'expiration et pouvoir modifier la clé API.
+créer une page d'admin dans réglage avec IA Nvidia
+sur la page il faut pouvoir identifier la date d'expiration et pouvoir modifier la clé API.
+ il faut aussi sur cette page pouvoir visualiser le modèle utilisé et vérifier s'il est toujours valide si ce n'est plus le cas proposer un modèle de remplacement automatiquement.
 
 API key Nvidia
 ID
@@ -43,6 +45,8 @@ Expiration
 10/07/2027
 
 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
+
+ analyse la demande fait des propositions d'amélioration, c'est les tiennes un modèle sur NVIDIA qui analysent le mieux, les images et commence à coder
 
 
 login : patrice2016@tardif.fr

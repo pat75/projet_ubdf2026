@@ -34,6 +34,12 @@ it('normalise la reponse du modele', function () {
         ->and($r['tags_en'])->toBe(['fox']);
 });
 
+it('extrait le JSON d une reponse bavarde', function () {
+    $r = AnalyseImage::lireReponse('Voici le resultat : {"titre": "Renard", "tags_fr": ["renard", "neige", "hiver"]} Bonne journee.');
+
+    expect($r['titre'])->toBe('Renard')->and($r['tags_fr'])->toHaveCount(3);
+});
+
 it('refuse une reponse illisible ou trop pauvre', function (string $contenu) {
     AnalyseImage::lireReponse($contenu);
 })->throws(RuntimeException::class)->with([

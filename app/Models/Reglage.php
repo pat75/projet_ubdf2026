@@ -37,6 +37,16 @@ class Reglage extends Model
      */
     public const MODELES_IA = 'modeles_ia';
 
+    /**
+     * API NVIDIA (App\Services\IA\Nvidia, App\Filament\Pages\ReglageNvidia) :
+     * cle chiffree, date d'expiration (Y-m-d) et modele vision.
+     */
+    public const NVIDIA_CLE = 'nvidia_cle';
+
+    public const NVIDIA_EXPIRATION = 'nvidia_expiration';
+
+    public const NVIDIA_MODELE = 'nvidia_modele';
+
     protected $table = 'reglages';
 
     protected $fillable = ['cle', 'valeur'];

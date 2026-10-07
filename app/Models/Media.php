@@ -68,7 +68,7 @@ class Media extends Model
                     ->where('diffuse_web', true)->where('diffuse_ub', true)->where('allow_ai_analysis', true)));
     }
 
-    /** Page publique du visuel analyse (non indexee : voir front/image). */
+    /** Page publique du visuel analyse (indexee sous condition : voir front/image). */
     public function pageUrl(): string
     {
         return lien('image', ['id' => $this->id, 'slug' => \Illuminate\Support\Str::slug($this->ai_title ?: 'image')]);

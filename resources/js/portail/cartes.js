@@ -9,6 +9,8 @@
  *   sans rien reactiver.
  * - #login dans l'URL rouvre la visionneuse de ce book s'il est affiche ;
  *   #create-book ouvre l'inscription.
+ * - Un element [data-contacter="login"] ouvre la visionneuse de ce book
+ *   directement sur son formulaire de contact (page image).
  * - Defilement infini (categories, recherche) : la page declare ou lire
  *   la suite dans window.ubdf (cartes_url, cartes_params).
  */
@@ -45,6 +47,15 @@ export default function cartes(Alpine) {
         if (!carte || e.target.closest('.meta a')) return;
         e.preventDefault();
         Alpine.store('visionneuse').ouvrir(carte);
+    });
+
+    document.addEventListener('click', async (e) => {
+        const bouton = e.target.closest('[data-contacter]');
+        if (!bouton) return;
+        e.preventDefault();
+        await ouvrirDepuisAncre(Alpine, bouton.dataset.contacter);
+        const visionneuse = Alpine.store('visionneuse');
+        if (visionneuse.ouverte) visionneuse.contacter();
     });
 
     document.addEventListener('alpine:initialized', () => {

@@ -44,6 +44,11 @@ return [
         'api_key' => env('OPENROUTER_API_KEY'),
     ],
 
+    // Repli si aucune cle n'est posee dans Reglages > IA NVIDIA.
+    'nvidia' => [
+        'api_key' => env('NVIDIA_API_KEY'),
+    ],
+
     /*
     | reCAPTCHA v3 - protege la connexion, l'inscription et la demande de
     | mot de passe oublie.

@@ -44,7 +44,7 @@
                     <div class="image">
                         <img src="{{ $image->url('carre_183') }}" alt="{{ $image->ai_title }}" width="183" height="183" loading="lazy">
                     </div>
-                    <div class="extra content">{{ $image->user->fullName() }}</div>
+                    <x-portail.legende-createur :creatif="$image->user" />
                 </a>
             @endforeach
         </div>

@@ -55,7 +55,7 @@
 @endpush
 
 @section('content')
-    <div class="ui container bloc_portfolios">
+    <div class="ui container bloc_portfolios" style="padding: 80px 0">
         <div class="bloc_titre">
             <h1>{{ $titre }}</h1>
             <div class="sub_title">
@@ -70,7 +70,7 @@
                     <div class="image">
                         <img src="{{ $image->url('carre_183') }}" alt="{{ $image->ai_title }}" width="183" height="183" loading="lazy">
                     </div>
-                    <div class="extra content">{{ $image->user->fullName() }}</div>
+                    <x-portail.legende-createur :creatif="$image->user" />
                 </a>
             @endforeach
         </div>

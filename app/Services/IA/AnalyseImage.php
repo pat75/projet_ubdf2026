@@ -24,17 +24,13 @@ class AnalyseImage
     public function __construct(
         private readonly OpenRouterModelSelector $selecteur,
         private readonly GenerateurImages $generateur,
+        private readonly Nvidia $nvidia,
     ) {}
 
     public function analyser(Media $media): void
     {
         try {
-            $reponse = $this->selecteur->chatCompletions(
-                messages: $this->messages($this->imageEnDataUrl($media)),
-                costLevel: 1,
-                options: ['response_format' => ['type' => 'json_object'], 'timeout' => 60],
-                capability: 'vision',
-            );
+            $reponse = $this->appeler($this->messages($this->imageEnDataUrl($media)));
             $resultat = self::lireReponse((string) ($reponse['data']['choices'][0]['message']['content'] ?? ''));
         } catch (RuntimeException $e) {
             $media->forceFill(['ai_status' => 'erreur'])->saveQuietly();
@@ -66,6 +62,25 @@ class AnalyseImage
         });
     }
 
+    /** NVIDIA (gratuit) d'abord, OpenRouter (payant) s'il echoue ou n'est pas configure. */
+    private function appeler(array $messages): array
+    {
+        if (Nvidia::actif()) {
+            try {
+                return $this->nvidia->chat($messages);
+            } catch (RuntimeException $e) {
+                report($e);
+            }
+        }
+
+        return $this->selecteur->chatCompletions(
+            messages: $messages,
+            costLevel: 1,
+            options: ['response_format' => ['type' => 'json_object'], 'timeout' => 60],
+            capability: 'vision',
+        );
+    }
+
     /**
      * Valide et normalise la reponse du modele.
      *
@@ -73,8 +88,8 @@ class AnalyseImage
      */
     public static function lireReponse(string $contenu): array
     {
-        // Certains modeles entourent le JSON d'une cloture markdown malgre la consigne.
-        $contenu = preg_replace('/^```(?:json)?\s*|\s*```$/', '', trim($contenu));
+        // Certains modeles entourent le JSON d'une cloture markdown ou d'une phrase malgre la consigne.
+        $contenu = preg_match('/\{.*\}/s', $contenu, $m) ? $m[0] : trim($contenu);
         $json = json_decode($contenu, true);
 
         if (! is_array($json) || empty($json['titre'])) {
