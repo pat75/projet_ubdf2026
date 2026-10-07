@@ -145,6 +145,16 @@ class User extends Authenticatable
         return sha1($this->login.'|'.config('app.key'));
     }
 
+    /**
+     * L'analyse IA des visuels est reservee aux books de la selection et
+     * aux formules payantes en cours (meme regle que LancerAnalyseLot).
+     */
+    public function peutEtreAnalyseParIA(): bool
+    {
+        return $this->in_home_selection
+            || ($this->plan > 0 && (bool) $this->echeanceFormule()?->isFuture());
+    }
+
     /** Echeance de la formule payante, null en formule gratuite. */
     public function echeanceFormule(): ?\Illuminate\Support\Carbon
     {

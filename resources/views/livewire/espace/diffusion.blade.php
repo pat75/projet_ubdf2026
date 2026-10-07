@@ -32,12 +32,19 @@
                            class="min-w-0 rounded-md bg-ub-fond px-2.5 py-1.5 font-mono text-[12px] wrap-anywhere {{ $this->{$champ} ? 'text-ub-texte' : 'text-ub-texte4' }}">{{ $url }} ↗</a>
                     @endif
 
+                    @if ($champ === 'analyse' && ! $analyseDisponible && ! $this->analyse)
+                        <div class="flex shrink-0 flex-col items-end gap-1 text-right">
+                            <span class="text-[13px] text-ub-texte3">{{ __('Option réservée aux créatifs ayant souscrit une formule.') }}</span>
+                            <a href="{{ route(nom_route('espace.formule')) }}" class="text-[14px] font-semibold text-ub-accent-texte hover:underline">{{ __('Comparer les formules') }} →</a>
+                        </div>
+                    @else
                     <div class="flex shrink-0 items-center gap-2.5">
                         <span class="w-18 text-right text-[13px] font-bold {{ $this->{$champ} ? 'text-ub-accent-texte' : 'text-ub-texte3' }}">
                             {{ $this->{$champ} ? __('Activé') : __('Désactivé') }}
                         </span>
                         <x-espace.interrupteur wire:click="basculer('{{ $champ }}')" :actif="$this->{$champ}" :libelle="$libelle" />
                     </div>
+                    @endif
                 </div>
             @endforeach
         </div>

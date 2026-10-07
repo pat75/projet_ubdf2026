@@ -44,6 +44,11 @@ class Diffusion extends Component
     {
         abort_unless(isset(self::COLONNES[$champ]), 422);
 
+        // Activer l'analyse IA demande une formule ; la couper reste toujours possible.
+        if ($champ === 'analyse' && ! $this->analyse && ! Auth::user()->peutEtreAnalyseParIA()) {
+            return;
+        }
+
         $this->{$champ} = ! $this->{$champ};
 
         Auth::user()->bookSetting()->updateOrCreate([], [self::COLONNES[$champ] => $this->{$champ}]);
@@ -96,6 +101,7 @@ class Diffusion extends Component
 
         return view('livewire.espace.diffusion', [
             'enSelection' => (bool) $user->in_home_selection,
+            'analyseDisponible' => $user->peutEtreAnalyseParIA(),
             'demandeLe' => $this->demandeEnCours($user) ? $user->selection_requested_at : null,
             'canaux' => [
                 'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],

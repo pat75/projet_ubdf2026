@@ -134,3 +134,19 @@ it("ne compte pas la formule gratuite comme payante", function () {
 
     expect((new LancerAnalyseLot)())->toBe(['ok' => 0, 'erreurs' => 0]);
 });
+
+it("reserve l'analyse IA aux books en selection ou avec une formule", function () {
+    $gratuit = User::factory()->create(['in_home_selection' => false, 'plan' => 0]);
+
+    Livewire\Livewire::actingAs($gratuit)->test(App\Livewire\Espace\Diffusion::class)
+        ->assertSee('Option réservée aux créatifs ayant souscrit une formule.')
+        ->call('basculer', 'analyse')
+        ->assertSet('analyse', false);
+
+    expect($gratuit->bookSetting?->allow_ai_analysis)->toBeFalsy();
+
+    Livewire\Livewire::actingAs(creatifAnalysable(accord: false))->test(App\Livewire\Espace\Diffusion::class)
+        ->assertDontSee('Option réservée aux créatifs ayant souscrit une formule.')
+        ->call('basculer', 'analyse')
+        ->assertSet('analyse', true);
+});
