@@ -88,6 +88,13 @@ class User extends Authenticatable
                 $compte->home_selection_at = null;
             }
         });
+
+        // L'accueil garde ses blocs en cache : une selection qui change le vide.
+        static::saved(function (self $compte) {
+            if ($compte->wasChanged(['in_home_selection', 'home_selection_at', 'category_id', 'brand'])) {
+                \App\Http\Controllers\Front\AccueilController::viderCache();
+            }
+        });
     }
 
     public function getRouteKeyName(): string

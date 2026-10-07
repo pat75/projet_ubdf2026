@@ -112,3 +112,20 @@ it('reprend login par login un paquet refuse par le serveur de stats', function 
 
     expect($bon->fresh())->legacy_views->toBe(42)->legacy_likes->toBe(3);
 });
+
+it("garde les blocs de l'accueil en cache et les vide quand une selection change", function () {
+    $illustrateur = App\Models\Category::create(['slug' => 'illustrateur', 'name' => 'Illustrateur']);
+    $book = bookAccueilLegacy(['in_home_selection' => true, 'category_id' => $illustrateur->id, 'login' => 'premierbook']);
+    $accueil = 'https://'.config('ubdf.book_domain').'/';
+
+    $this->get($accueil)->assertOk()->assertSee('user_premierbook', false);
+
+    // Ecriture sans evenement : le cache sert encore l'ancienne version.
+    User::whereKey($book->id)->update(['login' => 'renomme']);
+    $this->get($accueil)->assertSee('user_premierbook', false);
+
+    // Une selection qui change vide le cache.
+    $autre = bookAccueilLegacy(['category_id' => $illustrateur->id, 'login' => 'nouveau']);
+    $autre->update(['in_home_selection' => true]);
+    $this->get($accueil)->assertSee('user_nouveau', false)->assertSee('user_renomme', false);
+});

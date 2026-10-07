@@ -9,6 +9,7 @@ use App\Support\CarteLegacy;
 use App\Support\Metier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class AccueilController extends Controller
@@ -27,16 +28,29 @@ class AccueilController extends Controller
     public function index(Request $request): View
     {
         $brand = $request->attributes->get('brand', 'ub');
-        $counts = $this->books->countsByCategory($brand);
 
-        $blocs = Metier::blocsAccueil()->map(fn (array $metier) => [
-            'slug' => $metier['slug'],
-            'books' => $this->books->portfolios('sel', $metier['slug'], 0, $brand, self::PAR_BLOC),
-            'total' => $counts[$metier['slug']] ?? 0,
-        ])->reject(fn (array $bloc) => $bloc['books']->isEmpty());
+        // Les blocs sont les memes pour tous les visiteurs : requetes et
+        // rendu (90 cartes, ~300 ms sur la prod) gardes 10 minutes. Vides
+        // des qu'une selection change (User, hook `saved`).
+        $cache = Cache::remember(self::cleCache($brand, app()->getLocale()), now()->addMinutes(10), function () use ($brand) {
+            $counts = $this->books->countsByCategory($brand);
+
+            $blocs = Metier::blocsAccueil()->map(fn (array $metier) => [
+                'slug' => $metier['slug'],
+                'books' => $this->books->portfolios('sel', $metier['slug'], 0, $brand, self::PAR_BLOC),
+                'total' => $counts[$metier['slug']] ?? 0,
+            ])->reject(fn (array $bloc) => $bloc['books']->isEmpty());
+
+            return [
+                'slugs' => $blocs->pluck('slug')->values()->all(),
+                'html' => view('front.partials.blocs-accueil', ['blocs' => $blocs])->render(),
+            ];
+        });
 
         return view('front.accueil', [
-            'blocs' => $blocs,
+            // Le JSON-LD de la page ne lit que le slug de chaque bloc.
+            'blocs' => collect($cache['slugs'])->map(fn (string $slug) => ['slug' => $slug]),
+            'blocsHtml' => $cache['html'],
             // Blocs d'accroche affiches ou masques depuis le back-office
             // (App\Filament\Pages\AccueilPage), lus dans accueil-hero.
             'accueilBlocs' => AccueilBloc::etats(),
@@ -45,6 +59,21 @@ class AccueilController extends Controller
                 'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ]);
+    }
+
+    private static function cleCache(string $brand, string $langue): string
+    {
+        return "accueil_blocs_{$brand}_{$langue}";
+    }
+
+    /** Vide les blocs en cache de toutes les marques et langues. */
+    public static function viderCache(): void
+    {
+        foreach (['ub', 'df'] as $brand) {
+            foreach (['fr', 'en'] as $langue) {
+                Cache::forget(self::cleCache($brand, $langue));
+            }
+        }
     }
 
     /**

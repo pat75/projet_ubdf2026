@@ -45,6 +45,10 @@ class RepriseAccueilLegacyCommand extends Command
             $this->stats();
         }
 
+        // Ecritures sans evenement : le cache des blocs de l'accueil ne se
+        // viderait pas seul.
+        \App\Http\Controllers\Front\AccueilController::viderCache();
+
         return self::SUCCESS;
     }
 
