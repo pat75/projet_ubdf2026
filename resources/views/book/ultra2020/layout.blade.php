@@ -35,7 +35,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700&display=swap">
+    {{-- Non bloquante : sur mobile, l'aller-retour vers Google retardait le premier affichage. --}}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700&display=swap"></noscript>
 
     {{-- Dans la page et non dans book.css : Vite reecrirait ces chemins
          vers son serveur de developpement, qui ne sert pas public/. --}}

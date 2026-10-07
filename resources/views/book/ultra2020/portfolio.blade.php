@@ -77,9 +77,13 @@
                         class="group relative self-start transition duration-700 ease-[cubic-bezier(.22,.61,.36,1)]">
                     <div @class([$marges])>
                         <button type="button" class="relative block w-full cursor-zoom-in overflow-hidden" @click="ouvrir($el.closest('figure'))" data-curseur>
+                            {{-- Mobile : 550 px seulement (la densite 3 reclamait la source 1980 px) ;
+                                 la visionneuse ouvre toujours le grand format. --}}
+                            <picture>
+                            <source media="(min-width: 768px)"
+                                    srcset="{{ $visuel['moyen'] }} 550w, {{ $visuel['grand'] }} 1980w"
+                                    sizes="(max-width: 1200px) 50vw, 400px">
                             <img src="{{ $visuel['moyen'] }}"
-                                 srcset="{{ $visuel['moyen'] }} 550w, {{ $visuel['grand'] }} 1980w"
-                                 sizes="(max-width: 767px) 100vw, (max-width: 1200px) 50vw, 400px"
                                  alt="{{ $visuel['titre'] }}"
                                  @if ($visuel['largeur'] && $visuel['hauteur'])
                                      width="{{ $visuel['largeur'] }}" height="{{ $visuel['hauteur'] }}"
@@ -87,9 +91,10 @@
                                      style="aspect-ratio: 4 / 3"
                                  @endif
                                  loading="{{ $prioritaire ? 'eager' : 'lazy' }}"
-                                 fetchpriority="{{ $prioritaire ? 'high' : 'low' }}"
+                                 fetchpriority="{{ $i < 2 ? 'high' : ($prioritaire ? 'auto' : 'low') }}"
                                  decoding="async"
                                  class="block h-auto w-full bg-book-texte/5 object-cover transition-opacity duration-500 group-hover:opacity-15">
+                            </picture>
 
                             {{-- Titre au survol, comme .masonry-title du legacy. --}}
                             <figcaption class="pointer-events-none absolute bottom-[15%] left-[15%] right-4 origin-left scale-0 text-left text-book-texte opacity-0 transition duration-300 group-hover:scale-100 group-hover:opacity-80">
