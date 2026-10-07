@@ -2049,5 +2049,10 @@
     "Cette rubrique contient encore :n page. Supprimez-la d’abord, puis vous pourrez supprimer la rubrique.|Cette rubrique contient encore :n pages. Supprimez-les d’abord, puis vous pourrez supprimer la rubrique.": "This section still contains :n page. Delete it first, then you can delete the section.|This section still contains :n pages. Delete them first, then you can delete the section.",
     "Book suivant": "Next book",
     "Image précédente": "Previous image",
-    "Image suivante": "Next image"
+    "Image suivante": "Next image",
+    "Indexation intelligente de mes visuels": "Smart indexing of my images",
+    "Nous analysons vos images pour leur attribuer des mots-clés.": "We analyse your images to give them keywords.",
+    "Vos travaux apparaissent ainsi dans les recherches du site.": "Your work then shows up in the site's searches.",
+    ":n image|:n images": ":n image|:n images",
+    ":n portfolio|:n portfolios": ":n portfolio|:n portfolios"
 }

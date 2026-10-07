@@ -20,7 +20,11 @@
                 <div wire:key="canal-{{ $champ }}" class="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-ub-filet px-5 py-4.5 last:border-b-0">
                     <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                         <span class="text-[16px] font-bold text-ub-texte">{{ $libelle }}</span>
-                        <span class="text-[13px] text-ub-texte2 text-pretty">{{ $aide }}</span>
+                        <span class="text-[13px] text-ub-texte2 text-pretty">
+                            @foreach ((array) $aide as $phrase)
+                                <span class="block">{{ $phrase }}</span>
+                            @endforeach
+                        </span>
                     </div>
 
                     @if ($url)

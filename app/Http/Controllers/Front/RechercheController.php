@@ -133,15 +133,18 @@ class RechercheController extends Controller
     /** @return array<string, mixed> */
     private function donnees(Recherche $recherche): array
     {
-        SearchQuery::journaliser($recherche);
+        $exploitable = $recherche->exploitable();
+        $total = $exploitable ? $this->books->compterRecherche($recherche) : 0;
+        $books = $exploitable ? $this->books->rechercher($recherche) : collect();
+        $images = $exploitable && $recherche->page === 0 ? $this->books->rechercherImages($recherche) : collect();
 
-        $total = $recherche->exploitable()
-            ? $this->books->compterRecherche($recherche)
-            : 0;
+        SearchQuery::journaliser($recherche, $total, $images->count(),
+            $books->pluck('id')->merge($images->pluck('user_id'))->unique()->values()->all());
 
         return [
             'recherche' => $recherche,
-            'books' => $recherche->exploitable() ? $this->books->rechercher($recherche) : collect(),
+            'books' => $books,
+            'images' => $images,
             'total' => $total,
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,

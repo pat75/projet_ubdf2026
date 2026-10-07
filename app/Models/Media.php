@@ -6,6 +6,7 @@ use App\Support\VideoEnLigne;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Media extends Model
@@ -16,7 +17,7 @@ class Media extends Model
 
     protected $fillable = [
         'legacy_id', 'user_id', 'gallery_id', 'filename', 'title', 'alt', 'link', 'video_url',
-        'description', 'mime', 'size', 'width', 'height', 'status', 'position',
+        'description', 'ai_title', 'ai_description', 'ai_status', 'ai_model', 'analysed_at', 'mime', 'size', 'width', 'height', 'status', 'position',
     ];
 
     /**
@@ -56,6 +57,17 @@ class Media extends Model
     public function scopeHorsProteges(Builder $query): Builder
     {
         return $query->whereDoesntHave('gallery', fn (Builder $g) => $g->whereNotNull('password'));
+    }
+
+    protected function casts(): array
+    {
+        return ['analysed_at' => 'datetime'];
+    }
+
+    /** Mots-cles de l'analyse IA. */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 
     public function user(): BelongsTo

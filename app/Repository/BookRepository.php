@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Models\Media;
 use App\Models\User;
 use App\Support\Recherche;
 use Illuminate\Database\Eloquent\Builder;
@@ -166,11 +167,16 @@ class BookRepository
             $motif = '%'.$this->echapper($terme).'%';
 
             $trouve = implode(' OR ', array_map(fn ($colonne) => "{$colonne} LIKE ?", $colonnes));
-            $pertinence[] = "({$trouve})";
+            array_push($valeurs, ...array_fill(0, count($colonnes), $motif));
 
-            foreach ($colonnes as $ignore) {
+            // En mode mots-cles, un book ressort aussi par les mots-cles IA
+            // de ses visuels publies (MEDIA_TAG_EXISTE).
+            if ($recherche->mode !== 'pseudo') {
+                $trouve .= ' OR '.self::MEDIA_TAG_EXISTE;
                 $valeurs[] = $motif;
             }
+
+            $pertinence[] = "({$trouve})";
         }
 
         $conditions = implode(' + ', $pertinence);
@@ -178,6 +184,61 @@ class BookRepository
         return $query
             ->selectRaw("({$conditions}) AS pertinence", $valeurs)
             ->whereRaw("({$conditions}) > 0", $valeurs);
+    }
+
+    /** Un visuel publie du book porte un mot-cle IA qui contient le terme. */
+    private const MEDIA_TAG_EXISTE = "EXISTS (SELECT 1 FROM media m
+        JOIN media_tag mt ON mt.media_id = m.id
+        JOIN tags t ON t.id = mt.tag_id
+        WHERE m.user_id = users.id AND m.status = 'published' AND m.deleted_at IS NULL AND t.label LIKE ?)";
+
+    /** Nombre de visuels montres dans le groupe « Images » d'une recherche. */
+    public const IMAGES_PAR_RECHERCHE = 24;
+
+    /**
+     * Visuels dont le titre ou les mots-cles IA portent les termes, parmi
+     * les books visibles. Mode mots-cles seulement : une recherche par nom
+     * ne vise pas des images.
+     *
+     * ponytail: LIKE '%terme%' sans index ; passer au FULLTEXT (deja pose
+     * sur tags.label et media.ai_title) si la table depasse ~100k tags.
+     *
+     * @return Collection<int, Media>
+     */
+    public function rechercherImages(Recherche $recherche): Collection
+    {
+        $termes = $recherche->termes();
+
+        if ($termes === [] || $recherche->mode === 'pseudo') {
+            return new Collection;
+        }
+
+        $pertinence = [];
+        $valeurs = [];
+
+        foreach ($termes as $terme) {
+            $motif = '%'.$this->echapper($terme).'%';
+            $pertinence[] = '(media.ai_title LIKE ? OR EXISTS (SELECT 1 FROM media_tag mt JOIN tags t ON t.id = mt.tag_id
+                WHERE mt.media_id = media.id AND t.label LIKE ?))';
+            array_push($valeurs, $motif, $motif);
+        }
+
+        $conditions = implode(' + ', $pertinence);
+        $books = $this->baseQuery($recherche->brand)->setEagerLoads([])->select('users.id');
+
+        return Media::query()
+            ->with('user')
+            ->published()
+            ->horsProteges()
+            ->whereNotNull('media.analysed_at')
+            ->whereIn('media.user_id', $books)
+            ->select('media.*')
+            ->selectRaw("({$conditions}) AS pertinence", $valeurs)
+            ->whereRaw("({$conditions}) > 0", $valeurs)
+            ->orderByDesc('pertinence')
+            ->orderByDesc('media.analysed_at')
+            ->limit(self::IMAGES_PAR_RECHERCHE)
+            ->get();
     }
 
     /** Neutralise les jokers de LIKE saisis par l'utilisateur. */

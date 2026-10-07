@@ -77,6 +77,12 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            // Widgets propres aux pages Recherche : declares, pas decouverts,
+            // pour ne pas apparaitre sur le tableau de bord.
+            ->livewireComponents([
+                \App\Filament\Pages\Recherche\StatistiquesAnalyse::class,
+                \App\Filament\Pages\Recherche\ProgressionMotsCles::class,
+            ])
             /*
              | Ordre de lecture du tableau de bord : les chiffres du jour,
              | les quatre courbes de l'annee comparees a la precedente,

@@ -230,3 +230,28 @@ it('ne montre pas en carte un book dont tous les visuels sont proteges', functio
         ->assertDontSee('nolwenn.jpg')
         ->assertSee('lisep');
 });
+
+it('trouve un book et ses images par les mots-cles IA de ses visuels', function () {
+    $visuel = $this->graveur->media()->first();
+    $visuel->forceFill(['ai_title' => 'Renard sous la neige', 'ai_status' => 'ok', 'analysed_at' => now()])->save();
+    $visuel->tags()->attach(App\Models\Tag::create(['label' => 'renard', 'lang' => 'fr']));
+
+    $this->get(url_portail('/recherche?q=renard'))
+        ->assertOk()
+        ->assertSee('hectorm')
+        ->assertSee('Renard sous la neige')
+        ->assertDontSee('nolwenn');
+
+    expect(App\Models\SearchQuery::latest('id')->first())
+        ->q->toBe('renard')
+        ->nb_books->toBe(1)
+        ->nb_images->toBe(1)
+        ->result_user_ids->toBe([$this->graveur->id]);
+});
+
+it('journalise une recherche sans resultat', function () {
+    $this->get(url_portail('/recherche?q=dinosaure'))->assertOk();
+
+    expect(App\Models\SearchQuery::latest('id')->first())
+        ->nb_books->toBe(0)->nb_images->toBe(0)->result_user_ids->toBe([]);
+});

@@ -13,10 +13,16 @@ class SearchQuery extends Model
 {
     public const UPDATED_AT = null;
 
-    protected $fillable = ['q', 'brand'];
+    protected $fillable = ['q', 'brand', 'nb_books', 'nb_images', 'result_user_ids'];
+
+    protected function casts(): array
+    {
+        return ['result_user_ids' => 'array'];
+    }
 
     /** Premiere page d'une recherche par mots-cles exploitable seulement. */
-    public static function journaliser(Recherche $recherche): void
+    /** @param  list<int>  $creatifs  ids des creatifs renvoyes (books et images) */
+    public static function journaliser(Recherche $recherche, int $nbBooks = 0, int $nbImages = 0, array $creatifs = []): void
     {
         if ($recherche->mode !== 'mcles' || $recherche->page > 0 || ! $recherche->exploitable()) {
             return;
@@ -25,6 +31,9 @@ class SearchQuery extends Model
         static::create([
             'q' => mb_substr(mb_strtolower($recherche->q), 0, 191),
             'brand' => $recherche->brand,
+            'nb_books' => $nbBooks,
+            'nb_images' => $nbImages,
+            'result_user_ids' => $creatifs,
         ]);
     }
 

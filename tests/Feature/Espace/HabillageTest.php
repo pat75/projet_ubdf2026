@@ -130,7 +130,7 @@ it('refuse d enregistrer un champ non declare', function () {
 it('enregistre la diffusion', function () {
     Livewire::test(Diffusion::class)->set('web', true)->set('disponible', false)
         ->call('basculer', 'web')->call('basculer', 'disponible')
-        ->assertSee('2 / 3 canaux actifs');
+        ->assertSee('2 / 4 canaux actifs');
 
     expect($this->creatif->bookSetting()->first())
         ->diffuse_web->toBeFalse()->diffuse_availability->toBeTrue();

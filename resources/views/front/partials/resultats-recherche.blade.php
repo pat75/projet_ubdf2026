@@ -26,11 +26,34 @@
         <div class="ui basic segment center aligned recherche_mini">
             {{ __('Indiquez au moins trois caractères.') }}
         </div>
-    @elseif ($books->isEmpty())
+    @elseif ($books->isEmpty() && ($images ?? collect())->isEmpty())
         <div class="ui basic segment center aligned recherche_vide">
             <img src="/img_front/recherche-vide.png" alt="" width="343" height="400" style="display:block;margin:0 auto 1em;max-width:60%;height:auto">
             {{ __('Aucun portfolio ne correspond à cette recherche.') }}
         </div>
+    @endif
+
+    @if (($images ?? collect())->isNotEmpty())
+        {{-- Visuels reperes par l'analyse IA (mots-cles, titre). --}}
+        <div class="bloc_titre resultats_images">
+            <h2>{{ trans_choice(':n image|:n images', $images->count(), ['n' => $images->count()]) }}</h2>
+        </div>
+        <div class="ui six doubling cards" id="resultats_images">
+            @foreach ($images as $image)
+                <a class="ui card" href="{{ $image->user->bookUrl() }}" target="_blank" title="{{ $image->ai_title }}">
+                    <div class="image">
+                        <img src="{{ $image->url('carre_183') }}" alt="{{ $image->ai_title }}" width="183" height="183" loading="lazy">
+                    </div>
+                    <div class="extra content">{{ $image->user->fullName() }}</div>
+                </a>
+            @endforeach
+        </div>
+
+        @if ($books->isNotEmpty())
+            <div class="bloc_titre resultats_books">
+                <h2>{{ trans_choice(':n portfolio|:n portfolios', $total, ['n' => $total]) }}</h2>
+            </div>
+        @endif
     @endif
 
     <div class="visibility infinite" x-data="defilementInfini">
