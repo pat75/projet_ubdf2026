@@ -186,11 +186,12 @@ class BookRepository
             ->whereRaw("({$conditions}) > 0", $valeurs);
     }
 
-    /** Un visuel publie du book porte un mot-cle IA qui contient le terme. */
+    /** Un visuel publie du book, hors portfolio protege, porte un mot-cle IA qui contient le terme. */
     private const MEDIA_TAG_EXISTE = "EXISTS (SELECT 1 FROM media m
         JOIN media_tag mt ON mt.media_id = m.id
         JOIN tags t ON t.id = mt.tag_id
-        WHERE m.user_id = users.id AND m.status = 'published' AND m.deleted_at IS NULL AND t.label LIKE ?)";
+        WHERE m.user_id = users.id AND m.status = 'published' AND m.deleted_at IS NULL AND t.label LIKE ?
+        AND NOT EXISTS (SELECT 1 FROM galleries g WHERE g.id = m.gallery_id AND g.password IS NOT NULL))";
 
     /** Nombre de visuels montres dans le groupe « Images » d'une recherche. */
     public const IMAGES_PAR_RECHERCHE = 24;

@@ -255,3 +255,12 @@ it('journalise une recherche sans resultat', function () {
     expect(App\Models\SearchQuery::latest('id')->first())
         ->nb_books->toBe(0)->nb_images->toBe(0)->result_user_ids->toBe([]);
 });
+
+it("ne fait pas ressortir un book par les mots-cles d'un portfolio protege", function () {
+    $galerie = $this->graveur->galleries()->create(['name' => 'Privé', 'status' => 'published', 'password' => 'secret']);
+    $visuel = $this->graveur->media()->first();
+    $visuel->forceFill(['gallery_id' => $galerie->id, 'analysed_at' => now()])->save();
+    $visuel->tags()->attach(App\Models\Tag::create(['label' => 'renard', 'lang' => 'fr']));
+
+    $this->get(url_portail('/recherche?q=renard'))->assertOk()->assertDontSee('hectorm');
+});

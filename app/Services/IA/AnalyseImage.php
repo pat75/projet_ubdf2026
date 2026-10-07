@@ -2,6 +2,7 @@
 
 namespace App\Services\IA;
 
+use App\Models\BookSetting;
 use App\Models\Media;
 use App\Models\Tag;
 use App\Services\Images\Declinaison;
@@ -42,6 +43,11 @@ class AnalyseImage
         }
 
         DB::transaction(function () use ($media, $resultat, $reponse) {
+            // Accord relu sous verrou : retire pendant l'appel IA, rien n'est ecrit.
+            if (! BookSetting::where('user_id', $media->user_id)->lockForUpdate()->value('allow_ai_analysis')) {
+                return;
+            }
+
             $ids = [];
             foreach (['fr', 'en'] as $lang) {
                 foreach ($resultat["tags_{$lang}"] as $label) {

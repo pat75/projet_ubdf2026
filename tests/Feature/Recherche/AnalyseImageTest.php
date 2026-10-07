@@ -106,3 +106,24 @@ it("efface les resultats de l'analyse quand le creatif retire son accord", funct
         ->and($media->fresh()->analysed_at)->toBeNull()
         ->and($media->tags()->count())->toBe(0);
 });
+
+it("n'ecrit rien si l'accord est retire pendant l'appel a l'IA", function () {
+    config(['services.openrouter.api_key' => 'test-key']);
+    $fichier = tempnam(sys_get_temp_dir(), 'img');
+    file_put_contents($fichier, 'jpeg');
+    $this->mock(GenerateurImages::class)->shouldReceive('produire')->andReturn($fichier);
+    $media = visuel($creatif = creatifAnalysable());
+
+    Http::fake(function () use ($creatif) {
+        $creatif->bookSetting->update(['allow_ai_analysis' => false]);
+
+        return Http::response(['choices' => [['message' => ['content' => json_encode([
+            'titre' => 'Renard', 'tags_fr' => ['renard', 'hiver', 'aquarelle'],
+        ])]]]]);
+    });
+
+    app(AnalyseImage::class)->analyser($media);
+
+    expect($media->fresh()->analysed_at)->toBeNull()
+        ->and($media->tags()->count())->toBe(0);
+});
