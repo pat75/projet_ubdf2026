@@ -63,6 +63,6 @@ class LancerAnalyseLot
                 ->whereHas('bookSetting', fn (Builder $b) => $b->where('allow_ai_analysis', true))
                 ->where(fn (Builder $f) => $f
                     ->where('in_home_selection', true)
-                    ->orWhere(fn (Builder $p) => $p->whereNotNull('plan')->where('plan_expires_at', '>', now()))));
+                    ->orWhere(fn (Builder $p) => $p->where('plan', '>', 0)->where('plan_expires_at', '>', now()))));
     }
 }

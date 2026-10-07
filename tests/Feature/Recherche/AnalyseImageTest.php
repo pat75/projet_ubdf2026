@@ -73,8 +73,8 @@ it('met en file les visuels eligibles seulement, par lot', function () {
     Bus::fake();
 
     $selectionne = creatifAnalysable();
-    $payant = creatifAnalysable(['in_home_selection' => false, 'plan' => 'pro', 'plan_started_at' => now()->subMonth(), 'plan_months' => 12]);
-    $echu = creatifAnalysable(['in_home_selection' => false, 'plan' => 'pro', 'plan_started_at' => now()->subYears(2), 'plan_months' => 12]);
+    $payant = creatifAnalysable(['in_home_selection' => false, 'plan' => 1, 'plan_started_at' => now()->subMonth(), 'plan_months' => 12]);
+    $echu = creatifAnalysable(['in_home_selection' => false, 'plan' => 1, 'plan_started_at' => now()->subYears(2), 'plan_months' => 12]);
     $sansAccord = creatifAnalysable(accord: false);
 
     foreach ([$selectionne, $payant, $echu, $sansAccord] as $c) {
@@ -126,4 +126,11 @@ it("n'ecrit rien si l'accord est retire pendant l'appel a l'IA", function () {
 
     expect($media->fresh()->analysed_at)->toBeNull()
         ->and($media->tags()->count())->toBe(0);
+});
+
+it("ne compte pas la formule gratuite comme payante", function () {
+    Bus::fake();
+    visuel(creatifAnalysable(['in_home_selection' => false, 'plan' => 0, 'plan_expires_at' => now()->addYear()]));
+
+    expect((new LancerAnalyseLot)())->toBe(['ok' => 0, 'erreurs' => 0]);
 });
