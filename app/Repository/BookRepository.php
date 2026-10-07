@@ -42,13 +42,14 @@ class BookRepository
             // editoriale en tete sans ecarter les autres books.
             ->when($selection === 'ult', fn (Builder $query) => $query->where('is_selected', true))
             ->when($selection === 'lub', fn (Builder $query) => $query->where('plan', '>', 0))
+            // Ordre du legacy, a l'identique : `us_affhome ASC, us_img_nb DESC`
+            // (enum 'true','false' : la selection d'abord), puis les books
+            // les plus fournis. Trier aussi par date de selection faisait
+            // passer le dernier selectionne devant (Aurore Nivet au lieu de
+            // Sandrine Creus en tete des illustrateurs).
             ->orderByDesc('in_home_selection')
-            // A egalite de selection, les entrees recentes d'abord : le
-            // legacy ne savait pas depuis quand un book etait selectionne
-            // et s'en remettait au seul nombre de visuels.
-            ->orderByDesc('home_selection_at')
-            ->orderByDesc('is_selected')
             ->orderByDesc('media_count')
+            ->orderBy('users.id')
             ->skip($page * $perPage)
             ->take($perPage)
             ->get();

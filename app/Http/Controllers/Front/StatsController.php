@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\Media;
 use App\Models\User;
-use App\Repository\BookRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Compteurs globaux du portail (/cache_js/data_stats.json).
@@ -24,21 +24,29 @@ class StatsController extends Controller
 {
     private const DUREE_CACHE = 3600;
 
-    public function __construct(private readonly BookRepository $books) {}
-
     public function __invoke(Request $request): JsonResponse
     {
         $brand = $request->attributes->get('brand', 'ub');
 
         $donnees = Cache::remember("stats_portail_{$brand}", self::DUREE_CACHE, function () use ($brand) {
-            $parCategorie = $this->books->countsByCategory($brand);
+            /*
+             | Memes definitions que le legacy (admin_/stats_datajs_nb_book.php) :
+             | comptes vivants a l'adresse mail confirmee, toutes marques, sans
+             | condition de diffusion ni de visuels. Les comptes supprimes du
+             | legacy (us_delete) n'ont pas ete repris : il reste la confirmation.
+             */
+            $confirmes = fn () => User::whereNotNull('email_verified_at');
+            $parCategorie = $confirmes()
+                ->join('categories', 'categories.id', '=', 'users.category_id')
+                ->groupBy('categories.slug')
+                ->pluck(DB::raw('COUNT(*)'), 'categories.slug');
 
             return [
                 'menu_stats' => [
-                    'nb_book' => $this->format(User::where('brand', $brand)->where('in_home_selection', true)->count()),
-                    'nb_selection' => $this->format(User::where('brand', $brand)->where('is_selected', true)->count()),
-                    'nb_visuel' => $this->format(Media::published()->count()),
-                    'nb_galerie' => $this->format(Gallery::published()->count()),
+                    'nb_book' => $this->format($confirmes()->count()),
+                    'nb_selection' => $this->format($confirmes()->where('in_home_selection', true)->count()),
+                    'nb_visuel' => $this->format(Media::count()),
+                    'nb_galerie' => $this->format(Gallery::count()),
                     'nb_book_illustrateur' => $this->format($parCategorie['illustrateur'] ?? 0),
                     'nb_book_illustrateur_jeunesse' => $this->format($parCategorie['illustrateur-jeunesse'] ?? 0),
                     'nb_book_graphiste' => $this->format($parCategorie['graphiste'] ?? 0),
