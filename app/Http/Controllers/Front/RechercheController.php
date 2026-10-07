@@ -10,6 +10,7 @@ use App\Support\Recherche;
 use App\Support\SuggestionsMotsCles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class RechercheController extends Controller
@@ -43,8 +44,15 @@ class RechercheController extends Controller
         if (! $request->ajax()) {
             // Page d'accueil du moteur : les mots-cles en vogue sous le bloc.
             if ($recherche->q === '') {
-                $donnees['populaires'] = $this->populaires($recherche->brand);
-                $donnees['portfoliosDuMoment'] = $this->portfoliosDuMoment($donnees['populaires'], $recherche->brand);
+                // Jusqu'a 12 recherches completes pour 5 portfolios : 35 s a froid
+                // sur la prod. Le resultat bouge peu, il est garde une heure.
+                [$donnees['populaires'], $donnees['portfoliosDuMoment']] = Cache::remember(
+                    'recherche_accueil_'.$recherche->brand.'_'.app()->getLocale(), now()->addHour(),
+                    function () use ($recherche) {
+                        $populaires = $this->populaires($recherche->brand);
+
+                        return [$populaires, $this->portfoliosDuMoment($populaires, $recherche->brand)];
+                    });
             }
 
             return view('front.recherche', $donnees);

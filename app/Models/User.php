@@ -203,7 +203,10 @@ class User extends Authenticatable
 
     public function media(): HasMany
     {
-        return $this->hasMany(Media::class);
+        // chaperone : chaque visuel charge recoit son createur sans requete.
+        // Media::url() lit user->login ; sans cela, l'accueil relancait une
+        // requete par visuel affiche (482 sur la prod).
+        return $this->hasMany(Media::class)->chaperone();
     }
 
     public function sections(): HasMany
