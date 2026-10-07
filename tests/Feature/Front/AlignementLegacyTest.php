@@ -88,3 +88,27 @@ it('reprend vues et coeurs depuis le serveur de stats du legacy', function () {
     expect($matild->fresh())->legacy_views->toBe(183159)->legacy_likes->toBe(18)
         ->and($inconnu->fresh()->legacy_views)->toBe(0);
 });
+
+it('reprend login par login un paquet refuse par le serveur de stats', function () {
+    config(['database.connections.legacy' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
+    DB::purge('legacy');
+    Schema::connection('legacy')->create('inc_user', function ($t) {
+        $t->integer('us_id');
+        $t->string('us_login');
+    });
+    DB::connection('legacy')->table('inc_user')->insert([['us_id' => 30, 'us_login' => 'bon'], ['us_id' => 31, 'us_login' => 'casse']]);
+    $bon = bookAccueilLegacy(['legacy_id' => 30]);
+    bookAccueilLegacy(['legacy_id' => 31]);
+    Http::fake(function ($requete) {
+        $logins = json_decode($requete['us_login'], true);
+
+        return match ($logins) {
+            ['bon'] => Http::response('cb([{"st_book":42,"st_memo":3}]);'),
+            default => Http::response('', 500),
+        };
+    });
+
+    $this->artisan('ubdf:legacy:accueil --stats')->assertSuccessful();
+
+    expect($bon->fresh())->legacy_views->toBe(42)->legacy_likes->toBe(3);
+});

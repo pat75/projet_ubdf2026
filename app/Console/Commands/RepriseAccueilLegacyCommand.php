@@ -27,7 +27,8 @@ class RepriseAccueilLegacyCommand extends Command
 
     private const API_STATS = 'https://www.extra-book.com/2012_stats/st_action.php';
 
-    private const LOGINS_PAR_APPEL = 100;
+    /** Au-dela d'une cinquantaine, le serveur de stats repond 500. */
+    private const LOGINS_PAR_APPEL = 20;
 
     public function handle(): int
     {
@@ -84,21 +85,19 @@ class RepriseAccueilLegacyCommand extends Command
         $barre = $this->output->createProgressBar($logins->count());
         $repris = 0;
 
-        foreach ($logins->chunk(self::LOGINS_PAR_APPEL, true) as $paquet) {
-            $reponse = Http::retry(3, 2000)->timeout(30)->get(self::API_STATS, [
-                'action' => 'stats_aff_book',
-                'st_champs' => 'st_minibook, st_memo',
-                'us_login' => json_encode($paquet->values()->all()),
-                'st_cles' => '',
-                'jsoncallback' => 'cb',
-            ]);
+        $echecs = 0;
 
-            // JSONP : cb([...]); — une entree par login, dans l'ordre, false si inconnu.
-            $stats = json_decode(preg_replace('/^cb\((.*)\);?\s*$/s', '$1', $reponse->body()), true) ?: [];
+        foreach ($logins->chunk(self::LOGINS_PAR_APPEL, true) as $paquet) {
+            // Un paquet refuse est repris login par login : un seul login
+            // fautif ne doit pas priver les autres de leurs chiffres.
+            $stats = $this->appelStats($paquet->values()->all())
+                ?? $paquet->values()->map(fn ($login) => $this->appelStats([$login])[0] ?? null)->all();
 
             foreach ($paquet->keys()->values() as $i => $legacyId) {
                 $s = $stats[$i] ?? null;
-                if (! is_array($s) || ! isset($ids[$legacyId])) {
+                if (! is_array($s)) {
+                    $echecs++;
+
                     continue;
                 }
                 $repris++;
@@ -114,6 +113,35 @@ class RepriseAccueilLegacyCommand extends Command
 
         $barre->finish();
         $this->newLine();
-        $this->info("Vues et coeurs : {$repris} books repris sur {$logins->count()}.");
+        $this->info("Vues et coeurs : {$repris} books repris sur {$logins->count()}, {$echecs} sans chiffres (inconnus du serveur ou en erreur).");
+    }
+
+    /**
+     * JSONP du serveur de stats : cb([...]); — une entree par login, dans
+     * l'ordre, false si inconnu. Null si l'appel echoue.
+     *
+     * @param  list<string>  $logins
+     */
+    private function appelStats(array $logins): ?array
+    {
+        try {
+            $reponse = Http::retry(2, 1000, throw: false)->timeout(30)->get(self::API_STATS, [
+                'action' => 'stats_aff_book',
+                'st_champs' => 'st_minibook, st_memo',
+                'us_login' => json_encode($logins),
+                'st_cles' => '',
+                'jsoncallback' => 'cb',
+            ]);
+        } catch (\Illuminate\Http\Client\ConnectionException) {
+            return null;
+        }
+
+        if (! $reponse->successful()) {
+            return null;
+        }
+
+        $stats = json_decode(preg_replace('/^cb\((.*)\);?\s*$/s', '$1', $reponse->body()), true);
+
+        return is_array($stats) ? $stats : null;
     }
 }
