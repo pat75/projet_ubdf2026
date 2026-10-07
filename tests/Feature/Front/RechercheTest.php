@@ -264,3 +264,8 @@ it("ne fait pas ressortir un book par les mots-cles d'un portfolio protege", fun
 
     $this->get(url_portail('/recherche?q=renard'))->assertOk()->assertDontSee('hectorm');
 });
+
+it('trouve aussi un book par le nom du creatif en mode mots-cles', function () {
+    $this->get(url_portail('/recherche?q=hectorm&type_recherche=mcles'))
+        ->assertOk()->assertSee('hectorm')->assertDontSee('nolwenn');
+});

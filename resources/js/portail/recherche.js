@@ -161,7 +161,7 @@ export default function recherche(Alpine) {
             this.envoyer(this.$el.closest('form'), 'mcles');
         },
 
-        envoyer(formulaire, type = 'pseudo') {
+        envoyer(formulaire, type = 'mcles') {
             const q = formulaire.querySelector('[name=q]');
             if (!q.value.trim()) {
                 this.erreurVide = true;

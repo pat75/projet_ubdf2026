@@ -146,9 +146,12 @@ class BookRepository
         // Colonnes interrogees selon le mode ; la pertinence est le nombre
         // de termes trouves, calculee par la base pour ne pas avoir a
         // rendre la requete une seconde fois en PHP.
+        // Le mode mots-cles couvre aussi les noms : c'est celui d'une saisie
+        // libre (Entree), ou l'on tape aussi bien « aquarelle » que « adolie ».
+        $noms = ['users.login', 'users.firstname', 'users.lastname'];
         $colonnes = $recherche->mode === 'pseudo'
-            ? ['users.login', 'users.firstname', 'users.lastname']
-            : ['book_settings.keywords'];
+            ? $noms
+            : ['book_settings.keywords', ...$noms];
 
         $query = $this->baseQuery($recherche->brand)
             ->when($recherche->mode !== 'pseudo', fn (Builder $q) => $q->join(

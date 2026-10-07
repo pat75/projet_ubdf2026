@@ -44,7 +44,7 @@
                                     <i class="toggle off icon"></i>
                                 </div>
 
-                                <input type="hidden" name="type_recherche" value="pseudo">
+                                <input type="hidden" name="type_recherche" value="mcles">
 
                                 <button type="submit" class="ui small grey button submit_rechercher">
                                     <i class="search icon"></i>
@@ -347,7 +347,7 @@
                         <div class="ui left input">
 
                             <input type="hidden" name="page_domaine" value="tous">
-                            <input type="hidden" name="type_recherche" value="pseudo">
+                            <input type="hidden" name="type_recherche" value="mcles">
 
                             <input class="prompt" type="text" placeholder="Indiquez un mot clé, un domaine ou un nom" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 
