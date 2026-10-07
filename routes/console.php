@@ -37,3 +37,6 @@ Schedule::command('ubdf:robots')->dailyAt('04:30')->timezone('Europe/Paris');
 Schedule::command('ubdf:envoyer-newsletters')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Analyse IA des visuels en attente : un lot par minute (page admin Analyse IA).
+Schedule::command('ubdf:analyser-images')->everyMinute()->withoutOverlapping(30);

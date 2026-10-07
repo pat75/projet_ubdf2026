@@ -37,7 +37,7 @@
                                             @click="vider($el.closest('form'))" aria-label="{{ __('Effacer la recherche') }}">
                                         <svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                                     </button>
-									<button type="submit" class="ui huge button submit_rechercher_accueil cursor_effect">
+									<button type="submit" class="ui huge button submit_rechercher_accueil cursor_effect" :class="{ loading: enCours }">
 										{{ __('Rechercher') }}									</button>
 								</div>
 

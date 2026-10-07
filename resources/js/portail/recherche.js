@@ -69,6 +69,8 @@ export default function recherche(Alpine) {
         },
         resultats: [],
         erreurVide: false,
+        // Loader du bouton Rechercher, jusqu'a l'affichage des resultats.
+        enCours: false,
         liste: suggestions(document.documentElement.lang === 'en' ? 'en' : 'fr'),
 
         chercher() {
@@ -178,6 +180,9 @@ export default function recherche(Alpine) {
                     formulaire.appendChild(champ);
                 }
             }
+            this.enCours = true;
+            // Retour arriere vers une page en cache (bfcache) : bouton rendu.
+            window.addEventListener('pageshow', () => (this.enCours = false), { once: true });
             if (formulaire.hasAttribute('data-ajax')) {
                 this.resultats = [];
                 this.envoyerAjax(formulaire);

@@ -46,7 +46,7 @@
 
                                 <input type="hidden" name="type_recherche" value="mcles">
 
-                                <button type="submit" class="ui small grey button submit_rechercher">
+                                <button type="submit" class="ui small grey button submit_rechercher" :class="{ loading: enCours }">
                                     <i class="search icon"></i>
                                 </button>
 
@@ -351,7 +351,7 @@
 
                             <input class="prompt" type="text" placeholder="Indiquez un mot clé, un domaine ou un nom" name="q" value="" required autocomplete="off" x-model="requete" @input.debounce.50ms="chercher()" @keydown.escape="resultats = []">
 
-                            <button type="submit" class="ui small  button submit_rechercher ">
+                            <button type="submit" class="ui small  button submit_rechercher " :class="{ loading: enCours }">
                                 <i class="search icon"></i>
                             </button>
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Recherche;
 
 use App\Actions\Recherche\LancerAnalyseLot;
+use App\Models\Media;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -46,22 +47,35 @@ class AnalyseIA extends Page implements HasTable
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('lancer')
-                ->label('Analyser les '.LancerAnalyseLot::TAILLE.' images suivantes')
-                ->icon('heroicon-o-sparkles')
-                ->tooltip('Books sélectionnés ou en formule payante active, avec l’accord du créatif. Les plus récemment sélectionnés d’abord.')
-                ->action(function () {
-                    ['ok' => $ok, 'erreurs' => $erreurs] = app(LancerAnalyseLot::class)();
-
-                    Notification::make()
-                        ->title($ok + $erreurs === 0
-                            ? 'Aucune image à analyser'
-                            : $ok.' image'.($ok > 1 ? 's' : '').' analysée'.($ok > 1 ? 's' : ''))
-                        ->body($erreurs ? $erreurs.' en erreur (voir le journal)' : null)
-                        ->{$erreurs || ! $ok ? 'warning' : 'success'}()
-                        ->send();
-                }),
+            $this->actionLot('lancer', 'Analyser les '.LancerAnalyseLot::TAILLE.' images suivantes',
+                'Books sélectionnés ou en formule payante active, avec l’accord du créatif. Les plus récemment sélectionnés d’abord.'),
+            $this->actionLot('lancerBooks', 'Analyser '.LancerAnalyseLot::BOOKS.' books entiers',
+                'Toutes les images restantes des '.LancerAnalyseLot::BOOKS.' prochains books. Compter ~5 s par image.',
+                LancerAnalyseLot::BOOKS),
         ];
+    }
+
+    private function actionLot(string $nom, string $libelle, string $aide, ?int $books = null): Action
+    {
+        return Action::make($nom)
+            ->label($libelle)
+            ->icon('heroicon-o-sparkles')
+            ->tooltip($aide)
+            ->action(function () use ($books) {
+                ['ok' => $ok, 'erreurs' => $erreurs, 'pause' => $pause] = app(LancerAnalyseLot::class)(books: $books, avant: fn (Media $media, int $rang, int $total) => $this->stream(
+                    content: e("{$rang}/{$total} · {$media->user->login} · {$media->filename}"),
+                    replace: true,
+                    name: 'analyse-en-cours',
+                ));
+
+                Notification::make()
+                    ->title($ok + $erreurs === 0
+                        ? 'Aucune image à analyser'
+                        : $ok.' image'.($ok > 1 ? 's' : '').' analysée'.($ok > 1 ? 's' : ''))
+                    ->body(collect([$erreurs ? $erreurs.' en erreur (voir le journal)' : null, $pause])->filter()->implode(' — ') ?: null)
+                    ->{$erreurs || $pause || ! $ok ? 'warning' : 'success'}()
+                    ->send();
+            });
     }
 
     public function table(Table $table): Table

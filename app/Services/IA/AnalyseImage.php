@@ -32,6 +32,8 @@ class AnalyseImage
         try {
             $reponse = $this->appeler($this->messages($this->imageEnDataUrl($media)));
             $resultat = self::lireReponse((string) ($reponse['data']['choices'][0]['message']['content'] ?? ''));
+        } catch (NvidiaEnPause $e) {
+            throw $e; // le visuel reste en attente
         } catch (RuntimeException $e) {
             $media->forceFill(['ai_status' => 'erreur'])->saveQuietly();
 
@@ -62,14 +64,33 @@ class AnalyseImage
         });
     }
 
-    /** NVIDIA (gratuit) d'abord, OpenRouter (payant) s'il echoue ou n'est pas configure. */
+    /** NVIDIA (gratuit) d'abord ; OpenRouter (payant) si l'image est refusee ou si NVIDIA n'est pas configure. */
     private function appeler(array $messages): array
     {
+        // Modele en place, puis les autres modeles vision NVIDIA : une saturation
+        // (503 ResourceExhausted) ne touche souvent qu'un modele.
         if (Nvidia::actif()) {
-            try {
-                return $this->nvidia->chat($messages);
-            } catch (RuntimeException $e) {
-                report($e);
+            if ($reste = Nvidia::pauseRestante()) {
+                throw new NvidiaEnPause("NVIDIA injoignable, nouvel essai dans {$reste} s");
+            }
+            // Secours en 30 s : un modele qui ne repond pas ne bloque pas le lot.
+            $panne = true;
+            foreach (array_unique([Nvidia::modele(), ...Nvidia::MODELES_VISION]) as $i => $modele) {
+                try {
+                    $reponse = $this->nvidia->chat($messages, $modele, timeout: $i ? 30 : 90);
+                    Nvidia::noterAnalyse();
+
+                    return $reponse;
+                } catch (RuntimeException $e) {
+                    report($e);
+                    $panne = $panne && preg_match(Nvidia::INDISPONIBLE, $e->getMessage());
+                }
+            }
+            // Service en panne : pause de Nvidia::PAUSE minutes, sans OpenRouter.
+            // Image refusee par les modeles : secours OpenRouter.
+            if ($panne) {
+                Nvidia::noterAnalyse($e->getMessage());
+                throw new NvidiaEnPause($e->getMessage(), previous: $e);
             }
         }
 

@@ -49,6 +49,12 @@ class AdminPanelProvider extends PanelProvider
             // Le selecteur clair / sombre, remonte du menu utilisateur vers
             // la barre du haut.
             // Site ferme au public : badge rouge a cote du nom du site.
+            // Analyse IA : visuel en cours, a gauche du bouton de lancement.
+            ->renderHook(
+                PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE,
+                fn (): string => '<span wire:stream="analyse-en-cours" style="align-self:center;max-width:28rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.875rem;opacity:.7"></span>',
+                scopes: \App\Filament\Pages\Recherche\AnalyseIA::class,
+            )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_START,
                 fn (): View => view('filament.badge-maintenance'),

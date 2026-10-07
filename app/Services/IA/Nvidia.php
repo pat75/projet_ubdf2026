@@ -24,6 +24,12 @@ class Nvidia
 
     public const PAR_MINUTE = 40;
 
+    /** Minutes d'attente avant de retenter NVIDIA injoignable. */
+    public const PAUSE = 2;
+
+    /** Panne du service (saturation, delai, connexion), pas un refus propre a l'image. */
+    public const INDISPONIBLE = '/HTTP (429|502|503|504)\b|cURL error|Connection/i';
+
     /** Modeles vision qui repondaient le 2026-10-07, du meilleur au moins bon. */
     public const MODELES_VISION = [
         'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
@@ -33,6 +39,11 @@ class Nvidia
     ];
 
     private const VERIFICATION = 'nvidia_verification';
+
+    /** Dernier echec / dernier succes d'un appel reel (alerte de la page Analyse IA). */
+    private const ECHEC = 'nvidia_dernier_echec';
+
+    private const SUCCES = 'nvidia_dernier_succes';
 
     public static function cle(): ?string
     {
@@ -112,6 +123,30 @@ class Nvidia
         }
 
         return $etat;
+    }
+
+    /** Bilan d'une analyse reelle : aucun modele NVIDIA n'a repondu ($motif), ou l'un a repondu. */
+    public static function noterAnalyse(?string $motif = null): void
+    {
+        $motif
+            ? Cache::put(self::ECHEC, ['motif' => $motif, 'quand' => now()->timestamp], now()->addMonth())
+            : Cache::put(self::SUCCES, now()->timestamp, now()->addMonth());
+    }
+
+    /** Secondes avant la fin de la pause, 0 si NVIDIA peut etre appele. */
+    public static function pauseRestante(): int
+    {
+        $probleme = self::probleme();
+
+        return $probleme ? max(0, $probleme['quand'] + self::PAUSE * 60 - now()->timestamp) : 0;
+    }
+
+    /** Dernier echec, s'il est plus recent que le dernier succes. */
+    public static function probleme(): ?array
+    {
+        $echec = Cache::get(self::ECHEC);
+
+        return $echec && $echec['quand'] > (int) Cache::get(self::SUCCES, 0) ? $echec : null;
     }
 
     public static function derniereVerification(): ?array
