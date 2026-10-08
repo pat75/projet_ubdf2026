@@ -117,7 +117,7 @@ it('liste les conseils envoyes dans le bloc Coach, sans les brouillons', functio
     CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'diagnostic' => [], 'objet' => 'Brouillon caché', 'corps' => 'x']);
 
     $this->actingAs($this->creatif)->get(route('espace.diffusion'))->assertOk()
-        ->assertSeeInOrder(['Derniers conseils reçus', 'Conseil envoyé', 'Texte du conseil'])
+        ->assertSeeInOrder(['Derniers conseils reçus', 'Conseil envoyé', 'Texte du'])
         ->assertDontSee('Brouillon caché');
 });
 
@@ -127,4 +127,12 @@ it('transforme les menus cites en liens vers leur page', function () {
     expect((string) $m->corpsAvecLiens())
         ->toContain('href="'.lien('espace.design').'"')
         ->toContain('&lt;b&gt;');
+});
+
+it('soigne la typographie : insecables, pas de mot seul, une phrase par ligne dans le mail', function () {
+    $m = new CoachMessage(['corps' => "Bonjour Adolie,\nUn détail : votre visuel.\n- Allez dans « Mon portfolio › Configurer »."]);
+
+    expect(CoachMessage::typographie('Un détail : votre visuel ?'))->toBe("Un détail\u{202F}: votre\u{00A0}visuel\u{202F}?")
+        ->and($m->corpsPourMail())->toContain("Adolie,  \nUn")
+        ->and((string) $m->corpsAvecLiens())->toContain('href="'.lien('espace.design').'"');
 });
