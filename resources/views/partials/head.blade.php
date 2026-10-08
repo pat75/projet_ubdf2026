@@ -98,7 +98,7 @@
 <!-- SementicUI #2018-->
 
 
-<link rel="stylesheet"  href="/html_pages_v2018/_/lib/Semantic-UI-CSS-master2.3.1/semantic.min.css?v=2">
+<link rel="stylesheet"  href="/html_pages_v2018/_/lib/Semantic-UI-CSS-master2.3.1/semantic.min.css?v=3">
 <link rel="stylesheet"  href="/html_pages_v2018/_/lib/responsive-semantic-ui.min.css">
 <style>
     body { background-color: #ebebeb!important;}
