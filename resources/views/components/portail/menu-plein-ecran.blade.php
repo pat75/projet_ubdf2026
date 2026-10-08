@@ -42,6 +42,16 @@
         .menu-plein-ecran .mpe-large { display: none; }
         .menu-plein-ecran .mpe-etapes { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .menu-plein-ecran .mpe-bas { margin-top: 56px; }
+        .menu-plein-ecran .mpe-acces { display: flex; flex-wrap: wrap; gap: 12px; }
+        .menu-plein-ecran .mpe-acces-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            min-height: 48px; padding: 0 26px; border-radius: 9999px; font-size: 16px; font-weight: 600; transition: opacity .2s;
+        }
+        .menu-plein-ecran .mpe-acces-btn:hover { opacity: .85; }
+        /* Mobile : deux boutons pleine largeur, cote a cote, bien visibles. */
+        @@media (max-width: 767px) {
+            .menu-plein-ecran .mpe-acces-btn { flex: 1 1 0; min-height: 52px; padding: 0 12px; font-size: 17px; }
+        }
         @@media (min-width: 640px) {
             .menu-plein-ecran .mpe-large { display: flex; }
             .menu-plein-ecran .mpe-etapes { grid-template-columns: auto auto auto auto auto; justify-content: start; }
@@ -140,6 +150,21 @@
             <div class="flex flex-col" style="gap: 6px">
                 <p class="m-0 text-[clamp(34px,4.4vw,56px)] font-light leading-[1.02] tracking-[-0.02em]">Une mine de créatifs</p>
                 <p class="m-0 text-[19px] text-[#bdbab6]">Trouver et contacter les meilleurs créatifs freelances !</p>
+            </div>
+            {{-- Acces createur, juste au-dessus des etapes. Connecte : son espace. --}}
+            <div class="mpe-acces">
+                @guest
+                    <button type="button" @click="$store.menu.basculer(); $store.modale.ouvrir('connexion')"
+                            class="mpe-acces-btn" style="background:transparent;color:#f2f0ed;border:1px solid #5a5856">
+                        Se connecter
+                    </button>
+                    <a href="{{ lien('inscription.page') }}" class="mpe-acces-btn" style="background:#f2f0ed;color:#141414">
+                        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        Créer son book
+                    </a>
+                @else
+                    <a href="{{ route('espace') }}" class="mpe-acces-btn" style="background:#f2f0ed;color:#141414">Mon espace</a>
+                @endguest
             </div>
             <ol class="mpe-etapes m-0 list-none p-0">
                 @foreach ($etapes as $i => $etape)

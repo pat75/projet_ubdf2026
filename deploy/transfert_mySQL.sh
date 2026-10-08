@@ -37,6 +37,15 @@ campaign_sends promo_codes marketing_offers newsletter_mails"
 TECHNIQUES="migrations cache cache_locks sessions jobs job_batches failed_jobs"
 
 ENV_PROD="$PROJECT_DIR/.env.prod"
+
+# Fin de transfert : rappel du nettoyage des tables legacy.
+conseil_nettoyage() {
+    ligne
+    echo "  RECOMMANDE, une fois « organiser » (images) passe sur toutes les lettres :"
+    echo "     ./deploy/transfert_mySQL.sh --nettoyer"
+    echo "  Sauvegarde, puis retire le dump et les tables legacy (inc_*, ub2_*…)."
+    ligne
+}
 ENV_DEV="$PROJECT_DIR/.env.dev"
 val() { grep -E "^$1=" "$2" | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/; s/^'"'"'(.*)'"'"'$/\1/'; }
 
@@ -138,6 +147,7 @@ fi
 
 if echo "$ETAT" | grep -qx fin; then
     ok "Transfert deja termine pour $LIEN. Rapport : $W/rapport.txt"
+    conseil_nettoyage
     exit 0
 fi
 if ssh_run "screen -ls 2>/dev/null | grep -q '\.$SESSION'"; then
@@ -477,6 +487,7 @@ maintenance false || arret "fin de maintenance impossible"
 cat "$W/rapport.txt"
 noter fin
 echo; echo "Site remis en ligne. Rapport : $W/rapport.txt"
+echo; echo "Recommande ensuite (apres le transfert des images) : ./deploy/transfert_mySQL.sh --nettoyer"
 fermer 0
 RUN
 
@@ -492,3 +503,4 @@ alerte "Ctrl-A puis D : se detacher. Revenir : ./deploy/transfert_mySQL.sh"
 sur_o2switch "screen -S $SESSION bash -c 'bash $W/run.sh 2>&1 | tee -a $W/run.log'"
 rsync -a -e "$SSH_CMD" "$REMOTE:$REMOTE_PATH/$W/rapport.txt" "$JOURNAL_DIR/transfert_mySQL-rapport-$(date +%Y%m%d-%H%M).txt" 2>/dev/null \
     && ok "rapport copie dans deploy/logs/" || true
+ssh_run "grep -qx fin $W/etat 2>/dev/null" && conseil_nettoyage || true

@@ -205,7 +205,8 @@ est saute. Pour un book precis :
 
 CE QUI EST ET N'EST PAS FAIT
 ----------------------------
-Fait      : originaux des books, images des pages (img_cms), cms_pref.
+Fait      : originaux des books, images 
+des pages (img_cms), cms_pref.
 Pas fait  : declinaisons (refaites en WebP, voir DECLINAISONS APRES LE TRANSFERT), fichiers .php/.htaccess
             de img_cms (jamais repris, securite), books de comptes supprimes.
 Sauvegarde: aucune. La source reste l'ancien serveur : en cas de probleme,
