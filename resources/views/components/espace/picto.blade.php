@@ -24,8 +24,21 @@
 
     [$largeur, $trace] = $glyphes[$nom];
     $droit = $glyphes[$nom][2] ?? false;
+
+    // Trace ecrit une fois par reponse, puis repris par <use> : la page
+    // Galeries repetait 4 pictos x 116 visuels (~350 Ko de HTML). Chaque
+    // reponse (page ou rendu Livewire) porte sa propre premiere definition.
+    // Ne pas poser un picto dans un <template> : sa definition n'existerait
+    // pas dans la page tant que le template n'est pas rendu.
+    $dejaEcrits = request()->attributes->get('pictos_ecrits', []);
+    $premier = ! isset($dejaEcrits[$nom]);
+    request()->attributes->set('pictos_ecrits', $dejaEcrits + [$nom => true]);
 @endphp
 
 <svg {{ $attributes->merge(['class' => 'inline-block h-4 w-4']) }} viewBox="0 0 {{ $largeur }} 512" fill="currentColor" aria-hidden="true">
-    <path @unless ($droit) transform="translate(0 448) scale(1 -1)" @endunless d="{{ $trace }}"/>
+    @if ($premier)
+        <path id="picto-{{ $nom }}" @unless ($droit) transform="translate(0 448) scale(1 -1)" @endunless d="{{ $trace }}"/>
+    @else
+        <use href="#picto-{{ $nom }}"/>
+    @endif
 </svg>

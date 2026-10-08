@@ -21,7 +21,7 @@
     {{-- La fonte d'icones du site (font_icon) : elle porte les
          pictogrammes des reseaux sociaux et quelques signes du tableau de
          bord. Elle ne met en forme que les classes `fonticon-*`. --}}
-    <link rel="stylesheet" href="{{ asset('html_pages_v2018/_/font_icon/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('html_pages_v2018/_/font_icon/style.css').'?v=2' }}">
 
     @vite(['resources/css/espace.css', 'resources/js/espace.js'])
     @livewireStyles

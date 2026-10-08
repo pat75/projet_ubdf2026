@@ -111,7 +111,7 @@
 <link rel="stylesheet" href="/html_pages_v2018/_/js/swipebox-master/src/css/swipebox.min.css" media="print" onload="this.media='all'">
 
 <!-- Icones ubdf #icomoon -->
-<link rel="stylesheet" href="/html_pages_v2018/_/font_icon/style.min.css">
+<link rel="stylesheet" href="/html_pages_v2018/_/font_icon/style.min.css?v=2">
 
 <!-- Fontes |Open+Sans|Raleway:300,700|Playfair+Display:400,700,900 -->
 {{-- Non bloquantes : l'aller-retour vers Google retardait le premier affichage mobile. --}}

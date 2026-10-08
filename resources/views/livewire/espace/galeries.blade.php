@@ -198,8 +198,11 @@
                                     <x-espace.picto nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" x-show="visuel === {{ $item->id }}" x-cloak />
                                 </div>
 
-                                <div x-show="visuel === {{ $item->id }}" x-cloak
-                                     class="flex flex-wrap gap-6 border-t border-ub-filet px-5 pb-6 pt-4 md:pl-19.5">
+                                {{-- x-if et non x-show : le panneau n'existe dans la page qu'une fois
+                                     ouvert. 116 panneaux caches (adolie) faisaient 8 000 elements et
+                                     9 s avant que la page reponde sur mobile. --}}
+                                <template x-if="visuel === {{ $item->id }}">
+                                <div class="flex flex-wrap gap-6 border-t border-ub-filet px-5 pb-6 pt-4 md:pl-19.5">
                                     {{-- Apercu : une image glissee dessus (ou choisie au clic sur
                                          l'icone d'envoi) prend la place de l'actuelle. --}}
                                     <div class="flex w-full flex-col gap-3 sm:w-55"
@@ -275,6 +278,7 @@
 
                                     </div>
                                 </div>
+                                </template>
                             </li>
                         @endforeach
                     </ul>
