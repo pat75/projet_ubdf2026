@@ -54,7 +54,7 @@ class BookCard extends Component
         return [
             // url() sans argument rend ptf_medium (550 px) : trop petit en plein ecran.
             // Telephone : 550 px suffit et reste leger.
-            'book_img' => $this->book->media->map(fn ($media) => [
+            'book_img' => $this->book->visuelsMiniBook()->map(fn ($media) => [
                 'fichier' => $media->url('source'),
                 'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title ?? '',

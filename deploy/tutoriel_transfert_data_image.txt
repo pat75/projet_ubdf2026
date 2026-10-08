@@ -63,6 +63,20 @@ Si "Connection refused / timed out" :
       voir aussi BLOCAGE SSH SORTANT plus bas.
 
 
+
+ETAPE 0bis — CHMOD
+-------------------
+
+Sur le serveur initial de production, appliquer les autorisations pour adminpat sur le répertoire users_2
+
+setfacl -R -m u:adminpat:rX /disc_san_1/sites/ubdf_prod_com/public/users_2/
+setfacl -m u:adminpat:rx /disc_san_1/sites/ubdf_prod_com/public/users_2/
+setfacl -m d:u:adminpat:rX /disc_san_1/sites/ubdf_prod_com/public/users_2/
+
+getfacl /disc_san_1/sites/ubdf_prod_com/public/users_2/
+
+
+
 ETAPE 1 — RECUPERER
 -------------------
    ./deploy/transfert-images.sh recuperer

@@ -10,17 +10,52 @@ le bon éditeur
 
 
 + comme sur les illustrateurs.com ajouter un agent automatique de réponse en bas à droite de la page
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
 
 
 + prévoir la création de boutique avec des propres systèmes de paiement type paypal ou Stripe du créatif
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
 
 + prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
  aux contenu par API ou proxy.
- 
+   Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
+
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 
-+ coach
+
+
+
++ un app Ultra-book sur macOS, 
+qui permettent d'envoyer des images directement à partir de son poste de travail sur un portfolio de son choix
+ cette app fonctionne une API
+  l'utilisateur peut directement glisser déposer dessus les images qu'il veut charger sur la galerie  Qu'il a. sélectionner.
+ Un icône de connexion sur l'app permet à d'utilisateur d'indiquer son identifiant et son mot de passe.
+  Ainsi une fois connecté, il n'a pas systématiquement à rentrer son identifiant et son mot de passe pour charger les images.
+   La deuxième fonctionnalité permet de recevoir directement les messages qui sont envoyés au travers du book par les utilisateurs du site Ultra-book.
+ L'application comporte également trois raccourcis, un premier raccourci pour accéder au book du creatif, le deuxième pourra accéder aux mini book du créatif, et enfin le troisième permet de se connecter directement à l'espace d'administration du site
+  la connexion se fait au travers d'un navigateur Web, qui est configuré par défaut sur la machine.
+
+   Utiliser le RUST pour faire l'application.
+ créer le système d'API sur le site
+
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
+
+
+
+
+
+
+
+================ ok
+
+
++ coach -ok
 il faut que toutes tes opérations réalisées dans l'espace de gestion des créatifs soit loggé.
 Créer dans l'administration du site un menu "coach créa" (positionner celui-ci dans le bloc créatifs)
 sur la page coach, il faut un menu qui puisse dérouler les dernières opérations effectuées par les créatifs
@@ -41,23 +76,6 @@ créer un service de coaching : celui-ci, analysera  chaque session d'opération
      Pour traiter les analyses des opérations  Et la rédaction du message de coaching utilisé Le service IA NVIDIA.
       c'est sélectionner  sur NVIDIA le meilleur modèle pour répondre à ce type de demande
      rédiger un fichier .md pour les opérations d'analyse et la rédaction du message de coaching.
-
-
-  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
-
-
-
-
-
-
-
-
-
-
-
-
-
-================ ok
 
 
 

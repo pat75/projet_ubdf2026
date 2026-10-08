@@ -357,7 +357,7 @@ class BookRepository
             ->with([
                 'category',
                 'bookSetting',
-                'media' => fn ($query) => $query->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(6),
+                'media' => fn ($query) => $query->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(16),
             ])
             ->where('brand', $brand)
             ->whereHas('bookSetting', fn (Builder $query) => $query

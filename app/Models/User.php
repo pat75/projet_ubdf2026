@@ -162,6 +162,16 @@ class User extends Authenticatable
             || ($this->plan > 0 && (bool) $this->echeanceFormule()?->isFuture());
     }
 
+    /**
+     * Visuels du mini book du portail : 16 en formule payante en cours,
+     * 6 en gratuite. La relation `media` doit etre chargee (BookRepository
+     * en charge 16).
+     */
+    public function visuelsMiniBook(): \Illuminate\Support\Collection
+    {
+        return $this->media->take($this->echeanceFormule()?->isFuture() ? 16 : 6);
+    }
+
     /** Echeance de la formule payante, null en formule gratuite. */
     public function echeanceFormule(): ?\Illuminate\Support\Carbon
     {

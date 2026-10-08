@@ -21,6 +21,8 @@ final class CarteLegacy
      */
     public static function depuis(User $book): array
     {
+        $visuels = $book->visuelsMiniBook();
+
         return [
             'us_id' => (string) $book->id,
             'us_key' => $book->publicKey(),
@@ -43,12 +45,12 @@ final class CarteLegacy
             'us_pf_css' => $book->bookSetting?->keywords,
             'us_path' => '/books/'.$book->login,
             'stats_st_cles' => $book->publicKey(),
-            'img' => $book->media->map(fn ($media) => [
+            'img' => $visuels->map(fn ($media) => [
                 'img_id' => (string) $media->id,
                 'img_titre' => $media->title,
                 'img_fichier' => $media->url('front_desk'),
             ])->values(),
-            'slider' => $book->media->map(fn ($media) => [
+            'slider' => $visuels->map(fn ($media) => [
                 'fichier' => $media->url('source'),
                 'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title,
