@@ -49,7 +49,8 @@ final class CarteLegacy
                 'img_fichier' => $media->url('front_desk'),
             ])->values(),
             'slider' => $book->media->map(fn ($media) => [
-                'fichier' => $media->url('front_desk'),
+                'fichier' => $media->url('source'),
+                'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title,
             ])->values(),
         ];

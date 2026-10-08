@@ -52,9 +52,11 @@ class BookCard extends Component
     private function slider(): array
     {
         return [
+            // url() sans argument rend ptf_medium (550 px) : trop petit en plein ecran.
+            // Telephone : 550 px suffit et reste leger.
             'book_img' => $this->book->media->map(fn ($media) => [
-                'fichier' => $media->url(),
-                'fichier_mobile' => $media->url('iph_medium'),
+                'fichier' => $media->url('source'),
+                'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title ?? '',
             ])->values()->all(),
             'book_type' => '',
