@@ -58,6 +58,8 @@ class BookCard extends Component
                 'fichier' => $media->url('source'),
                 'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title ?? '',
+                // Visuel vignette d'une video : lecteur YouTube / Vimeo au clic.
+                'video' => $media->video()?->lecteur(),
             ])->values()->all(),
             'book_type' => '',
             'book_prenom_nom' => $this->book->fullName(),

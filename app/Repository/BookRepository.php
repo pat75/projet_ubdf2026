@@ -357,7 +357,10 @@ class BookRepository
             ->with([
                 'category',
                 'bookSetting',
-                'media' => fn ($query) => $query->published()->horsProteges()->whereNot('filename', '')->orderBy('position')->limit(16),
+                // Mini book : visuels dans l'ordre du book (User::visuelsMiniBook).
+                'galleries' => fn ($query) => $query->published()->whereNull('password')->orderBy('position')
+                    ->select('id', 'user_id', 'position', 'media_order'),
+                'media' => fn ($query) => $query->published()->horsProteges()->whereNot('filename', ''),
             ])
             ->where('brand', $brand)
             ->whereHas('bookSetting', fn (Builder $query) => $query

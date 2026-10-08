@@ -72,12 +72,16 @@
              @touchend="(d => Math.abs(d) > 50 && (d < 0 ? $store.visionneuse.suivante() : $store.visionneuse.precedente()))($event.changedTouches[0].clientX - $el._x)">
             <div class="vn-piste" :class="{ 'vn-sans-transition': $store.visionneuse.sansTransition }"
                  :style="`transform: translateX(${-100 * $store.visionneuse.position}%)`"
-                 @click="$store.visionneuse.suivante()">
+                 @click="$store.visionneuse.cliquer()">
                 <template x-for="(image, i) in $store.visionneuse.diapos" :key="i">
                     <div class="vn-diapo" :class="{ 'vn-courante': i === $store.visionneuse.position }">
                         {{-- Seules l'image courante et ses voisines sont chargees. --}}
-                        <template x-if="Math.abs(i - $store.visionneuse.position) <= 1">
+                        <template x-if="Math.abs(i - $store.visionneuse.position) <= 1 && ! (image.video && $store.visionneuse.lecture && i === $store.visionneuse.position)">
                             <img :src="image.src" :alt="image.titre">
+                        </template>
+                        {{-- Video : sa vignette (bouton lecture compris), puis le lecteur au clic. --}}
+                        <template x-if="image.video && $store.visionneuse.lecture && i === $store.visionneuse.position">
+                            <iframe class="vn-video" :src="image.video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
                         </template>
                     </div>
                 </template>

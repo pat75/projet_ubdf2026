@@ -54,6 +54,7 @@ final class CarteLegacy
                 'fichier' => $media->url('source'),
                 'fichier_mobile' => $media->url('ptf_medium'),
                 'title' => $media->title,
+                'video' => $media->video()?->lecteur(),
             ])->values(),
         ];
     }

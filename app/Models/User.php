@@ -164,12 +164,30 @@ class User extends Authenticatable
 
     /**
      * Visuels du mini book du portail : 16 en formule payante en cours,
-     * 6 en gratuite. La relation `media` doit etre chargee (BookRepository
-     * en charge 16).
+     * 6 en gratuite, dans l'ordre du book (ContexteBook::visuels) : galeries
+     * publiees par position, puis l'ordre des visuels de chacune. Le premier
+     * est donc la premiere image de la premiere galerie. Les relations
+     * `galleries` et `media` doivent etre chargees (BookRepository).
      */
     public function visuelsMiniBook(): \Illuminate\Support\Collection
     {
-        return $this->media->take($this->echeanceFormule()?->isFuture() ? 16 : 6);
+        return once(function () {
+            $galeries = $this->galleries->keyBy('id');
+            $rang = $galeries->keys()->flip();
+
+            return $this->media
+                // Galerie non publiee ou protegee : hors du book. Sans galerie : a la fin.
+                ->filter(fn (Media $media) => $media->gallery_id === null || $galeries->has($media->gallery_id))
+                ->groupBy(fn (Media $media) => $media->gallery_id ?? 0)
+                ->sortBy(fn ($visuels, $galerie) => $rang[$galerie] ?? PHP_INT_MAX)
+                ->flatMap(fn ($visuels, $galerie) => collect(\App\Services\Book\ContexteBook::ordonner(
+                    $visuels->sortBy(fn (Media $m) => $m->legacy_id ?? $m->id)
+                        ->map(fn (Media $m) => ['img_id' => $m->legacy_id ?? $m->id, 'media' => $m])->values()->all(),
+                    $galeries->get($galerie)?->media_order,
+                ))->pluck('media'))
+                ->take($this->echeanceFormule()?->isFuture() ? 16 : 6)
+                ->values();
+        });
     }
 
     /** Echeance de la formule payante, null en formule gratuite. */

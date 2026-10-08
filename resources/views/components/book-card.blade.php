@@ -6,7 +6,7 @@
 @php
     $category = $book->category?->slug ?? 'autre';
     $name = $book->fullName();
-    $cover = $book->media->first();
+    $cover = $book->visuelsMiniBook()->first();
 @endphp
 
 <div class="ui card {{ $category }} ptf_index_static dimmable cursor_effect {{ $nouvelle ? 'newitem_hide' : '' }}"

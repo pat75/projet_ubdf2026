@@ -168,6 +168,7 @@ export default function visionneuse(Alpine) {
         glissement: '', // passage au book suivant : 'sortie' puis 'entree'
         position: 0, // diapo affichee dans la piste, copies de bout comprises
         sansTransition: false, // recalage invisible apres un passage en boucle
+        lecture: false, // video de la diapo courante en cours de lecture
 
         get image() {
             return this.images[this.index] ?? {};
@@ -208,7 +209,9 @@ export default function visionneuse(Alpine) {
             this.images = (this.slider.book_img ?? []).map((v) => ({
                 src: (petitEcran && v.fichier_mobile) || v.fichier,
                 titre: nomDeFichier.test((v.title ?? '').trim()) ? '' : (v.title ?? ''),
+                video: v.video ?? '',
             }));
+            this.lecture = false;
             this.index = 0;
             this.position = this.images.length > 1 ? 1 : 0;
             this.sansTransition = false;
@@ -228,6 +231,7 @@ export default function visionneuse(Alpine) {
             if (!this.ouverte) return;
             this.ouverte = false;
             this.contactOuvert = false;
+            this.lecture = false;
             document.documentElement.classList.remove('swipebox-html');
             history.replaceState(null, '', window.location.pathname + window.location.search);
         },
@@ -236,6 +240,7 @@ export default function visionneuse(Alpine) {
         // premiere, puis se recale sans transition sur la vraie premiere
         // (et inversement avant la premiere).
         allerA(index) {
+            this.lecture = false; // quitter la diapo arrete la video
             const total = this.images.length;
             if (total < 2) return;
             this.index = (index + total) % total;
@@ -250,6 +255,15 @@ export default function visionneuse(Alpine) {
                     requestAnimationFrame(() => requestAnimationFrame(() => { this.sansTransition = false; }));
                 }, 400);
             }
+        },
+
+        // Clic sur la diapo : une video se lance, une image passe a la suivante.
+        cliquer() {
+            if (this.image.video && !this.lecture) {
+                this.lecture = true;
+                return;
+            }
+            this.suivante();
         },
 
         suivante() {
