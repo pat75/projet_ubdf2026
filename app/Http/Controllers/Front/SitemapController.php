@@ -30,7 +30,9 @@ class SitemapController extends Controller
     public function index(Request $requete): Response
     {
         $marque = $this->marque($requete);
-        $paquets = (int) ceil(max(1, $this->booksQuery($marque)->count()) / self::PAR_FICHIER);
+        $total = Cache::remember('sitemap:books-total:'.$marque->code, now()->addHours(self::CACHE_HEURES),
+            fn () => $this->booksQuery($marque)->count());
+        $paquets = (int) ceil(max(1, $total) / self::PAR_FICHIER);
 
         $fichiers = [$this->url($marque, '/sitemap-pages.xml')];
 
@@ -99,14 +101,17 @@ class SitemapController extends Controller
 
         $xml = Cache::remember('sitemap:books:'.$marque->code.':'.$paquet, now()->addHours(self::CACHE_HEURES),
             function () use ($marque, $paquet) {
+                // lastmod : dernier visuel publie. users.updated_at porte la date
+                // de l'import pour tous les comptes repris : signal sans valeur.
                 $urls = $this->booksQuery($marque)
+                    ->withMax(['media as dernier_visuel' => fn ($q) => $q->published()], 'created_at')
                     ->orderBy('id')
                     ->skip(($paquet - 1) * self::PAR_FICHIER)->take(self::PAR_FICHIER)
-                    ->get(['id', 'login', 'firstname', 'lastname', 'category_id', 'updated_at'])
+                    ->get(['id', 'login', 'brand'])
                     ->map(fn (User $creatif) => [
                         'loc' => $creatif->bookUrl(),
                         'priorite' => '0.70',
-                        'date' => $creatif->updated_at?->toAtomString(),
+                        'date' => $creatif->dernier_visuel ? \Illuminate\Support\Carbon::parse($creatif->dernier_visuel)->toAtomString() : null,
                     ])->all();
 
                 return view('sitemap.urls', ['urls' => $urls])->render();
@@ -115,12 +120,19 @@ class SitemapController extends Controller
         return $this->xml($xml);
     }
 
-    /** Books publiés : en ligne et acceptant le portail. */
+    /**
+     * Books visibles, meme regle que le portail (BookRepository::baseQuery) :
+     * diffuses, non suspendus, avec au moins un visuel publie hors portfolio
+     * protege. Sans le visuel, le sitemap annoncait ~61 000 books dont
+     * ~14 000 vides.
+     */
     private function booksQuery(Marque $marque)
     {
         return User::query()
             ->where('brand', $marque->code)
-            ->whereHas('bookSetting', fn ($q) => $q->where('diffuse_web', true)->where('diffuse_ub', true));
+            ->whereNull('blocked_at')
+            ->whereHas('bookSetting', fn ($q) => $q->where('diffuse_web', true)->where('diffuse_ub', true))
+            ->whereHas('media', fn ($q) => $q->published()->horsProteges()->whereNot('filename', ''));
     }
 
     private function marque(Request $requete): Marque

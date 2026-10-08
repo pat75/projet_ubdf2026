@@ -170,6 +170,7 @@
         @include('book.commun._edition')
     @else
     {{-- Pixel de statistiques du book (StatsBookController) : pas pour son createur. --}}
+    @include('book.commun._a-propos')
     @include('book.commun._pixel')
     @endif
 

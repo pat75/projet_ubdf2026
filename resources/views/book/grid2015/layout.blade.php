@@ -160,6 +160,7 @@
     @if ($vue->edition())
         @include('book.commun._edition')
     @else
+        @include('book.commun._a-propos')
         @include('book.commun._pixel')
     @endif
 

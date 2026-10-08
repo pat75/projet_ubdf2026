@@ -297,44 +297,98 @@ class VueBook
     public function titrePage(): string
     {
         $marque = $this->b->inc_site_name;
-        $titre = trim(self::brut(ucfirst($this->b->cont_page_titre)), " :\t\n");
-        $suffixe = ' : '.$marque;
-        $avecSuffixe = str_ends_with($titre, $suffixe);
-        $corps = $avecSuffixe ? mb_substr($titre, 0, -mb_strlen($suffixe)) : $titre;
+        $nom = $this->nomCreateur() ?: $this->b->us_dir;
 
-        $generique = '/^(?:'.preg_quote($marque, '/').'|book)\s+(?:de|d\')\s*'.preg_quote($this->b->us_dir, '/').'$/iu';
-        if ($corps === '' || preg_match($generique, $corps) === 1 || preg_match('/^(?:book|portfolio)\s+de\s+\S+$/iu', $corps) === 1) {
-            $corps = trim(implode(' — ', array_filter([
-                $this->nomCreateur() ?: $this->b->us_dir,
-                $this->b->us_type,
-            ])));
+        // Titre saisi, sans les mentions de la marque heritees du legacy
+        // (« Nom : Ultra-book », « Nom | Ultra-book Portfolio »).
+        $corps = trim(self::brut(ucfirst($this->b->cont_page_titre)));
+        $corps = trim(preg_replace('/[\s:|—-]*'.preg_quote($marque, '/').'(?:\s+portfolio)?[\s:|—-]*/iu', ' ', $corps), " :|—-\t\n");
+
+        $generique = '/^(?:(?:'.preg_quote($marque, '/').'|book|portfolio)\s+(?:de|d\')\s*\S+|book|portfolio)$/iu';
+        if ($corps === '' || preg_match($generique, $corps) === 1 || mb_strtolower($corps) === mb_strtolower($nom)) {
+            // Ce que l'on cherche : le nom, le metier, la ville.
+            $corps = $nom.($this->metier() ? ' — '.__(':metier freelance', ['metier' => $this->metier()]) : '');
+            if ($this->b->us_ville && mb_strlen($corps.$this->b->us_ville) < 50) {
+                $corps .= ' '.__('à :ville', ['ville' => mb_convert_case($this->b->us_ville, MB_CASE_TITLE)]);
+            }
         }
 
-        if ($avecSuffixe && mb_stripos($corps, $marque) === false) {
-            $corps .= $suffixe;
-        }
-
-        return $corps;
+        return $corps.' | '.$marque;
     }
 
     /**
-     * Description de la page, 160 caracteres au plus : celle du book, sinon
-     * une phrase construite a partir du metier et des rubriques.
+     * Description de la page, 160 caracteres au plus : celle du book si elle
+     * dit quelque chose, sinon une phrase construite a partir du metier, de
+     * la ville et des specialites (mots-cles IA, a defaut les rubriques).
      */
     public function descriptionPage(): string
     {
         $description = trim(self::brut($this->b->cont_page_meta), " ,\t\n");
-        $rubriques = implode(', ', array_column($this->rubriques(), 'nom'));
 
         if (mb_strlen($description) < 40) {
-            $description = trim(implode(' — ', array_filter([
-                $this->nomCreateur(),
-                $description,
-                $rubriques !== '' ? __('Book : :rubriques', ['rubriques' => $rubriques]) : null,
+            $specialites = $this->motsCles()->pluck('label')->all() ?: $this->rubriquesParlantes();
+            $phrase = $this->phraseCreateur();
+            $description = trim(implode(' ', array_filter([
+                $phrase,
+                // Le texte saisi est souvent le metier seul : deja dans la phrase.
+                mb_stripos($phrase, $description) === false ? $description : null,
+                $specialites ? __('Portfolio : :liste.', ['liste' => implode(', ', array_slice($specialites, 0, 6))]) : null,
             ])));
         }
 
         return Str::limit(preg_replace('/\s+/', ' ', $description), 157, '…');
+    }
+
+    /** « Mathilde Cotillon, illustrateur freelance à Lyon. » */
+    public function phraseCreateur(): string
+    {
+        $nom = $this->nomCreateur() ?: $this->b->us_dir;
+        $metier = $this->metier() ? ', '.__(':metier freelance', ['metier' => mb_strtolower($this->metier())]) : '';
+        $ville = $this->b->us_ville ? ' '.__('à :ville', ['ville' => mb_convert_case($this->b->us_ville, MB_CASE_TITLE)]) : '';
+
+        return $nom.$metier.$ville.'.';
+    }
+
+    /** Metier du createur (sa categorie), sauf « Autre » qui ne dit rien. */
+    private function metier(): ?string
+    {
+        $metier = self::brut((string) $this->b->us_type);
+
+        return $metier !== '' && mb_strtolower($metier) !== 'autre' ? $metier : null;
+    }
+
+    /** Noms de rubriques, sans ceux poses par defaut (« Galerie 2 », « Nouvelle rubrique »). */
+    private function rubriquesParlantes(): array
+    {
+        // Noms nettoyes de la ponctuation saisie autour (« - Nous ! », « . Tous les albums »).
+        $noms = array_map(fn ($nom) => trim(self::brut((string) $nom), " \t\n-–—.,;:!?•*"), array_column($this->rubriques(), 'nom'));
+
+        return array_values(array_unique(array_filter($noms,
+            fn ($nom) => mb_strlen($nom) >= 3
+                && preg_match('/^(?:nouvelle rubrique|galerie|portfolio|rubrique|sans titre|projets?)\s*\d*$/iu', $nom) !== 1)));
+    }
+
+    private ?\Illuminate\Support\Collection $motsCles = null;
+
+    /**
+     * Mots-cles IA les plus frequents parmi les visuels publies du createur
+     * (hors portfolios proteges) : ses specialites, telles que l'analyse
+     * les a reconnues. Vide si le createur n'a pas ouvert l'analyse IA.
+     *
+     * @return \Illuminate\Support\Collection<int, \App\Models\Tag>
+     */
+    public function motsCles(int $nombre = 6): \Illuminate\Support\Collection
+    {
+        return $this->motsCles ??= \App\Models\Tag::query()
+            ->select('tags.id', 'tags.label', 'tags.slug')
+            ->join('media_tag', 'media_tag.tag_id', '=', 'tags.id')
+            ->whereIn('media_tag.media_id', \App\Models\Media::query()
+                ->where('user_id', $this->b->book->id)->published()->horsProteges()->select('media.id'))
+            ->where('tags.lang', \App\Models\Tag::langueCourante())
+            ->groupBy('tags.id', 'tags.label', 'tags.slug')
+            ->orderByRaw('COUNT(*) DESC')
+            ->limit($nombre)
+            ->get();
     }
 
     /** Adresse canonique : sans parametre de requete, accueil = racine. */

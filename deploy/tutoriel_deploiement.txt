@@ -384,3 +384,27 @@ Vider le cache des declinaisons (tout se regenere seul) :
 Pistes suivantes, non faites : GIF animes lourds (les convertir en
 video ou en WebP anime avec Imagick), et AVIF (encore 20 a 30 % de moins
 que le WebP, mais encodage beaucoup plus lent).
+
+
+16. BASCULE EN PRODUCTION DEFINITIVE — CHECK-LIST SEO
+------------------------------------------------------
+Tant que le site tourne sur ultra-book.pro (recette), les books sont servis
+en <login>.ultra-book.pro, et le sitemap les annonce a cette adresse.
+Le jour de la bascule, dans .env.prod :
+
+   BOOK_DOMAIN=ultra-book.com
+   UB_CANONIQUE=https://www.ultra-book.com
+   (et l'equivalent Dustfolio : domaine des books, canonique)
+
+puis : NOINDEX_CHECK=0 dans deploy.config, ./deploy/deploy-prod.sh sync,
+et vider le cache du sitemap (6 h sinon) :
+
+   ./deploy/ssh-prod.sh "php artisan cache:clear"
+
+Verifier ensuite :
+   - https://www.ultra-book.com/sitemap-books-1.xml : <loc> en
+     https://<login>.ultra-book.com, jamais en .ultra-book.pro ;
+   - un book : <link rel="canonical"> en .ultra-book.com ;
+   - plus d'en-tete X-Robots-Tag: noindex sur aucune page ;
+   - soumettre https://www.ultra-book.com/sitemap.xml dans la
+     Search Console (et celui de Dustfolio).

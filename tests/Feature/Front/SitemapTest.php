@@ -11,6 +11,7 @@ function bookDiffuse(array $attrs = [], bool $diffuse = true): User
     $creatif->bookSetting()->create([
         'theme' => 'mdl_2016_zoom', 'diffuse_web' => $diffuse, 'diffuse_ub' => $diffuse,
     ]);
+    $creatif->media()->create(['filename' => 'v.jpg', 'status' => 'published']);
 
     return $creatif;
 }
@@ -45,12 +46,18 @@ it('ne liste que les pages statiques de la langue servie, sans doublon', functio
 it('ne liste que les books diffuses', function () {
     $visible = bookDiffuse(['login' => 'ariane']);
     bookDiffuse(['login' => 'cache'], diffuse: false);
+    // Diffuse mais vide : le portail ne le montre pas, le sitemap non plus.
+    bookDiffuse(['login' => 'vide'])->media()->delete();
+    bookDiffuse(['login' => 'suspendu', 'blocked_at' => now()]);
 
     $reponse = $this->get('/sitemap-books-1.xml')->assertOk();
 
     expect($reponse->getContent())
         ->toContain($visible->bookUrl())
-        ->not->toContain('cache.');
+        ->toContain('<lastmod>')
+        ->not->toContain('cache.')
+        ->not->toContain('vide.')
+        ->not->toContain('suspendu.');
 });
 
 it('sert un robots.txt qui ferme l espace et le back-office', function () {
