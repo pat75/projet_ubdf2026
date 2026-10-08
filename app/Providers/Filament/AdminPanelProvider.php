@@ -45,6 +45,8 @@ class AdminPanelProvider extends PanelProvider
             // rend ses 16 rem au tableau quand on n'en a pas besoin.
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth(Width::Full)
+            // Ordre des blocs du menu, sous le tableau de bord.
+            ->navigationGroups(['Créatifs', 'Visiteurs', 'Marketing', 'Facturation', 'Éditorial', 'Recherche', 'Réglages'])
             ->defaultThemeMode(ThemeMode::System)
             // Le selecteur clair / sombre, remonte du menu utilisateur vers
             // la barre du haut.

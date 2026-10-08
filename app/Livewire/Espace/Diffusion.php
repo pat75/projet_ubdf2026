@@ -18,6 +18,7 @@ class Diffusion extends Component
         'newsletter' => 'diffuse_newsletter',
         'disponible' => 'diffuse_availability',
         'analyse' => 'allow_ai_analysis',
+        'coaching' => 'coaching',
     ];
 
     public bool $web = true;
@@ -30,6 +31,8 @@ class Diffusion extends Component
 
     public bool $analyse = false;
 
+    public bool $coaching = true;
+
     public function mount(): void
     {
         $r = Auth::user()->bookSetting;
@@ -39,6 +42,7 @@ class Diffusion extends Component
         $this->newsletter = (bool) ($r?->diffuse_newsletter ?? true);
         $this->disponible = (bool) ($r?->diffuse_availability ?? false);
         $this->analyse = (bool) ($r?->allow_ai_analysis ?? false);
+        $this->coaching = (bool) ($r?->coaching ?? true);
     }
 
     /** Un interrupteur s'enregistre des qu'il change, sans bouton (charte). */
@@ -122,6 +126,9 @@ class Diffusion extends Component
                     ->whereHas('media', fn ($query) => $query->where('media.user_id', $user->id))
                     ->orderBy('label')->get(['id', 'label'])
                 : collect(),
+            // Conseils du Coach crea deja recus, du plus recent au plus ancien.
+            'messagesCoach' => \App\Models\CoachMessage::where('user_id', $user->id)->where('statut', 'envoye')
+                ->latest('envoye_le')->limit(20)->get(['id', 'objet', 'corps', 'envoye_le']),
             'demandeLe' => $this->demandeEnCours($user) ? $user->selection_requested_at : null,
             'canaux' => [
                 'web' => [__('Diffusion sur internet'), __('Votre book est accessible à tous et référencé par les moteurs de recherche.'), $user->bookUrl()],

@@ -80,6 +80,49 @@
     </section>
 
     <section class="mt-7 flex flex-col gap-3.5">
+        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Coach') }}</h2>
+
+        <div class="carte-espace flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4.5">
+            <div class="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
+                <span class="text-[16px] font-bold text-ub-texte">{{ __('Conseils pour mon book') }}</span>
+                <span class="text-[13px] text-ub-texte2 text-pretty">
+                    <span class="block">{{ __('Après vos modifications, nous vous envoyons quelques conseils pour compléter votre book.') }}</span>
+                    <span class="block">{{ __('Au plus un message par semaine.') }}</span>
+                </span>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2.5">
+                <span class="w-18 text-right text-[13px] font-bold {{ $coaching ? 'text-ub-accent-texte' : 'text-ub-texte3' }}">
+                    {{ $coaching ? __('Activé') : __('Désactivé') }}
+                </span>
+                <x-espace.interrupteur wire:click="basculer('coaching')" :actif="$coaching" :libelle="__('Conseils pour mon book')" />
+            </div>
+
+            {{-- Conseils deja recus : un clic sur la ligne deplie le message. --}}
+            @if ($messagesCoach->isNotEmpty())
+                <div class="basis-full border-t border-ub-filet pt-3">
+                    <div class="mb-2 text-[14px] font-bold text-ub-texte">{{ __('Derniers conseils reçus') }}</div>
+
+                    @foreach ($messagesCoach as $conseil)
+                        <div wire:key="coach-{{ $conseil->id }}" x-data="{ ouvert: false }"
+                             :class="ouvert ? 'border border-ub-texte/50' : 'border-b border-ub-filet'">
+                            <button type="button" @click="ouvert = ! ouvert" :aria-expanded="ouvert"
+                                    class="flex w-full items-center gap-3 px-3 py-2.5 text-left">
+                                <span class="min-w-0 flex-1 text-[14px] text-ub-texte">{{ $conseil->objet }}</span>
+                                <span class="shrink-0 text-[12px] text-ub-texte3">{{ $conseil->envoye_le->translatedFormat('j F Y') }}</span>
+                                <x-espace.picto nom="angle-droite" class="h-5 w-5 shrink-0 text-ub-texte" x-show="! ouvert" />
+                                <x-espace.picto nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" x-show="ouvert" x-cloak />
+                            </button>
+
+                            <div x-show="ouvert" x-cloak class="whitespace-pre-line border-t border-ub-filet px-3 py-3 text-[14px] text-ub-texte2 text-pretty">{{ $conseil->corpsAvecLiens() }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <section class="mt-7 flex flex-col gap-3.5">
         <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Sélection') }}</h2>
 
         <div class="carte-espace flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4.5">

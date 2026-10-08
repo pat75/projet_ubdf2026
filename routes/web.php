@@ -19,6 +19,7 @@ use App\Http\Controllers\Visiteur\MotDePasseVisiteurController;
 use App\Http\Controllers\Visiteur\TableauVisiteurController;
 use App\Http\Controllers\Visiteur\VisiteBookController;
 use App\Http\Controllers\Front\ContactController;
+use App\Http\Controllers\Front\DesabonnementCoachController;
 use App\Http\Controllers\Front\DesabonnementController;
 use App\Http\Controllers\Front\DesinscriptionNewsletterController;
 use App\Http\Controllers\Front\EditionBookController;
@@ -473,6 +474,10 @@ $portail = function (?string $langue = null) {
     // Ancien lien, par createur : garde pour les messages deja partis.
     Route::get('/newsletter/desabonnement/{user}', DesabonnementController::class)
         ->middleware('signed')->name('newsletter.desabonnement');
+
+    // Desabonnement des conseils du Coach crea : lien signe de chaque message.
+    Route::get('/coach/desabonnement/{user}', DesabonnementCoachController::class)
+        ->middleware('signed')->name('coach.desabonnement');
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
         ->middleware('signed')->name('inscription.confirmer');

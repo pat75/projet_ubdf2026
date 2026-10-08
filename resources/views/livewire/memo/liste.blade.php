@@ -21,15 +21,16 @@
         @if ($total > 0)
         {{-- Export PDF et ses options (engrenage) : le code QR de chaque
              book, sous sa fiche. Le choix reste en memoire du navigateur. --}}
-        <div class="flex items-center gap-2 sm:ml-auto" wire:ignore
+        <div class="flex items-center sm:ml-auto" wire:ignore
              x-data="{
                  options: false,
-                 qr: (() => { try { return localStorage.getItem('memo_pdf_qr') === '1' } catch { return false } })(),
+                 qr: (() => { try { return localStorage.getItem('memo_pdf_qr') !== '0' } catch { return true } })(),
                  basculerQr() { this.qr = ! this.qr; try { localStorage.setItem('memo_pdf_qr', this.qr ? '1' : '0') } catch {} },
              }"
              @click.outside="options = false" @keydown.escape.window="options = false">
-            <a :href="@js(lien('memobook.pdf')) + (qr ? '?qr=1' : '')" href="{{ lien('memobook.pdf') }}" target="_blank" rel="noopener"
+            <a :href="@js(lien('memobook.pdf')) + (qr ? '?qr=1' : '')" href="{{ lien('memobook.pdf') }}?qr=1" target="_blank" rel="noopener"
                class="bouton-espace bouton-espace-grand px-5">
+                <x-espace.icone nom="pdf" class="h-4 w-4" />
                 {{ __('Exporter en PDF') }}
             </a>
 

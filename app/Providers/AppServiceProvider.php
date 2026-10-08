@@ -20,6 +20,7 @@ use App\Models\Selection;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Observers\JournalAdmin;
+use App\Observers\JournalCreatif;
 use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Auth\Events\Login;
@@ -86,6 +87,14 @@ class AppServiceProvider extends ServiceProvider
             CmsPage::class, CmsPost::class, AccueilBloc::class, MarketingOffer::class,
         ] as $modele) {
             $modele::observe(JournalAdmin::class);
+        }
+
+        // Coach crea : les modifications du book faites par le createur lui-meme.
+        foreach ([
+            \App\Models\Gallery::class, \App\Models\Media::class, \App\Models\BookSetting::class,
+            \App\Models\BookSection::class, \App\Models\BookArticle::class, \App\Models\PageImage::class,
+        ] as $modele) {
+            $modele::observe(JournalCreatif::class);
         }
 
         /*

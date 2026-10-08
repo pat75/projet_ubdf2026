@@ -36,16 +36,18 @@ class StatistiquesAnalyse extends StatsOverviewWidget
         // reellement employe a la derniere analyse.
         $probleme = Nvidia::actif() ? Nvidia::probleme() : null;
         $dernier = Media::whereNotNull('analysed_at')->latest('analysed_at')->value('ai_model');
+        $derniereNvidia = Media::whereIn('ai_model', [...Nvidia::MODELES_VISION, Nvidia::modele()])->max('analysed_at');
+        $depuis = $derniereNvidia ? ' · dernière opération NVIDIA '.\Illuminate\Support\Carbon::parse($derniereNvidia)->locale('fr')->diffForHumans() : '';
 
         return [
             $probleme
                 ? Stat::make('API', 'NVIDIA injoignable')
-                    ->description('Depuis le '.date('d/m H:i', $probleme['quand']).' : '.mb_substr($probleme['motif'], 0, 120).' — analyses en pause, nouvel essai toutes les '.Nvidia::PAUSE.' min')
+                    ->description('Depuis le '.date('d/m H:i', $probleme['quand']).' : '.mb_substr($probleme['motif'], 0, 120).' — analyses en pause, nouvel essai toutes les '.Nvidia::PAUSE.' min'.$depuis)
                     ->descriptionIcon('heroicon-m-exclamation-triangle')
                     ->color('danger')
                 : Stat::make('API', Nvidia::actif() ? 'NVIDIA' : 'OpenRouter')
                     ->description((Nvidia::actif() ? 'Modèle : '.Nvidia::modele() : 'Sélection automatique (vision)')
-                        .($dernier ? ' · dernier utilisé : '.$dernier : ''))
+                        .($dernier ? ' · dernier utilisé : '.$dernier : '').$depuis)
                     ->color(Nvidia::actif() ? 'success' : 'warning'),
             Stat::make('En attente (cron)', $nombre($attente))
                 ->description($fin)

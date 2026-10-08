@@ -12,14 +12,44 @@ le bon éditeur
 + comme sur les illustrateurs.com ajouter un agent automatique de réponse en bas à droite de la page
 
 
-
-
 + prévoir la création de boutique avec des propres systèmes de paiement type paypal ou Stripe du créatif
 
 + prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
  aux contenu par API ou proxy.
  
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
+
+
++ coach
+il faut que toutes tes opérations réalisées dans l'espace de gestion des créatifs soit loggé.
+Créer dans l'administration du site un menu "coach créa" (positionner celui-ci dans le bloc créatifs)
+sur la page coach, il faut un menu qui puisse dérouler les dernières opérations effectuées par les créatifs
+en affichant son avatar, son nom, un lien vers  la connexion de son compte et l'opération qu'il a effectué
+présenter tout cela par date et regrouper  les opérations par créatif
+
+créer un service de coaching : celui-ci, analysera  chaque session d'opération sur un book.
+ Pour déterminer et conseiller, ce qui pourrait être fait en plus ou amélioré sur ce book.
+  Exemple il manque une image de profil, il manque une bio de description, il n'y a pas assez d'image dans le portfolio etc.
+ exemple : quand par exemple tous tes demandes précédentes ont été faites, le créatif peut faire une demande de sélection,
+ il peut aussi par exemple reporter son bout en PDF
+
+ un résumé synthétique d'une opération de coach sera rédigé 24 heures après la dernière session d'opération d'un créatif.
+  Ce résumer synthétique lui sera envoyé par mail après validation par L'administrateur.
+   Il faudra donc lister les messages de coaching préparé à l'avance avec un bouton. Envoyer
+    l'administrateur aura le loisir de modifier les messages avant l'envoi.
+
+     Pour traiter les analyses des opérations  Et la rédaction du message de coaching utilisé Le service IA NVIDIA.
+      c'est sélectionner  sur NVIDIA le meilleur modèle pour répondre à ce type de demande
+     rédiger un fichier .md pour les opérations d'analyse et la rédaction du message de coaching.
+
+
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
+
+
+
+
+
 
 
 
@@ -53,26 +83,9 @@ Name
 UBDF2026
 Expiration
 10/07/2027
-
 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
-
- analyse la demande fait des propositions d'amélioration, c'est les tiennes un modèle sur NVIDIA qui analysent le mieux, les images et commence à coder
-
-
+analyse la demande fait des propositions d'amélioration, c'est les tiennes un modèle sur NVIDIA qui analysent le mieux, les images et commence à coder
 login : patrice2016@tardif.fr
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
