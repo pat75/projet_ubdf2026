@@ -19,6 +19,14 @@ Ultra-book est une plateforme de portfolios en ligne pour les créatifs freelanc
 @foreach ($metiers as $metier)
 - [{!! $metier['titre'] !!}]({!! $metier['url'] !!}): {!! $metier['description'] !!} ({!! number_format($metier['total'], 0, ',', ' ') !!})
 @endforeach
+@foreach ($metiers->filter(fn ($metier) => $metier['books']) as $metier)
+
+### {!! $metier['titre'] !!} : {!! $marque->estDefaut() ? 'quelques books de la sélection' : 'a few selected portfolios' !!}
+
+@foreach ($metier['books'] as $book)
+- [{!! $book['nom'] !!}]({!! $book['url'] !!}){!! $book['ville'] ? ' ('.$book['ville'].')' : '' !!}{!! $book['specialites'] ? ' : '.$book['specialites'] : '' !!}
+@endforeach
+@endforeach
 
 @if ($marque->estDefaut())
 ## Questions fréquentes

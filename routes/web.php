@@ -166,6 +166,8 @@ Route::group([], function () {
     Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
     Route::get('/sitemap-books-{paquet}.xml', [SitemapController::class, 'books'])
         ->whereNumber('paquet')->name('sitemap.books');
+    Route::get('/sitemap-images-{paquet}.xml', [SitemapController::class, 'images'])
+        ->whereNumber('paquet')->name('sitemap.images');
     Route::redirect('/sitemap', '/sitemap.xml', 301);
     Route::get('/robots.txt', RobotsController::class)->name('robots');
 

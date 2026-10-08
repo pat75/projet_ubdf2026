@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tag;
 use App\Repository\BookRepository;
 use App\Support\Marque;
 use App\Support\Metier;
@@ -49,6 +50,15 @@ class LlmsController extends Controller
                 'description' => Metier::sousTitre($metier['slug']),
                 'url' => $absolu(lien_metier($metier['slug'])),
                 'total' => $comptes[$metier['slug']] ?? 0,
+                // Quelques books de la selection : les assistants IA citent
+                // volontiers des noms quand on leur demande un createur.
+                'books' => $this->books->portfolios('sel', $metier['slug'], 0, $marque->code, 5)
+                    ->map(fn ($book) => [
+                        'nom' => mb_convert_case($book->fullName(), MB_CASE_TITLE),
+                        'url' => $book->bookUrl(),
+                        'ville' => $book->city ? mb_convert_case($book->city, MB_CASE_TITLE) : null,
+                        'specialites' => Tag::principauxDe($book->id, 3)->pluck('label')->implode(', '),
+                    ])->all(),
             ])->filter(fn (array $metier) => $metier['total'] > 0)->values(),
             'recherche' => $absolu(lien('recherche')),
             // Questions frequentes des pages metier, formulees pour tous les

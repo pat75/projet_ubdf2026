@@ -17,7 +17,8 @@
 
     $titre = $landing ? __($landing['titre']).' | '.$marque->nom : Metier::titreSeo($categorie, $marque->nom);
     $description = $landing ? __($landing['description']) : Metier::descriptionSeo($categorie, $marque->nom);
-    $h1 = $landing ? __($landing['h1']) : Metier::titreBloc($categorie);
+    // « Illustrateurs freelance » plutot que « Illustration » : ce que l'on cherche.
+    $h1 = $landing ? __($landing['h1']) : __(':metiers freelance', ['metiers' => ucfirst(Metier::pluriel($categorie))]);
     $intro = $landing ? __($landing['intro']) : Metier::intro($categorie, $marque->nom);
     $faq = $landing ? [] : Metier::faq($categorie, $marque->nom);
 

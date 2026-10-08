@@ -84,3 +84,23 @@ it('ecrit public/robots.txt avec les sitemaps des deux marques', function () {
         $avant === null ? @unlink($chemin) : file_put_contents($chemin, $avant);
     }
 });
+
+it('liste les pages image indexables avec leur visuel', function () {
+    $creatif = bookDiffuse(['login' => 'imagier']);
+    $creatif->bookSetting->update(['allow_ai_analysis' => true]);
+    $riche = $creatif->media()->create(['filename' => 'riche.jpg', 'status' => 'published', 'ai_title' => 'Renard roux',
+        'ai_description' => str_repeat('Un renard roux dans la neige. ', 5), 'analysed_at' => now()]);
+    $mince = $creatif->media()->create(['filename' => 'mince.jpg', 'status' => 'published', 'ai_title' => 'Chat',
+        'ai_description' => 'Un chat.', 'analysed_at' => now()]);
+    foreach (['renard', 'neige', 'hiver', 'animal', 'roux'] as $mot) {
+        $tag = App\Models\Tag::create(['label' => $mot, 'lang' => 'fr']);
+        $tag->media()->attach([$riche->id, $mince->id]);
+    }
+
+    $this->get('/sitemap.xml')->assertSee('sitemap-images-1.xml');
+
+    expect($this->get('/sitemap-images-1.xml')->assertOk()->getContent())
+        ->toContain('/image/'.$riche->id.'/renard-roux</loc>')
+        ->toContain('<image:loc>'.$riche->url().'</image:loc>')
+        ->not->toContain('mince.jpg');
+});

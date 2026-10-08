@@ -379,16 +379,7 @@ class VueBook
      */
     public function motsCles(int $nombre = 6): \Illuminate\Support\Collection
     {
-        return $this->motsCles ??= \App\Models\Tag::query()
-            ->select('tags.id', 'tags.label', 'tags.slug')
-            ->join('media_tag', 'media_tag.tag_id', '=', 'tags.id')
-            ->whereIn('media_tag.media_id', \App\Models\Media::query()
-                ->where('user_id', $this->b->book->id)->published()->horsProteges()->select('media.id'))
-            ->where('tags.lang', \App\Models\Tag::langueCourante())
-            ->groupBy('tags.id', 'tags.label', 'tags.slug')
-            ->orderByRaw('COUNT(*) DESC')
-            ->limit($nombre)
-            ->get();
+        return $this->motsCles ??= \App\Models\Tag::principauxDe($this->b->book->id, $nombre);
     }
 
     /** Adresse canonique : sans parametre de requete, accueil = racine. */

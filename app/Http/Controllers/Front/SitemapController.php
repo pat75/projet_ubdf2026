@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CmsPage;
 use App\Models\CmsPost;
+use App\Models\Media;
 use App\Models\User;
 use App\Support\Marque;
 use App\Support\Metier;
@@ -38,6 +39,13 @@ class SitemapController extends Controller
 
         for ($i = 1; $i <= $paquets; $i++) {
             $fichiers[] = $this->url($marque, '/sitemap-books-'.$i.'.xml');
+        }
+
+        $images = Cache::remember('sitemap:images-total:'.$marque->code, now()->addHours(self::CACHE_HEURES),
+            fn () => $this->imagesQuery($marque)->count());
+
+        for ($i = 1; $i <= (int) ceil($images / self::PAR_FICHIER); $i++) {
+            $fichiers[] = $this->url($marque, '/sitemap-images-'.$i.'.xml');
         }
 
         return $this->xml(view('sitemap.index', ['fichiers' => $fichiers]));
@@ -118,6 +126,45 @@ class SitemapController extends Controller
             });
 
         return $this->xml($xml);
+    }
+
+    /** Un paquet de pages image, avec leur visuel (balise image:image, pour Google Images). */
+    public function images(Request $requete, int $paquet): Response
+    {
+        $marque = $this->marque($requete);
+
+        abort_if($paquet < 1 || $paquet > 1000, 404);
+
+        $xml = Cache::remember('sitemap:images:'.$marque->code.':'.$paquet, now()->addHours(self::CACHE_HEURES),
+            function () use ($marque, $paquet) {
+                $images = $this->imagesQuery($marque)
+                    ->with('user:id,login,brand')
+                    ->orderBy('media.id')
+                    ->skip(($paquet - 1) * self::PAR_FICHIER)->take(self::PAR_FICHIER)
+                    ->get(['media.id', 'media.user_id', 'media.gallery_id', 'media.filename', 'media.ai_title', 'media.analysed_at'])
+                    ->map(fn (Media $media) => [
+                        'loc' => $this->url($marque, parse_url($media->pageUrl(), PHP_URL_PATH)),
+                        'image' => $media->url(),
+                        'date' => $media->analysed_at?->toAtomString(),
+                    ])->all();
+
+                return view('sitemap.images', ['images' => $images])->render();
+            });
+
+        return $this->xml($xml);
+    }
+
+    /**
+     * Pages image indexables (front/image) : 5 mots-cles et une description
+     * IA d'au moins 120 caracteres. La page en compte aussi la bio du
+     * createur : on en manque quelques-unes, on n'annonce aucune page noindex.
+     */
+    private function imagesQuery(Marque $marque)
+    {
+        return Media::visiblesSurPortail($marque->code)
+            // 120 caracteres au moins (LIKE compte les caracteres, sur MySQL comme SQLite).
+            ->where('media.ai_description', 'like', str_repeat('_', 120).'%')
+            ->has('tags', '>=', 5);
     }
 
     /**

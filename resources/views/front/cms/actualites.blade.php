@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
 @section('title', __('Actualités').' | '.$marque->nom)
+@section('description', __('Actualités :marque : nouveautés du site, sélections de créatifs, conseils pour les illustrateurs, graphistes et photographes freelances.', ['marque' => $marque->nom]))
 @section('body_class', 'page_actus')
 
 @section('content')

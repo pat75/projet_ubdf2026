@@ -28,6 +28,26 @@ class Tag extends Model
         return app()->getLocale() === 'en' ? 'en' : 'fr';
     }
 
+    /**
+     * Mots-cles les plus frequents des visuels publics d'un createur, dans la
+     * langue courante : ses specialites (bloc « a propos » du book, llms.txt).
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, self>
+     */
+    public static function principauxDe(int $userId, int $nombre = 6): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->select('tags.id', 'tags.label', 'tags.slug')
+            ->join('media_tag', 'media_tag.tag_id', '=', 'tags.id')
+            ->whereIn('media_tag.media_id', Media::query()
+                ->where('user_id', $userId)->published()->horsProteges()->select('media.id'))
+            ->where('tags.lang', self::langueCourante())
+            ->groupBy('tags.id', 'tags.label', 'tags.slug')
+            ->orderByRaw('COUNT(*) DESC')
+            ->limit($nombre)
+            ->get();
+    }
+
     public function url(): string
     {
         return lien('images.motcle', ['slug' => $this->slug]);

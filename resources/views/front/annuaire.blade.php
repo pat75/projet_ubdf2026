@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
 @section('title', 'Annuaire des créatifs | Ultra-book')
+@section('description', __('Annuaire des créatifs freelances, classés par ordre alphabétique : retrouvez un illustrateur, un graphiste ou un photographe par son nom et ouvrez son book.'))
 @section('body_class', 'page_annuaire')
 
 @section('content')

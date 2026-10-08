@@ -4,9 +4,9 @@
     $racine = rtrim($marque->canonique, '/');
     $urlPage = $racine.request()->getPathInfo();
     $titre = __(':motcle : illustrations, photos et créations', ['motcle' => mb_convert_case($motCle, MB_CASE_TITLE)]);
-    $description = texte_seo(__(':n images « :motcle » de :c créatifs indépendants. Découvrez leurs portfolios et contactez-les directement sur :marque.', [
-        'n' => $images->count(), 'motcle' => $motCle, 'c' => $creatifs->count(), 'marque' => $marque->nom,
-    ]), 155);
+    $description = texte_seo(trans_choice(':n image|:n images', $images->count(), ['n' => $images->count()]).' « '.$motCle.' » '
+        .trans_choice('de :n créatif indépendant|de :n créatifs indépendants', $creatifs->count(), ['n' => $creatifs->count()]).'. '
+        .__('Découvrez leurs portfolios et contactez-les directement sur :marque.', ['marque' => $marque->nom]), 155);
 
     $jsonLd = [
         '@context' => 'https://schema.org',
