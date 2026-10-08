@@ -70,7 +70,7 @@ it('montre le bloc d activation et replie le parrainage', function () {
     $reponse = $this->actingAs($creatif)->get(route('espace.formule'))->assertOk()
         ->assertSee('Activer un code formule')
         ->assertSee('Comment obtenir un code formule ?', false)
-        ->assertSee('chat-code-formule.png')
+        ->assertSee('chat-code-formule.webp')
         ->assertSee('Parrainage');
 
     /*

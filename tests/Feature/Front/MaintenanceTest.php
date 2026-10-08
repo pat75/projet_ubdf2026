@@ -23,7 +23,7 @@ it('ferme tout le portail avec la page de maintenance', function () {
         $this->get($this->portail.$chemin)
             ->assertStatus(503)
             ->assertSee('Site en maintenance')
-            ->assertSee('/img_front/recherche-vide.png', false)
+            ->assertSee('/img_front/recherche-vide.webp', false)
             ->assertSee('<strong>'.now()->translatedFormat('l').'</strong>', false)
             ->assertSee('<strong>quelques minutes à quelques heures</strong>', false);
     }

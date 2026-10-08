@@ -21,7 +21,7 @@
 
     <div class="ui container bloc_portfolios">
         <div class="page_404">
-            <img src="/img_front/recherche-vide.png" alt="" width="343" height="400">
+            <img src="/img_front/recherche-vide.webp" alt="" width="343" height="400">
             <h1>{{ __('Page introuvable') }}</h1>
             <p>{{ __('La page demandée n’existe pas ou a été déplacée.') }}</p>
             <a href="{{ url('/') }}" class="ui black button page_404_retour">{{ __('Revenir à l’accueil') }}</a>

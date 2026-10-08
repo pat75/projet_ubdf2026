@@ -13,7 +13,7 @@
     <div class="mt-12 overflow-hidden rounded-ub-carte bg-[#e4e4e6]">
         <div class="grid items-end gap-6 md:grid-cols-[1fr_1.2fr]">
 
-            <img src="{{ asset('img_front/chat-code-formule.png') }}" alt=""
+            <img src="{{ asset('img_front/chat-code-formule.webp') }}" alt=""
                  class="mx-auto -mb-2 w-[320px] max-w-full self-end md:mx-0 md:ml-10">
 
             <div class="px-6 pb-10 pt-8 md:px-0 md:pr-10">

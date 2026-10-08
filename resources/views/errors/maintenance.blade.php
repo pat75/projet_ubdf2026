@@ -12,7 +12,7 @@
     <div class="ui container bloc_portfolios">
         <div class="ui basic segment center aligned recherche_vide" style="text-align:center;padding-top:3em">
             <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" style="display:block;margin:0 auto 2.5em;width:126px;max-width:35%;height:auto">
-            <img src="/img_front/recherche-vide.png" alt="" width="343" height="400" style="display:block;margin:0 auto 1em;max-width:60%;height:auto">
+            <img src="/img_front/recherche-vide.webp" alt="" width="343" height="400" style="display:block;margin:0 auto 1em;max-width:60%;height:auto">
             <h1 style="text-align:center">{{ __('Site en maintenance') }}</h1>
             {{-- Jour de la semaine dans la langue de la page, sans date ni
                  heure : la maintenance dure de quelques minutes a quelques
