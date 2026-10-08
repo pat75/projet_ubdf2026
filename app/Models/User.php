@@ -163,7 +163,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Visuels du mini book du portail : 16 en formule payante en cours,
+     * Visuels du mini book du portail : 16 en formule payante,
      * 6 en gratuite, dans l'ordre du book (ContexteBook::visuels) : galeries
      * publiees par position, puis l'ordre des visuels de chacune. Le premier
      * est donc la premiere image de la premiere galerie. Les relations
@@ -185,7 +185,9 @@ class User extends Authenticatable
                         ->map(fn (Media $m) => ['img_id' => $m->legacy_id ?? $m->id, 'media' => $m])->values()->all(),
                     $galeries->get($galerie)?->media_order,
                 ))->pluck('media'))
-                ->take($this->echeanceFormule()?->isFuture() ? 16 : 6)
+                // Comme le legacy (us_formule) : le drapeau de formule, pas l'echeance,
+                // que la reprise de la base ne recalcule pas.
+                ->take($this->plan > 0 ? 16 : 6)
                 ->values();
         });
     }
