@@ -97,7 +97,7 @@ it('bloque dix minutes apres cinq tentatives infructueuses', function () {
 it('deconnecte et vide la session', function () {
     $this->actingAs($this->creatif)
         ->post('/ubaction__user_out')
-        ->assertRedirect(route('accueil'));
+        ->assertRedirect(route('home'));
 
     expect(auth()->check())->toBeFalse();
 });

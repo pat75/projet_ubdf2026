@@ -132,7 +132,7 @@ it('affiche le memo d un creatif dans son espace', function () {
 });
 
 it('renvoie un anonyme vers la connexion', function () {
-    $this->get('/memobook')->assertRedirect(route('accueil'));
+    $this->get('/memobook')->assertRedirect(route('home'));
 });
 
 it('exporte le memo en pdf', function () {
@@ -219,7 +219,7 @@ it('ferme la session visiteur quand un creatif se connecte', function () {
 it('interdit l espace creatif a un visiteur', function () {
     $this->actingAs(Visitor::factory()->create(), 'visitor');
 
-    $this->get('/espace')->assertRedirect(route('accueil'));
+    $this->get('/espace')->assertRedirect(route('home'));
 });
 
 it('montre au visiteur ses messages une fois son adresse confirmee', function () {

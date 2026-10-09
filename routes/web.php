@@ -346,7 +346,9 @@ Route::group([], function () {
 $portail = function (?string $langue = null) {
 
     Route::get('/', [AccueilController::class, 'index'])->name('home');
-    Route::get('/accueil', [AccueilController::class, 'index'])->name('accueil');
+    // Ancienne adresse de l'accueil, encore liee de l'exterieur : une seule
+    // URL pour la page (la racine), parametres conserves.
+    Route::get('/accueil', fn (Illuminate\Http\Request $request) => redirect()->to(lien('home', $request->query()), 301))->name('accueil');
 
     Route::get('/recherche', [RechercheController::class, 'page'])->name('recherche');
     // Page ouverte par la loupe du menu : resultats charges en ajax sous le bloc.
@@ -524,8 +526,8 @@ $portail = function (?string $langue = null) {
     Route::get('/blog', fn () => redirect()->to(lien('actualites'), 301));
 
     // Selections editoriales.
-    Route::get('/les-ultra-books', fn () => redirect()->to(lien('accueil')))->name('selection.lub');
-    Route::get('/les-ultra-selections', fn () => redirect()->to(lien('accueil')))->name('selection.ult');
+    Route::get('/les-ultra-books', fn () => redirect()->to(lien('home')))->name('selection.lub');
+    Route::get('/les-ultra-selections', fn () => redirect()->to(lien('home')))->name('selection.ult');
 
     // Annuaire alphabetique.
     Route::get('/annuaire', [AnnuaireController::class, 'index'])->name('annuaire');
@@ -569,7 +571,7 @@ $portail = function (?string $langue = null) {
      | sont plus canoniques.
      */
     foreach (config('seo_routes.accueil_aliases') as $alias) {
-        Route::get('/'.$alias, fn () => redirect()->to(lien('accueil'), 301));
+        Route::get('/'.$alias, fn () => redirect()->to(lien('home'), 301));
     }
 
     foreach (config('seo_routes.category_aliases') as $alias => $slug) {

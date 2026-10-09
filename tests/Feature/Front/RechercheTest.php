@@ -216,7 +216,7 @@ it('affiche les portfolios du moment tires des recherches du moment', function (
 });
 
 it('pointe la loupe du menu vers /search', function () {
-    $this->get(url_portail('/accueil'))
+    $this->get(url_portail('/'))
         ->assertOk()
         ->assertSee('href="'.lien('search').'"', false);
 });

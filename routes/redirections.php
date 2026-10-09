@@ -50,12 +50,12 @@ Route::get('/intermediate_msg_/{reste}', [RedirectionLegacyController::class, 'f
     ->where('reste', '.*')->name('legacy.fil');
 
 // Vieux points d'entree AJAX des scripts de 2010-2016, sans equivalent.
-Route::get('/contact_show__{reste}', fn () => redirect('/accueil', 301))->where('reste', '.*');
-Route::get('/contact_reponse{reste}', fn () => redirect('/accueil', 301))->where('reste', '.*');
+Route::get('/contact_show__{reste}', fn () => redirect('/', 301))->where('reste', '.*');
+Route::get('/contact_reponse{reste}', fn () => redirect('/', 301))->where('reste', '.*');
 Route::get('/intermediate_get', fn () => redirect('/espace/messages', 301));
-Route::get('/intermediate_send_frombook', fn () => redirect('/accueil', 301));
+Route::get('/intermediate_send_frombook', fn () => redirect('/', 301));
 Route::get('/formuleexits', fn () => redirect('/espace/formule', 301));
-Route::get('/ubajax__{reste}', fn () => redirect('/accueil', 301))->where('reste', '.*');
+Route::get('/ubajax__{reste}', fn () => redirect('/', 301))->where('reste', '.*');
 Route::get('/fm_ajax', fn () => redirect('/espace/formule', 301));
 
 /*
@@ -66,12 +66,12 @@ Route::get('/support', [RedirectionLegacyController::class, 'support']);
 Route::get('/contact', [RedirectionLegacyController::class, 'support']);
 
 // Japonais : la langue n'est plus servie.
-Route::redirect('/ja', '/accueil', 301);
+Route::redirect('/ja', '/', 301);
 
 // Pages du portail disparues.
 Route::redirect('/memo', '/memobook', 301);
 Route::redirect('/newsletters', '/actus', 301);
-Route::redirect('/microbook_externe', '/accueil', 301);
+Route::redirect('/microbook_externe', '/', 301);
 
 // `book_<login>` ouvrait l'accueil sur l'ancre du book ; `-<login>` et
 // `minibook_<login>` menaient a sa vignette. Tous mènent desormais au book.
@@ -95,5 +95,5 @@ Route::get('/{slug}__wpactu_{id}', [RedirectionLegacyController::class, 'actuali
  | ici est une action disparue — offres de projets, anciens ecrans — et
  | repart vers l'accueil plutot que sur une 404.
  */
-Route::get('/ubaction__{action}', fn () => redirect('/accueil', 301))->where('action', '.*');
-Route::get('/ubactiontype__{type}', fn () => redirect('/accueil', 301))->where('type', '.*');
+Route::get('/ubaction__{action}', fn () => redirect('/', 301))->where('action', '.*');
+Route::get('/ubactiontype__{type}', fn () => redirect('/', 301))->where('type', '.*');

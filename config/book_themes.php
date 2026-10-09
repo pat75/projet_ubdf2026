@@ -183,7 +183,7 @@ return [
         // resources/views/book/ultra2020 (App\Services\Book\VueUltra2020).
         'vues' => ['accueil' => 'portfolio', 'portfolio' => 'portfolio', 'news' => 'page', 'contact' => 'contact'],
         'colonne_legacy' => 'us_pf_conf2020_ultra_zen',
-        'defaut' => '{"data":{"expert":"false","cursor":"false","theme":"theme_white","visuel_size":"normal","header":"8","header_size":"S","titre":"%prenom% %nom%","description":"Direction artistique, design graphique, illustration","nav_link":{"name_portfolio":"Portfolio","name_page":"Bio","name_contact":"Contact"},"expert_css":"","social_link":{},"contact_titre":"Et si on parlait de votre projet ?","contact_footer":"","footer":"<a href=%site_url%>%site_nom% | modèle Ultra-frais</a>","end":{"end":"no-comma-at-end"}}}',
+        'defaut' => '{"data":{"expert":"false","cursor":"false","theme":"theme_white","visuel_size":"normal","header":"1","header_size":"S","titre":"%prenom% %nom%","description":"Direction artistique, design graphique, illustration","nav_link":{"name_portfolio":"Portfolio","name_page":"Bio","name_contact":"Contact"},"expert_css":"","social_link":{},"contact_titre":"Et si on parlait de votre projet ?","contact_footer":"","footer":"<a href=%site_url%>%site_nom% | modèle Ultra-frais</a>","end":{"end":"no-comma-at-end"}}}',
     ],
 
 ];

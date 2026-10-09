@@ -140,7 +140,7 @@ class GoogleController extends Controller
 
     private function echec(string $message): RedirectResponse
     {
-        return redirect()->to(lien('accueil'))
+        return redirect()->to(lien('home'))
             ->with('connexion_ouverte', true)
             ->withErrors(['login' => $message]);
     }

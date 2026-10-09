@@ -7,13 +7,14 @@ beforeEach(fn () => Cache::flush());
 it('donne a l accueil une seule adresse canonique, la racine', function () {
     $racine = rtrim(config('marques.marques.ub.canonique'), '/').'/';
 
-    foreach (['/', '/accueil'] as $chemin) {
-        $html = $this->get($chemin)->assertOk()->getContent();
+    $html = $this->get('/')->assertOk()->getContent();
 
-        expect($html)
-            ->toContain('<link rel="canonical" href="'.$racine.'">')
-            ->and(substr_count($html, '<h1'))->toBe(1);
-    }
+    expect($html)
+        ->toContain('<link rel="canonical" href="'.$racine.'">')
+        ->and(substr_count($html, '<h1'))->toBe(1);
+
+    // L'ancienne adresse ne sert plus de doublon : 301 vers la racine.
+    $this->get('/accueil?ref=ancien')->assertStatus(301)->assertRedirect('/?ref=ancien');
 });
 
 it('decrit le site et sa recherche en donnees structurees', function () {

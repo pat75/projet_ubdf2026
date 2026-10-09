@@ -117,7 +117,7 @@ class ConnexionController extends Controller
         $requete->session()->invalidate();
         $requete->session()->regenerateToken();
 
-        return redirect()->to(lien('accueil'));
+        return redirect()->to(lien('home'));
     }
 
     /**

@@ -31,6 +31,27 @@ it('remplace un titre qui n est que le nom par le nom, le metier et la ville', f
     expect(pageSeo())->toContain('<title>Léa Seo — Illustrateur freelance à Lyon | Ultra-book</title>');
 });
 
+it('remplace un titre generique herite du legacy par le nom, le metier et la ville', function (string $titre) {
+    $this->book->bookSetting->update(['title' => $titre]);
+
+    expect(pageSeo())->toContain('<title>Léa Seo — Illustrateur freelance à Lyon | Ultra-book</title>');
+})->with([
+    // Constates en production : « de camillegrain | Ultra-book »,
+    // « de sandrine-creus Portfolio | Ultra-book », « … Portfolio Portfolio ».
+    'Ultra-book de login' => 'Ultra-book de lea-seo',
+    'Ultra-book de login Portfolio' => 'Ultra-book de lea-seo Portfolio',
+    'Book de login' => 'Book de lea-seo',
+    'd’ apostrophe typographique' => 'Ultra-book d’lea-seo',
+    'nom suivi de Portfolio' => 'Léa Seo Portfolio',
+    'Portfolio seul' => 'Portfolio',
+]);
+
+it('garde un titre saisi qui dit quelque chose', function () {
+    $this->book->bookSetting->update(['title' => 'Atelier de gravure']);
+
+    expect(pageSeo())->toContain('<title>Atelier de gravure | Ultra-book</title>');
+});
+
 it('decrit le book sans les rubriques par defaut ni leur ponctuation', function () {
     // « Galerie 1 » reste dans le menu du book ; seule la description l'ignore.
     expect(pageSeo())->toContain('<meta name="description" content="Léa Seo, illustrateur freelance à Lyon. Portfolio : Affiches.">');

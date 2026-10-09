@@ -16,6 +16,14 @@ class BookSetting extends Model
         'legacy_payload',
     ];
 
+    /** Reglages d'un nouveau book : Ultra-frais, diffuse partout (la base dit false, heritage legacy). */
+    protected $attributes = [
+        'theme' => 'mdl_2020_ultra_frais',
+        'diffuse_web' => true,
+        'diffuse_ub' => true,
+        'diffuse_newsletter' => true,
+    ];
+
     protected function casts(): array
     {
         return [

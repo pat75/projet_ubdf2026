@@ -11,10 +11,10 @@ it('redirige les anciens raccourcis vers leur equivalent', function (string $anc
     ['/messages', '/espace/messages'],
     ['/create', '/inscription'],
     ['/login', '/connexion'],
-    ['/memobook', '/accueil'],
+    ['/memobook', '/'],
     ['/newsletters', '/actus'],
     ['/sitemap', '/sitemap.xml'],
-    ['/ubaction__offres__4021', '/accueil'],
+    ['/ubaction__offres__4021', '/'],
     ['/paypal_send_ultra-book_n__12_1', '/espace/formule'],
 ]);
 
@@ -38,7 +38,7 @@ it('renvoie les anciennes adresses de book vers le sous-domaine', function () {
     $this->get('/book_ariane')->assertRedirect($creatif->bookUrl());
     $this->get('/minibook_ariane')->assertRedirect($creatif->bookUrl());
     $this->get('/-ariane')->assertRedirect($creatif->bookUrl());
-    $this->get('/book_inconnu')->assertRedirect('/accueil');
+    $this->get('/book_inconnu')->assertRedirect('/');
 });
 
 it('renvoie un article du magazine vers son adresse actuelle', function () {
@@ -50,7 +50,7 @@ it('renvoie un article du magazine vers son adresse actuelle', function () {
 
 it('explique qu un ancien lien de conversation n est plus valable', function () {
     $this->get('/intermediate_msg_/custc5/'.str_repeat('a', 64).'/'.str_repeat('b', 16))
-        ->assertRedirect('/accueil')
+        ->assertRedirect('/')
         ->assertSessionHas('statut');
 });
 

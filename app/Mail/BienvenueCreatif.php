@@ -24,6 +24,6 @@ class BienvenueCreatif extends Mailable
 
     public function content(): Content
     {
-        return new Content(markdown: 'mail.bienvenue-creatif');
+        return new Content(view: 'mail.bienvenue-creatif', text: 'mail.bienvenue-creatif-texte');
     }
 }

@@ -169,7 +169,7 @@ class Habillage extends Component
 
     private function reglages(): BookSetting
     {
-        return Auth::user()->bookSetting()->firstOrCreate([], ['theme' => 'mdl_2014_responsive']);
+        return Auth::user()->bookSetting()->firstOrCreate([]);
     }
 
     private function themes()

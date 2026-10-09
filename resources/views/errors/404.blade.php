@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
 @section('title', __('Page introuvable').' | '.$marque->nom)
+@section('robots', 'noindex, follow')
 
 {{-- Page 404 : visuel, titre, phrase et bouton centres sur la page. Styles
      locaux et prefixes : les feuilles legacy (core.css, Semantic UI) posent

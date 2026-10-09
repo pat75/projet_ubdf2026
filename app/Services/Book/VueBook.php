@@ -316,8 +316,11 @@ class VueBook
         // (« Nom : Ultra-book », « Nom | Ultra-book Portfolio »).
         $corps = trim(self::brut(ucfirst($this->b->cont_page_titre)));
         $corps = trim(preg_replace('/[\s:|—-]*'.preg_quote($marque, '/').'(?:\s+portfolio)?[\s:|—-]*/iu', ' ', $corps), " :|—-\t\n");
+        // « Portfolio » ajoute en fin de titre par le legacy, sans nom de rubrique.
+        $corps = trim(preg_replace('/(?:\s*\bportfolio\b)+[\s:]*$/iu', '', $corps));
 
-        $generique = '/^(?:(?:'.preg_quote($marque, '/').'|book|portfolio)\s+(?:de|d\')\s*\S+|book|portfolio)$/iu';
+        // La marque est deja retiree : « Ultra-book de login » est devenu « de login ».
+        $generique = '/^(?:(?:book|portfolio)\s+)?(?:de\s+|d[\'’]\s*)\S+$|^(?:book|portfolio)$/iu';
         if ($corps === '' || preg_match($generique, $corps) === 1 || mb_strtolower($corps) === mb_strtolower($nom)) {
             // Ce que l'on cherche : le nom, le metier, la ville.
             $corps = $nom.($this->metier() ? ' — '.__(':metier freelance', ['metier' => $this->metier()]) : '');

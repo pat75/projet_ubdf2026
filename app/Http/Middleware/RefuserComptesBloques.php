@@ -65,7 +65,7 @@ class RefuserComptesBloques
         $requete->session()?->invalidate();
         $requete->session()?->regenerateToken();
 
-        return redirect()->to(lien('accueil'))
+        return redirect()->to(lien('home'))
             ->with('connexion_ouverte', true)
             ->withErrors(['login' => __('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.')]);
     }

@@ -13,7 +13,7 @@
     <section class="creer_book modal_creerbook" x-data="inscription(@js($textes))">
 
         {{-- Fermer la page : retour a la page precedente du site, sinon a l'accueil. --}}
-        <a href="{{ lien('accueil') }}" class="creer_book_fermer" aria-label="{{ __('Fermer') }}"
+        <a href="{{ lien('home') }}" class="creer_book_fermer" aria-label="{{ __('Fermer') }}"
            @click.prevent="document.referrer.startsWith(location.origin) && history.length > 1 ? history.back() : (location.href = $el.href)">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
                 <path d="M6 6l12 12M18 6L6 18"/>

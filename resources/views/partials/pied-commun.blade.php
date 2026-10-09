@@ -3,7 +3,7 @@
     $rubriques = [
         [__('Zoom'), null, 'btn_zoom'],
         [__('Tendances, Actualités'), null, 'btn_actu'],
-        [__('Derniers :marque', ['marque' => $marque->nom]), lien('accueil').'#bloc_ultrabook_href', null],
+        [__('Derniers :marque', ['marque' => $marque->nom]), lien('home').'#bloc_ultrabook_href', null],
     ];
     $annuaires = [
         [__('Annuaire des écoles'), 'http://www.ultra-book.fr/ecoles/'],

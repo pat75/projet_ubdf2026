@@ -56,7 +56,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(function (Request $requete) {
             $requete->session()?->flash('connexion_ouverte', true);
 
-            return lien('accueil');
+            return lien('home');
         });
 
         $middleware->encryptCookies(except: [
@@ -98,6 +98,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
                 $domaine = $marque['domaine_books'] ?? null;
 
                 if (! $domaine || ! str_ends_with($request->getHost(), '.'.$domaine)) {
+                    continue;
+                }
+
+                // www.ultra-book.com est un sous-domaine de ultra-book.com,
+                // mais c'est le portail : sa 404 reste « Page introuvable ».
+                if (in_array(strstr($request->getHost(), '.', true), config('marques.sous_domaines_reserves'), true)) {
                     continue;
                 }
 

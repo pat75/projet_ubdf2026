@@ -17,7 +17,7 @@ it('redirige un hote a deux niveaux vers le portail, chemin conserve', function 
 });
 
 it('sert le portail avec et sans www', function (string $prefixe) {
-    $this->get('https://'.$prefixe.hoteBooks().'/accueil')->assertOk();
+    $this->get('https://'.$prefixe.hoteBooks().'/')->assertOk();
 })->with(['', 'www.']);
 
 it('laisse passer un book a un niveau', function () {

@@ -44,7 +44,7 @@ function portail(string $path): string
 }
 
 it('affiche l accueil avec les cartes de books', function () {
-    $this->get(portail('/accueil'))
+    $this->get(portail('/'))
         ->assertOk()
         ->assertSee('ui card', false)
         ->assertSee('Amélie Falière', false);
@@ -57,7 +57,7 @@ it('ne met pas en cache un accueil servi sur un hote de hasard', function () {
     $this->get('https://www.intrus.'.config('ubdf.book_domain').'/accueil')->assertStatus(301);
     expect(Cache::has('accueil_blocs_ub_fr'))->toBeFalse();
 
-    $this->get(portail('/accueil'))->assertOk();
+    $this->get(portail('/'))->assertOk();
     expect(Cache::get('accueil_blocs_ub_fr')['html'])
         ->not->toContain('intrus')
         ->toContain('https://'.config('ubdf.book_domain'));
@@ -70,10 +70,10 @@ it('sert les categories metier', function () {
 it('redirige les anciennes URL vers l URL canonique', function (string $ancienne, string $cible) {
     $this->get(portail($ancienne))->assertRedirect(portail($cible));
 })->with([
-    ['/portfolios', '/accueil'],
+    ['/portfolios', '/'],
     // « /recherche » a quitte cette liste : c'est une page a part entiere,
     // couverte par RechercheTest.
-    ['/rechercher', '/accueil'],
+    ['/rechercher', '/'],
     ['/graphisme', '/graphiste'],
     ['/illustration', '/illustrateur'],
 ]);
@@ -131,7 +131,7 @@ it('affiche un bloc par metier sur l accueil', function () {
     // Le sous-titre passe par __() : la langue doit etre explicite, le
     // client de test envoyant « Accept-Language: en-us » par defaut.
     $this->withHeader('Accept-Language', 'fr')
-        ->get(portail('/accueil'))
+        ->get(portail('/'))
         ->assertOk()
         ->assertSee('metier_group coultxt_illustrateur', false)
         ->assertSee('Dernière sélection illustrateur freelance', false)
@@ -150,7 +150,7 @@ it('reserve les blocs d accroche a l accueil', function () {
     // Video, « Creer votre portfolio », « Une selection de qualite » et
     // « Installer mon site internet pro » sont des accroches d'accueil :
     // elles feraient doublon sur une page de metier ou l'annuaire.
-    $this->get(portail('/accueil'))
+    $this->get(portail('/'))
         ->assertSee('video_header', false)
         ->assertSee('bloc_accueil_entreprise2020', false)
         ->assertSee('bloc_accueil_ubsitepro', false);
@@ -217,7 +217,7 @@ it('ne laisse aucune entite HTML dans les balises style et script', function (st
     }
 
     expect($fautifs)->toBeEmpty();
-})->with(['/accueil', '/illustrateur', '/annuaire']);
+})->with(['/', '/illustrateur', '/annuaire']);
 
 it('affiche le statut du creatif en clair dans la fiche de la carte', function (string $status, string $attendu) {
     // Les fiches legacy portent l'indice de config('ubdf.statuts').

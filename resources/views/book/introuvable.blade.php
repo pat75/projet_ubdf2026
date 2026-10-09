@@ -1,6 +1,7 @@
 @extends('layouts.portail')
 
 @section('title', __('Book introuvable').' | '.$marque->nom)
+@section('robots', 'noindex, follow')
 
 {{-- 404 d'un sous-domaine de book : meme page que errors/404, texte propre
      au book. Le bouton et les liens du gabarit pointent vers le portail

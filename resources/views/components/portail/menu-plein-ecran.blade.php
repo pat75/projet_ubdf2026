@@ -131,7 +131,7 @@
             <span class="mpe-large">Fermer</span>
         </button>
 
-        <a href="{{ lien('accueil') }}" aria-label="{{ $marque->nom }}" class="mpe-logo-lien"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mpe-logo block h-auto w-[130px] invert"></a>
+        <a href="{{ lien('home') }}" aria-label="{{ $marque->nom }}" class="mpe-logo-lien"><img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="mpe-logo block h-auto w-[130px] invert"></a>
 
         {{-- Colonne conservee meme vide : la grille 1fr/auto/1fr garde le
              logo centre. Un utilisateur connecte a deja son portfolio. --}}

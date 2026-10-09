@@ -25,7 +25,7 @@ class RedirectionLegacyController extends Controller
     {
         $creatif = User::where('login', $login)->first();
 
-        return redirect($creatif ? $creatif->bookUrl() : '/accueil', 301);
+        return redirect($creatif ? $creatif->bookUrl() : '/', 301);
     }
 
     /** `<slug>__wpactu_<id>` : l'article du magazine, repris dans `cms_posts`. */
@@ -52,7 +52,7 @@ class RedirectionLegacyController extends Controller
      */
     public function filPerime(): RedirectResponse
     {
-        return redirect('/accueil')
+        return redirect('/')
             ->with('statut', __('Ce lien de conversation n’est plus valable. Les créatifs retrouvent leurs demandes dans leur espace ; pour écrire à nouveau, passez par le formulaire de contact du book.'));
     }
 }

@@ -64,7 +64,7 @@ class InscriptionVisiteurController extends Controller
             $visitor->forceFill(['email_verified_at' => now()])->save();
         }
 
-        $destination = auth('visitor')->id() === $visitor->id ? lien('visiteur.tableau') : lien('accueil');
+        $destination = auth('visitor')->id() === $visitor->id ? lien('visiteur.tableau') : lien('home');
 
         return redirect()->to($destination)->with('statut', __('Votre adresse est confirmée.'));
     }

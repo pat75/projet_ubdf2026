@@ -59,7 +59,7 @@ class AccueilPage extends Page
     /** Adresse de la page d'accueil du portail, affichee dans l'apercu. */
     public function urlApercu(): string
     {
-        return lien('accueil');
+        return lien('home');
     }
 
     public function form(Schema $schema): Schema
