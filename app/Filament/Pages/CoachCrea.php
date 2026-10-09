@@ -6,6 +6,7 @@ use App\Console\Commands\PreparerCoachingCommand;
 use App\Mail\CoachingMail;
 use App\Models\CoachMessage;
 use App\Models\CreatifActivity;
+use App\Models\Reglage;
 use App\Models\User;
 use App\Services\Coach\Diagnostic;
 use App\Services\Coach\Redacteur;
@@ -50,6 +51,9 @@ class CoachCrea extends Page implements HasTable
     /** @var array<int, array{objet: string, corps: string}> brouillons en cours d'edition */
     public array $brouillons = [];
 
+    /** IA de redaction (Redacteur::CHOIX), enregistree des qu'elle change. */
+    public string $coachIa = 'nvidia';
+
     /** Titre suivi d'un menu rapide vers les deux blocs de la page. */
     public function getHeading(): Htmlable
     {
@@ -61,6 +65,7 @@ class CoachCrea extends Page implements HasTable
 
     public function mount(): void
     {
+        $this->coachIa = Redacteur::choix();
         $this->brouillons = CoachMessage::where('statut', 'brouillon')->get()
             ->mapWithKeys(fn ($m) => [$m->id => ['objet' => $m->objet, 'corps' => $m->corps]])->all();
     }
@@ -115,6 +120,13 @@ class CoachCrea extends Page implements HasTable
         Mail::to($message->user->email)->send(new CoachingMail($message));
 
         Notification::make()->title('Message envoyé à '.$message->user->fullName())->success()->send();
+    }
+
+    public function updatedCoachIa(string $valeur): void
+    {
+        abort_unless(isset(Redacteur::CHOIX[$valeur]), 422);
+        Reglage::definirTexte(Reglage::COACH_IA, $valeur);
+        Notification::make()->title('IA du coach : '.Redacteur::CHOIX[$valeur])->success()->send();
     }
 
     /** Brouillon a la demande, sans attendre les 24 h de la commande planifiee. */

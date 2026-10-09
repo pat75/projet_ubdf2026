@@ -1,9 +1,10 @@
 import { jetonRecaptcha } from './recaptcha';
+import { aVerser } from './visionneuse';
 
 /*
  * Fenetre « Gardez votre memo book » (partials/modals) : ouvre un compte
- * visiteur (POST /memo/compte, InscriptionVisiteurController) avec la
- * selection du localStorage, puis va sur la page du memo, connecte.
+ * visiteur (POST /memo/compte, InscriptionVisiteurController) avec le
+ * book en attente (aVerser), puis va sur la page du memo, connecte.
  */
 export default function memoCompte(Alpine) {
     Alpine.data('memoCompte', () => ({
@@ -31,14 +32,14 @@ export default function memoCompte(Alpine) {
                     body: JSON.stringify({
                         email,
                         password,
-                        logins: Alpine.store('memo').logins,
+                        logins: aVerser(),
                         'g-recaptcha-response': await jetonRecaptcha().catch(() => ''),
                     }),
                 });
                 const retour = await reponse.json();
 
                 if (reponse.ok && retour.url) {
-                    try { localStorage.removeItem('books'); } catch { /* rien a vider */ }
+                    try { localStorage.removeItem('books'); sessionStorage.removeItem('memo_en_attente'); } catch { /* rien a vider */ }
                     window.location.href = retour.url;
                     return;
                 }

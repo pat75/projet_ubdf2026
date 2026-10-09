@@ -10,6 +10,26 @@
 @endphp
 
 <x-filament-panels::page>
+{{-- IA de redaction des messages : NVIDIA (gratuit) ou OpenRouter par niveau de cout. --}}
+@php($dernier = \App\Models\CoachMessage::whereNotNull('modele')->latest()->first(['modele', 'created_at']))
+<div class="ub-coach-ia">
+    <label for="coach-ia" class="ub-coach-ia-libelle">IA de rédaction</label>
+    <x-filament::input.wrapper class="ub-coach-ia-choix">
+        <x-filament::input.select id="coach-ia" wire:model.live="coachIa">
+            @foreach (\App\Services\Coach\Redacteur::CHOIX as $valeur => $libelle)
+                <option value="{{ $valeur }}">{{ $libelle }}</option>
+            @endforeach
+        </x-filament::input.select>
+    </x-filament::input.wrapper>
+    <span class="ub-ia-modele">
+        @if ($dernier)
+            Dernier message rédigé par <strong>{{ $dernier->modele }}</strong> le {{ $dernier->created_at->timezone('Europe/Paris')->format('d/m/Y à H:i') }}
+        @else
+            Aucun message rédigé pour l’instant.
+        @endif
+        · NVIDIA en panne : bascule automatique sur OpenRouter coût 1.
+    </span>
+</div>
 <div class="ub-coach-colonnes">
     <div id="operations" class="min-w-0">{{ $this->table }}</div>
 

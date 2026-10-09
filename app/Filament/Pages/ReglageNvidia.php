@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Media;
 use App\Models\Reglage;
 use App\Services\IA\Nvidia;
 use BackedEnum;
@@ -15,6 +16,7 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Carbon;
@@ -109,7 +111,27 @@ class ReglageNvidia extends Page
                         Action::make('save')->label('Enregistrer')->submit('save')->keyBindings(['mod+s']),
                     ])->key('form-actions'),
                 ]),
+            Section::make('Dernières analyses')
+                ->description('IA qui a réellement répondu. En cas de panne NVIDIA, l’analyse bascule seule sur OpenRouter (payant) pendant '.Nvidia::PAUSE.' min, puis NVIDIA est retenté.')
+                ->schema([
+                    View::make('filament.nvidia.dernieres-analyses')->viewData(['analyses' => $this->dernieresAnalyses()]),
+                ]),
         ]);
+    }
+
+    /** @return \Illuminate\Support\Collection<int, array{date: string, nvidia: bool, modele: string, login: string}> */
+    private function dernieresAnalyses(): \Illuminate\Support\Collection
+    {
+        $nvidia = [...Nvidia::MODELES_VISION, Nvidia::modele()];
+
+        return Media::with('user:id,login')->whereNotNull('analysed_at')->latest('analysed_at')->limit(10)
+            ->get(['id', 'user_id', 'ai_model', 'analysed_at'])
+            ->map(fn (Media $m) => [
+                'date' => $m->analysed_at->timezone('Europe/Paris')->format('d/m/Y H:i:s'),
+                'nvidia' => in_array($m->ai_model, $nvidia, true),
+                'modele' => (string) $m->ai_model,
+                'login' => (string) $m->user?->login,
+            ]);
     }
 
     protected function getHeaderActions(): array

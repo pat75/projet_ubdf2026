@@ -269,6 +269,33 @@
     max-width: 440px;
     margin: auto 0;
 }
+/* Mobile : meme disposition que la fenetre « Gardez votre mémoBook » —
+   entete en haut, formulaire au centre (rangees 1fr egales), titre et
+   accroche reduits de 20 %. Le bureau ne change pas. */
+@media only screen and (max-width: 767px) {
+    .creer_book_colonne {
+        flex: 1;
+        display: grid;
+        grid-template-rows: 1fr auto 1fr;
+        margin: 0;
+    }
+    .creer_book_entete {
+        align-self: start;
+    }
+    /* Compense « Déjà un compte ? » sous la colonne et le padding
+       asymetrique (32px / 16px) : la colonne descend dessous (rangee du bas
+       vide), formulaire au centre de l'ecran.
+       ponytail: valeur mesuree, a reprendre si le pied change. */
+    .creer_book_colonne {
+        margin-bottom: -40px;
+    }
+    .creer_book .creer_book_entete .creer_book_titre {
+        font-size: 36px;
+    }
+    .creer_book_entete .creer_book_accroche {
+        font-size: 13.2px;
+    }
+}
 .creer_book_logo {
     display: block;
     height: 36px;
@@ -554,6 +581,43 @@
        (meme principe que .creer_book_colonne). */
     margin: auto 0;
 }
+/* « Gardez votre mémoBook » : titre et phrases d'aide sur une ligne
+   chacun (le titre seul mesure 407px). */
+.connexion_colonne.memo_compte_colonne {
+    max-width: 480px;
+}
+/* Mobile, fenetres « Connexion » et « Gardez votre mémoBook » : entete
+   (logo, titre, accroche) en haut de l'ecran, formulaire au centre exact
+   (deux rangees 1fr egales l'encadrent), pied (« Déjà un compte ? ») en
+   tete de la derniere. Titre et accroche reduits de 20 %. Le bureau ne
+   change pas. */
+@media only screen and (max-width: 767px) {
+    .connexion_colonne.connexion_centree {
+        flex: 1;
+        display: grid;
+        grid-template-rows: 1fr auto 1fr;
+        /* Panneau : 64px en haut, 48px en bas ; +16px pour que le centre de
+           la colonne soit celui de l'ecran. */
+        margin: 0 0 16px;
+    }
+    .connexion_entete,
+    .connexion_pied {
+        align-self: start;
+    }
+    /* « Pas encore de book ? » sous la colonne (fenetre Connexion) : la
+       colonne descend dessous (marge negative, rangee du bas vide) pour
+       garder l'entete en haut et le formulaire au centre de l'ecran.
+       ponytail: valeur mesuree (pied ~73px), a reprendre si le pied change. */
+    .connexion_panneau:has(> .connexion_inscription) .connexion_centree {
+        margin-bottom: -57px;
+    }
+    .connexion .connexion_entete .connexion_titre {
+        font-size: 32.4px;
+    }
+    .connexion_entete .connexion_accroche {
+        font-size: 13.2px;
+    }
+}
 /* Meme traitement typographique que le logo/titre/sous-titre de
    « Creer un book » (.creer_book_logo, .creer_book_titre, .creer_book_accroche). */
 .connexion_logo {
@@ -721,8 +785,11 @@
     text-decoration: underline;
 }
 
-/* L'ecran de connexion passe au-dessus du menu du haut du portail. */
-.ui.dimmer[data-modale-fond="connexion"] {
+/* Connexion et compte visiteur passent au-dessus du menu du haut du
+   portail et de la visionneuse (#vn, z-index 9000) : le coeur
+   « Memoriser » d'un anonyme ouvre memo-compte depuis la visionneuse. */
+.ui.dimmer[data-modale-fond="connexion"],
+.ui.dimmer[data-modale-fond="memo-compte"] {
     z-index: 100000 !important;
 }
 

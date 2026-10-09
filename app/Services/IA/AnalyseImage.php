@@ -30,10 +30,7 @@ class AnalyseImage
     public function analyser(Media $media): void
     {
         try {
-            $reponse = $this->appeler($this->messages($this->imageEnDataUrl($media)));
-            $resultat = self::lireReponse((string) ($reponse['data']['choices'][0]['message']['content'] ?? ''));
-        } catch (NvidiaEnPause $e) {
-            throw $e; // le visuel reste en attente
+            [$reponse, $resultat] = $this->appeler($this->messages($this->imageEnDataUrl($media)));
         } catch (RuntimeException $e) {
             $media->forceFill(['ai_status' => 'erreur'])->saveQuietly();
 
@@ -64,42 +61,69 @@ class AnalyseImage
         });
     }
 
-    /** NVIDIA (gratuit) d'abord ; OpenRouter (payant) si l'image est refusee ou si NVIDIA n'est pas configure. */
+    /**
+     * NVIDIA (gratuit) d'abord ; OpenRouter (payant) si l'image est refusee,
+     * si NVIDIA n'est pas configure ou s'il ne repond plus. Une panne met
+     * NVIDIA en pause (Nvidia::PAUSE minutes) : pendant ce temps, tout passe
+     * par OpenRouter sans retenter NVIDIA a chaque visuel.
+     *
+     * Une reponse hors format compte comme un refus : on passe au modele
+     * suivant plutot que de laisser le visuel en erreur.
+     *
+     * @return array{0: array, 1: array{titre: string, description: string, tags_fr: list<string>, tags_en: list<string>}}
+     */
     private function appeler(array $messages): array
     {
+        $lire = fn (array $reponse) => [$reponse, self::lireReponse(self::contenu($reponse))];
+
         // Modele en place, puis les autres modeles vision NVIDIA : une saturation
         // (503 ResourceExhausted) ne touche souvent qu'un modele.
-        if (Nvidia::actif()) {
-            if ($reste = Nvidia::pauseRestante()) {
-                throw new NvidiaEnPause("NVIDIA injoignable, nouvel essai dans {$reste} s");
-            }
+        if (Nvidia::actif() && ! Nvidia::pauseRestante()) {
             // Secours en 30 s : un modele qui ne repond pas ne bloque pas le lot.
             $panne = true;
             foreach (array_unique([Nvidia::modele(), ...Nvidia::MODELES_VISION]) as $i => $modele) {
                 try {
                     $reponse = $this->nvidia->chat($messages, $modele, timeout: $i ? 30 : 90);
                     Nvidia::noterAnalyse();
-
-                    return $reponse;
                 } catch (RuntimeException $e) {
                     report($e);
                     $panne = $panne && preg_match(Nvidia::INDISPONIBLE, $e->getMessage());
+
+                    continue;
+                }
+
+                // Le service repond : ce n'est pas une panne, meme si le format est faux.
+                $panne = false;
+
+                try {
+                    return $lire($reponse);
+                } catch (RuntimeException $e) {
+                    report(new RuntimeException("{$modele} : {$e->getMessage()}", previous: $e));
                 }
             }
-            // Service en panne : pause de Nvidia::PAUSE minutes, sans OpenRouter.
-            // Image refusee par les modeles : secours OpenRouter.
+            // Service en panne : pause de Nvidia::PAUSE minutes. Panne ou image
+            // refusee, le visuel passe dans tous les cas par OpenRouter.
             if ($panne) {
                 Nvidia::noterAnalyse($e->getMessage());
-                throw new NvidiaEnPause($e->getMessage(), previous: $e);
             }
         }
 
-        return $this->selecteur->chatCompletions(
+        return $lire($this->selecteur->chatCompletions(
             messages: $messages,
             costLevel: 1,
             options: ['response_format' => ['type' => 'json_object'], 'timeout' => 60],
             capability: 'vision',
-        );
+        ));
+    }
+
+    /** Texte de la reponse ; certains modeles le rendent en liste de blocs {type, text}. */
+    private static function contenu(array $reponse): string
+    {
+        $contenu = $reponse['data']['choices'][0]['message']['content'] ?? '';
+
+        return is_array($contenu)
+            ? implode('', array_map(fn ($bloc) => is_array($bloc) ? (string) ($bloc['text'] ?? '') : (string) $bloc, $contenu))
+            : (string) $contenu;
     }
 
     /**
@@ -154,20 +178,27 @@ class AnalyseImage
         $motcles = json_decode(file_get_contents(resource_path('js/portail/motcles.json')), true);
         $domaines = implode(', ', array_keys($motcles['fr'] ?? []));
 
+        // Consigne dans le message utilisateur, a cote de l'image : Llama 3.2
+        // Vision ignore le message systeme des qu'une image est jointe, et
+        // repondait alors par une legende libre (« Here is the caption… »).
+        $consigne = "Tu indexes ce visuel du portfolio d'un créatif (illustrateur, photographe, graphiste…) pour un moteur de recherche.\n\n"
+            ."Réponds UNIQUEMENT par un objet JSON, sans phrase avant ni après, sans bloc de code :\n"
+            .'{"titre": "<titre>", "description": "<phrase>", "tags_fr": ["<mot-clé>", "..."], "tags_en": ["<keyword>", "..."]}'."\n\n"
+            ."Règles :\n"
+            ."- titre : 3 à 8 mots, en français, ce que montre l'image.\n"
+            ."- description : une seule phrase en français : sujet, technique, style.\n"
+            ."- tags_fr et tags_en : 3 à 8 mots-clés chacun, en minuscules, au singulier, du plus pertinent au moins pertinent : sujet, technique, style, usage possible. tags_en est la traduction anglaise de tags_fr.\n"
+            ."- Reprends si possible les domaines du site : {$domaines}.\n"
+            ."- Pas de nom de personne, pas de marque, pas de jugement de valeur (« beau », « magnifique »…).\n"
+            ."- Remplace chaque <…> par ce que tu vois dans l'image reçue.";
+
         return [
             [
-                'role' => 'system',
-                'content' => "Tu indexes le visuel d'un portfolio de creatif (illustrateur, photographe, graphiste...) pour un moteur de recherche. ".
-                    'Reponds uniquement en JSON : {"titre": "...", "description": "...", "tags_fr": [...], "tags_en": [...]}. '.
-                    'titre : 3 a 8 mots, en francais. description : une seule phrase, en francais. '.
-                    'tags_fr et tags_en : 3 a 8 mots-cles chacun, en minuscules, au singulier, du plus pertinent au moins pertinent : '.
-                    'sujet, technique, style, usage possible. '.
-                    "Reprends si possible les domaines du site : {$domaines}. ".
-                    "Pas de nom de personne, pas de marque, pas de jugement de valeur.",
-            ],
-            [
                 'role' => 'user',
-                'content' => [['type' => 'image_url', 'image_url' => ['url' => $image]]],
+                'content' => [
+                    ['type' => 'text', 'text' => $consigne],
+                    ['type' => 'image_url', 'image_url' => ['url' => $image]],
+                ],
             ],
         ];
     }

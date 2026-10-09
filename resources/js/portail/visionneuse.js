@@ -27,12 +27,37 @@ function lireJson(texte, defaut) {
  *
  * Connecte (visiteur ou creatif), la selection vit en base : chaque
  * ajout ou retrait passe par /memo/* (MemoController), qui rend la liste
- * a jour. Anonyme, elle reste dans le localStorage (cle `books` du
- * legacy) et le premier coeur de la session propose d'ouvrir un compte
- * visiteur (fenetre `memo-compte`), qui recoit alors cette selection.
+ * a jour. Anonyme, rien n'est memorise : le coeur ouvre la fenetre
+ * `memo-compte` (connexion ou compte visiteur gratuit) et garde le book
+ * en attente (sessionStorage), verse dans le compte une fois connecte.
+ * La cle `books` du legacy (selection anonyme d'avant) rejoint aussi le
+ * compte a la connexion.
  */
 const CLE_LOCALE = 'books';
-const CLE_PROPOSE = 'memo_compte_propose';
+const CLE_ATTENTE = 'memo_en_attente';
+
+function lireAttente() {
+    try {
+        return sessionStorage.getItem(CLE_ATTENTE);
+    } catch {
+        return null;
+    }
+}
+
+function ecrireAttente(login) {
+    try {
+        login ? sessionStorage.setItem(CLE_ATTENTE, login) : sessionStorage.removeItem(CLE_ATTENTE);
+    } catch {
+        // sans sessionStorage, le book clique n'est pas reporte
+    }
+}
+
+/** Books a verser dans le compte : selection legacy + book en attente. */
+export function aVerser() {
+    const attente = lireAttente();
+    const logins = lireLocal();
+    return attente && !logins.includes(attente) ? [attente, ...logins] : logins;
+}
 
 function lireLocal() {
     try {
@@ -84,18 +109,15 @@ function memo(Alpine) {
             this.connecte = !!serveur.connecte;
             this.visiteur = !!serveur.visiteur;
 
-            if (!this.connecte) {
-                this.logins = lireLocal();
-                return;
-            }
+            if (!this.connecte) return;
 
             this.logins = serveur.logins ?? [];
 
-            // Une selection faite avant de se connecter rejoint le compte.
-            const locale = lireLocal();
+            // Le book clique avant de se connecter rejoint le compte.
+            const locale = aVerser();
             if (locale.length) {
                 poster('/memo/fusionner', { logins: locale })
-                    .then((r) => { this.logins = r.logins; ecrireLocal([]); })
+                    .then((r) => { this.logins = r.logins; ecrireLocal([]); ecrireAttente(null); })
                     .catch(() => {});
             }
         },
@@ -106,19 +128,20 @@ function memo(Alpine) {
 
         async ajouter(login) {
             if (!login || this.contient(login)) return;
-            this.logins = [login, ...this.logins];
 
-            if (this.connecte) {
-                try {
-                    this.logins = (await poster('/memo/ajouter', { login })).logins;
-                } catch {
-                    this.logins = this.logins.filter((l) => l !== login);
-                }
+            // Anonyme : connexion ou compte d'abord, le book attend.
+            if (!this.connecte) {
+                ecrireAttente(login);
+                Alpine.store('modale').ouvrir('memo-compte');
                 return;
             }
 
-            ecrireLocal(this.logins);
-            this.proposerCompte();
+            this.logins = [login, ...this.logins];
+            try {
+                this.logins = (await poster('/memo/ajouter', { login })).logins;
+            } catch {
+                this.logins = this.logins.filter((l) => l !== login);
+            }
         },
 
         async retirer(login) {
@@ -126,27 +149,11 @@ function memo(Alpine) {
             const avant = this.logins;
             this.logins = this.logins.filter((l) => l !== login);
 
-            if (this.connecte) {
-                try {
-                    this.logins = (await poster('/memo/retirer', { login })).logins;
-                } catch {
-                    this.logins = avant;
-                }
-                return;
-            }
-
-            ecrireLocal(this.logins);
-        },
-
-        // Une fois par session : proposer, pas harceler.
-        proposerCompte() {
             try {
-                if (sessionStorage.getItem(CLE_PROPOSE)) return;
-                sessionStorage.setItem(CLE_PROPOSE, '1');
+                this.logins = (await poster('/memo/retirer', { login })).logins;
             } catch {
-                // sans sessionStorage, on propose a chaque fois
+                this.logins = avant;
             }
-            Alpine.store('modale').ouvrir('memo-compte');
         },
     });
 }

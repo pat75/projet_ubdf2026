@@ -17,8 +17,8 @@ class AnalyserImagesCommand extends Command
 
     public function handle(LancerAnalyseLot $lancer): int
     {
-        ['ok' => $ok, 'erreurs' => $erreurs, 'pause' => $pause] = $lancer((int) $this->option('lot'));
-        $this->info("{$ok} analysee(s), {$erreurs} erreur(s)".($pause ? " — {$pause}" : ''));
+        ['ok' => $ok, 'erreurs' => $erreurs] = $lancer((int) $this->option('lot'));
+        $this->info("{$ok} analysee(s), {$erreurs} erreur(s)");
 
         return self::SUCCESS;
     }

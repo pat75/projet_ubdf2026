@@ -28,11 +28,24 @@ it('liste les creatifs analyses avec leurs compteurs et le detail des mots-cles'
     Livewire::test(AnalyseIA::class)
         ->assertCanSeeTableRecords([$this->creatif])
         ->assertTableColumnStateSet('nb_motcles', 2, $this->creatif)
-        ->assertTableActionExists('detail');
+        ->callTableColumnAction('lien_motcles', $this->creatif);
 
     expect(view('filament.recherche.detail-motcles', [
         'medias' => $this->creatif->media()->with('tags')->get(),
     ])->render())->toContain('Renard')->toContain('renard')->toContain('fox');
+});
+
+it('retire tous les mots-cles d un creatif sans toucher aux autres', function () {
+    $autre = User::factory()->create();
+    $autre->media()->create(['filename' => 'a.jpg', 'status' => 'published', 'analysed_at' => now()])
+        ->tags()->attach(Tag::create(['label' => 'chat', 'lang' => 'fr'])->id);
+
+    Livewire::test(AnalyseIA::class)
+        ->callTableAction('retirerMotsCles', $this->creatif)
+        ->assertNotified('2 mots-clés retirés');
+
+    expect(\DB::table('media_tag')->count())->toBe(1)
+        ->and($this->creatif->media()->first()->analysed_at)->not->toBeNull();
 });
 
 it('lance un lot depuis la page', function () {
@@ -54,4 +67,12 @@ it('filtre les recherches sans resultat', function () {
         ->filterTable('sans_resultat')
         ->assertCanSeeTableRecords([$vaine])
         ->assertCanNotSeeTableRecords([$utile]);
+});
+
+it('montre sur la page NVIDIA l IA des dernieres analyses, avec date et heure', function () {
+    $this->creatif->media()->create(['filename' => 'n.jpg', 'status' => 'published', 'ai_model' => \App\Services\IA\Nvidia::MODELES_VISION[0], 'analysed_at' => '2026-10-09 14:42:33']);
+    $this->creatif->media()->create(['filename' => 'o.jpg', 'status' => 'published', 'ai_model' => 'openai/gpt-4o-mini', 'analysed_at' => '2026-10-09 14:50:00']);
+
+    $this->get('/admin_/reglage-nvidia')->assertOk()
+        ->assertSeeInOrder(['Dernières analyses', '09/10/2026 16:50:00', 'OpenRouter', 'openai/gpt-4o-mini', '09/10/2026 16:42:33', 'NVIDIA']);
 });

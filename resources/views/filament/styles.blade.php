@@ -336,6 +336,13 @@
         padding-inline-start: 0;
     }
 
+    /* Analyse IA : 10px entre l'avatar et le nom (8px ailleurs). */
+    .ub-cellule-avatar-10 + .fi-ta-cell { padding-inline-start: 10px; }
+    /* Analyse IA : lien « Mots-clés » en tête de ligne, 50px avant l'avatar. */
+    .ub-cellule-motscles { padding-inline-end: 50px; }
+    .ub-cellule-motscles :is(.fi-ta-col, .fi-ta-text) { padding-inline-end: 0; }
+    .ub-cellule-motscles + .fi-ta-cell .fi-ta-image { padding-inline-start: 0; }
+
     /* Conversations : avatar colle a deux lignes de texte. */
     .ub-personne { display: inline-flex; align-items: center; gap: .5rem; }
     .ub-personne-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
@@ -425,4 +432,24 @@
             transparent 8px
         ) !important;
     }
+
+    /*
+     | Dernieres analyses IA (page IA NVIDIA) : date, IA (vert NVIDIA
+     | gratuit, ambre OpenRouter payant), modele, book.
+     */
+    .ub-ia-table { width: 100%; font-size: .875rem; }
+    .ub-ia-table th { text-align: left; font-weight: 500; color: rgb(107 114 128); padding: .25rem 1rem .25rem 0; }
+    .ub-ia-table td { padding: .375rem 1rem .375rem 0; border-top: 1px solid rgb(229 231 235); }
+    .dark .ub-ia-table td { border-top-color: rgb(255 255 255 / .1); }
+    .ub-ia-date { white-space: nowrap; }
+    .ub-ia-modele { color: rgb(107 114 128); }
+    .ub-ia-nvidia { font-weight: 600; color: rgb(21 128 61); }
+    .ub-ia-openrouter { font-weight: 600; color: rgb(180 83 9); }
+    .dark .ub-ia-nvidia { color: rgb(74 222 128); }
+    .dark .ub-ia-openrouter { color: rgb(251 191 36); }
+
+    /* Coach creatif : selecteur de l'IA de redaction, en tete de page. */
+    .ub-coach-ia { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+    .ub-coach-ia-libelle { font-size: .875rem; font-weight: 600; }
+    .ub-coach-ia-choix { min-width: 18rem; }
 </style>

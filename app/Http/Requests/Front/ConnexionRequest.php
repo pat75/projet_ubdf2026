@@ -13,6 +13,8 @@ class ConnexionRequest extends FormRequest
             'login' => ['required', 'string', 'max:255'],
             'pass' => ['required', 'string', 'max:255'],
             'g-recaptcha-response' => ['nullable', 'string'],
+            // Page a retrouver apres connexion (book ouvert dans la visionneuse).
+            'retour' => ['nullable', 'string', 'max:2048'],
         ];
     }
 

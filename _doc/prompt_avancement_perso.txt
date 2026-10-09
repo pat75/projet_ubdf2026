@@ -5,7 +5,9 @@
 le bon éditeur
 
 
-
++ statistiques
+ analyser le système de statistiques existant concernant les visites du mini book et du book
+ poser des questions et  proposer des améliorations
 
 
 

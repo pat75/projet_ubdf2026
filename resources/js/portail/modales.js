@@ -41,9 +41,12 @@ export default function modales(Alpine) {
         },
     });
 
+    // En capture, et consomme la touche : Echap ferme la fenetre, pas
+    // aussi la visionneuse posee dessous (son ecouteur passe ensuite).
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' && Alpine.store('modale').ouverte) {
+            e.stopPropagation();
             Alpine.store('modale').fermer();
         }
-    });
+    }, true);
 }

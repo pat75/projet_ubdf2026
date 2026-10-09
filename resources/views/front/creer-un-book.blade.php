@@ -22,9 +22,14 @@
 
         <div class="creer_book_formulaire" x-show="vue !== 'validation'">
             <div class="creer_book_colonne">
+                {{-- Sur mobile : entete en haut, formulaire au centre de l'ecran (portail.css). --}}
+                <div class="creer_book_entete">
                 <img class="creer_book_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
                 <h1 class="creer_book_titre">{{ __('Créer mon book') }}</h1>
                 <p class="creer_book_accroche">{{ __('Gratuit, prêt en quelques minutes.') }}</p>
+                </div>
+
+                <div class="creer_book_corps">
 
                 @if ($google)
                     {{-- Retour de Google : nom et mail sont connus, il reste
@@ -43,6 +48,7 @@
                         @include('partials.inscription.formulaire')
                     </div>
                 @endif
+                </div>
 
             </div>
 

@@ -8,6 +8,7 @@ use App\Models\CreatifActivity;
 use App\Models\User;
 use App\Services\Coach\Diagnostic;
 use App\Services\Coach\Redacteur;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
@@ -146,4 +147,33 @@ it('liste les books actifs comme la liste des creatifs, operations repliees dess
         ->assertCanSeeTableRecords([$this->creatif])
         ->assertCanNotSeeTableRecords([$inactif])
         ->assertSee('Zzgal');
+});
+
+it('redige avec l IA choisie : OpenRouter au niveau de cout regle, NVIDIA en panne bascule sur OpenRouter', function () {
+    config(['services.nvidia.api_key' => 'cle-test', 'services.openrouter.api_key' => 'test-key']);
+    $texte = ['choices' => [['message' => ['content' => "Objet : Votre book\nBonjour"]]]];
+    Http::fake([
+        'integrate.api.nvidia.com/*' => Http::response('saturé', 503),
+        'openrouter.ai/*' => Http::response($texte),
+    ]);
+
+    // NVIDIA (defaut) en panne : OpenRouter prend le relais.
+    $message = app(Redacteur::class)->rediger($this->creatif, collect(), ['x']);
+    expect($message['objet'])->toBe('Votre book')
+        ->and($message['modele'])->toBe('deepseek/deepseek-v4.1-flash');
+
+    // OpenRouter niveau 3 choisi : NVIDIA n'est plus appele.
+    \App\Models\Reglage::definirTexte(\App\Models\Reglage::COACH_IA, '3');
+    Http::fake(['openrouter.ai/*' => Http::response($texte)]);
+    expect(app(Redacteur::class)->rediger($this->creatif, collect(), ['x'])['modele'])->toBe('openai/gpt-4o');
+});
+
+it('affiche et enregistre l IA de redaction choisie sur la page Coach', function () {
+    $this->actingAs(\App\Models\Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+    CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'diagnostic' => ['x'], 'objet' => 'A', 'corps' => 'B', 'modele' => 'openai/gpt-4o']);
+
+    $this->get('/admin_/coach-crea')->assertOk()->assertSee('IA de rédaction')->assertSee('openai/gpt-4o');
+
+    Livewire::test(\App\Filament\Pages\CoachCrea::class)->set('coachIa', '2');
+    expect(Redacteur::choix())->toBe('2');
 });

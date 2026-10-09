@@ -101,7 +101,7 @@ class ConnexionController extends Controller
             // La page memorisee avant connexion peut etre une page de l'espace creatif.
             $requete->session()->forget('url.intended');
 
-            return redirect()->to(lien('visiteur.tableau'));
+            return redirect()->to($this->retourInterne($requete->input('retour')) ?? lien('visiteur.tableau'));
         }
 
         Auth::guard('web')->login($compte, remember: true);
@@ -118,6 +118,20 @@ class ConnexionController extends Controller
         $requete->session()->regenerateToken();
 
         return redirect()->to(lien('accueil'));
+    }
+
+    /**
+     * Chemin du portail ou ramener le visiteur (le book qu'il regardait),
+     * ou null. Seul un chemin local passe : `//hote` et `/\hote` sont lus
+     * comme des adresses externes par les navigateurs (redirection ouverte).
+     */
+    private function retourInterne(?string $retour): ?string
+    {
+        if ($retour === null || ! str_starts_with($retour, '/') || Str::startsWith($retour, ['//', '/\\'])) {
+            return null;
+        }
+
+        return $retour;
     }
 
     /**

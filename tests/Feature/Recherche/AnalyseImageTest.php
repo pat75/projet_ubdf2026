@@ -174,3 +174,51 @@ it('montre au createur ses mots-cles et lui laisse retirer les siens seulement',
     expect($renard->media()->where('media.user_id', $creatif->id)->count())->toBe(0)
         ->and($renard->media()->where('media.user_id', $autre->id)->count())->toBe(1);
 });
+
+it('passe au modele suivant quand une reponse est hors format, consigne dans le message utilisateur', function () {
+    config(['services.nvidia.api_key' => 'cle-test']);
+    $fichier = tempnam(sys_get_temp_dir(), 'img');
+    file_put_contents($fichier, 'jpeg');
+    $this->mock(GenerateurImages::class)->shouldReceive('produire')->andReturn($fichier);
+
+    Http::fakeSequence('integrate.api.nvidia.com/*')
+        ->push(['choices' => [['message' => ['content' => 'Here is the rewritten caption: a fox.']]]])
+        ->push(['choices' => [['message' => ['content' => [['type' => 'text', 'text' => json_encode([
+            'titre' => 'Renard', 'tags_fr' => ['renard', 'hiver', 'aquarelle'], 'tags_en' => ['fox'],
+        ])]]]]]]);
+
+    $media = visuel(creatifAnalysable());
+    app(AnalyseImage::class)->analyser($media);
+
+    expect($media->fresh()->ai_status)->toBe('ok');
+    Http::assertSent(fn ($requete) => $requete['messages'][0]['role'] === 'user'
+        && $requete['messages'][0]['content'][0]['type'] === 'text');
+});
+
+it('bascule sur OpenRouter quand NVIDIA ne repond plus, sans le retenter pendant la pause', function () {
+    config(['services.nvidia.api_key' => 'cle-test', 'services.openrouter.api_key' => 'test-key']);
+    \Illuminate\Support\Facades\Cache::flush();
+    $fichier = tempnam(sys_get_temp_dir(), 'img');
+    file_put_contents($fichier, 'jpeg');
+    $this->mock(GenerateurImages::class)->shouldReceive('produire')->andReturn($fichier);
+    $reponse = fn (string $titre) => ['choices' => [['message' => ['content' => json_encode([
+        'titre' => $titre, 'tags_fr' => ['renard', 'hiver', 'aquarelle'], 'tags_en' => ['fox'],
+    ])]]]];
+    Http::fake([
+        'integrate.api.nvidia.com/*' => Http::response('saturé', 503),
+        'openrouter.ai/*' => Http::sequence()->push($reponse('Renard'))->push($reponse('Chat')),
+    ]);
+    $nvidia = fn () => Http::recorded(fn ($r) => str_contains($r->url(), 'nvidia'))->count();
+
+    $media = visuel(creatifAnalysable());
+    app(AnalyseImage::class)->analyser($media);
+    $appels = $nvidia();
+
+    $autre = visuel(creatifAnalysable());
+    app(AnalyseImage::class)->analyser($autre);
+
+    expect($media->fresh()->ai_title)->toBe('Renard')
+        ->and($autre->fresh()->ai_title)->toBe('Chat')
+        ->and($appels)->toBeGreaterThan(0)
+        ->and($nvidia())->toBe($appels); // pause : NVIDIA pas rappele
+});

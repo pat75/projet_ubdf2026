@@ -471,11 +471,16 @@
         </div>
 
         <div class="connexion_panneau">
-            <div class="connexion_colonne">
+            <div class="connexion_colonne connexion_centree">
+                {{-- Sur mobile : entete en haut, formulaire au centre de l'ecran (portail.css). --}}
+                <div class="connexion_entete">
                 <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
                 {{-- Pas de <h1> : la fenetre est incluse dans toutes les pages. --}}
                 <p class="connexion_titre" role="heading" aria-level="2">{{ __('Connexion') }}</p>
                 <p class="connexion_accroche">{{ __('Retrouvez votre book, vos messages et vos statistiques.') }}</p>
+                </div>
+
+                <div>
 
                 <!-- connexion -->
                 <div id="segment_connect" x-show="vue === 'connexion'">
@@ -508,6 +513,7 @@
                     <form action="/ubaction__user_open" id="login_form" method="post" class="ui form creer_book_form" @submit.prevent="connecter($el)" novalidate>
                         @csrf
                         <input type="hidden" name="g-recaptcha-response">
+                        <input type="hidden" name="retour">
                         <div class="field" :class="{ error: erreurLogin }">
                             <input id="login" type="text" name="login" value="{{ old('login') }}"
                                    placeholder="{{ __('Identifiant ou e-mail') }}" aria-label="{{ __('Identifiant ou e-mail') }}"
@@ -570,19 +576,29 @@
                     </div>
                     <a href="#" class="btn_back_mdp" @click.prevent="vue = 'connexion'">{{ __('Retour à la connexion') }}</a>
                 </div>
+                </div>
             </div>
 
             {{-- Tout en bas de la colonne, comme sur « Creer un book ». --}}
             <p class="connexion_inscription" x-show="vue === 'connexion'" x-cloak>
-                {{ __('Pas encore de book ?') }}
-                <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+                <span class="block">
+                    {{ __('Pas encore de book ?') }}
+                    <a href="{{ lien('inscription.page') }}">{{ __('Créer un book') }}</a>
+                </span>
+                {{-- Compte visiteur (memo-compte, rendue pour les anonymes seulement). --}}
+                @if (! auth('web')->check() && ! auth('visitor')->check())
+                    <span class="block">
+                        {{ __('Vous cherchez des talents ?') }}
+                        <a href="#" @click.prevent="$store.modale.ouvrir('memo-compte')">{{ __('Créer un compte visiteur gratuit') }}</a>
+                    </span>
+                @endif
             </p>
         </div>
     </div>
 </x-portail.modale>
 
-{{-- Proposition de compte visiteur, ouverte au premier coeur d'un anonyme
-     ($store.memo.proposerCompte). Adresse + mot de passe : le compte est
+{{-- Compte visiteur, ouverte par le coeur d'un anonyme ($store.memo.ajouter) :
+     sans compte, rien n'est memorise. Adresse + mot de passe : le compte est
      cree, connecte, et la selection du navigateur y est versee.
      Etats : resources/js/portail/memo-compte.js. --}}
 @if (! auth('web')->check() && ! auth('visitor')->check())
@@ -600,11 +616,19 @@
         </div>
 
         <div class="connexion_panneau">
-            <div class="connexion_colonne">
+            <div class="connexion_colonne connexion_centree memo_compte_colonne">
+                {{-- Sur mobile : entete en haut, formulaire au centre de l'ecran (portail.css). --}}
+                <div class="connexion_entete">
                 <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
                 <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémoBook') }}</p>
-                <p class="connexion_accroche">{{ __('Book ajouté à votre sélection. Indiquez votre e-mail et un mot de passe pour la retrouver sur tous vos appareils et l’exporter en PDF.') }}</p>
+                <p class="connexion_accroche">
+                    <span class="block">{{ __('Pour mémoriser un book, connectez-vous ou créez un compte.') }}</span>
+                    <span class="block">{{ __('Compte visiteur gratuit : indiquez votre e-mail et un mot de passe.') }}</span>
+                    <span class="block">{{ __('Retrouvez votre sélection sur tous vos appareils et exportez-la en PDF.') }}</span>
+                </p>
+                </div>
 
+                <div>
                 <div class="ui negative message connexion_alerte" role="alert" x-show="erreur" x-cloak>
                     <p x-text="erreur"></p>
                     <p x-show="existe"><a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Me connecter') }}</a></p>
@@ -629,8 +653,9 @@
                         <a href="#" @click.prevent="$store.modale.fermer()">{{ __('Plus tard') }}</a>
                     </div>
                 </form>
+                </div>
 
-                <p class="connexion_accroche">
+                <p class="connexion_accroche connexion_pied">
                     {{ __('Déjà un compte ?') }}
                     <a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Connexion') }}</a>
                 </p>

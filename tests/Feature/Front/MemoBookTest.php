@@ -158,6 +158,20 @@ it('connecte un visiteur par son adresse et l amene sur son tableau de bord', fu
     expect(auth('visitor')->id())->toBe($visiteur->id)->and(auth('web')->check())->toBeFalse();
 });
 
+it('ramene le visiteur sur le book qu il regardait', function () {
+    Visitor::factory()->create(['email' => 'lea@example.com', 'password' => Hash::make('secret-2026')]);
+
+    $this->post('/ubaction__user_open', ['login' => 'lea@example.com', 'pass' => 'secret-2026', 'retour' => '/#nolwenn'])
+        ->assertRedirect('/#nolwenn');
+});
+
+it('ignore un retour vers un autre site', function (string $retour) {
+    Visitor::factory()->create(['email' => 'lea@example.com', 'password' => Hash::make('secret-2026')]);
+
+    $this->post('/ubaction__user_open', ['login' => 'lea@example.com', 'pass' => 'secret-2026', 'retour' => $retour])
+        ->assertRedirect(route('visiteur.tableau'));
+})->with(['https://evil.example', '//evil.example', '/\\evil.example']);
+
 it('connecte un creatif par son adresse', function () {
     $this->book->update(['email' => 'nolwenn@example.com', 'password' => Hash::make('secret-2026')]);
 

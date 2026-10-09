@@ -47,6 +47,12 @@ class Reglage extends Model
 
     public const NVIDIA_MODELE = 'nvidia_modele';
 
+    /**
+     * IA du Coach creatif (App\Services\Coach\Redacteur) : `nvidia`
+     * (gratuit, defaut) ou un niveau de cout OpenRouter, de `1` a `4`.
+     */
+    public const COACH_IA = 'coach_ia';
+
     protected $table = 'reglages';
 
     protected $fillable = ['cle', 'valeur'];

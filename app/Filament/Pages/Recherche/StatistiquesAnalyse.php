@@ -42,7 +42,7 @@ class StatistiquesAnalyse extends StatsOverviewWidget
         return [
             $probleme
                 ? Stat::make('API', 'NVIDIA injoignable')
-                    ->description('Depuis le '.date('d/m H:i', $probleme['quand']).' : '.mb_substr($probleme['motif'], 0, 120).' — analyses en pause, nouvel essai toutes les '.Nvidia::PAUSE.' min'.$depuis)
+                    ->description('Depuis le '.date('d/m H:i', $probleme['quand']).' : '.mb_substr($probleme['motif'], 0, 120).' — bascule sur OpenRouter, nouvel essai NVIDIA toutes les '.Nvidia::PAUSE.' min'.$depuis)
                     ->descriptionIcon('heroicon-m-exclamation-triangle')
                     ->color('danger')
                 : Stat::make('API', Nvidia::actif() ? 'NVIDIA' : 'OpenRouter')

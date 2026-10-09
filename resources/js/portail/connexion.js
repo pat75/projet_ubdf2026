@@ -26,6 +26,10 @@ export default function connexion(Alpine) {
             this.erreurLogin = this.verifierLogin(formulaire.login.value);
             if (this.erreurLogin) return;
 
+            // Visiteur connecte depuis un book : il y revient (ConnexionController).
+            if (Alpine.store('visionneuse')?.ouverte) {
+                formulaire.retour.value = location.pathname + location.search + location.hash;
+            }
             formulaire.querySelector('[name="g-recaptcha-response"]').value = await jetonRecaptcha();
             formulaire.submit();
         },

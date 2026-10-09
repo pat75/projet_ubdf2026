@@ -7,7 +7,9 @@
                 <div style="font-weight:700">{{ $media->ai_title }}</div>
                 <div style="font-size:13px;opacity:.75">{{ $media->ai_description }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.5rem">
-                    @foreach ($media->tags->sortBy('lang') as $tag)
+                    {{-- Un mot identique en francais et en anglais (art / art) n'est montre
+                         qu'une fois, en francais. --}}
+                    @foreach ($media->tags->sortBy(fn ($t) => $t->lang === 'fr' ? 0 : 1)->unique(fn ($t) => mb_strtolower($t->label)) as $tag)
                         <x-filament::badge :color="$tag->lang === 'fr' ? 'info' : 'gray'">{{ $tag->label }}</x-filament::badge>
                     @endforeach
                 </div>

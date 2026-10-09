@@ -43,3 +43,13 @@ Schedule::command('ubdf:analyser-images')->everyMinute()->withoutOverlapping(30)
 
 // Coach crea : brouillons de coaching, 24 h apres la derniere session d'un createur.
 Schedule::command('ubdf:preparer-coaching')->hourly()->withoutOverlapping();
+
+/*
+ | File de taches (QUEUE_CONNECTION=database) : en mutualise, pas de
+ | worker permanent. Le planificateur en lance un chaque minute, qui vide
+ | la file puis s'arrete avant la minute suivante. Mails en file
+ | (coaching, mot de passe, relances, campagnes), exports, analyse IA.
+ */
+Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3')
+    ->everyMinute()
+    ->withoutOverlapping(5);

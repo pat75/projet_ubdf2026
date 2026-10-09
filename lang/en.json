@@ -1620,7 +1620,6 @@
     "Tendances": "Trends",
     "Identifiant ou e-mail": "Username or e-mail",
     "Gardez votre mémoBook": "Keep your memoBook",
-    "Book ajouté à votre sélection. Indiquez votre e-mail et un mot de passe pour la retrouver sur tous vos appareils et l’exporter en PDF.": "Portfolio added to your selection. Enter your e-mail and a password to find it on all your devices and export it as a PDF.",
     "Me connecter": "Log in",
     "Adresse e-mail": "E-mail address",
     "Mot de passe (8 caractères minimum)": "Password (8 characters minimum)",
@@ -2072,5 +2071,10 @@
     ":metier freelance": "freelance :metier",
     "Portfolio : :liste.": "Portfolio: :liste.",
     "Spécialités :": "Specialities:",
-    "À propos": "About"
+    "À propos": "About",
+    "Compte visiteur gratuit : indiquez votre e-mail et un mot de passe.": "Free visitor account: enter your e-mail and a password.",
+    "Retrouvez votre sélection sur tous vos appareils et exportez-la en PDF.": "Find your selection on all your devices and export it as a PDF.",
+    "Vous cherchez des talents ?": "Looking for talent?",
+    "Créer un compte visiteur gratuit": "Create a free visitor account",
+    "Pour mémoriser un book, connectez-vous ou créez un compte.": "To save a portfolio, log in or create an account."
 }

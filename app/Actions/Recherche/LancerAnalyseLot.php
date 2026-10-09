@@ -5,7 +5,6 @@ namespace App\Actions\Recherche;
 use App\Jobs\AnalyserMedia;
 use App\Models\Media;
 use App\Models\User;
-use App\Services\IA\NvidiaEnPause;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -31,7 +30,7 @@ class LancerAnalyseLot
      * $books : toutes les images restantes des $books prochains books, au
      * lieu des $taille prochaines images.
      *
-     * @return array{ok: int, erreurs: int, pause: ?string}
+     * @return array{ok: int, erreurs: int}
      */
     public function __invoke(int $taille = self::TAILLE, ?callable $avant = null, ?int $books = null): array
     {
@@ -52,9 +51,6 @@ class LancerAnalyseLot
             }
             try {
                 AnalyserMedia::dispatchSync($media);
-            } catch (NvidiaEnPause $e) {
-                // NVIDIA injoignable : le reste du lot attend le prochain passage.
-                return ['ok' => $i - $erreurs, 'erreurs' => $erreurs, 'pause' => $e->getMessage()];
             } catch (\Throwable $e) {
                 // Le visuel est marque « erreur » et sort des lots suivants.
                 report($e);
@@ -62,7 +58,7 @@ class LancerAnalyseLot
             }
         }
 
-        return ['ok' => $medias->count() - $erreurs, 'erreurs' => $erreurs, 'pause' => null];
+        return ['ok' => $medias->count() - $erreurs, 'erreurs' => $erreurs];
     }
 
     /** Visuels eligibles pas encore analyses, hors erreurs. */
