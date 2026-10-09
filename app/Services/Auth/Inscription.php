@@ -70,16 +70,18 @@ class Inscription
                 'signup_referer' => $referer,
             ]);
 
-            /*
-             | Le book existe des l'inscription, mais n'est diffuse nulle
-             | part : `diffuse_web` et `diffuse_ub` restent a false, et ce
-             | sont eux que `BookRepository` interroge. Un compte vide
-             | n'apparait donc ni sur le portail ni dans l'annuaire tant que
-             | son proprietaire ne l'a pas ouvert lui-meme.
-             */
+            // Reglages par defaut (Ultra-frais, diffuse partout) : voir BookSetting::$attributes.
             BookSetting::query()->create([
                 'user_id' => $compte->id,
                 'title' => $compte->fullName(),
+            ]);
+
+            // Un premier portfolio vide, pret a recevoir les visuels.
+            $compte->galleries()->create([
+                'name' => __('Portfolio :n', ['n' => 1]),
+                'slug' => 'portfolio-1',
+                'status' => 'published',
+                'position' => 1,
             ]);
 
             return $compte;

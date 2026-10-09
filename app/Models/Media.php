@@ -68,7 +68,30 @@ class Media extends Model
                     ->where('diffuse_web', true)->where('diffuse_ub', true)->where('allow_ai_analysis', true)));
     }
 
-    /** Page publique du visuel analyse (indexee sous condition : voir front/image). */
+    /**
+     * Pages image ouvertes aux moteurs, regle unique de la page (robots) et
+     * du sitemap : description IA d'au moins 120 caracteres, 5 mots-cles,
+     * et un seul visuel par titre chez un meme createur (« Illustration
+     * graphique » x 3 faisait trois pages au meme titre).
+     */
+    public function scopeIndexables(Builder $query): Builder
+    {
+        // 120 caracteres au moins (LIKE compte les caracteres, sur MySQL comme SQLite).
+        return $query->where('media.ai_description', 'like', str_repeat('_', 120).'%')
+            ->has('tags', '>=', 5)
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('media as homonyme')
+                ->whereColumn('homonyme.user_id', 'media.user_id')
+                ->whereColumn('homonyme.ai_title', 'media.ai_title')
+                ->whereColumn('homonyme.id', '<', 'media.id')
+                ->whereNull('homonyme.deleted_at'));
+    }
+
+    public function estIndexable(): bool
+    {
+        return static::whereKey($this->getKey())->indexables()->exists();
+    }
+
+    /** Page publique du visuel analyse (indexee sous condition : voir indexables()). */
     public function pageUrl(): string
     {
         return lien('image', ['id' => $this->id, 'slug' => \Illuminate\Support\Str::slug($this->ai_title ?: 'image')]);

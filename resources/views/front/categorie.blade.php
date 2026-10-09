@@ -22,6 +22,14 @@
     $intro = $landing ? __($landing['intro']) : Metier::intro($categorie, $marque->nom);
     $faq = $landing ? [] : Metier::faq($categorie, $marque->nom);
 
+    // Pages suivantes de la liste (?page=N) : titre et adresse propres.
+    $page ??= 1;
+    $pages ??= 1;
+    $base = url()->current();
+    if ($page > 1) {
+        $titre = preg_replace('/ \| /', ' — '.__('page :n', ['n' => $page]).' | ', $titre, 1);
+    }
+
     $fil = [['nom' => __('Accueil'), 'url' => $racine.'/'], ['nom' => Metier::titreBloc($categorie), 'url' => $urlMetier]];
     if ($landing) {
         $fil[] = ['nom' => $h1, 'url' => $urlPage];
@@ -76,6 +84,9 @@
 
 @section('title', $titre)
 @section('description', $description)
+@if ($page > 1)
+    @section('canonical', $urlPage.'?page='.$page)
+@endif
 @section('body_class', 'page_metier')
 
 @push('jsonld')
@@ -116,6 +127,20 @@
 
             <div class="ui large centered inline text loader" :class="{ active: enCours }">{{ __('Chargement...') }}</div>
         </div>
+
+        {{-- Pages de la liste en vrais liens : les moteurs ne font pas
+             defiler, c'est par la qu'ils atteignent les books suivants. --}}
+        @if ($pages > 1)
+            <nav class="metier_pages" aria-label="{{ __('Pages') }}" style="display:flex;justify-content:center;gap:24px;margin:8px 0 40px;font-size:15px">
+                @if ($page > 1)
+                    <a rel="prev" href="{{ $page === 2 ? $base : $base.'?page='.($page - 1) }}">← {{ __('Page précédente') }}</a>
+                @endif
+                <span>{{ __('Page :n sur :total', ['n' => $page, 'total' => $pages]) }}</span>
+                @if ($page < $pages)
+                    <a rel="next" href="{{ $base.'?page='.($page + 1) }}">{{ __('Page suivante') }} →</a>
+                @endif
+            </nav>
+        @endif
 
         @if ($faq)
             {{-- Questions frequentes : texte visible, repris en FAQPage

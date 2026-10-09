@@ -102,6 +102,25 @@ class User extends Authenticatable
         return 'login';
     }
 
+    /**
+     * Book en sommeil : aucun visuel publie depuis 5 ans et moins de 5
+     * visuels. Toujours en ligne, mais hors sitemap et en noindex : ces
+     * pages minces (67 mots en moyenne) pesaient sur la qualite percue.
+     */
+    public function scopeHorsSommeil(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        $visuels = fn ($q) => $q->published()->horsProteges()->whereNot('filename', '');
+
+        return $query->where(fn ($q) => $q
+            ->whereHas('media', fn ($m) => $visuels($m)->where('media.created_at', '>=', now()->subYears(5)))
+            ->orWhereHas('media', $visuels, '>=', 5));
+    }
+
+    public function enSommeil(): bool
+    {
+        return ! static::whereKey($this->getKey())->horsSommeil()->exists();
+    }
+
     /** URL publique du book, sur son sous-domaine. */
     public function bookUrl(): string
     {

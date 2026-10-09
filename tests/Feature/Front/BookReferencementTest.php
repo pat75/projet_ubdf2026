@@ -66,3 +66,10 @@ it('montre les specialites IA en liens vers les pages mot-cle', function () {
         ->toContain('>aquarelle</a>')
         ->toContain('/images/aquarelle');
 });
+
+it('relie le book a la page metier du portail', function () {
+    $canonique = rtrim(config('marques.marques.ub.canonique'), '/');
+
+    expect(pageSeo())->toContain('href="'.$canonique.'/illustrateur"')
+        ->toContain('Illustrateurs freelance');
+});

@@ -98,16 +98,26 @@ class AccueilController extends Controller
         $categorie = Metier::depuisSlugUrl($categorie);
 
         $brand = $request->attributes->get('brand', 'ub');
+        $total = $this->books->count($categorie, $brand);
+
+        // ?page=N : la meme liste en pages liees, que les moteurs suivent
+        // jusqu'aux books (le defilement infini ne leur montre que la premiere).
+        $page = max(1, (int) $request->query('page', 1));
+        $pages = max(1, (int) ceil($total / BookRepository::PER_PAGE));
+        abort_if($page > $pages, 404);
 
         return view('front.categorie', [
             'categorie' => $categorie,
             // Page d'accroche SEO (config/seo_contenus.php), sinon null.
             'landing' => $request->route('landing') ? config('seo_contenus.landings.'.$request->route('landing')) : null,
-            'books' => $this->books->portfolios('sel', $categorie, 0, $brand),
-            'total' => $this->books->count($categorie, $brand),
+            'books' => $this->books->portfolios('sel', $categorie, $page - 1, $brand),
+            'total' => $total,
+            'page' => $page,
+            'pages' => $pages,
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
-                'total' => $this->books->count($categorie, $brand),
+                'page_depart' => $page - 1,
+                'total' => $total,
                 'cartes_url' => '/cartes/'.$categorie,
                 'cartes_params' => ['selection' => 'sel'],
                 'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,

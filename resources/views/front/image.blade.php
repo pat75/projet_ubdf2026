@@ -7,8 +7,8 @@
     $bio = texte_seo($creatif->bookSetting?->description, 400);
     $reseaux = array_values(array_filter([$creatif->website, $creatif->instagram_url, $creatif->facebook_url, $creatif->twitter_url]));
 
-    // Indexee seulement si le texte est assez riche : sinon contenu mince.
-    $indexable = mb_strlen($media->ai_description.$bio) >= 120 && $media->tags->count() >= 5;
+    // Meme regle que le sitemap : texte assez riche, titre unique chez le createur.
+    $indexable = $media->estIndexable();
 
     $racine = rtrim($marque->canonique, '/');
     $urlPage = $racine.request()->getPathInfo();

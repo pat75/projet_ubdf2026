@@ -77,6 +77,8 @@ export default function cartes(Alpine) {
 
         init() {
             const conf = window.ubdf ?? {};
+            // Ouverte sur ?page=N : la suite part de cette page.
+            this.page = conf.page_depart ?? 0;
             if (!conf.cartes_url) {
                 this.termine = true;
                 return;

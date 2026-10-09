@@ -70,10 +70,10 @@ it('sert les categories metier', function () {
 it('redirige les anciennes URL vers l URL canonique', function (string $ancienne, string $cible) {
     $this->get(portail($ancienne))->assertRedirect(portail($cible));
 })->with([
-    ['/portfolios', '/'],
+    ['/portfolios', ''],
     // « /recherche » a quitte cette liste : c'est une page a part entiere,
     // couverte par RechercheTest.
-    ['/rechercher', '/'],
+    ['/rechercher', ''],
     ['/graphisme', '/graphiste'],
     ['/illustration', '/illustrateur'],
 ]);
@@ -249,4 +249,24 @@ it('refuse la carte d un book absent du portail', function () {
     // Diffusion coupee : le book ne doit pas sortir par cette porte.
     $this->book->bookSetting->update(['diffuse_ub' => false]);
     $this->get(portail('/carte/pat10'))->assertNotFound();
+});
+
+it('pagine les pages metier en liens que les moteurs suivent', function () {
+    // 10 cartes par page (BookRepository::PER_PAGE) : 11 books, deux pages.
+    foreach (range(1, 10) as $i) {
+        $book = User::factory()->create(['login' => "suite{$i}", 'category_id' => $this->book->category_id]);
+        $book->bookSetting()->create(['diffuse_web' => true, 'diffuse_ub' => true]);
+        $book->media()->create(['filename' => 'v.jpg', 'status' => 'published']);
+    }
+    Cache::flush();
+
+    $this->get(portail('/illustrateur'))->assertOk()
+        ->assertSee('href="'.portail('/illustrateur').'?page=2"', false);
+
+    $this->get(portail('/illustrateur?page=2'))->assertOk()
+        ->assertSee('<link rel="canonical" href="'.rtrim(config('marques.marques.ub.canonique'), '/').'/illustrateur?page=2">', false)
+        ->assertSee('href="'.portail('/illustrateur').'"', false)
+        ->assertDontSee('?page=3', false);
+
+    $this->get(portail('/illustrateur?page=3'))->assertNotFound();
 });

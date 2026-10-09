@@ -104,3 +104,56 @@ it('liste les pages image indexables avec leur visuel', function () {
         ->toContain('<image:loc>'.$riche->url().'</image:loc>')
         ->not->toContain('mince.jpg');
 });
+
+it('n indexe qu une page image par titre et par createur, page et sitemap d accord', function () {
+    $creatif = bookDiffuse(['login' => 'doublon']);
+    $creatif->bookSetting->update(['allow_ai_analysis' => true]);
+    $riche = fn (string $fichier) => $creatif->media()->create(['filename' => $fichier, 'status' => 'published',
+        'ai_title' => 'Illustration graphique', 'ai_description' => str_repeat('Un renard roux dans la neige. ', 5), 'analysed_at' => now()]);
+    [$premiere, $seconde] = [$riche('a.jpg'), $riche('b.jpg')];
+    foreach (['renard', 'neige', 'hiver', 'animal', 'roux'] as $mot) {
+        App\Models\Tag::firstOrCreate(['label' => $mot, 'lang' => 'fr'])->media()->attach([$premiere->id, $seconde->id]);
+    }
+
+    expect($this->get('/sitemap-images-1.xml')->assertOk()->getContent())
+        ->toContain('/image/'.$premiere->id.'/')
+        ->not->toContain('/image/'.$seconde->id.'/');
+
+    $this->get('/image/'.$premiere->id.'/illustration-graphique')->assertOk()->assertDontSee('noindex', false);
+    $this->get('/image/'.$seconde->id.'/illustration-graphique')->assertOk()->assertSee('noindex, follow', false);
+});
+
+it('ecarte les books en sommeil du sitemap et des moteurs', function () {
+    // Dernier visuel il y a plus de 5 ans et moins de 5 visuels : abandonne.
+    $dormeur = bookDiffuse(['login' => 'dormeur']);
+    $dormeur->media()->update(['created_at' => now()->subYears(6)]);
+    // Ancien mais fourni : garde.
+    $fourni = bookDiffuse(['login' => 'fourni']);
+    foreach (range(1, 4) as $i) {
+        $fourni->media()->create(['filename' => "f{$i}.jpg", 'status' => 'published']);
+    }
+    $fourni->media()->update(['created_at' => now()->subYears(6)]);
+    $actif = bookDiffuse(['login' => 'actif']);
+
+    expect($this->get('/sitemap-books-1.xml')->assertOk()->getContent())
+        ->toContain($actif->bookUrl())
+        ->toContain($fourni->bookUrl())
+        ->not->toContain($dormeur->bookUrl());
+
+    $this->get($dormeur->bookUrl().'/')->assertOk()->assertHeader('X-Robots-Tag', 'noindex, follow');
+    $this->get($actif->bookUrl().'/')->assertOk()->assertHeaderMissing('X-Robots-Tag');
+});
+
+it('declare les visuels des books pour Google Images', function () {
+    $creatif = bookDiffuse(['login' => 'galeriste']);
+
+    expect($this->get('/sitemap-books-1.xml')->assertOk()->getContent())
+        ->toContain('xmlns:image=')
+        ->toContain('<image:loc>'.$creatif->media()->first()->url().'</image:loc>');
+});
+
+it('ne met plus les vieilles actualites dans le sitemap', function () {
+    App\Models\CmsPost::create(['slug' => 'mozy-backup', 'locale' => 'fr', 'title' => 'Mozy', 'published_at' => now()->subYears(15)]);
+
+    $this->get('/sitemap-pages.xml')->assertOk()->assertDontSee('/actus/mozy-backup');
+});

@@ -45,6 +45,9 @@ it('refuse une reponse illisible ou trop pauvre', function (string $contenu) {
 })->throws(RuntimeException::class)->with([
     'pas du json' => 'Voici un renard.',
     'deux mots-cles' => json_encode(['titre' => 'x', 'tags_fr' => ['a', 'b']]),
+    // Titres vus en production, identiques d'une image a l'autre.
+    'titre generique' => json_encode(['titre' => 'Portfolio de créatif', 'tags_fr' => ['a', 'b', 'c']]),
+    'titre generique 2' => json_encode(['titre' => 'Portfolio de créativité visuelle', 'tags_fr' => ['a', 'b', 'c']]),
 ]);
 
 it('enregistre titre, description et mots-cles du visuel', function () {

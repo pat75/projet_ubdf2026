@@ -152,6 +152,12 @@ class AnalyseImage
             'tags_en' => $tags($json['tags_en'] ?? []),
         ];
 
+        // Titre qui decrit le support et non le sujet (« Portfolio de créatif ») :
+        // identique d'une image a l'autre, il ne vaut rien pour la recherche.
+        if (preg_match('/\b(portfolio|cr[ée]ati(?:f|ve|vit[ée])s?|cr[ée]ations?\s+visuelles?)\b/iu', $resultat['titre'])) {
+            throw new RuntimeException('Titre generique : '.$resultat['titre']);
+        }
+
         if (count($resultat['tags_fr']) < 3) {
             throw new RuntimeException('Moins de 3 mots-cles renvoyes.');
         }
@@ -185,8 +191,8 @@ class AnalyseImage
             ."Réponds UNIQUEMENT par un objet JSON, sans phrase avant ni après, sans bloc de code :\n"
             .'{"titre": "<titre>", "description": "<phrase>", "tags_fr": ["<mot-clé>", "..."], "tags_en": ["<keyword>", "..."]}'."\n\n"
             ."Règles :\n"
-            ."- titre : 3 à 8 mots, en français, ce que montre l'image.\n"
-            ."- description : une seule phrase en français : sujet, technique, style.\n"
+            ."- titre : 3 à 8 mots, en français, le sujet précis de l'image (ex. « Terrasse de café parisienne la nuit »). Jamais le support : pas de « portfolio », « créatif », « création visuelle », « illustration graphique ».\n"
+            ."- description : une seule phrase en français, sans aucun mot anglais (« tour Eiffel », pas « Eiffel Tower ») : sujet, technique, style.\n"
             ."- tags_fr et tags_en : 3 à 8 mots-clés chacun, en minuscules, au singulier, du plus pertinent au moins pertinent : sujet, technique, style, usage possible. tags_en est la traduction anglaise de tags_fr.\n"
             ."- Reprends si possible les domaines du site : {$domaines}.\n"
             ."- Pas de nom de personne, pas de marque, pas de jugement de valeur (« beau », « magnifique »…).\n"

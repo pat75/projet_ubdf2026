@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Front;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CmsPage;
-use App\Models\CmsPost;
 use App\Models\Media;
 use App\Models\User;
 use App\Support\Marque;
@@ -27,6 +26,8 @@ class SitemapController extends Controller
     private const PAR_FICHIER = 10000;
 
     private const CACHE_HEURES = 6;
+
+    private const IMAGES_PAR_BOOK = 10;
 
     public function index(Request $requete): Response
     {
@@ -90,10 +91,8 @@ class SitemapController extends Controller
                     $urls[] = ['loc' => $this->url($marque, '/images/'.$slug), 'priorite' => '0.50'];
                 }
 
-                // Publiees seulement : un brouillon repond 404 (CmsController::actualite).
-                foreach (CmsPost::publiees()->latest('published_at')->limit(200)->pluck('slug') as $slug) {
-                    $urls[] = ['loc' => $this->url($marque, '/actus/'.$slug), 'priorite' => '0.40'];
-                }
+                // Plus d'actualites : 2008-2013 pour l'essentiel (« Mozy », « IE »),
+                // aucune n'est liee depuis le site. Elles restent en ligne.
 
                 return view('sitemap.urls', ['urls' => $urls])->render();
             });
@@ -116,11 +115,15 @@ class SitemapController extends Controller
                     ->withMax(['media as dernier_visuel' => fn ($q) => $q->published()], 'created_at')
                     ->orderBy('id')
                     ->skip(($paquet - 1) * self::PAR_FICHIER)->take(self::PAR_FICHIER)
+                    // Visuels pour Google Images : les 10 derniers de chaque book.
+                    ->with(['media' => fn ($q) => $q->published()->horsProteges()->whereNot('filename', '')
+                        ->latest('id')->limit(self::IMAGES_PAR_BOOK)])
                     ->get(['id', 'login', 'brand'])
                     ->map(fn (User $creatif) => [
                         'loc' => $creatif->bookUrl(),
                         'priorite' => '0.70',
                         'date' => $creatif->dernier_visuel ? \Illuminate\Support\Carbon::parse($creatif->dernier_visuel)->toAtomString() : null,
+                        'images' => $creatif->media->map(fn (Media $media) => $media->url())->all(),
                     ])->all();
 
                 return view('sitemap.urls', ['urls' => $urls])->render();
@@ -155,17 +158,10 @@ class SitemapController extends Controller
         return $this->xml($xml);
     }
 
-    /**
-     * Pages image indexables (front/image) : 5 mots-cles et une description
-     * IA d'au moins 120 caracteres. La page en compte aussi la bio du
-     * createur : on en manque quelques-unes, on n'annonce aucune page noindex.
-     */
+    /** Pages image indexables : meme regle que la page (Media::indexables). */
     private function imagesQuery(Marque $marque)
     {
-        return Media::visiblesSurPortail($marque->code)
-            // 120 caracteres au moins (LIKE compte les caracteres, sur MySQL comme SQLite).
-            ->where('media.ai_description', 'like', str_repeat('_', 120).'%')
-            ->has('tags', '>=', 5);
+        return Media::visiblesSurPortail($marque->code)->indexables();
     }
 
     /**
@@ -180,7 +176,9 @@ class SitemapController extends Controller
             ->where('brand', $marque->code)
             ->whereNull('blocked_at')
             ->whereHas('bookSetting', fn ($q) => $q->where('diffuse_web', true)->where('diffuse_ub', true))
-            ->whereHas('media', fn ($q) => $q->published()->horsProteges()->whereNot('filename', ''));
+            ->whereHas('media', fn ($q) => $q->published()->horsProteges()->whereNot('filename', ''))
+            // Books en sommeil : en ligne, mais pas annonces aux moteurs (noindex).
+            ->horsSommeil();
     }
 
     private function marque(Request $requete): Marque

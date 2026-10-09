@@ -277,7 +277,10 @@ class BookController extends Controller
         // d'administrateur valide pour ce book (BandeauRevue).
         $html = app(BandeauRevue::class)->injecter($html, $book, request());
 
-        return response($html);
+        // En-tete plutot que balise : les anciens gabarits ecrivent leur <head>.
+        return $book->enSommeil()
+            ? response($html)->header('X-Robots-Tag', 'noindex, follow')
+            : response($html);
     }
 
     /**
