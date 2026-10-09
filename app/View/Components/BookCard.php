@@ -83,9 +83,25 @@ class BookCard extends Component
         return in_array($valeur, $statuts, true) && $valeur !== $statuts[0] ? $valeur : '';
     }
 
+    /**
+     * Nombre de l'oeil, en abrege : 999, 4,2k, 53k, 1,2M. Une decimale
+     * sous 10, aucune au-dela ; « ,0 » ne s'affiche pas. Vide a zero.
+     */
+    public static function abreger(int $nombre): string
+    {
+        if ($nombre < 1000) {
+            return $nombre ? (string) $nombre : '';
+        }
+
+        [$valeur, $suffixe] = $nombre < 999_500 ? [$nombre / 1000, 'k'] : [$nombre / 1_000_000, 'M'];
+
+        return str_replace('.', ',', (string) round($valeur, $valeur < 10 ? 1 : 0)).$suffixe;
+    }
+
     public function render(): View
     {
         return view('components.book-card', [
+            'vues' => self::abreger($this->book->vuesTotales()),
             'detail' => $this->detail(),
             'slider' => $this->slider(),
             'nouvelle' => $this->nouvelle,

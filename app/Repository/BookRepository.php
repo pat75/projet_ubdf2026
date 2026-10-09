@@ -41,7 +41,7 @@ class BookRepository
             return new Collection;
         }
 
-        $books = $this->baseQuery($brand)->whereIntegerInRaw('users.id', $ids)->get()->keyBy('id');
+        $books = $this->avecCompteurs($this->baseQuery($brand))->whereIntegerInRaw('users.id', $ids)->get()->keyBy('id');
 
         // Ordre de la liste en cache ; un book devenu invisible entre-temps disparait.
         return collect($ids)->map(fn ($id) => $books->get($id))->filter()->values();
@@ -105,7 +105,7 @@ class BookRepository
      */
     public function parLogin(string $login, string $brand = 'ub'): ?User
     {
-        return $this->baseQuery($brand)->where('login', $login)->first();
+        return $this->avecCompteurs($this->baseQuery($brand))->where('login', $login)->first();
     }
 
     /**
@@ -155,7 +155,7 @@ class BookRepository
             return new Collection;
         }
 
-        return $query
+        return $this->avecCompteurs($query)
             ->orderByDesc('pertinence')
             ->orderByDesc('users.is_selected')
             ->orderByDesc('users.media_count')
@@ -351,6 +351,16 @@ class BookRepository
      * invisibles les 8 comptes Dustfolio de l'echantillon, tous diffuses
      * mais aucun en selection.
      */
+    /**
+     * Compteurs de la carte (oeil et coeur) : vues comptees depuis la
+     * refonte et books memorises, en sous-requetes. A ajouter aux listes
+     * seulement : le comptage de la recherche n'en a pas besoin.
+     */
+    private function avecCompteurs(Builder $query): Builder
+    {
+        return $query->withSum('visitStats', 'public_views')->withCount('memorisePar');
+    }
+
     private function baseQuery(string $brand): Builder
     {
         return User::query()

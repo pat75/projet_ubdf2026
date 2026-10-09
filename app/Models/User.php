@@ -307,6 +307,28 @@ class User extends Authenticatable
         return $this->hasOne(BillingProfile::class);
     }
 
+    /** Mises de ce book dans un memo book, par un visiteur ou un creatif. */
+    public function memorisePar(): HasMany
+    {
+        return $this->hasMany(MemoBook::class, 'book_id');
+    }
+
+    /**
+     * Vues de la carte du portail : celles du serveur de stats du legacy,
+     * plus celles comptees depuis (visit_stats). La somme vient de
+     * BookRepository::avecCompteurs.
+     */
+    public function vuesTotales(): int
+    {
+        return $this->legacy_views + (int) $this->visit_stats_sum_public_views;
+    }
+
+    /** Coeurs de la carte : memos du legacy, plus ceux d'aujourd'hui. */
+    public function coeursTotaux(): int
+    {
+        return $this->legacy_likes + (int) $this->memorise_par_count;
+    }
+
     public function visitStats(): HasMany
     {
         return $this->hasMany(VisitStat::class);
