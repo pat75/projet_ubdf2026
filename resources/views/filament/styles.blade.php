@@ -268,6 +268,55 @@
     .ub-creatif { display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap; }
     .ub-creatif-avatar { width: 32px; height: 32px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
     .ub-creatif-login { font-weight: 600; }
+    /* Coach créatif : dernières opérations puis messages à envoyer, une colonne. */
+    .ub-coach-colonnes { display: grid; gap: 1.5rem; align-items: start; }
+    #operations, #messages { scroll-margin-top: 5rem; }
+    html:has(.ub-coach-colonnes) { scroll-behavior: smooth; }
+    .ub-coach-titre { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 1.5rem; }
+    .ub-coach-menu { display: inline-flex; gap: 1rem; font-size: .875rem; font-weight: 400; letter-spacing: normal; }
+    .ub-coach-ancre { color: var(--primary-600); }
+    .ub-coach-ancre:hover { text-decoration: underline; }
+    .ub-coach-detail { background: rgb(249 250 251); }
+    .dark .ub-coach-detail { background: rgb(31 41 55); }
+    /* Tête de ligne : flèche, nombre, bouton, tous centrés sur la même hauteur. */
+    .ub-coach-tete { display: flex; align-items: center; gap: .5rem; padding-inline: .75rem; white-space: nowrap; }
+    .ub-coach-deplier { display: inline-flex; align-items: center; gap: .25rem; height: 1.75rem; line-height: 1; color: rgb(55 65 81); }
+    .dark .ub-coach-deplier { color: rgb(229 231 235); }
+    .ub-coach-fleche { display: block; width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+    .ub-coach-picto { display: block; width: 1rem; height: 1rem; flex-shrink: 0; }
+    /* Avatar et identifiant comme la colonne avatar de la liste des créatifs : 36px, 8px d'écart. */
+    .ub-coach-qui { display: inline-flex; align-items: center; gap: 8px; }
+    .ub-coach-avatar { display: block; width: 36px; height: 36px; border-radius: 9999px; object-fit: cover; flex-shrink: 0; }
+    .ub-coach-nombre { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5rem; height: 1.5rem; padding: 0 .4rem; border-radius: 9999px; background: #000; color: #fff; font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ub-coach-generer { display: inline-flex; align-items: center; gap: .35rem; height: 1.75rem; padding: 0 .65rem; border-radius: .5rem; background: #374151; color: #fff; font-size: .75rem; font-weight: 600; }
+    .ub-coach-generer:hover { background: #1f2937; }
+    .ub-coach-generer:disabled { cursor: wait; opacity: .85; }
+    .ub-coach-generer svg { color: #fff; }
+    /* Messages à envoyer : même grammaire que la liste des opérations. */
+    .ub-coach-messages { margin: 0 -1.5rem -1.5rem; border-top: 1px solid rgb(229 231 235); }
+    .ub-coach-message { border-bottom: 1px solid rgb(229 231 235); }
+    .dark .ub-coach-messages, .dark .ub-coach-message { border-color: rgb(55 65 81); }
+    .ub-coach-message-ligne { display: flex; align-items: center; gap: .75rem; min-height: 3.25rem; padding: .6rem 1rem; white-space: nowrap; cursor: pointer; }
+    .ub-coach-message-ligne:hover { background: rgb(249 250 251); }
+    .dark .ub-coach-message-ligne:hover { background: rgb(31 41 55); }
+    .ub-coach-message-meta { font-size: .8125rem; color: rgb(107 114 128); font-variant-numeric: tabular-nums; }
+    .ub-coach-message-objet { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; font-size: .875rem; }
+    .ub-coach-message-detail { display: grid; gap: .75rem; padding: .75rem 1rem 1rem 3.25rem; }
+    .ub-coach-message-ligne .ub-coach-deplier { flex-shrink: 0; }
+    /* Liste du Coach créatif : un créatif = une ligne, sans les mentions sous les valeurs. */
+    #operations .fi-ta-cell { white-space: nowrap; }
+    #operations .fi-ta-row .fi-ta-text-description { display: none; }
+    /* Détail : colonnes date | heure | type | objet alignées d'une ligne à l'autre. */
+    .ub-coach-operations { display: grid; grid-template-columns: auto auto 1fr; column-gap: 1rem; padding: .5rem 1rem .75rem 3.25rem; font-size: .875rem; }
+    .ub-coach-operations li { display: contents; }
+    .ub-coach-operations li > * { padding: .4rem 0; border-bottom: 1px solid rgb(229 231 235); align-self: stretch; display: flex; align-items: center; }
+    .dark .ub-coach-operations li > * { border-color: rgb(55 65 81); }
+    .ub-coach-operations li:last-child > * { border-bottom: 0; }
+    .ub-coach-operations time { gap: .6rem; font-variant-numeric: tabular-nums; color: rgb(107 114 128); }
+    .ub-coach-heure { color: rgb(17 24 39); font-weight: 500; }
+    .dark .ub-coach-heure { color: rgb(243 244 246); }
+    .ub-coach-objet { gap: .6rem; flex-wrap: wrap; }
+    .ub-coach-champs { color: rgb(107 114 128); font-size: .8125rem; }
     .ub-creatif-nom { color: rgb(107 114 128); }
     /*
      | Colonne avatar des listes (creatifs, visiteurs, derniers inscrits...) :

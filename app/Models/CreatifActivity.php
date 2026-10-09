@@ -22,14 +22,24 @@ class CreatifActivity extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function verbe(): string
+    {
+        return ['created' => 'Ajouté', 'updated' => 'Modifié', 'deleted' => 'Supprimé', 'restored' => 'Restauré'][$this->action] ?? $this->action;
+    }
+
+    /** « Galerie « Mode » » : le type d'objet et son nom. */
+    public function objet(): string
+    {
+        $type = ['User' => 'Compte', 'Gallery' => 'Galerie', 'Media' => 'Visuel', 'BookSetting' => 'Réglages du book',
+            'BookSection' => 'Page', 'BookArticle' => 'Article', 'PageImage' => 'Image de page', 'DataExport' => 'Export'][class_basename($this->subject_type)] ?? class_basename($this->subject_type);
+
+        return $type.($this->subject_label ? ' « '.$this->subject_label.' »' : '');
+    }
+
     /** Ligne lisible : « Modifié Galerie « Mode » (title, description) ». */
     public function resume(): string
     {
-        $verbe = ['created' => 'Ajouté', 'updated' => 'Modifié', 'deleted' => 'Supprimé', 'restored' => 'Restauré'][$this->action] ?? $this->action;
-        $objet = ['User' => 'Compte', 'Gallery' => 'Galerie', 'Media' => 'Visuel', 'BookSetting' => 'Réglages du book',
-            'BookSection' => 'Page', 'BookArticle' => 'Article', 'PageImage' => 'Image de page', 'DataExport' => 'Export'][class_basename($this->subject_type)] ?? class_basename($this->subject_type);
-
-        return trim($verbe.' '.$objet.($this->subject_label ? ' « '.$this->subject_label.' »' : '')
+        return trim($this->verbe().' '.$this->objet()
             .($this->changes ? ' ('.implode(', ', array_keys($this->changes)).')' : ''));
     }
 }

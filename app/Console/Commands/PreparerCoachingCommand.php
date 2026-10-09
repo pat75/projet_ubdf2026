@@ -47,7 +47,7 @@ class PreparerCoachingCommand extends Command
             }
 
             $conseils = $diagnostic->pour($creatif);
-            $session = $this->derniereSession($creatif);
+            $session = self::derniereSession($creatif);
 
             try {
                 $message = $redacteur->rediger($creatif, $session, $conseils);
@@ -73,7 +73,7 @@ class PreparerCoachingCommand extends Command
     }
 
     /** Operations de la derniere session : on remonte tant que l'ecart reste sous la pause. */
-    private function derniereSession(User $creatif)
+    public static function derniereSession(User $creatif)
     {
         $operations = CreatifActivity::where('user_id', $creatif->id)->latest('created_at')->latest('id')->limit(200)->get();
         $session = collect();

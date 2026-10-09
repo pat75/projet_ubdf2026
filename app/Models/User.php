@@ -228,6 +228,12 @@ class User extends Authenticatable
         return $this->belongsTo(Category::class);
     }
 
+    /** Journal du Coach crea (App\Observers\JournalCreatif). */
+    public function creatifActivities(): HasMany
+    {
+        return $this->hasMany(CreatifActivity::class);
+    }
+
     public function bookSetting(): HasOne
     {
         return $this->hasOne(BookSetting::class);

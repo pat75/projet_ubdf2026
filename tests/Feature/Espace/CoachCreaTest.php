@@ -103,7 +103,7 @@ it('ouvre la page Coach crea avec l activite groupee par createur', function () 
     auth()->guard('web')->logout();
 
     $this->actingAs(\App\Models\Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin')
-        ->get('/admin_/coach-crea')->assertOk()->assertSee('Coach créa')->assertSee('Ajouté Galerie « Mode »');
+        ->get('/admin_/coach-crea')->assertOk()->assertSee('Coach créatif')->assertSee('Ajouté')->assertSee('Galerie « Mode »');
 });
 
 it('affiche les conseils dans un bloc Coach, hors du compteur de diffusion', function () {
@@ -135,4 +135,15 @@ it('soigne la typographie : insecables, pas de mot seul, une phrase par ligne da
     expect(CoachMessage::typographie('Un détail : votre visuel ?'))->toBe("Un détail\u{202F}: votre\u{00A0}visuel\u{202F}?")
         ->and($m->corpsPourMail())->toContain("Adolie,  \nUn")
         ->and((string) $m->corpsAvecLiens())->toContain('href="'.lien('espace.design').'"');
+});
+
+it('liste les books actifs comme la liste des creatifs, operations repliees dessous', function () {
+    CreatifActivity::create(['user_id' => $this->creatif->id, 'action' => 'created', 'subject_type' => 'App\Models\Gallery', 'subject_label' => 'Zzgal']);
+    $inactif = User::factory()->create();
+    $this->actingAs(\App\Models\Admin::create(['name' => 'Pat', 'email' => 'admin@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+
+    Livewire::test(\App\Filament\Pages\CoachCrea::class)
+        ->assertCanSeeTableRecords([$this->creatif])
+        ->assertCanNotSeeTableRecords([$inactif])
+        ->assertSee('Zzgal');
 });

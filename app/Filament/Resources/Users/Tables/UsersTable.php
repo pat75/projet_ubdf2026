@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Actions\Admin\PurgerCreatifsNonConfirmes;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Support\ActionsCompte;
 use App\Filament\Support\FiltreBoutons;
 use App\Filament\Support\FiltrePeriode;
@@ -219,7 +220,8 @@ class UsersTable
                 self::blocage(),
                 ActionsCompte::priseIdentiteCreatif(),
                 ActionGroup::make([
-                    EditAction::make(),
+                    // Adresse explicite : la table sert aussi hors de la ressource (Coach crea).
+                    EditAction::make()->url(fn (User $u) => UserResource::getUrl('edit', ['record' => $u])),
                     Action::make('book')->label('Voir le book')->icon('heroicon-o-arrow-top-right-on-square')
                         ->url(fn (User $u) => $u->bookUrl(), shouldOpenInNewTab: true),
                 ]),
