@@ -46,16 +46,20 @@
              | Dustfolio : illustration fixe et accroche a la place de la
              | video.
              |
-             | L'illustration est posee a droite, sans recadrage — c'est un
-             | dessin, le couper le mutile, contrairement a une video de
-             | fond. Le degrade du conteneur reste visible derriere elle.
+             | L'illustration est posee sans recadrage — c'est un dessin,
+             | le couper le mutile, contrairement a une video de fond. Le
+             | degrade du conteneur reste visible derriere elle.
+             |
+             | Elle commence juste apres la colonne de texte (960px
+             | centree) plutot que collee au bord droit de l'ecran, ou
+             | elle partait trop loin sur les grands ecrans.
              */
             .illustration_header {
                 object-fit: contain;
-                object-position: right center;
-                left: auto;
+                object-position: left center;
+                left: calc(50% + 60px);
                 right: 0;
-                width: 58%;
+                width: auto;
             }
             .accroche_header {
                 /* Le degrade est deja porte par .bloc_slide_video : le
