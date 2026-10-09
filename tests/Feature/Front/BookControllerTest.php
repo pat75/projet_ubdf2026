@@ -24,7 +24,7 @@ it('rend 404 pour un login inexistant, avec une page dediee', function () {
     // situation et renvoie vers le portail.
     $this->get(hoteBook('personne-narrive'))
         ->assertNotFound()
-        ->assertSee('Ce book n’existe pas ou n’est plus disponible.');
+        ->assertSee('Ce book n’existe pas ou n’est plus en ligne.', false);
 });
 
 it('rend 404 pour un compte supprime', function () {

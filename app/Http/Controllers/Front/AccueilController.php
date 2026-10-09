@@ -32,7 +32,7 @@ class AccueilController extends Controller
         // Les blocs sont les memes pour tous les visiteurs : requetes et
         // rendu (90 cartes, ~300 ms sur la prod) gardes 10 minutes. Vides
         // des qu'une selection change (User, hook `saved`).
-        $cache = Cache::remember(self::cleCache($brand, app()->getLocale()), now()->addMinutes(10), function () use ($brand) {
+        $construire = function () use ($brand) {
             $counts = $this->books->countsByCategory($brand);
 
             $blocs = Metier::blocsAccueil()->map(fn (array $metier) => [
@@ -45,7 +45,17 @@ class AccueilController extends Controller
                 'slugs' => $blocs->pluck('slug')->values()->all(),
                 'html' => view('front.partials.blocs-accueil', ['blocs' => $blocs])->render(),
             ];
-        });
+        };
+
+        // Le HTML porte des URL absolues, construites sur l'hote de la
+        // requete. Le joker *.ultra-book.com sert aussi l'accueil sur des
+        // hotes de hasard (www.remipepin.ultra-book.com) : mis en cache, ce
+        // rendu cassait les images de tous les visiteurs pendant 10 minutes.
+        // Seul un hote de la marque alimente donc le cache.
+        $hote = preg_replace('/^www\./', '', $request->getHost());
+        $cache = in_array($hote, config('marques.marques.'.$brand.'.hotes', []), true)
+            ? Cache::remember(self::cleCache($brand, app()->getLocale()), now()->addMinutes(10), $construire)
+            : $construire();
 
         return view('front.accueil', [
             // Le JSON-LD de la page ne lit que le slug de chaque bloc.

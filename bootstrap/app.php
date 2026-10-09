@@ -21,6 +21,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // Toute entree utilisateur est ramenee a de l'UTF-8 normalise (NFC).
         $middleware->append(NormalizeUnicodeInput::class);
 
+        // Un hote de hasard sous nos domaines (joker DNS) est renvoye au
+        // portail avant de construire quoi que ce soit avec lui.
+        $middleware->append(\App\Http\Middleware\HoteAutorise::class);
+
         // La marque (Ultra-book ou Dustfolio) se deduit de l'hote et
         // conditionne le nom du site, les books listes et les courriels.
         $middleware->append(ResoudreMarque::class);
@@ -90,15 +94,26 @@ $app = Application::configure(basePath: dirname(__DIR__))
          | d'entree techniques) garde le rendu par defaut.
          */
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            $bookDomain = config('ubdf.book_domain');
+            foreach (config('marques.marques') as $marque) {
+                $domaine = $marque['domaine_books'] ?? null;
 
-            if (! $bookDomain || ! str_ends_with($request->getHost(), '.'.$bookDomain)) {
-                return null;
+                if (! $domaine || ! str_ends_with($request->getHost(), '.'.$domaine)) {
+                    continue;
+                }
+
+                // Portail de la marque : canonique (www.) en production.
+                $portail = app()->isProduction() && ! empty($marque['canonique'])
+                    ? rtrim($marque['canonique'], '/')
+                    : 'https://'.$marque['hotes'][0];
+
+                // Le gabarit du portail construit ses liens avec url() et
+                // route() : sur l'hote du book absent, ils y ramenaient.
+                \Illuminate\Support\Facades\URL::forceRootUrl($portail);
+
+                return response()->view('book.introuvable', ['accueilPortail' => $portail.'/'], 404);
             }
 
-            return response()->view('book.introuvable', [
-                'accueilPortail' => 'https://'.$bookDomain,
-            ], 404);
+            return null;
         });
     })->create();
 

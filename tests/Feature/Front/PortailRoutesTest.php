@@ -4,6 +4,7 @@ use App\Models\BookSetting;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
     $this->domain = config('ubdf.book_domain');
@@ -47,6 +48,19 @@ it('affiche l accueil avec les cartes de books', function () {
         ->assertOk()
         ->assertSee('ui card', false)
         ->assertSee('Amélie Falière', false);
+});
+
+it('ne met pas en cache un accueil servi sur un hote de hasard', function () {
+    // Le joker DNS sert l'accueil sur www.<login>.<domaine> : ses URL absolues
+    // cassaient les images de tous les visiteurs une fois en cache.
+    // HoteAutorise le renvoie desormais au portail avant tout rendu.
+    $this->get('https://www.intrus.'.config('ubdf.book_domain').'/accueil')->assertStatus(301);
+    expect(Cache::has('accueil_blocs_ub_fr'))->toBeFalse();
+
+    $this->get(portail('/accueil'))->assertOk();
+    expect(Cache::get('accueil_blocs_ub_fr')['html'])
+        ->not->toContain('intrus')
+        ->toContain('https://'.config('ubdf.book_domain'));
 });
 
 it('sert les categories metier', function () {
