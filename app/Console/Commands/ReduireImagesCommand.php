@@ -2,16 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Images\Declinaison;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\ImageManager;
 
 /**
- * Ramene a 2000 px de cote maximum les originaux des books qui depassent.
+ * Ramene les originaux des books aux dimensions d'un depot dans l'espace :
+ * declinaison `source` (1980 x 3600) et qualite `images.qualite` (82), lues
+ * dans config/images.php pour suivre DepotVisuel si le reglage change.
  *
  * Le legacy acceptait n'importe quelle taille : des illustrations de
  * 8268 x 8268 px (68 Mpx) depassent `images.pixels_max` et ne s'affichent
- * pas. Aucune declinaison ne depasse 2000 px, l'exces ne sert donc a rien.
+ * pas. Un visuel depose aujourd'hui ne depasse jamais `source`.
  *
  * L'original est deplace dans storage/app/originaux/<meme chemin> avant
  * d'etre remplace : rien n'est perdu, le dossier se supprime a la main une
@@ -29,15 +32,15 @@ use Intervention\Image\ImageManager;
 class ReduireImagesCommand extends Command
 {
     protected $signature = 'ubdf:images:reduire
-        {--max=2000 : Cote maximum en pixels}
         {--dry-run : Liste les images a reduire sans rien modifier}
         {--recommencer : Ignore la reprise et repart du premier book}';
 
-    protected $description = 'Reduit a --max px de cote les originaux des books trop grands (original sauvegarde, reprenable)';
+    protected $description = 'Reduit les originaux des books aux dimensions d un depot (1980 x 3600, original sauvegarde, reprenable)';
 
     public function handle(ImageManager $manager): int
     {
-        $max = (int) $this->option('max');
+        $source = Declinaison::nommee('source');
+        $qualite = (int) config('images.qualite');
         $essai = (bool) $this->option('dry-run');
         $racine = storage_path('app/public/books');
         $sauvegarde = storage_path('app/originaux');
@@ -72,7 +75,7 @@ class ReduireImagesCommand extends Command
                 $fichier = $f->getPathname();
                 $taille = @getimagesize($fichier);
 
-                if ($taille === false || max($taille[0], $taille[1]) <= $max) {
+                if ($taille === false || ($taille[0] <= $source->largeur && $taille[1] <= $source->hauteur)) {
                     continue;
                 }
 
@@ -88,7 +91,7 @@ class ReduireImagesCommand extends Command
                 $temporaire = $fichier.'.reduction.'.pathinfo($fichier, PATHINFO_EXTENSION);
 
                 try {
-                    $manager->decodePath($fichier)->scaleDown($max, $max)->save($temporaire, quality: 90);
+                    $manager->decodePath($fichier)->scaleDown($source->largeur, $source->hauteur)->save($temporaire, quality: $qualite);
 
                     File::ensureDirectoryExists(dirname($sauvegarde.'/'.$relatif));
                     File::move($fichier, $sauvegarde.'/'.$relatif);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Reduction a 2000 px des originaux des books, sur O2switch (ubdf:images:reduire).
+# Reduction des originaux des books a 1980 x 3600 px (dimensions d un depot), sur O2switch (ubdf:images:reduire).
 #
 #   ./_scripts/reduire-images.sh compter   essai a blanc : liste et compte, ne modifie rien
 #   ./_scripts/reduire-images.sh lancer    reduit pour de bon (originaux -> storage/app/originaux)
@@ -44,7 +44,7 @@ case "${1:-}" in
         demarrer "--dry-run ${2:-}" essai
         ;;
     lancer)
-        etape "Reduction des originaux > 2000 px sur O2switch"
+        etape "Reduction des originaux > 1980 x 3600 px sur O2switch"
         alerte "Originaux deplaces dans storage/app/originaux/ (a supprimer a la main une fois verifie)."
         confirm "Lancer la reduction pour de bon ?" || exit 0
         demarrer "${2:-}" reduction
