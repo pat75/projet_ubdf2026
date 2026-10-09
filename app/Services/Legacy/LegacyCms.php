@@ -119,7 +119,7 @@ class LegacyCms
             CmsPost::updateOrCreate(
                 ['legacy_id' => $id],
                 [
-                    'slug' => $ligne->post_name ?: Str::slug($ligne->post_title) ?: 'actu-'.$id,
+                    'slug' => $this->slugWordPress((string) $ligne->post_name) ?: Str::slug($ligne->post_title) ?: 'actu-'.$id,
                     'locale' => $langues[$id]['locale'] ?? 'fr',
                     'title' => $this->texte($ligne->post_title),
                     'body' => $this->corps($ligne->post_content, $ligne->post_title),
@@ -133,6 +133,16 @@ class LegacyCms
         }
 
         $this->comptes['actualites'] = $compte;
+    }
+
+    /**
+     * WordPress stocke encode un slug a caractere non ASCII
+     * (« d%e2%80%99illustrateurs ») : tel quel, aucune route ne le sert. Les
+     * autres restent intacts, soulignes compris : leurs adresses sont indexees.
+     */
+    private function slugWordPress(string $slug): string
+    {
+        return str_contains($slug, '%') ? Str::slug(rawurldecode($slug)) : $slug;
     }
 
     /**

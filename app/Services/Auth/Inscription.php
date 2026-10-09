@@ -86,14 +86,20 @@ class Inscription
         });
     }
 
-    /** Envoie le mail de bienvenue, qui porte le lien de confirmation. */
+    /**
+     * Envoie le mail de bienvenue, qui porte le lien de confirmation.
+     *
+     * Le compte existe deja quand il part : un envoi qui echoue (SMTP
+     * indisponible…) est journalise sans faire echouer l'inscription, qui
+     * laisserait le createur sur une erreur, son identifiant deja pris.
+     */
     public function envoyerBienvenue(User $compte, Marque $marque): void
     {
-        Mail::to($compte->email)->send(new BienvenueCreatif(
+        rescue(fn () => Mail::to($compte->email)->send(new BienvenueCreatif(
             $compte,
             $marque,
             $this->lienConfirmation($compte),
-        ));
+        )));
     }
 
     public function lienConfirmation(User $compte): string

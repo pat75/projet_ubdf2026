@@ -504,8 +504,9 @@ $portail = function (?string $langue = null) {
      | quelles : elles sont indexees.
      */
     Route::get('/actus', [CmsController::class, 'actualites'])->name('actualites');
-    Route::get('/actus/{slug}', [CmsController::class, 'actualite'])
-        ->where('slug', '[-a-zA-Z0-9_]+')->name('actualite');
+    // Slug sans contrainte : les anciennes adresses encodees de WordPress
+    // (« d’illustrateurs ») doivent atteindre le controleur, qui les redirige.
+    Route::get('/actus/{slug}', [CmsController::class, 'actualite'])->name('actualite');
 
     Route::get('/doc', fn () => redirect()->to(lien('cms.doc', 'doc'), 301));
     Route::get('/doc/{slug}',[CmsController::class, 'page'])

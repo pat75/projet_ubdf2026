@@ -68,6 +68,7 @@ class InscriptionController extends Controller
         'Vous devez accepter les conditions d’utilisation',
         'Recopiez les 4 caractères de l’image',
         'Enregistrement impossible pour le moment.',
+        'Votre session a expiré : rechargez la page, svp.',
     ];
 
     /**

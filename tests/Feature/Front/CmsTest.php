@@ -148,6 +148,18 @@ it('sert une actualite', function () {
         ->assertSee('Une journée à Toulouse.', false);
 });
 
+it('redirige l ancienne adresse encodee d une actualite vers son slug nettoye', function () {
+    // WordPress encodait les slugs a apostrophe typographique ; la route les
+    // refusait : 5 adresses en 404 dans le sitemap.
+    $this->actualite->update(['slug' => 'trois-villes-dillustrateurs']);
+
+    $this->get(page_portail('/actus/trois-villes-d%E2%80%99illustrateurs'))
+        ->assertStatus(301)
+        ->assertRedirect(page_portail('/actus/trois-villes-dillustrateurs'));
+
+    $this->get(page_portail('/actus/inconnue-d%E2%80%99ici'))->assertNotFound();
+});
+
 it('redirige /blog vers les actualites', function () {
     // Le legacy renvoyait vers un site externe (ultra-book.fr/actus).
     $this->get(page_portail('/blog'))

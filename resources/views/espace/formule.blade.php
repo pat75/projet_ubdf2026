@@ -169,13 +169,22 @@
             </ol>
         </section>
     @else
-        <p class="mt-6 text-[17px]">{{ __('Vous êtes en formule gratuite.') }}</p>
+        {{-- Label : l'etat du compte, et l'ancre vers la grille. --}}
+        {{-- Le premier label reprend le fond et la typo de la carte « Formule gratuite » de la grille. --}}
+        <a href="#offres" class="group mt-6 inline-flex flex-wrap items-center gap-3 text-[16px]">
+            <span class="rounded-full bg-[#d8d8d4] px-5.25 py-[11.5px] font-semibold text-ub-texte2">{{ __('Vous êtes en formule gratuite') }}</span>
+            <span aria-hidden="true" class="text-[26px] leading-none text-black">→</span>
+            <span class="rounded-full bg-black px-5.25 py-[11.5px] font-bold text-white transition group-hover:bg-[#333]">{{ __('Passer à la formule :marque', ['marque' => $marque->nom]) }}</span>
+        </a>
     @endif
 
     {{-- Prolonger ou souscrire. --}}
-    <h2 id="offres" class="mt-12 scroll-mt-6 font-titre text-[22px] font-light">
-        {{ $creatif->plan ? __('Prolonger ma formule') : __('Passer à la formule :marque', ['marque' => $marque->nom]) }}
-    </h2>
+    {{-- En formule gratuite, le label ci-dessus tient lieu de titre. --}}
+    @if ($creatif->plan)
+        <h2 id="offres" class="mt-12 scroll-mt-6 font-titre text-[22px] font-light">{{ __('Prolonger ma formule') }}</h2>
+    @else
+        <div id="offres" class="scroll-mt-6"></div>
+    @endif
 
     {{-- Le createur qui a deja paye une fois ne souscrit plus : il
          renouvelle. La page le dit, et le douze mois porte alors le tarif

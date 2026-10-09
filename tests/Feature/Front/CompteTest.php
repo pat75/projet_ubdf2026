@@ -189,6 +189,19 @@ it('cree un compte et connecte le creatif', function () {
     Mail::assertSent(BienvenueCreatif::class);
 });
 
+it('ouvre le compte meme si le mail de bienvenue ne part pas', function () {
+    // Un SMTP qui refusait l'envoi faisait repondre 500 apres la creation
+    // du compte : le script affichait « Bravo » et un lien
+    // https://undefined/undefined, l'identifiant deja pris.
+    Mail::shouldReceive('to')->andThrow(new RuntimeException('SMTP indisponible'));
+
+    $reponse = $this->postJson('/inscription', inscription());
+
+    $reponse->assertOk()->assertJson(['error' => false]);
+    expect($reponse->json('url_domaine'))->not->toBeEmpty()
+        ->and(auth()->user()?->login)->toBe('camille-b');
+});
+
 it('renvoie les erreurs dans la forme attendue par le script de 2019', function () {
     $reponse = $this->postJson('/inscription', inscription([
         'us_login' => 'nolwenn',

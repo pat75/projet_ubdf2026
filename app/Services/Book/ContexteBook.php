@@ -329,6 +329,7 @@ class ContexteBook
 
     private function appliquerConf(string $conf): void
     {
+        $conf = $this->remplacerMarqueurs($conf);
         $this->cont_conf2012 = $conf;
         $data = json_decode($conf)?->data ?? new \stdClass;
         $this->obj_cont_data = $data;
@@ -343,13 +344,24 @@ class ContexteBook
 
     private function confParDefaut(): string
     {
-        $defaut = config("book_themes.{$this->modele_book}.defaut") ?? '{"data":{}}';
+        return config("book_themes.{$this->modele_book}.defaut") ?? '{"data":{}}';
+    }
 
-        return strtr($defaut, [
-            '%prenom%' => ucfirst($this->prenom),
-            '%nom%' => ucfirst($this->nom),
-            '%site_url%' => $this->marque->canonique,
-            '%site_nom%' => $this->marque->nom,
+    /**
+     * Marqueurs du modele par defaut (%prenom%, %nom%…), remplaces a
+     * l'affichage et non a l'enregistrement : l'edition du book et
+     * l'habillage partent du modele brut et l'enregistrent tel quel.
+     * Valeurs echappees pour JSON : un nom avec guillemet ne casse pas la conf.
+     */
+    private function remplacerMarqueurs(string $conf): string
+    {
+        $json = fn (string $valeur) => substr(json_encode($valeur, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 1, -1);
+
+        return strtr($conf, [
+            '%prenom%' => $json(ucfirst($this->prenom)),
+            '%nom%' => $json(ucfirst($this->nom)),
+            '%site_url%' => $json($this->marque->canonique),
+            '%site_nom%' => $json($this->marque->nom),
         ]);
     }
 

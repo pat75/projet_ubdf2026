@@ -49,7 +49,7 @@ it('affiche la formule gratuite sans le remerciement', function () {
     $gratuit = App\Models\User::factory()->create(['plan' => 0]);
 
     $this->actingAs($gratuit)->get(route('espace.formule'))->assertOk()
-        ->assertSee('Vous êtes en formule gratuite.')
+        ->assertSee('Vous êtes en formule gratuite')
         ->assertDontSee('pour votre soutien');
 });
 

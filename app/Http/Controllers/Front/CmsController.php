@@ -8,6 +8,7 @@ use App\Models\CmsPost;
 use App\Support\Marque;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -78,11 +79,19 @@ class CmsController extends Controller
     }
 
     /** Une actualite : /actus/<slug>. */
-    public function actualite(Request $request, string $slug): View
+    public function actualite(Request $request, string $slug): View|RedirectResponse
     {
         $actualite = CmsPost::publiees()->where('slug', $slug)->first();
 
         if (! $actualite) {
+            // Ancienne adresse au slug encode par WordPress, decode par le
+            // routeur (« d’illustrateurs ») : redirigee vers le slug nettoye.
+            $propre = Str::slug($slug);
+
+            if ($propre !== $slug && CmsPost::publiees()->where('slug', $propre)->exists()) {
+                return redirect()->to(lien('actualite', $propre), 301);
+            }
+
             throw new NotFoundHttpException;
         }
 

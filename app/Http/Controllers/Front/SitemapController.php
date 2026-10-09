@@ -90,7 +90,8 @@ class SitemapController extends Controller
                     $urls[] = ['loc' => $this->url($marque, '/images/'.$slug), 'priorite' => '0.50'];
                 }
 
-                foreach (CmsPost::query()->latest('published_at')->limit(200)->pluck('slug') as $slug) {
+                // Publiees seulement : un brouillon repond 404 (CmsController::actualite).
+                foreach (CmsPost::publiees()->latest('published_at')->limit(200)->pluck('slug') as $slug) {
                     $urls[] = ['loc' => $this->url($marque, '/actus/'.$slug), 'priorite' => '0.40'];
                 }
 

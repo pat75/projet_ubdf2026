@@ -350,9 +350,17 @@
     background: linear-gradient(135deg, #6bb0e2 0%, #509fdb 55%, #3f8fcc 100%);
     overflow-y: auto;
 }
+/* Sequence de creation (anneau de progression puis « Bravo ») : fond noir. */
 .creer_book_visuel.actif {
     display: flex;
     flex-basis: 100%;
+    background: #000;
+    color: #fff;
+}
+/* Les titres bleus de l'ancienne fenetre (.modal_creerbook h2/h4, core.css) se lisent mal sur le noir. */
+.creer_book_visuel.actif h2,
+.creer_book_visuel.actif h4 {
+    color: #fff;
 }
 .creer_book_illustration {
     /* 80 % plus grande que la premiere version (74 % / 420px). */
@@ -395,6 +403,10 @@
 .creer_book_fermer:hover {
     color: #000;
     transform: rotate(90deg);
+}
+/* Sur le fond noir de la sequence de creation. */
+.creer_book:has(.creer_book_visuel.actif) .creer_book_fermer {
+    color: #fff;
 }
 
 /* Bouton « Continuer avec Google » (components/portail/bouton-google). */

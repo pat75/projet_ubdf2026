@@ -52,9 +52,10 @@ it('affiche les vues et les coeurs du legacy sur la carte, pas de coeur sous 2',
 
     $html = $this->get('https://'.config('ubdf.book_domain').'/')->assertOk()->getContent();
 
-    expect($html)->toContain('<span class="stats_vue">183157</span>')
+    // Vues abregees en milliers (BookCard::abreger).
+    expect($html)->toContain('<span class="stats_vue">183k</span>')
         ->toContain('<span class="stats_sel">18</span>')
-        ->toContain('<span class="stats_vue">3137</span>')
+        ->toContain('<span class="stats_vue">3,1k</span>')
         ->and(substr_count($html, 'class="stats_sel"'))->toBe(1);
 });
 

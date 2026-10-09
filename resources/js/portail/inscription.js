@@ -87,6 +87,15 @@ export default function inscription(Alpine) {
             try {
                 const reponse = await fetch('/inscription', { method: 'POST', body: donnees, headers: { Accept: 'application/json' } });
                 retour = await reponse.json();
+                // Les erreurs de Laravel lui-meme (419 session expiree, 500…)
+                // repondent { message } sans `error` : prises pour un succes,
+                // elles menaient a https://undefined/undefined.
+                if (!reponse.ok || retour.error !== false) {
+                    retour.error = true;
+                    retour.error_msg ??= [this.t(reponse.status === 419
+                        ? 'Votre session a expiré : rechargez la page, svp.'
+                        : 'Enregistrement impossible pour le moment.')];
+                }
             } catch {
                 retour = { error: true, error_msg: [this.t('Enregistrement impossible pour le moment.')] };
             }
