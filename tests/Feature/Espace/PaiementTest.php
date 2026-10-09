@@ -93,3 +93,14 @@ it('ignore un paiement de test en production', function () {
 
     expect($this->creatif->fresh()->invoices()->count())->toBe(0);
 });
+
+it('numerote a la suite des factures reprises du legacy, pas selon l id', function () {
+    // Facture reprise : numero legacy bien au-dela des ids de la table.
+    $this->creatif->invoices()->create(['number' => 'ub-10922', 'brand' => 'ub', 'amount' => 1, 'vat' => 0, 'status' => 'paid', 'issued_at' => now()]);
+    $this->creatif->invoices()->create(['number' => 'ub-'.(\App\Models\Invoice::max('id') + 1), 'brand' => 'ub', 'amount' => 1, 'vat' => 0, 'status' => 'paid', 'issued_at' => now()]);
+    $this->payplug->shouldReceive('lireNotification')->once()->andReturn(notification($this->creatif->id, 2, 3680, 'pay_legacy'));
+
+    $this->postJson(route('payplug.notification'), ['id' => 'pay_legacy'])->assertOk();
+
+    expect($this->creatif->invoices()->where('gateway', 'payplug')->value('number'))->toBe('ub-10923');
+});

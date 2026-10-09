@@ -140,7 +140,9 @@ class BookMediaController extends Controller
         $defaut = public_path('img_default/ultra-book_default_trame_91x91.gif');
 
         return is_file($defaut)
-            ? response()->file($defaut, ['Cache-Control' => 'public, max-age=604800'])
+            // Cache court : le visuel peut arriver ensuite (transfert en
+            // cours, depot) et doit alors s'afficher sans attendre une semaine.
+            ? response()->file($defaut, ['Cache-Control' => 'public, max-age=7200'])
             : response('', 404);
     }
 }

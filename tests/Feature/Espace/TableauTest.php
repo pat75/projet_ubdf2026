@@ -59,7 +59,7 @@ it('montre les quotas de la formule sur le tableau de bord', function () {
     $this->actingAs($paye)->get(route('espace'))->assertOk()
         ->assertSee('202')
         ->assertSee('max: 500', false)
-        ->assertSee('max: 120 000 Ko', false);
+        ->assertSee('max: 500 Mo', false);
 
     $gratuit = App\Models\User::factory()->create(['plan' => 0]);
 

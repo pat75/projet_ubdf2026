@@ -68,14 +68,11 @@
                 </p>
             </div>
 
-            {{-- Les deux boutons menent au meme endroit : la grille, plus
-                 bas sur la page. Rien a charger, c'est une ancre. --}}
+            {{-- Le bouton mene a la grille, plus bas sur la page. Rien a
+                 charger, c'est une ancre. --}}
             <div class="flex min-w-[180px] flex-col gap-2">
                 <a href="#offres" class="bouton-espace bouton-espace-grand px-4.5">
                     {{ __('Renouveler') }}
-                </a>
-                <a href="#offres" class="bouton-espace bouton-espace-grand px-4.5">
-                    {{ __('Comparer les formules') }}
                 </a>
             </div>
         </section>

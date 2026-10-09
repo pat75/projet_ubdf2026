@@ -37,9 +37,9 @@ class Quotas
                 'unite' => '',
             ],
             'poids' => [
-                'valeur' => (int) $creatif->storage_used,
-                'plafond' => (int) $limites['poids_ko'],
-                'unite' => 'Ko',
+                'valeur' => (int) round($creatif->storage_used / 1000),
+                'plafond' => (int) round($limites['poids_ko'] / 1000),
+                'unite' => 'Mo',
             ],
         ];
     }

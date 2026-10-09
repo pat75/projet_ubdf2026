@@ -48,7 +48,7 @@ ETAPE 2 — LANCER LE TRANSFERT (sur le Mac)
 Prealables : MAMP demarre (structure de reference), code a jour deploye
 sur O2switch, deploy/deploy.config renseigne (OLD_SSH_PORT="2083").
 
-   ./deploy/transfert_mySQL.sh adminpat@163.172.103.215:/home/adminpat/db_ultra_book_2019_2026-10-06.sql.gz
+   ./deploy/transfert_mySQL.sh adminpat@163.172.103.215:/home/adminpat/db_ultra_book_2019_2026-10-08.sql.gz
 
 Le script resume ce qui va se passer ; taper TRANSFERER. Il exporte la
 structure de 2026_ubdf, renseigne DB_LEGACY_* dans .env.prod si besoin,

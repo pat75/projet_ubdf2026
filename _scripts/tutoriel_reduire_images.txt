@@ -1,0 +1,29 @@
+REDUIRE LES IMAGES > 2000 PX (PROD O2SWITCH)
+============================================
+
+Ramene a 2000 px de cote max les originaux des books.
+Original sauvegarde dans storage/app/originaux/. Les GIF ne sont pas touches.
+Se lance depuis le Mac ; tourne sur le serveur (le Mac peut etre ferme).
+
+Prerequis : avoir deploye (commande ubdf:images:reduire en ligne).
+
+1) Compter, sans rien modifier (~1 h)
+   ./_scripts/reduire-images.sh compter
+
+2) Reduire pour de bon
+   ./_scripts/reduire-images.sh lancer
+
+3) Suivre la progression  [book 1234/5276  23.4 %  ...]
+   Ctrl-A puis D        detacher (le script continue)
+   ./_scripts/reduire-images.sh suivre    revenir dans l'ecran
+   ./_scripts/reduire-images.sh etat      ou en est la passe, sans s'attacher
+
+4) Arret (coupure, Ctrl-C...) : relancer la MEME commande
+   -> repart du book suivant le dernier termine.
+   Repartir de zero : ajouter --recommencer
+   ./_scripts/reduire-images.sh lancer --recommencer
+
+5) Apres verification des books, liberer l'espace
+   ssh o2switch-ubpro "rm -rf ultra-book.pro/storage/app/originaux"
+
+Journaux : storage/logs/reduire-images-*.log (sur le serveur).

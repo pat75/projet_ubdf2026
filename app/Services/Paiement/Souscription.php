@@ -156,9 +156,27 @@ class Souscription
                 'issued_at' => now(),
                 'paid_at' => now(),
             ]);
-            $facture->update(['number' => ($creatif->brand ?: 'ub').'-'.$facture->id]);
+            $facture->update(['number' => $this->prochainNumero($creatif->brand ?: 'ub')]);
 
             return $facture;
         }));
+    }
+
+    /**
+     * Numero suivant de la marque, a la suite des numeros du legacy.
+     *
+     * Pas l'id : les factures reprises gardent leur numero d'origine
+     * (ub-10922 pour l'id 9230), et « ub-<id> » retombait sur un numero
+     * deja pris (ub-9231). Le FOR UPDATE serialise deux paiements
+     * simultanes de la meme marque, jusqu'a la fin de la transaction.
+     */
+    private function prochainNumero(string $marque): string
+    {
+        $dernier = (int) Invoice::where('number', 'like', $marque.'-%')
+            ->lockForUpdate()
+            ->selectRaw('MAX(CAST(SUBSTRING(number, ?) AS UNSIGNED)) AS dernier', [strlen($marque) + 2])
+            ->value('dernier');
+
+        return $marque.'-'.($dernier + 1);
     }
 }

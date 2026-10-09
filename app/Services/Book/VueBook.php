@@ -57,21 +57,34 @@ class VueBook
         return (string) config('book_themes.'.$this->b->modele_book.'.dossier');
     }
 
-    /** Espace du createur, sur le portail de sa marque. */
+    /** Page Habillage de l'espace du createur, sur le portail de sa marque. */
     public function urlEspace(): string
     {
-        $hote = config('marques.marques.'.$this->b->book->brand.'.hotes')[0] ?? null;
+        $marque = config('marques.marques.'.$this->b->book->brand);
 
-        return $hote ? 'https://'.$hote.'/espace' : url('/espace');
+        // En production, l'hote canonique (www.) : c'est la que le createur
+        // s'est connecte, et le cookie de session n'est pose que sur lui.
+        // ultra-book.com sans www renvoyait vers la connexion puis l'accueil.
+        if (app()->isProduction() && ! empty($marque['canonique'])) {
+            return rtrim($marque['canonique'], '/').'/espace/habillage';
+        }
+
+        $hote = $marque['hotes'][0] ?? null;
+
+        return $hote ? 'https://'.$hote.'/espace/habillage' : url('/espace/habillage');
     }
 
-    /** Photo de profil (visuel d'accueil), ou l'image par defaut. */
+    /**
+     * Photo de profil : visuel d'accueil du theme, sinon la photo reglee
+     * dans l'espace (Habillage, meme declinaison que l'espace), sinon
+     * l'image par defaut.
+     */
     public function photo(): string
     {
         $visuel = (string) $this->b->visuel_accueil;
 
         if ($visuel === '' || preg_match('/deleted$|\/$/i', $visuel)) {
-            return '/img_default/ultra-book_default_160x160.png';
+            return $this->b->book->thumbnailUrl('carre_368') ?? '/img_default/ultra-book_default_160x160.png';
         }
 
         return (str_contains($visuel, 'http') ? '' : $this->b->rep_pref).$visuel;

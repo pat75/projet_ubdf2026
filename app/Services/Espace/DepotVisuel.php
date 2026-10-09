@@ -154,7 +154,9 @@ class DepotVisuel
         return [
             'filename' => $nom,
             'mime' => mime_content_type($chemin),
-            'size' => filesize($chemin),
+            // En Ko, comme les visuels repris du legacy (img_poids) et les
+            // plafonds (formules.limites.*.poids_ko) : storage_used les additionne.
+            'size' => (int) ceil(filesize($chemin) / 1000),
             'width' => $image->width(),
             'height' => $image->height(),
         ];

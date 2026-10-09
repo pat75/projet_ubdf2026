@@ -1,0 +1,386 @@
+À partir de ce type de fichier propose une solution qui permettent de redimensionner en tâche de fonds via un scripte, toutes les images qui dépassent les 2000x2000 pixels
+10:11 AM
+Je regarde d'abord comment sont écrites les commandes existantes, pour suivre le même style.
+
+
+
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; ls app/Console/Commands | head -50; sed -n 25,60p app/Console/Commands/DossiersBooksCommand.php; grep -n "qualite" config/images.php
+
+OUT
+.gitkeep  0B
+AnalyserImagesCommand.php  794B
+AnalyserLegacyCommand.php  11.2K
+ComparerStructuresCommand.php  9.6K
+DossiersBooksCommand.php  7.6K
+EcrireRobotsCommand.php  932B
+EnvoyerNewslettersProgrammees.php  1.0K
+ImportCmsCommand.php  953B
+ImportLanguesCommand.php  4.7K
+InstallFrontAssetsCommand.php  5.8K
+MigrateLegacyCommand.php  11.0K
+PrechaufferImagesCommand.php  4.1K
+PreparerCoachingCommand.php  3.2K
+PurgerExportsCommand.php  1.0K
+RelancerFormulesCommand.php  684B
+RepriseAccueilLegacyCommand.php  5.4K
+SegmenterBooksCommand.php  2.1K
+VerifierUrlsCommand.php  5.4K
+ * est repris, les declinaisons y restent.
+ *
+ * Reprenable. En copie, un fichier deja present n'est recopie que s'il a
+ * change dans la source (taille ou date) ; en deplacement, il reste tel
+ * quel. `--depuis` et `--jusqua` bornent les premieres lettres traitees
+ * (ex. un essai sur les books de a a f, ou une reprise apres coupure).
+ *
+ * Progression sur une seule ligne reecrite, comme `rsync --info=progress2`.
+ */
+class DossiersBooksCommand extends Command
+{
+    protected $signature = 'ubdf:prod:dossiers-books
+        {--source= : Racine users_2 du legacy (defaut : LEGACY_BOOKS_PATH)}
+        {--depuis= : Premiere lettre traitee (reprise apres interruption)}
+        {--jusqua= : Derniere lettre traitee (ex. --depuis=a --jusqua=f)}
+        {--deplacer : Deplace les originaux au lieu de les copier (la source est videe de ce qui est repris)}
+        {--dry-run : Liste les correspondances sans rien copier}
+        {--compter : Affiche seulement le nombre de dossiers a traiter, puis s arrete}';
+
+    protected $description = 'Recree les dossiers des books : users_2/<a>/<b>/<login> -> books/<a>/<b>/<c>/<login>';
+
+    public function handle(): int
+    {
+        $source = rtrim((string) ($this->option('source') ?: config('ubdf.legacy_books_path')), '/');
+
+        if ($source === '' || ! is_dir($source)) {
+            $this->components->error("Racine legacy introuvable : '{$source}'");
+
+            return self::FAILURE;
+        }
+
+        $depuis = mb_strtolower((string) $this->option('depuis'));
+        $jusqua = mb_strtolower((string) $this->option('jusqua'));
+        $essai = (bool) $this->option('dry-run');
+        $fichiers = new LegacyFiles($source, deplacer: (bool) $this->option('deplacer'));
+        $logins = LegacyLogins::depuisLegacy();
+1 matches in 1 files:
+
+config/images.php:64:'qualite' => (int) env('IMAGES_QUALITE', 82),
+Write ReduireImagesCommand.php
+Write failed
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
+
+/**
+ * Ramene a 2000 px de cote maximum les originaux des books qui depassent.
+ *
+ * Le legacy acceptait n'importe quelle taille : des illustrations de
+ * 8268 x 8268 px (68 Mpx) depassent `images.pixels_max` et ne s'affichent
+ * pas. Aucune declinaison ne depasse 2000 px, l'exces ne sert donc a rien.
+ *
+ * L'original est deplace dans storage/app/originaux/<meme chemin> avant
+ * d'etre remplace : rien n'est perdu, le dossier se supprime a la main une
+ * fois le resultat verifie. La nouvelle date du fichier perime seule les
+ * declinaisons en cache (GenerateurImages compare les dates).
+ *
+ * Reprenable : un fichier deja reduit ne depasse plus, il est ignore.
+ * Les GIF sont laisses tels quels (souvent animes).
+ */
+class ReduireImagesCommand extends Command
+{
+    protected $signature = 'ubdf:images:reduire
+        {--max=2000 : Cote maximum en pixels}
+        {--dry-run : Liste les images a reduire sans rien modifier}';
+
+    protected $description = 'Reduit a --max px de cote les originaux des books trop grands (original sauvegarde)';
+
+    public function handle(ImageManager $manager): int
+    {
+        $max = (int) $this->option('max');
+        $essai = (bool) $this->option('dry-run');
+        $racine = storage_path('app/public/books');
+        $sauvegarde = storage_path('app/originaux');
+        $vus = $reduits = $erreurs = 0;
+
+        // books/<a>/<b>/<c>/<login>/<fichier> : les originaux seulement, pas
+        // les sous-dossiers (img_cms, cms).
+        foreach (glob($racine.'/*/*/*/*/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP}', GLOB_BRACE) as $fichier) {
+            $vus++;
+            $taille = @getimagesize($fichier);
+
+            if ($taille === false || max($taille[0], $taille[1]) <= $max) {
+                continue;
+            }
+
+            $relatif = substr($fichier, strlen($racine) + 1);
+            $this->line("{$taille[0]}x{$taille[1]}  {$relatif}");
+
+            if ($essai) {
+                $reduits++;
+
+                continue;
+            }
+
+            try {
+                $temporaire = $fichier.'.reduction.'.pathinfo($fichier, PATHINFO_EXTENSION);
+                $manager->decodePath($fichier)->scaleDown($max, $max)->save($temporaire, quality: 90);
+
+                File::ensureDirectoryExists(dirname($sauvegarde.'/'.$relatif));
+                File::move($fichier, $sauvegarde.'/'.$relatif);
+                File::move($temporaire, $fichier);
+                $reduits++;
+            } catch (\Throwable $e) {
+                @unlink($temporaire);
+                $erreurs++;
+                $this->components->error("{$relatif} : {$e->getMessage()}");
+            }
+        }
+
+        $verbe = $essai ? 'a reduire' : 'reduites';
+        $this->components->info("{$vus} images lues, {$reduits} {$verbe}, {$erreurs} erreurs.");
+
+        return $erreurs ? self::FAILURE : self::SUCCESS;
+    }
+}
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; mkdir -p /private/tmp/claude-501/rt/books/t/e/s/test && /usr/local/opt/php@8.3/bin/php -r '$i=imagecreatetruecolor(3000,1500); imagejpeg($i,"/private/tmp/claude-501/rt/books/t/e/s/test/a.jpg"); $j=imagecreatetruecolor(800,800); imagejpeg($j,"/private/tmp/claude-501/rt/books/t/e/s/test/b.jpg");'; ls storage/app/public/books 2>/dev/null | head -2; /usr/local/opt/php@8.3/bin/php artisan ubdf:images:reduire --dry-run | tail -3
+
+OUT
+7/
+a/
+  ⇂ ubdf:legacy  
+  ⇂ ubdf:prod
+Je constate qu'aucune commande existante ne redimensionne les images originales (seul le cache de déclinaisons est généré) ; je vais donc créer une commande Artisan dédiée qui parcourt storage/app/public/books/..., sauvegarde les originaux dans storage/app/originaux/ et redimensionne en tâche de fond toutes les images dépassant 2000x2000 pixels.
+Write ReduireImagesCommand.php
+81 lines
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
+
+/**
+ * Ramene a 2000 px de cote maximum les originaux des books qui depassent.
+ *
+ * Le legacy acceptait n'importe quelle taille : des illustrations de
+ * 8268 x 8268 px (68 Mpx) depassent `images.pixels_max` et ne s'affichent
+ * pas. Aucune declinaison ne depasse 2000 px, l'exces ne sert donc a rien.
+ *
+ * L'original est deplace dans storage/app/originaux/<meme chemin> avant
+ * d'etre remplace : rien n'est perdu, le dossier se supprime a la main une
+ * fois le resultat verifie. La nouvelle date du fichier perime seule les
+ * declinaisons en cache (GenerateurImages compare les dates).
+ *
+ * Reprenable : un fichier deja reduit ne depasse plus, il est ignore.
+ * Les GIF sont laisses tels quels (souvent animes).
+ */
+class ReduireImagesCommand extends Command
+{
+    protected $signature = 'ubdf:images:reduire
+        {--max=2000 : Cote maximum en pixels}
+        {--dry-run : Liste les images a reduire sans rien modifier}';
+
+    protected $description = 'Reduit a --max px de cote les originaux des books trop grands (original sauvegarde)';
+
+    public function handle(ImageManager $manager): int
+    {
+        $max = (int) $this->option('max');
+        $essai = (bool) $this->option('dry-run');
+        $racine = storage_path('app/public/books');
+        $sauvegarde = storage_path('app/originaux');
+        $vus = $reduits = $erreurs = 0;
+
+        // books/<a>/<b>/<c>/<login>/<fichier> : les originaux seulement, pas
+        // les sous-dossiers (img_cms, cms).
+        foreach (glob($racine.'/*/*/*/*/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP}', GLOB_BRACE) as $fichier) {
+            $vus++;
+            $taille = @getimagesize($fichier);
+
+            if ($taille === false || max($taille[0], $taille[1]) <= $max) {
+                continue;
+            }
+
+            $relatif = substr($fichier, strlen($racine) + 1);
+            $this->line("{$taille[0]}x{$taille[1]}  {$relatif}");
+
+            if ($essai) {
+                $reduits++;
+
+                continue;
+            }
+
+            $temporaire = $fichier.'.reduction.'.pathinfo($fichier, PATHINFO_EXTENSION);
+
+            try {
+                $manager->decodePath($fichier)->scaleDown($max, $max)->save($temporaire, quality: 90);
+
+                File::ensureDirectoryExists(dirname($sauvegarde.'/'.$relatif));
+                File::move($fichier, $sauvegarde.'/'.$relatif);
+                File::move($temporaire, $fichier);
+                $reduits++;
+            } catch (\Throwable $e) {
+                @unlink($temporaire);
+                $erreurs++;
+                $this->components->error("{$relatif} : {$e->getMessage()}");
+            }
+        }
+
+        $verbe = $essai ? 'a reduire' : 'reduites';
+        $this->components->info("{$vus} images lues, {$reduits} {$verbe}, {$erreurs} erreurs.");
+
+        return $erreurs ? self::FAILURE : self::SUCCESS;
+    }
+}
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; /usr/local/opt/php@8.3/bin/php artisan ubdf:images:reduire --dry-run 2>&1 | tail -6
+
+OUT
+1980x2200  a/x/e/axellevanhoof/jecoute2_jpg__1487484.jpg
+1980x2416  a/x/e/axellevanhoof/jvtc_couv_annee1_ok_jpg__1487479.jpg
+1890x2185  a/x/e/axellevanhoof/merci_pardon1_jpg__1487485.jpg
+
+   INFO  13611 images lues, 389 a reduire, 0 erreurs.
+10:12 AM
+L'essai à blanc fonctionne en local : 389 images à réduire sur 13 611. J'ajoute un test qui vérifie la réduction et la sauvegarde de l'original.
+
+
+
+Write ReduireImagesCommandTest.php
+Write failed
+<?php
+
+use Illuminate\Support\Facades\File;
+
+it('reduit les originaux trop grands et sauvegarde la source', function () {
+    $stockage = sys_get_temp_dir().'/reduire-'.uniqid();
+    app()->useStoragePath($stockage);
+    $dossier = $stockage.'/app/public/books/t/e/s/test';
+    File::ensureDirectoryExists($dossier);
+    imagejpeg(imagecreatetruecolor(3000, 1500), $dossier.'/grand.jpg');
+    imagejpeg(imagecreatetruecolor(800, 800), $dossier.'/petit.jpg');
+
+    $this->artisan('ubdf:images:reduire')->assertSuccessful();
+
+    expect(getimagesize($dossier.'/grand.jpg'))->toMatchArray([0 => 2000, 1 => 1000])
+        ->and(getimagesize($stockage.'/app/originaux/t/e/s/test/grand.jpg'))->toMatchArray([0 => 3000, 1 => 1500])
+        ->and(getimagesize($dossier.'/petit.jpg'))->toMatchArray([0 => 800, 1 => 800])
+        ->and(file_exists($stockage.'/app/originaux/t/e/s/test/petit.jpg'))->toBeFalse();
+
+    File::deleteDirectory($stockage);
+});
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; /usr/local/opt/php@8.3/bin/php artisan test --filter=ReduireImages 2>&1 | tail -4
+
+OUT
+   INFO  No tests found.
+Pest exécute ces tests automatiquement, aucun test n'existait encore pour cette nouvelle commande ubdf:images:reduire. Je vais créer des JPEG synthétiques (3000×1500 et 800×800 px) dans un dossier temporaire pour valider le redimensionnement en tâche de fond des images dépassant 2000×2000 px.
+Write ReduireImagesCommandTest.php
+22 lines
+<?php
+
+use Illuminate\Support\Facades\File;
+
+it('reduit les originaux trop grands et sauvegarde la source', function () {
+    $stockage = sys_get_temp_dir().'/reduire-'.uniqid();
+    app()->useStoragePath($stockage);
+    $dossier = $stockage.'/app/public/books/t/e/s/test';
+    File::ensureDirectoryExists($dossier);
+    imagejpeg(imagecreatetruecolor(3000, 1500), $dossier.'/grand.jpg');
+    imagejpeg(imagecreatetruecolor(800, 800), $dossier.'/petit.jpg');
+
+    $this->artisan('ubdf:images:reduire')->assertSuccessful();
+
+    expect(getimagesize($dossier.'/grand.jpg'))->toMatchArray([0 => 2000, 1 => 1000])
+        ->and(getimagesize($stockage.'/app/originaux/t/e/s/test/grand.jpg'))->toMatchArray([0 => 3000, 1 => 1500])
+        ->and(getimagesize($dossier.'/petit.jpg'))->toMatchArray([0 => 800, 1 => 800])
+        ->and(file_exists($stockage.'/app/originaux/t/e/s/test/petit.jpg'))->toBeFalse();
+
+    File::deleteDirectory($stockage);
+});
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; /usr/local/opt/php@8.3/bin/php artisan test --filter=ReduireImages 2>&1 | tail -4
+
+OUT
+  Tests:    1 failed (0 assertions)
+  Duration: 0.32s
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; /usr/local/opt/php@8.3/bin/php artisan test --filter=ReduireImages 2>&1 | grep -v "^\s*$" | head -20
+
+OUT
+   FAIL  Tests\Feature\ReduireImagesCommandTest
+  ⨯ it reduit les originaux trop grands et sauvegarde la source          0.01s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ReduireImagesCommandTest > it reduit les ori…  Error   
+  Call to undefined method Illuminate\Container\Container::useStoragePath()
+  at tests/Feature/ReduireImagesCommandTest.php:7
+      3▕ use Illuminate\Support\Facades\File;
+      4▕ 
+      5▕ it('reduit les originaux trop grands et sauvegarde la source', function () {
+      6▕     $stockage = sys_get_temp_dir().'/reduire-'.uniqid();
+  ➜   7▕     app()->useStoragePath($stockage);
+      8▕     $dossier = $stockage.'/app/public/books/t/e/s/test';
+      9▕     File::ensureDirectoryExists($dossier);
+     10▕     imagejpeg(imagecreatetruecolor(3000, 1500), $dossier.'/grand.jpg');
+     11▕     imagejpeg(imagecreatetruecolor(800, 800), $dossier.'/petit.jpg');
+  1   tests/Feature/ReduireImagesCommandTest.php:7
+  Tests:    1 failed (0 assertions)
+  Duration: 0.47s
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; grep -n "extend\|in(" tests/Pest.php; ls tests/Feature | head
+
+OUT
+2 matches in 1 files:
+
+tests/Pest.php:6:pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature/Dat...
+tests/Pest.php:7:pest()->extend(TestCase::class)->in('Feature/Images', 'Feature/Legacy', 'Unit');
+Admin/
+Database/
+Espace/
+Front/
+Images/
+Jobs/
+Legacy/
+Recherche/
+ReduireImagesCommandTest.php  945B
+Bash
+IN
+cd /Users/pat/Sites_2026/projet_ubdf2026; mv tests/Feature/ReduireImagesCommandTest.php tests/Feature/Images/; /usr/local/opt/php@8.3/bin/php artisan test --filter=ReduireImages 2>&1 | grep -E "Tests:|Call|Failed|expect" | head
+
+OUT
+  Tests:    1 passed (14 assertions)
+10:13 AM
+J'ai créé une commande artisan, ubdf:images:reduire, dans ReduireImagesCommand.php. Elle ramène à 2000 px de côté maximum tous les originaux des books qui dépassent. Le test passe ; en local, l'essai à blanc trouve 389 images à réduire sur 13 611. Rien n'est encore déployé ni lancé sur le serveur.
+
+Comment elle fonctionne :
+
+Elle parcourt storage/app/public/books/<a>/<b>/<c>/<login>/ (jpg, png, webp). Les sous-dossiers img_cms et cms ne sont pas touchés.
+Elle lit seulement l'en-tête de chaque fichier pour connaître sa taille : le parcours est rapide.
+Elle réduit l'image avec Imagick en gardant les proportions (une image de 8268 × 8268 devient 2000 × 2000), en qualité 90.
+Avant de remplacer un fichier, elle range l'original dans storage/app/originaux/<même chemin>. Rien n'est perdu ; ce dossier se supprime à la main une fois le résultat vérifié.
+Les déclinaisons déjà en cache se régénèrent seules, car le fichier réduit porte une date plus récente.
+On peut l'interrompre et la relancer : une image déjà réduite ne dépasse plus, elle est ignorée.
+Les GIF ne sont pas touchés, car ils sont souvent animés.
+Après le déploiement, sur o2switch, en tâche de fond comme organiser :
+
+
+ssh o2switch-ubpro
+cd ultra-book.pro
+php artisan ubdf:images:reduire --dry-run | tail -5    # combien d'images, sans rien modifier
+screen -S reduire-images php artisan ubdf:images:reduire 2>&1 | tee storage/logs/reduire-images.log
+# Ctrl-A puis D pour détacher ; screen -r reduire-images pour revenir
+Une fois les images réduites, plus aucune ne dépasse la limite pixels_max. L'ajout de IMAGES_PIXELS_MAX dans .env.prod n'est donc plus nécessaire.
+
+Pensez à vérifier l'espace disque avant : la copie des originaux occupe de la place jusqu'à ce que vous supprimiez storage/app/originaux.

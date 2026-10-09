@@ -96,13 +96,13 @@ it('intitule les boutons de la grille « Sélectionner »', function () {
 });
 
 /*
- | Les deux boutons de la carte d'etat ne chargent rien : ils descendent
- | a la grille des offres, plus bas sur la meme page.
+ | Le bouton de la carte d'etat ne charge rien : il descend a la grille
+ | des offres, plus bas sur la meme page.
  */
-it('renvoie les boutons de la carte vers la grille des offres', function () {
+it('renvoie le bouton de la carte vers la grille des offres', function () {
     $reponse = $this->get(route('espace.formule'))->assertOk()
         ->assertSee('Renouveler')
-        ->assertSee('Comparer les formules');
+        ->assertDontSee('Comparer les formules');
 
     expect($reponse->getContent())
         ->toContain('href="#offres"')

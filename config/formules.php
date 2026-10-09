@@ -59,7 +59,7 @@ return [
     */
     'limites' => [
         'gratuite' => ['visuels' => 12, 'poids_ko' => 22000, 'pages' => 8, 'visuels_par_rubrique' => 3],
-        'payante' => ['visuels' => 500, 'poids_ko' => 120000, 'pages' => 500, 'visuels_par_rubrique' => 24],
+        'payante' => ['visuels' => 500, 'poids_ko' => 500000, 'pages' => 500, 'visuels_par_rubrique' => 24],
     ],
 
     'payplug' => [
