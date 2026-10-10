@@ -295,6 +295,17 @@
     /* Messages à envoyer : même grammaire que la liste des opérations. */
     .ub-coach-messages { margin: 0 -1.5rem -1.5rem; border-top: 1px solid rgb(229 231 235); }
     .ub-coach-message { border-bottom: 1px solid rgb(229 231 235); }
+    /* Onglets intercalaires du bloc Messages : l'actif recouvre le filet haut du panneau. */
+    .ub-coach-onglets { display: flex; justify-content: flex-start; gap: .25rem; }
+    .ub-coach-onglet { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: .5rem; margin-bottom: -1px; padding: .55rem 1rem; border: 1px solid transparent; border-bottom: 0; border-radius: .5rem .5rem 0 0; font-size: .875rem; font-weight: 600; color: rgb(107 114 128); }
+    .ub-coach-onglet:hover { color: rgb(17 24 39); }
+    .ub-coach-onglet.est-actif { border-color: rgb(209 213 219); background: #fff; color: rgb(17 24 39); padding-bottom: calc(.55rem + 1px); }
+    .ub-coach-panneau { border: 1px solid rgb(209 213 219); border-radius: 0 .5rem .5rem .5rem; overflow: hidden; }
+    .ub-coach-panneau .ub-coach-messages { margin: 0; border-top: 0; }
+    .ub-coach-panneau .ub-coach-message:last-child { border-bottom: 0; }
+    .ub-coach-panneau > div > p { padding: 1rem; }
+    .dark .ub-coach-onglet.est-actif { border-color: rgb(75 85 99); background: rgb(17 24 39); color: #fff; }
+    .dark .ub-coach-panneau { border-color: rgb(75 85 99); }
     .dark .ub-coach-messages, .dark .ub-coach-message { border-color: rgb(55 65 81); }
     .ub-coach-message-ligne { display: flex; align-items: center; gap: .75rem; min-height: 3.25rem; padding: .6rem 1rem; white-space: nowrap; cursor: pointer; }
     .ub-coach-message-ligne:hover { background: rgb(249 250 251); }

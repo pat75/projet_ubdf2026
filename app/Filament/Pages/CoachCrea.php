@@ -119,8 +119,21 @@ class CoachCrea extends Page implements HasTable
         }
 
         $message->fill($this->brouillons[$id]);
+
+        // Envoi immediat, hors file d'attente : la file n'est videe que par le
+        // planificateur (schedule:run), absent en local et a surveiller en prod.
+        // L'administrateur voit ainsi tout de suite un echec SMTP, et le
+        // message n'est marque envoye qu'une fois parti.
+        try {
+            Mail::to($message->user->email)->sendNow(new CoachingMail($message));
+        } catch (Throwable $e) {
+            report($e);
+            Notification::make()->title('Envoi impossible : '.$e->getMessage())->danger()->send();
+
+            return;
+        }
+
         $this->clore($message, 'envoye');
-        Mail::to($message->user->email)->send(new CoachingMail($message));
 
         Notification::make()->title('Message envoyé à '.$message->user->fullName())->success()->send();
     }
@@ -243,6 +256,9 @@ class CoachCrea extends Page implements HasTable
             ->selectRaw('user_id, max(envoye_le) as dernier')->groupBy('user_id')->pluck('dernier', 'user_id');
 
 
-        return compact('messages', 'derniersEnvois');
+        // Onglet « Déjà envoyés » : les plus récents, à relire.
+        $envoyes = CoachMessage::with('user')->where('statut', 'envoye')->latest('envoye_le')->limit(50)->get();
+
+        return compact('messages', 'derniersEnvois', 'envoyes');
     }
 }

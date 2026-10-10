@@ -38,11 +38,29 @@
         ligne par créatif (flèche, avatar, nom, dates, objet), dépliée sur
         le diagnostic et le brouillon à relire.
     --}}
+    {{-- x-data sur un div englobant : le composant section ne le transmet
+         pas de facon fiable, et l'en-tete (onglets) doit voir l'etat. --}}
+    <div x-data="{ onglet: 'a-envoyer' }" class="min-w-0">
     <x-filament::section id="messages" class="ub-coach-section-messages">
         <x-slot name="heading">
-            <span class="ub-coach-tete">Messages à envoyer <span class="ub-coach-nombre">{{ $messages->count() }}</span></span>
+            <span class="ub-coach-tete">Messages</span>
         </x-slot>
 
+        {{-- Onglets intercalaires alignés à gauche : l'onglet actif et sa liste
+             partagent le même filet (styles : .ub-coach-onglet / .ub-coach-panneau). --}}
+        <div class="ub-coach-onglets" role="tablist">
+            <button type="button" role="tab" class="ub-coach-onglet" :class="{ 'est-actif': onglet === 'a-envoyer' }"
+                    :aria-selected="onglet === 'a-envoyer'" x-on:click="onglet = 'a-envoyer'">
+                À envoyer <span class="ub-coach-nombre">{{ $messages->count() }}</span>
+            </button>
+            <button type="button" role="tab" class="ub-coach-onglet" :class="{ 'est-actif': onglet === 'envoyes' }"
+                    :aria-selected="onglet === 'envoyes'" x-on:click="onglet = 'envoyes'">
+                Déjà envoyés <span class="ub-coach-nombre">{{ $envoyes->count() }}</span>
+            </button>
+        </div>
+        <div class="ub-coach-panneau">
+
+        <div x-show="onglet === 'a-envoyer'">
         @if ($messages->isEmpty())
             <p class="text-sm text-gray-500">Aucun message en attente.</p>
         @else
@@ -101,7 +119,40 @@
                 @endforeach
             </div>
         @endif
+        </div>
+
+        {{-- Messages envoyés : lecture seule, menus cités en liens comme dans l'espace. --}}
+        <div x-show="onglet === 'envoyes'" x-cloak>
+            @if ($envoyes->isEmpty())
+                <p class="text-sm text-gray-500">Aucun message envoyé.</p>
+            @else
+                <div class="ub-coach-messages">
+                    @foreach ($envoyes as $e)
+                        <div wire:key="envoye-{{ $e->id }}" x-data="{ ouvert: false }" class="ub-coach-message">
+                            <div class="ub-coach-message-ligne" x-on:click="ouvert = ! ouvert">
+                                <button type="button" class="ub-coach-deplier" :aria-expanded="ouvert"
+                                        :aria-label="ouvert ? 'Replier le message' : 'Relire le message'">
+                                    <x-filament::icon icon="heroicon-s-chevron-right" x-show="! ouvert" class="ub-coach-fleche" />
+                                    <x-filament::icon icon="heroicon-s-chevron-down" x-show="ouvert" x-cloak class="ub-coach-fleche" />
+                                </button>
+                                <span class="ub-coach-qui">{!! $avatar($e->user) !!}{!! $nom($e->user) !!}</span>
+                                <span class="ub-coach-message-meta">
+                                    Envoyé le {{ $e->envoye_le?->timezone('Europe/Paris')->format('d/m/Y H:i') }}@if ($e->traite_par) par {{ $e->traite_par }}@endif
+                                </span>
+                                <span class="ub-coach-message-objet">{{ $e->objet }}</span>
+                            </div>
+                            <div x-show="ouvert" x-cloak class="ub-coach-detail ub-coach-message-detail">
+                                <p class="text-sm font-semibold">{{ $e->objet }}</p>
+                                <div class="text-sm" style="white-space:pre-line">{{ $e->corpsAvecLiens() }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        </div>{{-- .ub-coach-panneau --}}
     </x-filament::section>
+    </div>
 
 </div>
 

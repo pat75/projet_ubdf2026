@@ -91,7 +91,12 @@
                             <button type="button" wire:click="supprimerIndesirables"
                                     wire:confirm="{{ __('Envoyer les :n demandes indésirables à la poubelle ?', ['n' => $nbIndesirables]) }}"
                                     class="bouton-espace bouton-espace-petit px-3.5">
-                                <x-espace.picto nom="poubelle" class="h-4 w-4 shrink-0" />
+                                {{-- Analyse IA en cours : le compte peut encore grossir. --}}
+                                @if ($analyseRestante)
+                                    <svg class="h-4 w-4 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                @else
+                                    <x-espace.picto nom="poubelle" class="h-4 w-4 shrink-0" />
+                                @endif
                                 {{ trans_choice('Supprimer :n indésirable|Supprimer les :n indésirables', $nbIndesirables, ['n' => $nbIndesirables]) }}
                             </button>
                         @endif

@@ -95,7 +95,7 @@ it('envoie le message corrige par l administrateur, avec le lien de desabonnemen
         ->call('envoyer', $message->id);
 
     expect($message->fresh())->statut->toBe('envoye')->corps->toBe('Corps corrigé');
-    Mail::assertQueued(CoachingMail::class, fn ($m) => str_contains($m->render(), 'coach/desabonnement'));
+    Mail::assertSent(CoachingMail::class, fn ($m) => str_contains($m->render(), 'coach/desabonnement'));
 });
 
 it('ouvre la page Coach crea avec l activite groupee par createur', function () {
@@ -246,4 +246,13 @@ it('valide le brouillon sans l envoyer', function () {
 
     expect($m->fresh())->statut->toBe('brouillon')->corps->toBe('Corrigé');
     Illuminate\Support\Facades\Mail::assertNothingSent();
+});
+
+it('liste les messages deja envoyes', function () {
+    $admin = App\Models\Admin::create(['name' => 'Pat', 'email' => 'coach5@example.test', 'password' => 'mot-de-passe-long']);
+    $this->actingAs($admin, 'admin');
+    Filament\Facades\Filament::setCurrentPanel('admin');
+    CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Objet envoyé', 'corps' => 'Bonjour Anne, voici le texte relu', 'statut' => 'envoye', 'envoye_le' => now(), 'diagnostic' => []]);
+
+    Livewire::test(App\Filament\Pages\CoachCrea::class)->assertSee('Déjà envoyés')->assertSee('Objet envoyé')->assertSee('voici le texte');
 });

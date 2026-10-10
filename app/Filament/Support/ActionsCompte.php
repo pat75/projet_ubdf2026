@@ -31,18 +31,19 @@ class ActionsCompte
     public static function selection(): Action
     {
         return Action::make('selection')
-            ->label(fn (User $u) => $u->in_home_selection ? __('Retirer de la sélection') : __('Sélectionner'))
-            ->tooltip(fn (User $u) => $u->in_home_selection ? __('Retirer de la sélection') : __('Sélectionner'))
+            // Un book deja en selection y rentre a nouveau : sa date passe a
+            // maintenant, ce qui le remonte en tete de la page d'accueil.
+            // Le retrait passe par la fiche ou le bandeau de revue.
+            ->label(fn (User $u) => $u->in_home_selection ? __('Resélectionner maintenant') : __('Sélectionner'))
+            ->tooltip(fn (User $u) => $u->in_home_selection ? __('Resélectionner maintenant') : __('Sélectionner'))
             ->icon(fn (User $u) => $u->in_home_selection ? 'heroicon-s-star' : 'heroicon-o-star')
             ->color(fn (User $u) => $u->in_home_selection ? 'warning' : 'gray')
             ->iconButton()
             ->action(function (User $u) {
-                $u->update(['in_home_selection' => ! $u->in_home_selection]);
+                $u->update(['in_home_selection' => true, 'home_selection_at' => now()]);
 
                 Notification::make()
-                    ->title($u->in_home_selection
-                        ? __(':login est en sélection.', ['login' => $u->login])
-                        : __(':login n’est plus en sélection.', ['login' => $u->login]))
+                    ->title(__(':login est en sélection depuis :heure.', ['login' => $u->login, 'heure' => now()->format('d/m/Y H:i')]))
                     ->success()->send();
             });
     }
