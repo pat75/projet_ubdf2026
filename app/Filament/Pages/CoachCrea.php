@@ -51,6 +51,9 @@ class CoachCrea extends Page implements HasTable
     /** @var array<int, array{objet: string, corps: string}> brouillons en cours d'edition */
     public array $brouillons = [];
 
+    /** Brouillon ouvert dans la fenetre de relecture (null : fermee). */
+    public ?int $enEdition = null;
+
     /** IA de redaction (Redacteur::CHOIX), enregistree des qu'elle change. */
     public string $coachIa = 'nvidia';
 
@@ -151,9 +154,64 @@ class CoachCrea extends Page implements HasTable
             return;
         }
 
-        $m = CoachMessage::create(['user_id' => $creatif->id, 'session_fin' => $session->last()?->created_at ?? now(), 'diagnostic' => $conseils, ...$message]);
+        // Un seul brouillon par createur : le nouveau remplace le precedent.
+        $m = CoachMessage::updateOrCreate(
+            ['user_id' => $creatif->id, 'statut' => 'brouillon'],
+            ['session_fin' => $session->last()?->created_at ?? now(), 'diagnostic' => $conseils, ...$message],
+        );
         $this->brouillons[$m->id] = ['objet' => $m->objet, 'corps' => $m->corps];
-        Notification::make()->title('Brouillon prêt pour '.$creatif->fullName())->success()->send();
+        $this->ouvrir($m->id);
+    }
+
+    /** Ouvre un brouillon dans la fenetre volante : modifier, relire, envoyer. */
+    public function ouvrir(int $id): void
+    {
+        abort_unless(isset($this->brouillons[$id]), 404);
+        $this->enEdition = $id;
+        $this->dispatch('open-modal', id: 'coach-brouillon');
+    }
+
+    /** Relecture IA du brouillon tel que l'administrateur l'a modifie : syntaxe seulement. */
+    public function relire(int $id, Redacteur $redacteur): void
+    {
+        $this->validate([
+            "brouillons.$id.objet" => 'required|string|max:255',
+            "brouillons.$id.corps" => 'required|string|max:5000',
+        ]);
+
+        try {
+            $relu = $redacteur->relire($this->brouillons[$id]['objet'], $this->brouillons[$id]['corps']);
+        } catch (Throwable $e) {
+            Notification::make()->title('Relecture impossible : '.$e->getMessage())->danger()->send();
+
+            return;
+        }
+
+        $this->brouillons[$id] = ['objet' => $relu['objet'], 'corps' => $relu['corps']];
+        Notification::make()->title('Message relu par '.$relu['modele'])->success()->send();
+    }
+
+    /** Enregistre le brouillon relu et ferme la fenetre : l'envoi se fait depuis la liste. */
+    public function valider(int $id): void
+    {
+        $this->validate([
+            "brouillons.$id.objet" => 'required|string|max:255',
+            "brouillons.$id.corps" => 'required|string|max:5000',
+        ]);
+
+        CoachMessage::where('statut', 'brouillon')->findOrFail($id)->update($this->brouillons[$id]);
+        $this->enEdition = null;
+        $this->dispatch('close-modal', id: 'coach-brouillon');
+        Notification::make()->title('Message enregistré, prêt à envoyer')->success()->send();
+    }
+
+    /** Supprime un brouillon (il ne reste pas dans l'historique, contrairement a « Ignorer »). */
+    public function supprimer(int $id): void
+    {
+        $message = CoachMessage::where('statut', 'brouillon')->findOrFail($id);
+        $this->clore($message, 'ignore'); // ferme la fenetre si ce brouillon y est ouvert
+        $message->delete();
+        Notification::make()->title('Message supprimé')->success()->send();
     }
 
     public function ignorer(int $id): void
@@ -169,6 +227,11 @@ class CoachCrea extends Page implements HasTable
             'envoye_le' => $statut === 'envoye' ? now() : null,
         ]);
         unset($this->brouillons[$message->id]);
+
+        if ($this->enEdition === $message->id) {
+            $this->enEdition = null;
+            $this->dispatch('close-modal', id: 'coach-brouillon');
+        }
     }
 
     protected function getViewData(): array

@@ -50,7 +50,7 @@ it('desabonne depuis le lien signe du mail', function () {
 });
 
 it('conseille ce qui manque, puis la selection une fois le book complet', function () {
-    expect(app(Diagnostic::class)->pour($this->creatif))->toContain('[Mon portfolio › Configurer] Ajouter un visuel de profil.');
+    expect(app(Diagnostic::class)->pour($this->creatif))->toContain('[Mon portfolio › Configurer] Personnaliser l’icône de profil du portfolio, la première image que les visiteurs associent au nom.');
 
     $this->creatif->bookSetting()->create(['thumbnail' => 'a.jpg', 'title' => 'T', 'description' => 'Bio']);
     $galerie = $this->creatif->galleries()->create(['name' => 'G', 'slug' => 'g']);
@@ -176,4 +176,74 @@ it('affiche et enregistre l IA de redaction choisie sur la page Coach', function
 
     Livewire::test(\App\Filament\Pages\CoachCrea::class)->set('coachIa', '2');
     expect(Redacteur::choix())->toBe('2');
+});
+
+it('fait du menu cite un lien dans le mail', function () {
+    $message = new App\Models\CoachMessage(['corps' => "Bonjour Anne,\nPour le faire rapidement : « Mon portfolio › Configurer »"]);
+
+    expect($message->corpsPourMail())->toContain('](' . lien('espace.design') . ')');
+});
+
+it('ouvre le brouillon dans une fenetre et le fait relire sans toucher au fond', function () {
+    $admin = App\Models\Admin::create(['name' => 'Pat', 'email' => 'coach@example.test', 'password' => 'mot-de-passe-long']);
+    $this->actingAs($admin, 'admin');
+    Filament\Facades\Filament::setCurrentPanel('admin');
+
+    $message = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Votre icone', 'corps' => 'Bonjour, vous pouriez', 'statut' => 'brouillon', 'diagnostic' => []]);
+
+    $redacteur = Mockery::mock(Redacteur::class);
+    $redacteur->shouldReceive('relire')->once()->with('Votre icone', 'Bonjour, vous pouriez')
+        ->andReturn(['objet' => 'Votre icône', 'corps' => 'Bonjour, vous pourriez', 'modele' => 'test']);
+    app()->instance(Redacteur::class, $redacteur);
+
+    Livewire::test(App\Filament\Pages\CoachCrea::class)
+        ->call('ouvrir', $message->id)
+        ->assertSet('enEdition', $message->id)
+        ->assertDispatched('open-modal', id: 'coach-brouillon')
+        ->call('relire', $message->id)
+        ->assertSet("brouillons.{$message->id}.corps", 'Bonjour, vous pourriez');
+});
+
+it('remplace le brouillon precedent du meme createur a la generation', function () {
+    $admin = App\Models\Admin::create(['name' => 'Pat', 'email' => 'coach2@example.test', 'password' => 'mot-de-passe-long']);
+    $this->actingAs($admin, 'admin');
+    Filament\Facades\Filament::setCurrentPanel('admin');
+    $ancien = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Ancien', 'corps' => 'Ancien', 'statut' => 'brouillon', 'diagnostic' => []]);
+
+    $redacteur = Mockery::mock(Redacteur::class);
+    $redacteur->shouldReceive('rediger')->andReturn(['objet' => 'Nouveau', 'corps' => 'Nouveau', 'modele' => 'test']);
+    app()->instance(Redacteur::class, $redacteur);
+
+    Livewire::test(App\Filament\Pages\CoachCrea::class)
+        ->call('generer', $this->creatif->id)
+        ->assertSet("brouillons.{$ancien->id}.objet", 'Nouveau');
+
+    expect(CoachMessage::where('user_id', $this->creatif->id)->where('statut', 'brouillon')->pluck('objet')->all())->toBe(['Nouveau']);
+});
+
+it('supprime un brouillon', function () {
+    $admin = App\Models\Admin::create(['name' => 'Pat', 'email' => 'coach3@example.test', 'password' => 'mot-de-passe-long']);
+    $this->actingAs($admin, 'admin');
+    Filament\Facades\Filament::setCurrentPanel('admin');
+    $m = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'A', 'corps' => 'A', 'statut' => 'brouillon', 'diagnostic' => []]);
+
+    Livewire::test(App\Filament\Pages\CoachCrea::class)->call('supprimer', $m->id);
+
+    expect(CoachMessage::count())->toBe(0);
+});
+
+it('valide le brouillon sans l envoyer', function () {
+    Illuminate\Support\Facades\Mail::fake();
+    $admin = App\Models\Admin::create(['name' => 'Pat', 'email' => 'coach4@example.test', 'password' => 'mot-de-passe-long']);
+    $this->actingAs($admin, 'admin');
+    Filament\Facades\Filament::setCurrentPanel('admin');
+    $m = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'A', 'corps' => 'A', 'statut' => 'brouillon', 'diagnostic' => []]);
+
+    Livewire::test(App\Filament\Pages\CoachCrea::class)
+        ->set("brouillons.{$m->id}.corps", 'Corrigé')
+        ->call('valider', $m->id)
+        ->assertDispatched('close-modal', id: 'coach-brouillon');
+
+    expect($m->fresh())->statut->toBe('brouillon')->corps->toBe('Corrigé');
+    Illuminate\Support\Facades\Mail::assertNothingSent();
 });

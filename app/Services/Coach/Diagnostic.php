@@ -20,27 +20,27 @@ class Diagnostic
         $conseils = [];
 
         if (blank($reglages?->thumbnail)) {
-            $conseils[] = '[Mon portfolio › Configurer] Ajouter un visuel de profil.';
+            $conseils[] = '[Mon portfolio › Configurer] Personnaliser l’icône de profil du portfolio, la première image que les visiteurs associent au nom.';
         }
         if (blank($reglages?->title)) {
-            $conseils[] = '[Mon portfolio › Configurer] Donner un titre au book.';
+            $conseils[] = '[Mon portfolio › Configurer] Donner au book un titre qui dit le métier (ex. « Illustratrice jeunesse »), affiché en tête de chaque page.';
         }
         if (blank($reglages?->description)) {
-            $conseils[] = '[Mon portfolio › Configurer] Rédiger une présentation (bio).';
+            $conseils[] = '[Mon portfolio › Configurer] Rédiger une courte présentation : parcours, pratique, clients visés.';
         }
         if ($creatif->galleries()->count() === 0) {
-            $conseils[] = '[Contenu du portfolio › Images] Créer au moins une galerie pour organiser les travaux.';
+            $conseils[] = '[Contenu du portfolio › Images] Ranger les travaux dans une première galerie (par projet, technique ou client).';
         }
         if ($visuels < self::VISUELS_MINIMUM) {
-            $conseils[] = "[Contenu du portfolio › Images] Le portfolio ne compte que {$visuels} visuel(s) : en ajouter pour atteindre au moins ".self::VISUELS_MINIMUM.'.';
+            $conseils[] = "[Contenu du portfolio › Images] Le portfolio ne compte que {$visuels} visuel(s) : ajouter des visuels pour atteindre au moins ".self::VISUELS_MINIMUM.' et montrer l’étendue du travail.';
         }
 
         // Book complet : les etapes suivantes.
         if ($conseils === []) {
             if (! $creatif->in_home_selection && ! $creatif->selection_requested_at?->gt(now()->subDays(30))) {
-                $conseils[] = '[Mon portfolio › Diffuser] Le book est complet : demander à figurer dans la sélection.';
+                $conseils[] = '[Mon portfolio › Diffuser] Le book est complet : proposer le book pour la sélection mise en avant sur la page d’accueil.';
             }
-            $conseils[] = '[Contenu du portfolio › Exporter] Exporter le book en PDF pour l’envoyer à des clients.';
+            $conseils[] = '[Contenu du portfolio › Exporter] Exporter le book en PDF, prêt à joindre à une candidature ou un devis.';
         }
 
         return $conseils;

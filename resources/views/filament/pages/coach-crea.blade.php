@@ -70,6 +70,12 @@
                             <x-filament::icon-button tag="a" :href="route('admin.prise-identite.relais', ['creatif' => $m->user])" target="_blank"
                                 icon="heroicon-o-arrow-right-on-rectangle" color="gray" x-on:click.stop
                                 :label="'Se connecter en tant que '.$m->user->login" :tooltip="'Ouvrir l’espace de '.$m->user->login" />
+                            <x-filament::icon-button icon="heroicon-o-paper-airplane" color="primary" x-on:click.stop
+                                wire:click="envoyer({{ $m->id }})" wire:target="envoyer({{ $m->id }})" wire:confirm="Envoyer ce message maintenant ?"
+                                :label="'Envoyer maintenant à '.$m->user->login" tooltip="Envoyer maintenant" />
+                            <x-filament::icon-button icon="heroicon-o-trash" color="danger" x-on:click.stop
+                                wire:click="supprimer({{ $m->id }})" wire:confirm="Supprimer ce message ?"
+                                label="Supprimer le message" tooltip="Supprimer le message" />
                         </div>
 
                         <div x-show="ouvert" x-cloak class="ub-coach-detail ub-coach-message-detail">
@@ -86,6 +92,7 @@
                             @error("brouillons.{$m->id}.*")<div class="text-sm text-danger-600">{{ $message }}</div>@enderror
 
                             <div class="flex gap-2">
+                                <x-filament::button size="sm" wire:click="ouvrir({{ $m->id }})" color="gray" icon="heroicon-o-pencil-square">Modifier / relire</x-filament::button>
                                 <x-filament::button size="sm" wire:click="envoyer({{ $m->id }})" wire:target="envoyer({{ $m->id }})" icon="heroicon-o-paper-airplane">Envoyer</x-filament::button>
                                 <x-filament::button size="sm" wire:click="ignorer({{ $m->id }})" wire:confirm="Écarter ce message ?" color="gray">Ignorer</x-filament::button>
                             </div>
@@ -97,4 +104,31 @@
     </x-filament::section>
 
 </div>
+
+{{-- Fenetre volante du brouillon : ouverte a la generation (ou par « Modifier / relire »). --}}
+<x-filament::modal id="coach-brouillon" width="3xl" :close-by-clicking-away="false">
+    @if ($enEdition && isset($brouillons[$enEdition]))
+        @php($courant = $messages->firstWhere('id', $enEdition))
+        <x-slot name="heading">Message pour {{ $courant?->user->fullName() }}</x-slot>
+        @if ($courant?->diagnostic)
+            <x-slot name="description">Conseil : {{ $courant->diagnostic[0] }}</x-slot>
+        @endif
+
+        {{-- Largeurs en style : le theme Filament ne compile pas toutes les classes utilitaires. --}}
+        <div class="space-y-3" style="width:100%" wire:key="edition-{{ $enEdition }}">
+            <input type="text" wire:model="brouillons.{{ $enEdition }}.objet" aria-label="Objet" style="display:block;width:100%;box-sizing:border-box"
+                   class="w-full rounded-lg border-gray-300 text-sm font-semibold dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+            <textarea wire:model="brouillons.{{ $enEdition }}.corps" rows="12" aria-label="Message" style="display:block;width:100%;box-sizing:border-box"
+                      class="w-full rounded-lg border-gray-300 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
+            @error("brouillons.{$enEdition}.*")<div class="text-sm text-danger-600">{{ $message }}</div>@enderror
+        </div>
+
+        <x-slot name="footerActions">
+            <x-filament::button wire:click="valider({{ $enEdition }})" wire:target="valider" icon="heroicon-o-check">Valider</x-filament::button>
+            <x-filament::button wire:click="relire({{ $enEdition }})" wire:target="relire" color="gray" icon="heroicon-o-sparkles"
+                                tooltip="Corrige l’orthographe, la syntaxe et les tournures, sans changer le fond">Relire (syntaxe)</x-filament::button>
+            <x-filament::button x-on:click="close" color="gray" outlined>Fermer</x-filament::button>
+        </x-slot>
+    @endif
+</x-filament::modal>
 </x-filament-panels::page>

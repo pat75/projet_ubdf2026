@@ -49,13 +49,35 @@ class Redacteur
         $contexte = "Créatif : {$creatif->fullName()}\n"
             ."Book : {$creatif->bookUrl()}\n\n"
             ."Opérations de la dernière session :\n- ".$operations->map->resume()->unique()->implode("\n- ")."\n\n"
-            ."Conseils à transmettre (dans cet ordre, n'en ajoute aucun) :\n- ".implode("\n- ", $conseils);
+            // Un seul conseil, le plus important (Diagnostic les classe) : le
+            // message propose une amelioration, pas une liste de taches.
+            ."Conseil à transmettre (n'en ajoute aucun) : ".($conseils[0] ?? '');
 
         $reponse = $this->appeler([
             ['role' => 'system', 'content' => file_get_contents(resource_path('prompts/coach.md'))],
             ['role' => 'user', 'content' => $contexte],
         ]);
 
+        return $this->lire($reponse);
+    }
+
+    /**
+     * Relecture d'un brouillon : syntaxe et tournures seulement, sans
+     * toucher au fond (resources/prompts/coach-relecture.md).
+     *
+     * @return array{objet: string, corps: string, modele: string}
+     */
+    public function relire(string $objet, string $corps): array
+    {
+        return $this->lire($this->appeler([
+            ['role' => 'system', 'content' => file_get_contents(resource_path('prompts/coach-relecture.md'))],
+            ['role' => 'user', 'content' => "Objet : {$objet}\n\n{$corps}"],
+        ]));
+    }
+
+    /** @return array{objet: string, corps: string, modele: string} */
+    private function lire(array $reponse): array
+    {
         $texte = trim($reponse['data']['choices'][0]['message']['content'] ?? '');
 
         // Format attendu : « Objet : … » sur la premiere ligne, puis le corps.

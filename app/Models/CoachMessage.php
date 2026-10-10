@@ -47,20 +47,27 @@ class CoachMessage extends Model
     /** Corps pour le mail (Markdown) : un retour a la ligne simple reste un retour a la ligne. */
     public function corpsPourMail(): string
     {
-        return preg_replace('/(?<=\S)\n(?=\S)(?![-*] )/u', "  \n", self::typographie($this->corps));
+        $texte = preg_replace('/(?<=\S)\n(?=\S)(?![-*] )/u', "  \n", self::typographie($this->corps));
+
+        // Le menu cite devient un lien, comme dans l'espace (corpsAvecLiens).
+        return self::lierMenus($texte, fn (string $menu, string $url) => '['.$menu.']('.$url.')');
+    }
+
+    /** Remplace chaque menu cite par $lien($menu, $url), espace insecable toleree dans le nom. */
+    private static function lierMenus(string $texte, \Closure $lien): string
+    {
+        foreach (self::MENUS as $menu => $route) {
+            $texte = preg_replace_callback('/'.str_replace(' ', '[ \x{00A0}]', preg_quote($menu, '/')).'/u', fn () => $lien($menu, lien($route)), $texte);
+        }
+
+        return $texte;
     }
 
     /** Corps echappe, chaque menu cite devenant un lien vers sa page. */
     public function corpsAvecLiens(): \Illuminate\Support\HtmlString
     {
-        $html = e(self::typographie($this->corps));
-
-        foreach (self::MENUS as $menu => $route) {
-            // Le nom du menu a pu recevoir une espace insecable : on la tolere.
-            $html = preg_replace('/'.str_replace(' ', '[ \x{00A0}]', preg_quote(e($menu), '/')).'/u', '<a href="'.e(lien($route)).'" class="font-semibold text-ub-accent-texte hover:underline">'.e($menu).'</a>', $html);
-        }
-
-        return new \Illuminate\Support\HtmlString($html);
+        return new \Illuminate\Support\HtmlString(self::lierMenus(e(self::typographie($this->corps)),
+            fn (string $menu, string $url) => '<a href="'.e($url).'" class="font-semibold text-ub-accent-texte hover:underline">'.e($menu).'</a>'));
     }
 
     public function user(): BelongsTo
