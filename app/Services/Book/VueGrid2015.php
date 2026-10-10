@@ -20,9 +20,16 @@ class VueGrid2015 extends VueResponsive2014
     /** Nombre maximal de tuiles de pages, comme front_nav_2015_accueil. */
     private const TUILES_PAGES = 50;
 
-    /** Visuel du haut de l'en-tete (visuel d'accueil de l'habillage). */
+    /**
+     * Visuel du haut de l'en-tete : le visuel de profil regle dans
+     * l'espace (Habillage), sinon l'ancien visuel d'accueil du theme.
+     */
     public function logo(): ?string
     {
+        if ($profil = $this->b->book->thumbnailUrl('carre_368')) {
+            return $profil;
+        }
+
         $visuel = trim((string) $this->b->visuel_accueil);
 
         if ($visuel === '' || $visuel === 'deleted' || str_starts_with($visuel, 'ultra-book_default_')) {
