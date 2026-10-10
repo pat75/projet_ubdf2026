@@ -12,6 +12,14 @@ class Gallery extends Model
 {
     use SoftDeletes;
 
+    /** Liste des fichiers proteges du book, gardee en cache : voir AccesPortfolios. */
+    protected static function booted(): void
+    {
+        $oublier = fn (self $modele) => \App\Services\Book\AccesPortfolios::oublier($modele->user_id);
+        static::saved($oublier);
+        static::deleted($oublier);
+    }
+
     protected $hidden = ['password'];
 
     protected $fillable = [

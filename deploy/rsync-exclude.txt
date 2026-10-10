@@ -16,6 +16,9 @@
 # --- Construit sur le serveur (composer) ou inutile ---
 vendor/
 node_modules/
+# Caches locaux (paquets de dev comme Pail) : ecrasaient ceux du serveur
+# jusqu'au composer install, et chaque requete plantait entre-temps.
+/bootstrap/cache/*.php
 
 # --- Donnees runtime de prod : ne jamais ecraser ni supprimer ---
 storage/

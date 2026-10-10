@@ -3,6 +3,9 @@
 namespace App\Services\Book;
 
 use App\Models\Gallery;
+use App\Models\Media;
+use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Portfolios proteges par mot de passe, cote visiteur du book.
@@ -42,24 +45,49 @@ class AccesPortfolios
     public const FERME = 'ferme';
 
     /**
-     * Etat d'un fichier du book pour ce visiteur. Une seule requete par
-     * image servie : le portfolio protege qui contient ce fichier, s'il y
-     * en a un.
+     * Etat d'un fichier du book pour ce visiteur.
+     *
+     * Appele pour chaque image servie : la liste des fichiers proteges du
+     * book est gardee en cache, pour qu'une image libre ne touche pas
+     * MySQL. Sans cela, un book charge d'un coup ouvrait autant de
+     * connexions que d'images, et depassait `max_user_connections` en
+     * prod. Le cache est vide par Gallery et Media a chaque ecriture.
      *
      * @return self::LIBRE|self::OUVERT|self::FERME
      */
     public function fichier(string $login, string $fichier): string
     {
-        $galerie = Gallery::query()
-            ->whereNotNull('password')
-            ->whereHas('user', fn ($q) => $q->where('login', $login))
-            ->whereHas('media', fn ($q) => $q->where('filename', $fichier))
-            ->first();
+        $id = self::fichiersProteges($login)[$fichier] ?? null;
+        $galerie = $id ? Gallery::find($id) : null;
 
         return match (true) {
             $galerie === null => self::LIBRE,
             $this->ouvert($galerie) => self::OUVERT,
             default => self::FERME,
         };
+    }
+
+    /** @return array<string, int> nom de fichier => id du portfolio protege */
+    private static function fichiersProteges(string $login): array
+    {
+        return Cache::remember(self::cleCache($login), 3600, fn () => Media::query()
+            ->whereHas('user', fn ($q) => $q->where('login', $login))
+            ->whereHas('gallery', fn ($q) => $q->whereNotNull('password'))
+            ->pluck('gallery_id', 'filename')
+            ->all());
+    }
+
+    public static function oublier(?int $userId): void
+    {
+        $login = $userId ? User::query()->whereKey($userId)->value('login') : null;
+
+        if ($login) {
+            Cache::forget(self::cleCache($login));
+        }
+    }
+
+    private static function cleCache(string $login): string
+    {
+        return 'book.fichiers_proteges.'.$login;
     }
 }

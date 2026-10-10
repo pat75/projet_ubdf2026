@@ -1,6 +1,24 @@
  
 
 
+
+
+
+
+
+
+
+
+
+
+
++ mise en place de la sauvegarde Rsync sur gigabyte cheminée
+
+
+
+
+
+
 +   sur https://ubdf2026.ultra-book.name/espace/pages revoir et sélectionner 
 le bon éditeur
 
