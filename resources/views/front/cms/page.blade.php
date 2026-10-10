@@ -50,21 +50,45 @@
     }, $corps);
 
     $connecte = auth('web')->check();
+
+    // Visuel d'en-tete, repris des photos du guide Tesli : le meme pour une
+    // page donnee, d'une visite a l'autre. Sert aussi d'image de partage.
+    $visuels = glob(public_path('img_doc/guide/*.avif')) ?: [];
+    $visuel = $visuels ? '/img_doc/guide/'.basename($visuels[crc32($page->slug) % count($visuels)]) : null;
 @endphp
+
+@if ($visuel)
+    @section('og_image', rtrim($marque->canonique, '/').$visuel)
+@endif
+
+{{-- Page quasi vide (fiches ecoles reprises du WordPress) : servie, mais
+     pas indexee — du contenu mince affaiblit toute la documentation. --}}
+@if (str_word_count(strip_tags($page->body ?? '')) < 80)
+    @section('robots', 'noindex, follow')
+@endif
 
 @section('content')
     <div class="ubg">
         <div class="ubg_grille">
 
             @if ($total > 1)
-                <aside class="ubg_nav">
+                <aside class="ubg_nav" x-data="{ ouvert: false }" :class="{ ouvert }">
                     <div class="ubg_nav_entete">
                         <span class="ubg_mono">{{ __('Documentation') }}</span>
                         <span class="ubg_mono">{{ $total }}</span>
                     </div>
-                    <div class="ubg_nav_titre">{{ __('Guide :marque', ['marque' => $marque->nom]) }}</div>
+                    <div class="ubg_nav_titre">
+                        <span>{{ __('Guide :marque', ['marque' => $marque->nom]) }}</span>
+                        {{-- Mobile : le sommaire se replie derriere ce bouton. --}}
+                        <button type="button" class="ubg_burger" @click="ouvert = ! ouvert"
+                                :aria-expanded="ouvert" aria-controls="ubg_sommaire_guides"
+                                :aria-label="ouvert ? @js(__('Fermer le menu')) : @js(__('Ouvrir le menu'))">
+                            <svg x-show="! ouvert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                            <svg x-show="ouvert" x-cloak viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                        </button>
+                    </div>
 
-                    <nav>
+                    <nav id="ubg_sommaire_guides">
                         @foreach ($navigation as $soeur)
                             <a href="{{ lien('cms.doc', $soeur->slug) }}"
                                class="ubg_nav_lien @if ($soeur->is($page)) actif @endif"
@@ -103,12 +127,6 @@
                     <p class="ubg_chapo">{{ texte_seo($page->excerpt) }}</p>
                 @endif
 
-                {{-- Visuel d'en-tete, repris des photos du guide Tesli : le meme
-                     pour une page donnee, d'une visite a l'autre. --}}
-                @php
-                    $visuels = glob(public_path('img_doc/guide/*.avif')) ?: [];
-                    $visuel = $visuels ? '/img_doc/guide/'.basename($visuels[crc32($page->slug) % count($visuels)]) : null;
-                @endphp
                 @if ($visuel)
                     <figure class="ubg_visuel">
                         <img src="{{ $visuel }}" alt="{{ $page->title }} — {{ $marque->nom }}" width="1200" height="360" @unless ($rang === 0) loading="lazy" @endunless>

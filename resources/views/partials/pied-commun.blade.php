@@ -1,18 +1,18 @@
 {{-- Pied de page commun : portail, espace creatif et compte visiteur (maquette « Footer ultra-book »). --}}
 @php
-    $rubriques = [
-        [__('Zoom'), null, 'btn_zoom'],
-        [__('Tendances, Actualités'), null, 'btn_actu'],
-        [__('Derniers :marque', ['marque' => $marque->nom]), lien('home').'#bloc_ultrabook_href', null],
-    ];
+    // Les 32 dernieres recherches distinctes ayant donne un resultat.
+    $recherches = cache()->remember('pied_recherches_'.$marque->code, now()->addHour(),
+        fn () => \App\Models\SearchQuery::where('brand', $marque->code)->whereRaw('nb_books + nb_images > 0')
+            ->selectRaw('q, MAX(created_at) as derniere')->groupBy('q')
+            ->orderByDesc('derniere')->limit(32)->pluck('q')->all());
     $annuaires = [
-        [__('Annuaire des écoles'), 'http://www.ultra-book.fr/ecoles/'],
         [__('Illustrateurs freelances'), 'https://www.les-illustrateurs.com'],
         [__('Graphistes freelances'), '/meilleurs-graphistes'],
         [__('Webdesigners freelances'), '/webdesigner-freelance'],
         [__('Développeurs freelances'), '/developpeur-freelance'],
     ];
     $autresSites = [
+        ['Dustfolio.com', 'https://www.dustfolio.com', 'Plate-forme Ultra-book international'],
         ['Tesli', 'https://www.tesli.fr', 'Créez votre site en un clic, par IA'],
         ['La Belle Illustration', 'https://www.la-belle-illustration.fr', 'La boutique d’illustrations à vendre'],
         ['UB-diffusion', 'https://www.les-illustrateurs.com', 'La plateforme créative pour vendre vos créations'],
@@ -157,10 +157,10 @@
             </nav>
 
             <nav class="pf-nav">
-                <h2 class="pf-titre-section">{{ __('Rubriques') }}</h2>
-                <div class="pf-liens">
-                    @foreach ($rubriques as [$libelle, $url, $classe])
-                        <a @if ($url) href="{{ $url }}" @endif @if ($classe) class="{{ $classe }}" @endif>{{ $libelle }}</a>
+                <h2 class="pf-titre-section">{{ __('Dernières recherches') }}</h2>
+                <div class="pf-liens" style="flex-direction:row;flex-wrap:wrap;gap:6px 14px">
+                    @foreach ($recherches as $q)
+                        <a href="/recherche?q={{ rawurlencode($q) }}" style="opacity:{{ round(1 - 0.6 * $loop->index / max(1, $loop->count - 1), 2) }}">{{ \Illuminate\Support\Str::ucfirst(trim(str_contains($q, ',') ? explode(',', $q, 2)[1] : $q)) }}</a>
                     @endforeach
                 </div>
             </nav>
@@ -195,7 +195,6 @@
                 @endforeach
             </div>
             <div class="pf-boutons">
-                <a href="https://www.dustfolio.com/accueil" class="pf-btn-contour">Dustfolio <span>→</span></a>
                 <a href="https://www.creer-un-book.com" title="{{ __('Comment créer un book') }}" class="pf-btn-plein">{{ __('Créez un book') }} <span>→</span></a>
             </div>
         </div>

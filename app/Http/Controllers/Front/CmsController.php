@@ -47,6 +47,19 @@ class CmsController extends Controller
 
 
         $page = $this->trouver($slug);
+
+        // Page d'une autre langue (ex. /doc/formules, anglaise, sur Ultra-book
+        // qui ne sert que le francais) : 301 vers sa traduction, faute de quoi
+        // le moteur indexe une page anglaise declaree lang="fr".
+        if ($page->locale !== $this->locale()) {
+            $traduction = $page->translation_group
+                ? CmsPage::publiees()->where('translation_group', $page->translation_group)
+                    ->where('locale', $this->locale())->value('slug')
+                : null;
+
+            return redirect()->to(lien('cms.doc', $traduction ?? self::RACINE_DOC), 301);
+        }
+
         $this->adapterALaMarque($request, $page);
 
         return view('front.cms.page', [

@@ -22,7 +22,7 @@ beforeEach(function () {
     $this->page = CmsPage::create([
         'legacy_id' => 411,
         'translation_group' => 20,
-        'slug' => 'qui-sommes-nous',
+        'slug' => 'presentation',
         'locale' => 'fr',
         'parent_slug' => 'doc',
         'title' => 'Qui sommes nous',
@@ -64,7 +64,7 @@ beforeEach(function () {
 });
 
 it('sert une page de documentation', function () {
-    $this->get(page_portail('/doc/qui-sommes-nous'))
+    $this->get(page_portail('/doc/presentation'))
         ->assertOk()
         ->assertSee('Qui sommes nous')
         ->assertSee('Ultra-book est une plate-forme.', false);
@@ -72,32 +72,37 @@ it('sert une page de documentation', function () {
 
 it('sert la meme page sous l ancienne forme page__', function () {
     // Le legacy distinguait /doc/x et /page__x ; les deux URL sont indexees.
-    $this->get(page_portail('/page__qui-sommes-nous'))
+    $this->get(page_portail('/page__presentation'))
         ->assertOk()
         ->assertSee('Qui sommes nous');
 });
 
 it('sert les anciennes URL par marque', function () {
-    $this->get(page_portail('/ultra-book__qui-sommes-nous'))->assertOk();
-    $this->get(page_portail('/dustfolio__qui-sommes-nous'))->assertOk();
+    $this->get(page_portail('/ultra-book__presentation'))->assertOk();
+    $this->get(page_portail('/dustfolio__presentation'))->assertOk();
 });
 
 it('affiche le sommaire des pages soeurs', function () {
-    $this->get(page_portail('/doc/qui-sommes-nous'))
+    $this->get(page_portail('/doc/presentation'))
         ->assertOk()
         ->assertSee('Droit d’auteur', false);
 });
 
 it('ne melange pas les sommaires des deux langues', function () {
-    $this->get(page_portail('/doc/qui-sommes-nous'))
+    $this->get(page_portail('/doc/presentation'))
         ->assertOk()
         ->assertDontSee('Copyright');
 });
 
-it('sert une page anglaise par son slug', function () {
-    // Les deux arbres cohabitent : une page anglaise reste accessible
-    // meme quand le portail est en francais.
-    $this->get(page_portail('/doc/copyright'))->assertOk()->assertSee('Copyright');
+it('redirige une page anglaise vers sa traduction sur le portail francais', function () {
+    // Servie telle quelle, elle serait indexee comme une page lang="fr".
+    $this->get(page_portail('/doc/copyright'))
+        ->assertRedirect(lien('cms.doc', 'droit-dauteur'))
+        ->assertStatus(301);
+});
+
+it('ne fait pas indexer une page quasi vide', function () {
+    $this->get(page_portail('/doc/droit-dauteur'))->assertSee('noindex, follow', false);
 });
 
 it('rend 404 sur un slug inconnu', function () {

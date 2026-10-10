@@ -388,7 +388,8 @@
     
 
 
-@if ($accueilBlocs['mots_cles'] ?? true)
+{{-- Mots-cles masques sur Dustfolio. --}}
+@if (($accueilBlocs['mots_cles'] ?? true) && $marque->estDefaut())
 	<!-- Last recherche -->
 
 
