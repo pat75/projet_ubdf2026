@@ -41,6 +41,10 @@ Schedule::command('ubdf:envoyer-newsletters')
 // Analyse IA des visuels en attente : un lot par minute (page admin Analyse IA).
 Schedule::command('ubdf:analyser-images')->everyMinute()->withoutOverlapping(30);
 
+// Visites ajoutees (page admin Statistiques) : chaque lot est planifie a
+// la minute pres, on verse ce qui est echu.
+Schedule::command('ubdf:visites:appliquer')->everyFifteenMinutes()->withoutOverlapping();
+
 // Coach crea : brouillons de coaching, 24 h apres la derniere session d'un createur.
 Schedule::command('ubdf:preparer-coaching')->hourly()->withoutOverlapping();
 

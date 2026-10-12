@@ -385,6 +385,11 @@ class User extends Authenticatable
         return $this->hasMany(VisitStat::class);
     }
 
+    public function visitesAjoutees(): HasMany
+    {
+        return $this->hasMany(VisiteAjoutee::class);
+    }
+
     public function selections(): BelongsToMany
     {
         return $this->belongsToMany(Selection::class)

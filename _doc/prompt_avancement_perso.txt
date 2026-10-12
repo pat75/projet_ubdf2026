@@ -110,6 +110,8 @@ qui permettent d'envoyer des images directement à partir de son poste de travai
 ================ ok
 
 
++ visite - ok
+de visite aléatoire pour les utilisateurs, ayant moins de 1k
 
 
 + statistiques - OK
