@@ -334,14 +334,17 @@
                     @error('confirmationSuppression') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
                 </label>
 
-                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Mot de passe actuel') }}
-                    <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="champ-espace">
-                    @error('motDePasseActuel') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+                <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2">{{ __('Écrivez « :phrase »', ['phrase' => __('supprimer mon book')]) }}
+                    <input type="text" wire:model="phraseSuppression" autocomplete="off" placeholder="{{ __('supprimer mon book') }}" class="champ-espace">
+                    @error('phraseSuppression') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
                 </label>
             </div>
 
+            {{-- Actif seulement quand l'identifiant et la phrase sont justes (verifies aussi cote serveur). --}}
             <button type="submit" wire:target="supprimerPortfolio" wire:loading.attr="disabled"
-                    class="bouton-espace bouton-espace-grand mt-4 px-4">
+                    :disabled="$wire.confirmationSuppression.trim() !== @js($creatif->login)
+                        || $wire.phraseSuppression.trim().toLowerCase() !== @js(mb_strtolower(__('supprimer mon book')))"
+                    class="bouton-espace bouton-espace-grand mt-4 px-4 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-100">
                 {{ __('Supprimer définitivement mon portfolio') }}
             </button>
         </form>

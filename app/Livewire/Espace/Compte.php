@@ -55,7 +55,8 @@ class Compte extends Component
     public bool $newsletter = false;
 
 
-    public string $motDePasseActuel = '';
+    /** Phrase « supprimer mon book » recopiee en toutes lettres. */
+    public string $phraseSuppression = '';
 
     /** Identifiant recopie pour confirmer la suppression du portfolio. */
     public string $confirmationSuppression = '';
@@ -276,8 +277,12 @@ class Compte extends Component
         $creatif = Auth::user();
 
         $this->validate([
-            'motDePasseActuel' => ['required', 'current_password'],
             'confirmationSuppression' => ['required', Rule::in([$creatif->login])],
+            'phraseSuppression' => ['required', function ($attribut, $valeur, $echec) {
+                if (mb_strtolower(trim((string) $valeur)) !== mb_strtolower(__('supprimer mon book'))) {
+                    $echec(__('Écrivez « :phrase » pour confirmer.', ['phrase' => __('supprimer mon book')]));
+                }
+            }],
         ], [
             'confirmationSuppression.in' => __('Recopiez votre identifiant pour confirmer la suppression.'),
         ]);

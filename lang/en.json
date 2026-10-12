@@ -2090,5 +2090,8 @@
     "Votre portfolio ne contient encore aucune image.": "Your portfolio doesn’t contain any images yet.",
     "Chargez-les depuis le menu Images de votre espace :": "Upload them from the Images menu of your account:",
     "charger mes images": "upload my images",
-    "Déplacez les portfolios pour les réordonner.": "Drag portfolios to reorder them."
+    "Déplacez les portfolios pour les réordonner.": "Drag portfolios to reorder them.",
+    "supprimer mon book": "delete my portfolio",
+    "Écrivez « :phrase »": "Type “:phrase”",
+    "Écrivez « :phrase » pour confirmer.": "Type “:phrase” to confirm."
 }

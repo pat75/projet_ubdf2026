@@ -73,7 +73,7 @@ it('supprime le portfolio quand le createur recopie son identifiant', function (
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->set('confirmationSuppression', 'aline')
-        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->set('phraseSuppression', 'supprimer mon book')
         ->call('supprimerPortfolio');
 
     // Suppression douce : la fiche quitte le site, la ligne reste.
@@ -87,15 +87,15 @@ it('ne supprime rien si l identifiant ou le mot de passe ne suit pas', function 
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->set('confirmationSuppression', 'alin')
-        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->set('phraseSuppression', 'supprimer mon book')
         ->call('supprimerPortfolio')
         ->assertHasErrors('confirmationSuppression');
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->set('confirmationSuppression', 'aline')
-        ->set('motDePasseActuel', 'au-hasard')
+        ->set('phraseSuppression', 'au hasard')
         ->call('supprimerPortfolio')
-        ->assertHasErrors('motDePasseActuel');
+        ->assertHasErrors('phraseSuppression');
 
     expect(User::where('login', 'aline')->exists())->toBeTrue();
 });
@@ -109,7 +109,7 @@ it('archive les images du book supprime dans storage/books_effaces', function ()
 
     Livewire::actingAs($creatif)->test(Compte::class)
         ->set('confirmationSuppression', $login)
-        ->set('motDePasseActuel', 'mot-de-passe-long')
+        ->set('phraseSuppression', 'supprimer mon book')
         ->call('supprimerPortfolio');
 
     $archives = File::glob(storage_path(ArchiveBook::DOSSIER.'/'.$login.'_*.zip'));
