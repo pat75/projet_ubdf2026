@@ -22,7 +22,7 @@
 
     <a href="{{ route(nom_route($route)) }}"
        @class([
-           'flex items-center gap-2 rounded-ub px-3 py-[7.5px] no-underline',
+           'flex items-center gap-2 rounded-ub px-3 py-[6px] no-underline',
            'bg-ub-accent-fond font-semibold text-ub-accent-texte' => $actif,
            'text-[#333] hover:bg-[#f5f5f3]' => ! $actif,
        ])
