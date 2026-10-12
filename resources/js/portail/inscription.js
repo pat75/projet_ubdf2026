@@ -28,6 +28,9 @@ export default function inscription(Alpine) {
         loginLibre: null,
         progression: 0,
         bravo: false,
+        // Machine a ecrire pendant la progression (repris de ubdiff, start.blade.php) :
+        // lignes deja tapees, la derniere en cours.
+        lignes: [],
         urlEspace: null,
         // Image du captcha local (App\Services\Captcha\Captcha, formulaire « inscription »).
         captcha: '',
@@ -124,6 +127,7 @@ export default function inscription(Alpine) {
 
         // Anneau de progression 0 -> 100 %, puis le message « Bravo ».
         animerProgression() {
+            this.ecrire(this.$refs.machine?.dataset.texte ?? '');
             const debut = performance.now();
             const etape = (maintenant) => {
                 this.progression = Math.min(100, Math.round(((maintenant - debut) / DUREE_PROGRESSION) * 100));
@@ -132,9 +136,42 @@ export default function inscription(Alpine) {
                     requestAnimationFrame(etape);
                 } else {
                     this.bravo = true;
+                    // Sans clic au bout de 4 s, on entre seul dans l'espace.
+                    setTimeout(() => this.allerEspace(), 4000);
                 }
             };
             requestAnimationFrame(etape);
+        },
+
+        /*
+         * Fait apparaitre le texte mot a mot ; « -stop- » marque une pause
+         * et un retour a la ligne. Le rythme suit la longueur de chaque mot,
+         * et l'ensemble tient dans la duree de la progression.
+         */
+        ecrire(texte) {
+            const segments = texte.split(/\s*-stop-\s*/i).map((s) => s.trim().split(/\s+/).filter(Boolean)).filter((m) => m.length);
+            const mots = segments.flat();
+            if (!mots.length) return;
+
+            const poids = mots.reduce((n, m) => n + 2 + m.length, 0) + (segments.length - 1) * 8;
+            const unite = (DUREE_PROGRESSION * 0.85) / poids;
+            let s = 0;
+            let m = 0;
+            this.lignes = [''];
+
+            const suivant = () => {
+                const mot = segments[s][m];
+                const ligne = this.lignes.length - 1;
+                this.lignes[ligne] = (this.lignes[ligne] ? this.lignes[ligne] + ' ' : '') + mot;
+                m++;
+                if (m < segments[s].length) {
+                    setTimeout(suivant, unite * (2 + mot.length));
+                } else if (++s < segments.length) {
+                    m = 0;
+                    setTimeout(() => { this.lignes.push(''); suivant(); }, unite * 8);
+                }
+            };
+            suivant();
         },
 
         dessiner() {

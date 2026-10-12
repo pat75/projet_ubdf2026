@@ -144,3 +144,26 @@ it('libere l identifiant d un compte supprime, et le rend a la restauration s il
     $ancien->restore();
     expect($ancien->fresh()->login)->toBe('aline');
 });
+
+it('mene a la page de confirmation, ou le createur laisse une note de 1 a 5', function () {
+    $creatif = User::factory()->create(['login' => 'aline']);
+
+    Livewire::actingAs($creatif)->test(Compte::class)
+        ->set('confirmationSuppression', 'aline')
+        ->set('phraseSuppression', 'supprimer mon book')
+        ->call('supprimerPortfolio')
+        ->assertRedirectContains('/book-supprime/'.$creatif->id);
+
+    $page = \App\Http\Controllers\Front\SuppressionBookController::lien($creatif);
+    $this->get($page)->assertOk()->assertSee(__('Votre book est supprimé'));
+
+    $action = \Illuminate\Support\Facades\URL::temporarySignedRoute('book.supprime.noter', now()->addDay(), ['user' => $creatif->id]);
+    $this->post($action, ['note' => 9])->assertSessionHasErrors('note');
+    $this->post($action, ['note' => 4])->assertRedirect();
+
+    expect($creatif->fresh()->deletion_rating)->toBe(4)
+        ->and($creatif->fresh()->etoilesSuppressionHtml())->toContain('★★★★');
+
+    // Sans signature : refuse.
+    $this->get('/book-supprime/'.$creatif->id)->assertForbidden();
+});

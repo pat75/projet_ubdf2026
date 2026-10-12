@@ -36,7 +36,7 @@ final class ArchiveBook
             : collect();
 
         File::ensureDirectoryExists(storage_path(self::DOSSIER));
-        $archive = storage_path(self::DOSSIER.'/'.$creatif->login.'_'.now()->format('Ymd_His').'.zip');
+        $archive = storage_path(self::DOSSIER.'/'.$creatif->login.'_'.$creatif->id.'_'.now()->format('Ymd_His').'.zip');
 
         $zip = new ZipArchive;
         if ($zip->open($archive, ZipArchive::CREATE | ZipArchive::EXCL) !== true) {

@@ -2093,5 +2093,18 @@
     "Déplacez les portfolios pour les réordonner.": "Drag portfolios to reorder them.",
     "supprimer mon book": "delete my portfolio",
     "Écrivez « :phrase »": "Type “:phrase”",
-    "Écrivez « :phrase » pour confirmer.": "Type “:phrase” to confirm."
+    "Écrivez « :phrase » pour confirmer.": "Type “:phrase” to confirm.",
+    "Book supprimé": "Portfolio deleted",
+    "Votre book est supprimé": "Your portfolio has been deleted",
+    "Merci pour votre note.": "Thank you for your rating.",
+    "Vous pouvez nous laisser une note sur votre expérience.": "You can rate your experience with us.",
+    "Note": "Rating",
+    ":n étoile|:n étoiles": ":n star|:n stars",
+    "Valider ma note": "Submit my rating",
+    "Choisissez une note de 1 à 5 étoiles.": "Choose a rating from 1 to 5 stars.",
+    "Note à la suppression : :n/5": "Rating on deletion: :n/5",
+    "Accéder à mon compte": "Go to my account",
+    "Création de votre portfolio": "Creating your portfolio",
+    "préparation de votre espace": "preparing your account",
+    "mise en ligne de votre book": "publishing your portfolio"
 }

@@ -56,6 +56,7 @@ class DernieresInscriptionsCreatifs extends TableWidget
                             .'<img src="'.e($photo).'" alt="" class="ub-creatif-avatar">'
                             .'<span class="ub-creatif-login">'.e($u->login).'</span>'
                             .($nom !== '' ? '<span class="ub-creatif-nom">'.e($nom).'</span>' : '')
+                            .$u->etoilesSuppressionHtml()
                             .'</span>');
                     })
                     ->html()

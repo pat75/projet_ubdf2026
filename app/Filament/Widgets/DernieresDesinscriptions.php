@@ -42,6 +42,7 @@ class DernieresDesinscriptions extends TableWidget
                     ->formatStateUsing(fn (string $state, array $record): HtmlString => new HtmlString(
                         '<span class="ub-creatif"><span class="ub-creatif-login">'.e($state).'</span>'
                         .($record['nom'] !== '' ? '<span class="ub-creatif-nom">'.e($record['nom']).'</span>' : '')
+                        .($record['etoiles'] ?? '')
                         .'<span class="ub-label-compte ub-label-'.e($record['famille']).'">'.e($record['type']).'</span>'
                         .'</span>'
                     ))
@@ -66,7 +67,7 @@ class DernieresDesinscriptions extends TableWidget
 
         $creatifs = User::onlyTrashed()->latest('deleted_at')->limit(4)->get()
             ->map(fn (User $u) => ['cle' => 'creatif-'.$u->id, 'type' => __('Créatif'), 'famille' => 'creatif',
-                'identifiant' => $u->login, 'nom' => trim($u->firstname.' '.$u->lastname),
+                'identifiant' => $u->login, 'nom' => trim($u->firstname.' '.$u->lastname), 'etoiles' => $u->etoilesSuppressionHtml(),
                 'avatar' => $profil->photoUrl($u) ?? $profil->medaillonCreatif($u),
                 'supprime_le' => $u->deleted_at]);
 

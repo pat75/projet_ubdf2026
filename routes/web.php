@@ -37,6 +37,7 @@ use App\Http\Controllers\Espace\StatistiquesController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\GoogleController;
 use App\Http\Controllers\Front\InscriptionController;
+use App\Http\Controllers\Front\SuppressionBookController;
 use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
@@ -485,6 +486,13 @@ $portail = function (?string $langue = null) {
 
     Route::get('/inscription/confirmer/{user}', [InscriptionController::class, 'confirmer'])
         ->middleware('signed')->name('inscription.confirmer');
+
+    // Apres la suppression du book : confirmation et note de 1 a 5 (lien signe,
+    // le createur n'est plus connecte ; par id, le login ayant ete renomme).
+    Route::get('/book-supprime/{user:id}', [SuppressionBookController::class, 'afficher'])
+        ->withTrashed()->middleware('signed')->name('book.supprime');
+    Route::post('/book-supprime/{user:id}', [SuppressionBookController::class, 'noter'])
+        ->withTrashed()->middleware('signed')->name('book.supprime.noter');
 
     // Changement d'adresse depuis l'espace : la nouvelle adresse, signee, dans l'URL.
     Route::get('/compte/adresse/{user}', [InscriptionController::class, 'confirmerAdresse'])

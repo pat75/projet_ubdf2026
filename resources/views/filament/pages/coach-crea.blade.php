@@ -6,7 +6,7 @@
         return '<img src="'.e($profil->photoUrl($u) ?: $profil->medaillonCreatif($u)).'" alt="" class="ub-coach-avatar">';
     };
     $nom = fn ($u) => '<span class="ub-creatif"><span class="ub-creatif-login">'.e($u->login).'</span>'
-        .(($n = trim($u->firstname.' '.$u->lastname)) !== '' ? '<span class="ub-creatif-nom">'.e($n).'</span>' : '').'</span>';
+        .(($n = trim($u->firstname.' '.$u->lastname)) !== '' ? '<span class="ub-creatif-nom">'.e($n).'</span>' : '').$u->etoilesSuppressionHtml().'</span>';
 @endphp
 
 <x-filament-panels::page>

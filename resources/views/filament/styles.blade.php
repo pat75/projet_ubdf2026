@@ -329,6 +329,8 @@
     .ub-coach-objet { gap: .6rem; flex-wrap: wrap; }
     .ub-coach-champs { color: rgb(107 114 128); font-size: .8125rem; }
     .ub-creatif-nom { color: rgb(107 114 128); }
+.ub-etoiles { font-size: 10px; letter-spacing: 1px; color: #f5b301; }
+.ub-etoiles-vides { color: rgb(209 213 219); }
     /*
      | Colonne avatar des listes (creatifs, visiteurs, derniers inscrits...) :
      | 8px exactement entre l'avatar et le texte de la colonne suivante.
@@ -370,6 +372,7 @@
     .dark .ub-label-visiteur { background: rgb(255 255 255 / .12); color: rgb(212 212 216); }
 
     .dark .ub-creatif-nom { color: rgb(161 161 170); }
+.dark .ub-etoiles-vides { color: rgb(82 82 91); }
 
     /*
      | Panneau des filtres : fond legerement grise, boutons de choix

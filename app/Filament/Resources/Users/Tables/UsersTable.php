@@ -75,6 +75,7 @@ class UsersTable
                     ->formatStateUsing(fn (User $u): HtmlString => new HtmlString(
                         '<span class="ub-creatif"><span class="ub-creatif-login">'.e($u->login).'</span>'
                         .(($nom = trim($u->firstname.' '.$u->lastname)) !== '' ? '<span class="ub-creatif-nom">'.e($nom).'</span>' : '')
+                        .$u->etoilesSuppressionHtml()
                         .'</span>'
                     ))
                     ->html()

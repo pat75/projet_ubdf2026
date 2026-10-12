@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Espace;
 
+use App\Http\Controllers\Front\SuppressionBookController;
 use App\Livewire\Concerns\EnregistreChamps;
 use App\Mail\ConfirmationAdresse;
 use App\Models\BillingProfile;
@@ -295,7 +296,7 @@ class Compte extends Component
 
         $creatif->delete();
 
-        $this->redirect(lien('home'));
+        $this->redirect(SuppressionBookController::lien($creatif));
     }
 
     public function render(): View

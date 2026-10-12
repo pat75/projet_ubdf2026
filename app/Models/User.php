@@ -392,6 +392,15 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /** Note laissee a la suppression du book, en petites etoiles pour les listes du back-office. */
+    public function etoilesSuppressionHtml(): string
+    {
+        $note = (int) $this->deletion_rating;
+
+        return $note < 1 ? '' : '<span class="ub-etoiles" title="'.e(__('Note à la suppression : :n/5', ['n' => $note])).'">'
+            .str_repeat('★', $note).'<span class="ub-etoiles-vides">'.str_repeat('★', 5 - $note).'</span></span>';
+    }
+
     /** desactive-<login>, puis desactive-2-<login>… : le premier libre, borne a 50 caracteres. */
     private static function loginLibre(string $prefixe, string $login): string
     {

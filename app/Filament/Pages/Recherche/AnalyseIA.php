@@ -118,6 +118,7 @@ class AnalyseIA extends Page implements HasTable
                     ->formatStateUsing(fn (User $record): HtmlString => new HtmlString(
                         '<span class="ub-creatif"><span class="ub-creatif-login">'.e($record->login).'</span>'
                         .(($nom = trim($record->firstname.' '.$record->lastname)) !== '' ? '<span class="ub-creatif-nom">'.e($nom).'</span>' : '')
+                        .$record->etoilesSuppressionHtml()
                         .'</span>'
                     ))
                     ->html(),
