@@ -61,20 +61,21 @@ it('marque la rubrique ouverte', function () {
     $creatif = User::factory()->create();
 
     // La page courante porte `aria-current`, et elle seule. Le menu est
-    // rendu deux fois : colonne de droite (desktop) et volet « Plus »
-    // (mobile) ; « Mon compte » n'a pas d'onglet dans la barre du bas.
+    // rendu trois fois : colonne de droite (desktop), volet « Plus » et
+    // volet gauche du burger (mobile) ; « Mon compte » n'a pas d'onglet
+    // dans la barre du bas.
     $reponse = $this->actingAs($creatif)->get(route('espace.compte'))->assertOk();
 
-    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(2);
+    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(3);
 });
 
 it('allume l onglet mobile de la rubrique ouverte', function () {
     $creatif = User::factory()->create();
 
-    // Menu desktop, volet mobile et onglet « Messages » de la barre du bas.
+    // Menu desktop, volets « Plus » et burger, onglet « Messages » de la barre du bas.
     $reponse = $this->actingAs($creatif)->get(route('espace.messages'))->assertOk();
 
-    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(3);
+    expect(substr_count($reponse->getContent(), 'aria-current="page"'))->toBe(4);
 });
 
 it('donne le lien du book et la deconnexion', function () {
