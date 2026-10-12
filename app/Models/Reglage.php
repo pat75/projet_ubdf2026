@@ -53,6 +53,12 @@ class Reglage extends Model
      */
     public const COACH_IA = 'coach_ia';
 
+    /**
+     * Guide de style du Coach creatif, distille par l'IA des corrections
+     * des administrateurs (Redacteur::apprendre), injecte a chaque redaction.
+     */
+    public const COACH_REGLES = 'coach_regles';
+
     protected $table = 'reglages';
 
     protected $fillable = ['cle', 'valeur'];

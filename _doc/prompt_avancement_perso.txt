@@ -27,9 +27,7 @@ src="https://www.ultra-book.com/books/julidyillustration/carre_368/occxowpi0axk7
 le bon éditeur
 
 
-+ statistiques
- analyser le système de statistiques existant concernant les visites du mini book et du book
- poser des questions et  proposer des améliorations
+
 
 
 
@@ -42,9 +40,6 @@ le bon éditeur
   Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 
-+ prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
- aux contenu par API ou proxy.
-   Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 
 + prévoir des modèles de page supplémentaire avec image ou screen ou vidéo, full  screen
@@ -52,6 +47,33 @@ le bon éditeur
 
 
 
++ API
+En vue de communiquer avec un serveur externe VPS, qui permettra de gérer les noms de domaine et commander par les créatifs pour visualiser leur book
+En vue de communiquer avec une application mobile
+Et en vue de communiquer avec une application installée sur un poste de travail
+Il faudrait créer un système d'API
+Capable de gérer tous tes fonctionnalités du menu image du menu, page de la modification du compte est en règle générale des réglages
+Accessible via les menus :  
+Mon compte
+Ma formule
+Mes messages
+Mon mémoBook
+ 
+Configurer
+Diffuser
+Statistiques
+ 
+Images (Portfolio)
+Pages (Bio)
+
+
+
+
+
+
++ prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
+ aux contenu par API ou proxy.
+   Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 
 + un app Ultra-book sur macOS, 
@@ -77,6 +99,13 @@ qui permettent d'envoyer des images directement à partir de son poste de travai
 
 
 ================ ok
+
+
+
+
++ statistiques - OK
+ analyser le système de statistiques existant concernant les visites du mini book et du book
+ poser des questions et  proposer des améliorations
 
 
 + coach -ok

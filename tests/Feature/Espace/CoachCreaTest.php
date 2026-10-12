@@ -191,7 +191,7 @@ it('ouvre le brouillon dans une fenetre et le fait relire sans toucher au fond',
 
     $message = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Votre icone', 'corps' => 'Bonjour, vous pouriez', 'statut' => 'brouillon', 'diagnostic' => []]);
 
-    $redacteur = Mockery::mock(Redacteur::class);
+    $redacteur = Mockery::mock(Redacteur::class)->makePartial();
     $redacteur->shouldReceive('relire')->once()->with('Votre icone', 'Bonjour, vous pouriez')
         ->andReturn(['objet' => 'Votre icône', 'corps' => 'Bonjour, vous pourriez', 'modele' => 'test']);
     app()->instance(Redacteur::class, $redacteur);
@@ -210,7 +210,7 @@ it('remplace le brouillon precedent du meme createur a la generation', function 
     Filament\Facades\Filament::setCurrentPanel('admin');
     $ancien = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Ancien', 'corps' => 'Ancien', 'statut' => 'brouillon', 'diagnostic' => []]);
 
-    $redacteur = Mockery::mock(Redacteur::class);
+    $redacteur = Mockery::mock(Redacteur::class)->makePartial();
     $redacteur->shouldReceive('rediger')->andReturn(['objet' => 'Nouveau', 'corps' => 'Nouveau', 'modele' => 'test']);
     app()->instance(Redacteur::class, $redacteur);
 
@@ -255,4 +255,55 @@ it('liste les messages deja envoyes', function () {
     CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'objet' => 'Objet envoyé', 'corps' => 'Bonjour Anne, voici le texte relu', 'statut' => 'envoye', 'envoye_le' => now(), 'diagnostic' => []]);
 
     Livewire::test(App\Filament\Pages\CoachCrea::class)->assertSee('Déjà envoyés')->assertSee('Objet envoyé')->assertSee('voici le texte');
+});
+
+it('ne garde en memoire que les messages envoyes et corriges, le meme conseil d abord', function () {
+    $creer = fn (array $champs) => CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'diagnostic' => ['autre'],
+        'objet' => 'O', 'corps' => 'Corrigé', 'objet_ia' => 'O', 'corps_ia' => 'IA', 'statut' => 'envoye', 'envoye_le' => now(), ...$champs]);
+
+    $recent = $creer(['envoye_le' => now()]);
+    $memeConseil = $creer(['diagnostic' => ['icône'], 'envoye_le' => now()->subDay()]);
+    $creer(['statut' => 'brouillon']);
+    $creer(['statut' => 'ignore']);
+    $creer(['corps' => 'IA']); // envoye sans retouche
+
+    expect(CoachMessage::exemples('icône')->pluck('id')->all())->toBe([$memeConseil->id, $recent->id]);
+});
+
+it('injecte les regles apprises et les corrections dans le prompt affiche', function () {
+    \App\Models\Reglage::definirTexte(\App\Models\Reglage::COACH_REGLES, '- Jamais de tutoiement.');
+    CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'diagnostic' => ['icône'], 'objet' => 'O',
+        'corps' => 'Version admin', 'objet_ia' => 'O', 'corps_ia' => 'Version IA', 'statut' => 'envoye', 'envoye_le' => now()]);
+
+    $systeme = app(Redacteur::class)->messages($this->creatif, collect(), ['icône'])[0]['content'];
+
+    expect($systeme)->toContain('- Jamais de tutoiement.')->toContain('Version IA')->toContain('Version admin');
+});
+
+it('distille les corrections en regles et garde la version IA a la redaction', function () {
+    config(['services.openrouter.api_key' => 'test-key']);
+    \App\Models\Reglage::definirTexte(\App\Models\Reglage::COACH_IA, '1');
+    Http::fake(['openrouter.ai/*' => Http::sequence()
+        ->push(['choices' => [['message' => ['content' => "Objet : Votre book\nBonjour"]]]])
+        ->push(['choices' => [['message' => ['content' => "Voici :\n- Vouvoyer.\n- Pas d'exclamation."]]]])]);
+
+    expect(app(Redacteur::class)->rediger($this->creatif, collect(), ['x']))->corps_ia->toBe('Bonjour');
+
+    $m = new CoachMessage(['objet' => 'A', 'corps' => 'B', 'objet_ia' => 'A', 'corps_ia' => 'C']);
+    expect(app(Redacteur::class)->apprendre([$m]))->toBe("- Vouvoyer.\n- Pas d'exclamation.")
+        ->and(\App\Models\Reglage::texte(\App\Models\Reglage::COACH_REGLES))->toBe("- Vouvoyer.\n- Pas d'exclamation.");
+});
+
+it('affiche la memoire du coach et retire un exemple sans supprimer le message', function () {
+    $this->actingAs(\App\Models\Admin::create(['name' => 'Pat', 'email' => 'memoire@example.test', 'password' => 'mot-de-passe-long']), 'admin');
+    $m = CoachMessage::create(['user_id' => $this->creatif->id, 'session_fin' => now(), 'diagnostic' => ['icône'], 'objet' => 'O',
+        'corps' => 'Version admin', 'objet_ia' => 'O', 'corps_ia' => 'Version IA', 'statut' => 'envoye', 'envoye_le' => now()]);
+
+    Livewire::test(\App\Filament\Pages\CoachCrea::class)
+        ->assertSee('Mémoire du coach')->assertSee('Version IA')
+        ->set('regles', '- Vouvoyer.')->call('enregistrerRegles')
+        ->call('retirerExemple', $m->id);
+
+    expect($m->fresh())->corps_ia->toBeNull()->statut->toBe('envoye')
+        ->and(\App\Models\Reglage::texte(\App\Models\Reglage::COACH_REGLES))->toBe('- Vouvoyer.');
 });

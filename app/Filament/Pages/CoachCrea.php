@@ -57,6 +57,9 @@ class CoachCrea extends Page implements HasTable
     /** IA de redaction (Redacteur::CHOIX), enregistree des qu'elle change. */
     public string $coachIa = 'nvidia';
 
+    /** Guide de style appris (Reglage::COACH_REGLES), modifiable dans « Mémoire du coach ». */
+    public string $regles = '';
+
     /** Titre suivi d'un menu rapide vers les deux blocs de la page. */
     public function getHeading(): Htmlable
     {
@@ -69,6 +72,7 @@ class CoachCrea extends Page implements HasTable
     public function mount(): void
     {
         $this->coachIa = Redacteur::choix();
+        $this->regles = Reglage::texte(Reglage::COACH_REGLES) ?? '';
         $this->brouillons = CoachMessage::where('statut', 'brouillon')->get()
             ->mapWithKeys(fn ($m) => [$m->id => ['objet' => $m->objet, 'corps' => $m->corps]])->all();
     }
@@ -134,6 +138,12 @@ class CoachCrea extends Page implements HasTable
         }
 
         $this->clore($message, 'envoye');
+
+        // Correction de l'administrateur : le guide de style l'apprend apres
+        // la reponse, sans retarder l'envoi ; une panne de l'IA est juste journalisee.
+        if (CoachMessage::corriges()->whereKey($message->id)->exists()) {
+            defer(fn () => rescue(fn () => app(Redacteur::class)->apprendre([$message->fresh()])));
+        }
 
         Notification::make()->title('Message envoyé à '.$message->user->fullName())->success()->send();
     }
@@ -218,6 +228,36 @@ class CoachCrea extends Page implements HasTable
         Notification::make()->title('Message enregistré, prêt à envoyer')->success()->send();
     }
 
+    public function enregistrerRegles(): void
+    {
+        $this->validate(['regles' => 'nullable|string|max:8000']);
+        Reglage::definirTexte(Reglage::COACH_REGLES, $this->regles);
+        Notification::make()->title('Règles enregistrées')->success()->send();
+    }
+
+    /** Refait le guide depuis toutes les corrections (lots de 20, un appel IA chacun). */
+    public function reconstruireRegles(Redacteur $redacteur): void
+    {
+        set_time_limit(300);
+
+        try {
+            $this->regles = $redacteur->reconstruire();
+        } catch (Throwable $e) {
+            Notification::make()->title('Reconstruction impossible : '.$e->getMessage())->danger()->send();
+
+            return;
+        }
+
+        Notification::make()->title('Règles reconstruites')->success()->send();
+    }
+
+    /** Sort un message de la memoire du coach, sans le supprimer de l'historique. */
+    public function retirerExemple(int $id): void
+    {
+        CoachMessage::corriges()->findOrFail($id)->update(['objet_ia' => null, 'corps_ia' => null]);
+        Notification::make()->title('Exemple retiré de la mémoire')->success()->send();
+    }
+
     /** Supprime un brouillon (il ne reste pas dans l'historique, contrairement a « Ignorer »). */
     public function supprimer(int $id): void
     {
@@ -259,6 +299,13 @@ class CoachCrea extends Page implements HasTable
         // Onglet « Déjà envoyés » : les plus récents, à relire.
         $envoyes = CoachMessage::with('user')->has('user')->where('statut', 'envoye')->latest('envoye_le')->limit(50)->get();
 
-        return compact('messages', 'derniersEnvois', 'envoyes');
+        // Memoire du coach : la base des corrections, et le prompt complet
+        // tel qu'il serait envoye pour le dernier brouillon.
+        $memoire = CoachMessage::with('user')->corriges()->latest('envoye_le')->get();
+        $apercu = ($m = $messages->first())
+            ? app(Redacteur::class)->messages($m->user, PreparerCoachingCommand::derniereSession($m->user), $m->diagnostic ?? [])
+            : null;
+
+        return compact('messages', 'derniersEnvois', 'envoyes', 'memoire', 'apercu');
     }
 }

@@ -21,6 +21,7 @@ class RepriseAccueilLegacyCommand extends Command
     protected $signature = 'ubdf:legacy:accueil
         {--dates : Reprend les dates de selection depuis inc_stats}
         {--stats : Reprend vues et coeurs depuis le serveur de stats du legacy}
+        {--sql= : Avec --stats, ecrit les UPDATE de tous les comptes legacy dans ce fichier au lieu de la base}
         {--simuler : N\'ecrit rien, affiche ce qui serait fait}';
 
     protected $description = 'Dates de selection, vues et coeurs des books repris du legacy';
@@ -81,10 +82,12 @@ class RepriseAccueilLegacyCommand extends Command
         // Le serveur de stats connait les logins d'origine, pas ceux convertis.
         // Sans whereIn : 66 000 identifiants depassent la limite de MySQL
         // (65 535 parametres par requete).
-        $ids = User::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
-        $logins = DB::connection('legacy')->table('inc_user')
-            ->pluck('us_login', 'us_id')
-            ->intersectByKeys($ids);
+        $sql = $this->option('sql') ? fopen($this->option('sql'), 'w') : null;
+        // Avec --sql : tous les comptes du legacy, la base locale n'en ayant
+        // qu'un echantillon ; le fichier s'applique ensuite en production.
+        $ids = $sql ? null : User::whereNotNull('legacy_id')->pluck('id', 'legacy_id');
+        $logins = DB::connection('legacy')->table('inc_user')->pluck('us_login', 'us_id');
+        $logins = $ids ? $logins->intersectByKeys($ids) : $logins;
 
         $barre = $this->output->createProgressBar($logins->count());
         $repris = 0;
@@ -105,17 +108,19 @@ class RepriseAccueilLegacyCommand extends Command
                     continue;
                 }
                 $repris++;
-                if (! $this->option('simuler')) {
-                    User::whereKey($ids[$legacyId])->update([
-                        'legacy_views' => max(0, (int) ($s['st_book'] ?? 0)),
-                        'legacy_likes' => max(0, (int) ($s['st_memo'] ?? 0)),
-                    ]);
+                $vues = max(0, (int) ($s['st_book'] ?? 0));
+                $coeurs = max(0, (int) ($s['st_memo'] ?? 0));
+                if ($sql) {
+                    fwrite($sql, "UPDATE users SET legacy_views={$vues}, legacy_likes={$coeurs} WHERE legacy_id=".(int) $legacyId.";\n");
+                } elseif (! $this->option('simuler')) {
+                    User::whereKey($ids[$legacyId])->update(['legacy_views' => $vues, 'legacy_likes' => $coeurs]);
                 }
             }
             $barre->advance($paquet->count());
         }
 
         $barre->finish();
+        $sql && fclose($sql);
         $this->newLine();
         $this->info("Vues et coeurs : {$repris} books repris sur {$logins->count()}, {$echecs} sans chiffres (inconnus du serveur ou en erreur).");
     }

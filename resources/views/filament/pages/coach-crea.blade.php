@@ -29,6 +29,9 @@
         @endif
         · NVIDIA en panne : bascule automatique sur OpenRouter coût 1.
     </span>
+    <x-filament::button size="sm" color="gray" icon="heroicon-o-light-bulb" x-on:click="$dispatch('open-modal', { id: 'coach-memoire' })">
+        Mémoire du coach <x-filament::badge size="sm" color="gray">{{ $memoire->count() }}</x-filament::badge>
+    </x-filament::button>
 </div>
 <div class="ub-coach-colonnes">
     <div id="operations" class="min-w-0">{{ $this->table }}</div>
@@ -181,5 +184,99 @@
             <x-filament::button x-on:click="close" color="gray" outlined>Fermer</x-filament::button>
         </x-slot>
     @endif
+</x-filament::modal>
+{{-- Memoire du coach : le prompt, le guide appris et la base des corrections. --}}
+<x-filament::modal id="coach-memoire" slide-over width="5xl">
+    <x-slot name="heading">Mémoire du coach</x-slot>
+    <x-slot name="description">Ce que l’IA reçoit à chaque rédaction.</x-slot>
+
+    @php($conseils = $memoire->map(fn ($m) => $m->diagnostic[0] ?? null)->filter()->unique()->sort()->values())
+    <div x-data="{ onglet: 'prompt', conseil: '' }">
+        <div class="ub-coach-onglets" role="tablist">
+            @foreach (['prompt' => 'Prompt', 'regles' => 'Règles', 'base' => 'Base de connaissances'] as $cle => $libelle)
+                <button type="button" role="tab" class="ub-coach-onglet" :class="{ 'est-actif': onglet === '{{ $cle }}' }"
+                        :aria-selected="onglet === '{{ $cle }}'" x-on:click="onglet = '{{ $cle }}'">
+                    {{ $libelle }}@if ($cle === 'base') <span class="ub-coach-nombre">{{ $memoire->count() }}</span>@endif
+                </button>
+            @endforeach
+        </div>
+        <div class="ub-coach-panneau" style="padding:1rem">
+
+            <div x-show="onglet === 'prompt'" class="space-y-4">
+                <p class="text-sm text-gray-500">Fichier <code>resources/prompts/coach.md</code>, versionné : il se modifie dans le code.</p>
+                <pre class="text-xs" style="white-space:pre-wrap">{{ file_get_contents(resource_path('prompts/coach.md')) }}</pre>
+
+                <p class="text-sm font-semibold">Aperçu du prompt complet</p>
+                @if ($apercu)
+                    <p class="text-sm text-gray-500">Tel qu’il partirait pour le dernier brouillon ({{ $messages->first()->user->login }}) : prompt, règles, corrections du même conseil, puis contexte.</p>
+                    @foreach ($apercu as $bloc)
+                        <x-filament::badge color="gray" size="sm">{{ $bloc['role'] }}</x-filament::badge>
+                        <pre class="text-xs" style="white-space:pre-wrap">{{ $bloc['content'] }}</pre>
+                    @endforeach
+                @else
+                    <p class="text-sm text-gray-500">Aucun brouillon en attente pour construire l’aperçu.</p>
+                @endif
+            </div>
+
+            <div x-show="onglet === 'regles'" x-cloak class="space-y-3">
+                <p class="text-sm text-gray-500">Déduites par l’IA des corrections envoyées, ajoutées à chaque rédaction. Une règle mal comprise se corrige ici.</p>
+                <textarea wire:model="regles" rows="16" aria-label="Règles apprises" style="display:block;width:100%;box-sizing:border-box"
+                          class="w-full rounded-lg border-gray-300 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                          placeholder="Aucune règle apprise pour l’instant."></textarea>
+                @error('regles')<div class="text-sm text-danger-600">{{ $message }}</div>@enderror
+                <div class="flex gap-2">
+                    <x-filament::button size="sm" wire:click="enregistrerRegles" wire:target="enregistrerRegles" icon="heroicon-o-check">Enregistrer les règles</x-filament::button>
+                    <x-filament::button size="sm" color="gray" wire:click="reconstruireRegles" wire:target="reconstruireRegles" icon="heroicon-o-arrow-path"
+                        wire:confirm="Remplacer les règles par celles déduites de toutes les corrections ?">Reconstruire depuis toutes les corrections</x-filament::button>
+                </div>
+            </div>
+
+            <div x-show="onglet === 'base'" x-cloak>
+                @if ($memoire->isEmpty())
+                    <p class="text-sm text-gray-500">Aucune correction pour l’instant : chaque message modifié puis envoyé s’ajoute ici.</p>
+                @else
+                    <x-filament::input.wrapper class="mb-3">
+                        <x-filament::input.select x-model="conseil" aria-label="Filtrer par conseil">
+                            <option value="">Tous les conseils</option>
+                            @foreach ($conseils as $c)<option value="{{ $c }}">{{ $c }}</option>@endforeach
+                        </x-filament::input.select>
+                    </x-filament::input.wrapper>
+                    <div class="ub-coach-messages">
+                        @foreach ($memoire as $e)
+                            <div wire:key="memoire-{{ $e->id }}" x-data="{ ouvert: false }" class="ub-coach-message"
+                                 x-show="! conseil || conseil === @js($e->diagnostic[0] ?? '')">
+                                <div class="ub-coach-message-ligne" x-on:click="ouvert = ! ouvert">
+                                    <button type="button" class="ub-coach-deplier" :aria-expanded="ouvert" :aria-label="ouvert ? 'Replier' : 'Comparer les versions'">
+                                        <x-filament::icon icon="heroicon-s-chevron-right" x-show="! ouvert" class="ub-coach-fleche" />
+                                        <x-filament::icon icon="heroicon-s-chevron-down" x-show="ouvert" x-cloak class="ub-coach-fleche" />
+                                    </button>
+                                    <span class="ub-coach-qui">{!! $nom($e->user) !!}</span>
+                                    <span class="ub-coach-message-meta">
+                                        {{ $e->envoye_le?->timezone('Europe/Paris')->format('d/m/Y') }}@if ($e->traite_par) · {{ $e->traite_par }}@endif
+                                    </span>
+                                    <span class="ub-coach-message-objet">{{ $e->diagnostic[0] ?? '' }}</span>
+                                    <x-filament::icon-button icon="heroicon-o-trash" color="danger" x-on:click.stop
+                                        wire:click="retirerExemple({{ $e->id }})" wire:confirm="Retirer cet exemple de la mémoire ? Le message reste dans l’historique."
+                                        label="Retirer de la mémoire" tooltip="Retirer de la mémoire" />
+                                </div>
+                                <div x-show="ouvert" x-cloak class="ub-coach-detail" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500">Version IA</p>
+                                        <p class="text-sm font-semibold">{{ $e->objet_ia }}</p>
+                                        <div class="text-sm" style="white-space:pre-line">{{ $e->corps_ia }}</div>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-500">Version envoyée</p>
+                                        <p class="text-sm font-semibold">{{ $e->objet }}</p>
+                                        <div class="text-sm" style="white-space:pre-line">{{ $e->corps }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 </x-filament::modal>
 </x-filament-panels::page>

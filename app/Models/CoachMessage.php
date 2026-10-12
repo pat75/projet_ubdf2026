@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** Message de coaching prepare par l'IA, envoye apres validation d'un administrateur. */
 class CoachMessage extends Model
 {
-    protected $fillable = ['user_id', 'session_fin', 'diagnostic', 'objet', 'corps', 'modele', 'statut', 'traite_par', 'envoye_le'];
+    protected $fillable = ['user_id', 'session_fin', 'diagnostic', 'objet', 'corps', 'objet_ia', 'corps_ia', 'modele', 'statut', 'traite_par', 'envoye_le'];
 
     protected function casts(): array
     {
@@ -68,6 +70,30 @@ class CoachMessage extends Model
     {
         return new \Illuminate\Support\HtmlString(self::lierMenus(e(self::typographie($this->corps)),
             fn (string $menu, string $url) => '<a href="'.e($url).'" class="font-semibold text-ub-accent-texte hover:underline">'.e($menu).'</a>'));
+    }
+
+    /**
+     * Memoire du coach : messages envoyes dont l'administrateur a change la
+     * version de l'IA. Retirer un exemple = vider objet_ia/corps_ia.
+     */
+    public function scopeCorriges(Builder $query): Builder
+    {
+        return $query->where('statut', 'envoye')->whereNotNull('corps_ia')
+            ->where(fn (Builder $q) => $q->whereColumn('corps', '!=', 'corps_ia')->orWhereColumn('objet', '!=', 'objet_ia'));
+    }
+
+    /**
+     * Les $n corrections a montrer a l'IA : celles du meme conseil d'abord,
+     * puis les plus recentes.
+     *
+     * @return Collection<int, self>
+     */
+    public static function exemples(?string $conseil, int $n = 3): Collection
+    {
+        // ponytail: tri en PHP sur toute la base (une centaine de lignes) ; passer en SQL au-dela de quelques milliers.
+        return self::corriges()->latest('envoye_le')->get()
+            ->sortBy(fn (self $m) => ($m->diagnostic[0] ?? null) === $conseil ? 0 : 1)
+            ->take($n)->values();
     }
 
     public function user(): BelongsTo
