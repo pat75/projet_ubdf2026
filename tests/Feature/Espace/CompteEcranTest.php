@@ -78,7 +78,7 @@ it('supprime le portfolio quand le createur recopie son identifiant', function (
 
     // Suppression douce : la fiche quitte le site, la ligne reste.
     expect(User::where('login', 'aline')->exists())->toBeFalse()
-        ->and(User::withTrashed()->where('login', 'aline')->exists())->toBeTrue()
+        ->and(User::withTrashed()->where('login', 'desactive-aline')->exists())->toBeTrue()
         ->and(auth()->check())->toBeFalse();
 });
 
@@ -125,4 +125,22 @@ it('archive les images du book supprime dans storage/books_effaces', function ()
 
     $zip->close();
     File::delete($archives);
+});
+
+it('libere l identifiant d un compte supprime, et le rend a la restauration s il est libre', function () {
+    $ancien = User::factory()->create(['login' => 'aline']);
+    $ancien->delete();
+
+    expect($ancien->fresh()->login)->toBe('desactive-aline')
+        ->and(app(\App\Services\Auth\Inscription::class)->loginDisponible('aline'))->toBeTrue()
+        ->and(app(\App\Services\Auth\Inscription::class)->loginDisponible('desactive-bob'))->toBeFalse();
+
+    // Un nouveau book reprend « aline », puis est supprime a son tour.
+    $nouveau = User::factory()->create(['login' => 'aline']);
+    $nouveau->delete();
+    expect($nouveau->fresh()->login)->toBe('desactive-2-aline');
+
+    // Restauration du premier : « aline » est libre, il le retrouve.
+    $ancien->restore();
+    expect($ancien->fresh()->login)->toBe('aline');
 });

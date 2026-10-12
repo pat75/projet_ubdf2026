@@ -13,14 +13,14 @@
 <header class="relative z-20 h-[85px] bg-white shadow-[0_7px_20px_rgba(0,0,0,0.2)]">
     <div class="mx-4 flex h-full items-center pl-1 pr-2.5 min-[768px]:mx-auto min-[768px]:w-[723px] min-[992px]:w-[933px] min-[1200px]:w-[1127px]">
 
-        {{-- Burger : le menu plein ecran du portail, sur fond noir, comme
-             pour un visiteur (<x-portail.menu-plein-ecran>, layouts/espace). --}}
-        @if ($marque->estDefaut())
-        <div x-data>
-            <button type="button" @click="$store.menu.basculer()" :aria-expanded="$store.menu.ouvert"
+        {{-- Burger. Sous 900 px : le menu de l'espace en volet gauche
+             (partials/espace/barre-mobile). Au-dela : le menu plein ecran du
+             portail, pour la marque Ultra-book seulement. --}}
+        <div x-data class="{{ $marque->estDefaut() ? '' : 'min-[900px]:hidden' }}">
+            <button type="button"
+                    @click="window.innerWidth < 900 ? $dispatch('espace-menu') : $store.menu.basculer()"
                     class="w-[21px] cursor-pointer text-[24px] leading-none text-black" aria-label="{{ __('Menu') }}">☰</button>
         </div>
-        @endif
 
         <a href="{{ lien('home') }}" class="{{ $marque->estDefaut() ? 'ml-[11px]' : 'ml-1' }} shrink-0" aria-label="{{ $marque->nom }}">
             <img src="{{ $marque->logo }}" alt="{{ $marque->nom }}" class="{{ $marque->estDefaut() ? 'w-[84px] min-[900px]:w-[120px]' : 'w-[155px] min-[900px]:w-[168px]' }}">

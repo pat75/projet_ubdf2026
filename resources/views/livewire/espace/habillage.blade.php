@@ -34,7 +34,10 @@
         {{-- Ultra-frais / Ultra-zen : reglages modifiables sur le book lui-meme. --}}
         @if (in_array($theme, ['mdl_2020_ultra_frais', 'mdl_2020_ultra_zen'], true))
             <a href="{{ route('espace.edition-book') }}" target="_blank" rel="noopener"
-               class="bouton-espace bouton-espace-grand px-4.5">{{ __('Modifier mon book ↗') }}</a>
+               class="bouton-espace bouton-espace-grand inline-flex items-center gap-2 px-4.5">
+                <x-espace.icone nom="reglage" class="h-4 w-4" />
+                {{ __('Réglages du book') }}
+            </a>
         @endif
     </div>
 
@@ -50,11 +53,11 @@
                 <x-espace.picto x-show="ouvert" nom="angle-bas" class="h-5 w-5 shrink-0 text-ub-texte" />
             </button>
 
-            <div x-show="ouvert" class="space-y-5 border-t border-ub-filet px-5 pb-5 pt-4">
+            <div x-show="ouvert" class="flex flex-col gap-6 border-t border-ub-filet px-5 pb-5 pt-4 sm:flex-row sm:gap-10">
                 {{-- Photo de profil : glisser-deposer ou clic sur le medaillon,
                      recadrage rond dans une modale (voir recadrageAvatar,
                      resources/js/espace.js). --}}
-                <div x-data="recadrageAvatar()" class="flex items-center gap-5">
+                <div x-data="recadrageAvatar()" class="flex shrink-0 flex-col items-center gap-3">
                     <div class="group relative h-24 w-24 shrink-0 cursor-pointer"
                          @click="$refs.entree.click()"
                          @dragover.prevent="survole = true" @dragleave.prevent="survole = false"
@@ -112,18 +115,18 @@
                     </div>
                 </div>
 
-                <x-espace.champ-editable nom="titre" :valeur="$titre"
-                    :libelle="__('Titre du book')" :vide="__('Ajouter un titre…')" />
-                <x-espace.champ-editable nom="description" :valeur="$description" multiligne
-                    :libelle="__('Description')" :vide="__('Ajouter une description…')" />
-                <x-espace.champ-editable nom="piedDePage" :valeur="$piedDePage" multiligne
-                    :libelle="__('Pied de page')" :vide="__('Ajouter un pied de page…')" />
+                {{-- Deuxieme colonne : les textes du book. --}}
+                <div class="min-w-0 flex-1 space-y-5">
+                    <x-espace.champ-editable nom="titre" :valeur="$titre" typo="text-[20.7px] leading-relaxed" couleur="text-black" :vide="__('Ajouter un titre…')" />
+                    <x-espace.champ-editable nom="description" :valeur="$description" multiligne :vide="__('Ajouter une description…')" />
+                    <x-espace.champ-editable nom="piedDePage" :valeur="$piedDePage" multiligne :vide="__('Ajouter un pied de page…')" />
+                </div>
             </div>
         </div>
     </div>
 
     <section class="mb-8 pt-5">
-        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-ub-texte3">{{ __('Modèle du book') }}</h2>
+        <h2 class="text-[13px] font-bold uppercase tracking-[.08em] text-black">{{ __('Modèle du book') }}</h2>
         <p class="mt-1 text-[13px] text-ub-texte3">{{ __('Chaque modèle garde ses propres réglages : revenir à un ancien modèle les retrouve.') }}</p>
 
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -46,7 +46,8 @@ class Habillage extends Component
 
         $this->theme = (string) $reglages->theme;
         $this->titre = (string) $reglages->title;
-        $this->description = (string) $reglages->description;
+        // Le book affiche theme_settings.data.description : c'est elle qu'on montre ici.
+        $this->description = (string) (data_get($reglages->theme_settings, 'data.description') ?? $reglages->description);
         $this->piedDePage = (string) $reglages->footer;
         $this->chargerValeurs($service);
     }
@@ -131,7 +132,16 @@ class Habillage extends Component
         // Le pied de page ressort sans echappement sur le book ({!! $pied !!}).
         $valeur = $nom === 'piedDePage' ? app(NettoyeurHtml::class)->nettoyer((string) $valeur) : (string) $valeur;
 
-        $this->reglages()->update([$colonne => $valeur]);
+        $reglages = $this->reglages();
+        $reglages->update([$colonne => $valeur]);
+
+        // Meme texte que sous le titre du book (theme_settings.data.description).
+        if ($nom === 'description') {
+            $theme = $reglages->theme_settings ?? [];
+            data_set($theme, 'data.description', $valeur);
+            $reglages->update(['theme_settings' => $theme]);
+        }
+
         $this->{$nom} = (string) $valeur;
     }
 

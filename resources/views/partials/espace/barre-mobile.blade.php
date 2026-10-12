@@ -2,16 +2,19 @@
  | Navigation mobile de l'espace, facon WebApp (sous 900 px seulement ; le
  | desktop garde le menu de droite) :
  | - barre d'onglets fixee en bas, a portee de pouce ;
+ | - le burger de l'entete ouvre le meme menu en volet gauche ;
  | - « Plus » ouvre un volet par le bas avec le menu complet
  |   (partials/espace/menu). Fermeture : glisser vers le bas, fond, Echap.
 --}}
 <div x-data="{
         plus: false,
+        gauche: false,
         depart: null,
         decalage: 0,
-        fermer() { this.plus = false; this.decalage = 0; },
+        fermer() { this.plus = false; this.gauche = false; this.decalage = 0; },
      }"
-     x-effect="document.documentElement.classList.toggle('overflow-hidden', plus)"
+     x-effect="document.documentElement.classList.toggle('overflow-hidden', plus || gauche)"
+     @espace-menu.window="gauche = true"
      @keydown.escape.window="fermer()"
      class="min-[900px]:hidden">
 
@@ -34,7 +37,7 @@
     </nav>
 
     {{-- Fond --}}
-    <div x-show="plus" x-cloak x-transition.opacity @click="fermer()"
+    <div x-show="plus || gauche" x-cloak x-transition.opacity @click="fermer()"
          class="fixed inset-0 z-40 bg-black/40"></div>
 
     {{-- Volet --}}
@@ -57,6 +60,26 @@
         </div>
 
         <div x-ref="defile" class="flex flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-5">
+            @include('partials.espace.menu')
+        </div>
+    </div>
+
+    {{-- Volet gauche, ouvert par le burger --}}
+    <div x-show="gauche" x-cloak
+         x-transition:enter="transition duration-300 ease-out"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition duration-200 ease-in"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         role="dialog" aria-modal="true" aria-label="{{ __('Menu de l’espace') }}"
+         class="fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-[320px] flex-col bg-ub-fond pb-[env(safe-area-inset-bottom)] shadow-ub">
+
+        <div class="flex shrink-0 justify-end px-2 pt-2">
+            <button type="button" @click="fermer()" class="h-10 w-10 text-[26px] leading-none text-ub-texte" aria-label="{{ __('Fermer') }}">×</button>
+        </div>
+
+        <div class="flex flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-5">
             @include('partials.espace.menu')
         </div>
     </div>

@@ -1795,6 +1795,7 @@
     "suivez l’Instagram :marque, des codes y sont régulièrement postés.": "follow :marque on Instagram, codes are posted there regularly.",
     "Activé ✓": "Active ✓",
     "Mobile, tablette et ordinateur": "Mobile, tablet and desktop",
+    "Réglages du book": "Portfolio settings",
     "Réglages visuels": "Visual settings",
     "Modèle actif": "Active template",
     "Merci ! Votre paiement est en cours de validation, la formule sera active dans quelques instants.": "Thank you! Your payment is being validated, the plan will be active in a few moments.",
@@ -2085,5 +2086,9 @@
     "Pour toute information complémentaire, vous pouvez nous écrire à": "For any further information, you can write to us at",
     "Bonne journée,": "Have a nice day,",
     "L’équipe :marque": "The :marque team",
-    "Cet email confirme l’ouverture de votre compte :marque.": "This email confirms the opening of your :marque account."
+    "Cet email confirme l’ouverture de votre compte :marque.": "This email confirms the opening of your :marque account.",
+    "Votre portfolio ne contient encore aucune image.": "Your portfolio doesn’t contain any images yet.",
+    "Chargez-les depuis le menu Images de votre espace :": "Upload them from the Images menu of your account:",
+    "charger mes images": "upload my images",
+    "Déplacez les portfolios pour les réordonner.": "Drag portfolios to reorder them."
 }

@@ -2,6 +2,8 @@
 
 namespace App\Services\Book;
 
+use App\Services\Espace\AffichageProfil;
+
 /**
  * Donnees des modeles Ultra-frais et Ultra-zen (dossier ultra2020), pour
  * les vues Blade/Tailwind/Alpine de resources/views/book/ultra2020.
@@ -94,9 +96,17 @@ class VueUltra2020 extends VueBook
     /** S | M | L. */
     public function tailleEntete(): string
     {
-        $taille = strtoupper((string) ($this->pref->header_size ?? 'S'));
+        $taille = strtoupper((string) ($this->pref->header_size ?? 'M'));
 
-        return in_array($taille, ['S', 'M', 'L'], true) ? $taille : 'S';
+        return in_array($taille, ['S', 'M', 'L'], true) ? $taille : 'M';
+    }
+
+    /** La photo de profil, ou a defaut le medaillon d'initiales (comme /espace/habillage). */
+    public function visuelProfil(): string
+    {
+        return $this->aPhoto()
+            ? $this->photo()
+            : app(AffichageProfil::class)->medaillonCreatif($this->b->book);
     }
 
     /**
@@ -114,7 +124,7 @@ class VueUltra2020 extends VueBook
         $id = (int) $valeur;
 
         if ($id === 1) {
-            return ['type' => 'photo', 'src' => $this->photo()];
+            return ['type' => 'photo', 'src' => $this->visuelProfil()];
         }
 
         $trace = self::ICONES[$id - 2] ?? self::ICONES_RETIREES[$id - 2] ?? null;

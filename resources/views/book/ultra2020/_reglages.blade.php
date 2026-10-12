@@ -42,7 +42,7 @@
                 class="flex aspect-square items-center justify-center border {{ $choix('0', (string) $entete) }}">—</button>
         <button type="button" @click="regler('header', 1)" title="{{ __('Photo') }}"
                 class="flex aspect-square items-center justify-center overflow-hidden border p-1 {{ $choix('1', (string) $entete) }}">
-            <img src="{{ $vue->photo() }}" alt="" class="size-full rounded-full object-cover">
+            <img src="{{ $vue->visuelProfil() }}" alt="" class="size-full rounded-full object-cover">
         </button>
         @foreach (\App\Services\Book\VueUltra2020::ICONES as $i => $trace)
             <button type="button" @click="regler('header', {{ $i + 2 }})"

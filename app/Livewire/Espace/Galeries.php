@@ -59,7 +59,8 @@ class Galeries extends Component
             'name' => $nom,
             'slug' => $this->slugLibre($nom),
             'status' => 'published',
-            'position' => (int) $creatif->galleries()->whereNull('parent_id')->max('position') + 1,
+            // En tete de liste : avant le premier portfolio existant.
+            'position' => (int) $creatif->galleries()->whereNull('parent_id')->min('position') - 1,
         ]);
 
         $this->cible ??= $galerie->id;

@@ -1,4 +1,4 @@
-@props(['nom', 'valeur' => '', 'libelle' => '', 'vide' => '', 'multiligne' => false, 'prive' => false, 'typo' => 'text-[15px] leading-relaxed'])
+@props(['nom', 'valeur' => '', 'libelle' => '', 'vide' => '', 'multiligne' => false, 'prive' => false, 'typo' => 'text-[15px] leading-relaxed', 'couleur' => 'text-ub-texte'])
 
 {{-- Texte editable sur place, sans champ visible (voir Claude_design.md,
      « Édition sur place »). Enregistre par enregistrerChamp() du composant
@@ -13,7 +13,7 @@
         <div class="mb-1 text-[12px] font-semibold uppercase tracking-[.06em] text-ub-texte3">{{ $libelle }}@if ($prive) <span class="text-[10px] text-ub-prive" title="{{ __('Donnée privée') }}">●</span>@endif</div>
     @endif
 
-    <div class="{{ $typo }} text-ub-texte">
+    <div class="{{ $typo }} {{ $couleur }}">
         <span x-ref="texte" role="textbox" aria-label="{{ $libelle ?: $vide }}" @if ($multiligne) aria-multiline="true" @endif
               :contenteditable="edition ? 'plaintext-only' : 'false'"
               @click="editer()" @keydown="touche($event)" @blur="valider()" @input="nettoyer()"

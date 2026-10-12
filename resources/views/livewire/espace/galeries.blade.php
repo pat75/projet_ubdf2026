@@ -9,17 +9,15 @@
            class="bouton-espace bouton-espace-grand px-4.5">{{ __('Voir mon book ↗') }}</a>
     </div>
 
-    <section class="mb-7 grid gap-5 md:grid-cols-2">
+    <section class="mb-7 grid gap-5 md:grid-cols-3">
         {{-- Nouveau portfolio : cree tout de suite, a renommer sur place. --}}
         <button type="button" wire:click="creer" wire:loading.attr="disabled" wire:target="creer"
-                class="carte-espace flex items-center gap-4 p-5 text-left transition hover:shadow-md disabled:opacity-60">
+                class="carte-espace flex items-start md:order-2 gap-4 p-5 text-left transition hover:shadow-md disabled:opacity-60">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-ub-accent text-[24px] text-white">+</span>
             <span class="min-w-0 flex-1">
-                <span class="flex justify-between gap-2">
-                    <span class="text-[17px] font-bold text-ub-texte">{{ __('Nouveau portfolio') }}</span>
-                    <span class="text-[13px] text-ub-texte3">{{ trans_choice(':n portfolio|:n portfolios', $portfolios->count(), ['n' => $portfolios->count()]) }}</span>
-                </span>
-                <span class="mt-1 block text-[13px] text-ub-texte3">{{ __('Il s’ajoute en bas de la liste, déplacez-le pour le mettre en premier.') }}</span>
+                <span class="block text-[17px] font-bold text-ub-texte">{{ __('Nouveau portfolio') }}</span>
+                <span class="block text-[13px] text-ub-texte3">{{ trans_choice(':n portfolio|:n portfolios', $portfolios->count(), ['n' => $portfolios->count()]) }}</span>
+                <span class="mt-2 block text-[13px] text-ub-texte3 text-pretty">{{ __('Déplacez les portfolios pour les réordonner.') }}</span>
             </span>
         </button>
 
@@ -27,7 +25,7 @@
         @php
             $part = min(100, round($quota['valeur'] / max(1, $quota['plafond']) * 100));
         @endphp
-        <div class="carte-espace flex flex-col gap-3 border-2 border-dashed border-ub-succes/60 bg-ub-succes/10 p-5"
+        <div class="carte-espace flex flex-col gap-3 md:order-1 md:col-span-2 border-2 border-dashed border-ub-succes/60 bg-ub-succes/10 p-5"
              x-data="{ survol: false, video: false, lien: '', erreur: null, envoi: false }"
              :class="survol && 'border-ub-succes bg-ub-succes/20'"
              x-on:dragover.prevent="if ($event.dataTransfer.types.includes('Files')) survol = true"

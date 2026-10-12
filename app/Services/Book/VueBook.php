@@ -57,8 +57,8 @@ class VueBook
         return (string) config('book_themes.'.$this->b->modele_book.'.dossier');
     }
 
-    /** Page Habillage de l'espace du createur, sur le portail de sa marque. */
-    public function urlEspace(): string
+    /** Page de l'espace du createur (Habillage par defaut), sur le portail de sa marque. */
+    public function urlEspace(string $page = 'habillage'): string
     {
         $marque = config('marques.marques.'.$this->b->book->brand);
 
@@ -66,12 +66,12 @@ class VueBook
         // s'est connecte, et le cookie de session n'est pose que sur lui.
         // ultra-book.com sans www renvoyait vers la connexion puis l'accueil.
         if (app()->isProduction() && ! empty($marque['canonique'])) {
-            return rtrim($marque['canonique'], '/').'/espace/habillage';
+            return rtrim($marque['canonique'], '/').'/espace/'.$page;
         }
 
         $hote = $marque['hotes'][0] ?? null;
 
-        return $hote ? 'https://'.$hote.'/espace/habillage' : url('/espace/habillage');
+        return $hote ? 'https://'.$hote.'/espace/'.$page : url('/espace/'.$page);
     }
 
     /**

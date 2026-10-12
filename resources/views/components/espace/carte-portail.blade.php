@@ -22,14 +22,17 @@
     <div class="h-27.5 bg-black/20">
         @if ($couverture)
             <img src="{{ $couverture->url('front_desk') }}" alt="{{ $couverture->title }} - {{ $creatif->fullName() }}" class="h-full w-full object-cover">
+        @else
+            {{-- Pas encore d'image : fond gris barre de deux diagonales blanches. --}}
+            <svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M100 0 0 100M0 0l100 100" stroke="#fff" stroke-opacity=".5" stroke-width="1" vector-effect="non-scaling-stroke" />
+            </svg>
         @endif
     </div>
 
     <div class="flex flex-col items-center px-4 pb-4 pt-0 text-center">
-        @if ($creatif->bookSetting?->thumbnail)
-            <img src="{{ $creatif->thumbnailUrl('carre_183') }}" alt="{{ $creatif->fullName() }}" data-avatar-profil
-                 class="-mt-[45px] mb-5 h-15 w-15 rounded-full object-cover shadow-[1px_1px_6px_#aaa]">
-        @endif
+        {{-- Photo, ou a defaut les initiales, comme le menu du haut. --}}
+        <x-espace.vignette :creatif="$creatif" class="-mt-[45px] mb-5 h-15 w-15 text-lg shadow-[1px_1px_6px_#aaa]" />
 
         <div class="text-[20.5px] font-semibold leading-[1.28] text-black/85">{{ $creatif->fullName() }}</div>
         <div class="mt-1 text-[12px] uppercase leading-[28px] tracking-wide text-black/40">{{ $creatif->category?->name }}</div>

@@ -3,9 +3,11 @@
 namespace App\Services\Auth;
 
 use App\Mail\BienvenueCreatif;
+use App\Models\BookSection;
 use App\Models\BookSetting;
 use App\Models\Category;
 use App\Models\User;
+use App\Services\Espace\RenduBlocsPage;
 use App\Support\Marque;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -39,6 +41,11 @@ class Inscription
         $login = mb_strtolower(trim($login));
 
         if ($login === '' || preg_match(self::MOTIF_LOGIN, $login) !== 1) {
+            return false;
+        }
+
+        // Reserve aux comptes supprimes (User::PREFIXE_DESACTIVE).
+        if (str_starts_with($login, User::PREFIXE_DESACTIVE)) {
             return false;
         }
 
@@ -84,8 +91,43 @@ class Inscription
                 'position' => 1,
             ]);
 
+            $this->creerPagesParDefaut($compte);
+
             return $compte;
         });
+    }
+
+    /**
+     * Une rubrique et une page d'exemple (titre + texte Lorem ipsum), pour
+     * que « Mes pages » et le menu du book ne soient jamais vides.
+     */
+    public function creerPagesParDefaut(User $compte): void
+    {
+        $rubrique = $compte->sections()->create([
+            'kind' => BookSection::PAGES,
+            'title' => __('À propos'),
+            'slug' => 'a-propos',
+            'is_published' => true,
+            'position' => 1,
+        ]);
+
+        $blocs = [
+            ['type' => 'header', 'data' => ['text' => 'Lorem ipsum dolor sit amet', 'level' => 2]],
+            ['type' => 'paragraph', 'data' => ['text' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.']],
+            ['type' => 'paragraph', 'data' => ['text' => '<b>Duis aute irure dolor</b><br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.']],
+            ['type' => 'paragraph', 'data' => ['text' => 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.']],
+        ];
+
+        $rubrique->articles()->create([
+            'user_id' => $compte->id,
+            'title' => 'Lorem ipsum',
+            'slug' => 'lorem-ipsum',
+            'body_blocks' => $blocs,
+            'body' => app(RenduBlocsPage::class)->versHtml($blocs),
+            'status' => 'published',
+            'position' => 1,
+            'published_at' => now(),
+        ]);
     }
 
     /**

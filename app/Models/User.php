@@ -54,8 +54,40 @@ class User extends Authenticatable
         ];
     }
 
+    /** Prefixe du login d'un compte supprime : libere l'identifiant pour un nouveau book. */
+    public const PREFIXE_DESACTIVE = 'desactive-';
+
     protected static function booted(): void
     {
+        /*
+         | Suppression douce (par le createur ou le back-office) : le login
+         | est unique en base, corbeille comprise. On le renomme
+         | « desactive-<login> » pour qu'un nouveau book puisse le reprendre,
+         | sans perdre la trace de l'ancien.
+         */
+        static::deleted(function (self $compte) {
+            if ($compte->isForceDeleting() || str_starts_with($compte->login, self::PREFIXE_DESACTIVE)) {
+                return;
+            }
+
+            $compte->login = self::loginLibre(self::PREFIXE_DESACTIVE, $compte->login);
+            $compte->saveQuietly();
+        });
+
+        /*
+         | Restauration : l'identifiant d'origine revient s'il est encore
+         | libre ; sinon le compte garde son nom desactive (a renommer a la main).
+         */
+        static::restoring(function (self $compte) {
+            if (! preg_match('/^'.self::PREFIXE_DESACTIVE.'(?:\d+-)?(.+)$/', $compte->login, $m)) {
+                return;
+            }
+
+            if (! static::withTrashed()->where('login', $m[1])->exists()) {
+                $compte->login = $m[1];
+            }
+        });
+
         /*
          | L'echeance suit toujours la formule : un changement de duree ou de
          | date de depart, d'ou qu'il vienne (back-office compris), la
@@ -358,5 +390,17 @@ class User extends Authenticatable
         return $this->belongsToMany(Selection::class)
             ->withPivot(['sent_twitter', 'sent_instagram', 'sent_mail'])
             ->withTimestamps();
+    }
+
+    /** desactive-<login>, puis desactive-2-<login>… : le premier libre, borne a 50 caracteres. */
+    private static function loginLibre(string $prefixe, string $login): string
+    {
+        for ($i = 1; ; $i++) {
+            $candidat = mb_substr($prefixe.($i > 1 ? $i.'-' : '').$login, 0, 50);
+
+            if (! static::withTrashed()->where('login', $candidat)->exists()) {
+                return $candidat;
+            }
+        }
     }
 }

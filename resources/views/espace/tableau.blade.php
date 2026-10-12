@@ -112,6 +112,7 @@
         </div>
     </div>
 
+    @if ($visites['total'] > 0)
     {{-- Les visites : le total, puis leur repartition par support. Toute la
          carte mene au detail (Mes statistiques). --}}
     <a href="{{ route('espace.statistiques') }}" class="carte-espace group mt-6 block p-7 no-underline transition-shadow hover:shadow-md">
@@ -129,6 +130,7 @@
 
         <x-espace.anneau :parts="$visites['parts']" class="mt-7" />
     </a>
+    @endif
 
     {{-- Les deux entrees en matiere : charger des images, personnaliser le
          portfolio. Ce sont les deux gestes que le createur vient faire,

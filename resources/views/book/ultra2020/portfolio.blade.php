@@ -13,6 +13,15 @@
         $marges = ['small' => 'p-0', 'normal' => 'px-[3px] py-1.5', 'large' => 'px-2.5 py-5'][$vue->tailleVisuels()];
     @endphp
 
+    @if ($vue->edition() && empty($vue->visuels()))
+        {{-- Createur connecte, aucun visuel : on l'oriente vers le chargement. --}}
+        <p class="mb-8 text-center text-[15px] text-book-texte text-pretty">
+            <span class="block">{{ __('Votre portfolio ne contient encore aucune image.') }}</span>
+            <span class="block">{{ __('Chargez-les depuis le menu Images de votre espace :') }}
+                <a href="{{ $vue->urlEspace('galeries') }}" class="font-semibold underline">{{ __('charger mes images') }}</a></span>
+        </p>
+    @endif
+
     <div x-data="mosaique" @if ($filtre) data-filtre="{{ $filtre['cle'] }}" data-filtre-nom="{{ $filtre['nom'] }}" @endif>
         @if (count($rubriques) > 1)
             {{-- « les projets » : survol sur ordinateur, clic sur mobile. --}}

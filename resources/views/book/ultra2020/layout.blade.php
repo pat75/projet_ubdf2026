@@ -20,8 +20,8 @@
         ['url' => '/contact', 'cle' => 'name_contact', 'libelle' => $vue->lien('name_contact', 'Contact'), 'actif' => $b->page_type === 'contact'],
     ];
     $tailles = $entete && $entete['type'] === 'photo'
-        ? ['S' => 'size-15', 'M' => 'size-[90px]', 'L' => $zen ? 'size-[70px] md:size-[180px]' : 'size-[90px] md:size-[180px]'][$taille]
-        : ['S' => 'h-[55px]', 'M' => 'h-[90px]', 'L' => 'h-[90px] md:h-[180px]'][$taille];
+        ? ['S' => 'size-15', 'M' => 'size-[99px]', 'L' => $zen ? 'size-[70px] md:size-[180px]' : 'size-[90px] md:size-[180px]'][$taille]
+        : ['S' => 'h-[55px]', 'M' => 'h-[99px]', 'L' => 'h-[90px] md:h-[180px]'][$taille];
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -154,6 +154,10 @@
                         <li><a href="{{ $url }}" target="_blank" rel="noopener" class="hover:text-book-texte" data-curseur>{{ $reseau }}</a></li>
                     @endforeach
                 </ul>
+            @endif
+            @if (filled($b->book->bookSetting?->footer))
+                {{-- Pied de page du createur (/espace/habillage), au-dessus du credit du modele. --}}
+                <div class="mb-2">{!! $b->book->bookSetting->footer !!}</div>
             @endif
             <div class="pied-book">{!! $vue->texte('footer') !!}</div>
         </footer>

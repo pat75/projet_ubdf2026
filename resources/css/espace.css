@@ -238,6 +238,18 @@ button:not(:disabled) {
 .redactor-toolbar a.redactor-button-active { background: var(--color-ub-accent); color: #fff; }
 .redactor-in { padding: 16px !important; font-size: 15px; line-height: 1.6; }
 
+/* Titres du corps de page : le reset Tailwind les ramene tous a la taille
+   du texte. Une echelle decroissante, du h1 au h6, rend leur importance
+   lisible dans l'editeur (Redactor et Editor.js). */
+:is(.redactor-in, .codex-editor) :is(h1, h2, h3, h4, h5, h6) { font-family: var(--font-titre); line-height: 1.25; margin: 1em 0 .4em; color: var(--color-ub-texte); }
+:is(.redactor-in, .codex-editor) h1 { font-size: 30px; font-weight: 300; }
+:is(.redactor-in, .codex-editor) h2 { font-size: 25px; font-weight: 300; }
+:is(.redactor-in, .codex-editor) h3 { font-size: 21px; font-weight: 400; }
+:is(.redactor-in, .codex-editor) h4 { font-size: 18px; font-weight: 600; }
+:is(.redactor-in, .codex-editor) h5 { font-size: 16px; font-weight: 600; }
+:is(.redactor-in, .codex-editor) h6 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+:is(.redactor-in, .codex-editor) p { margin: 0 0 .8em; }
+
 /*
  | Bibliotheque d'images du bouton image (plugin
  | resources/js/vendor/redactor/plugins/imagemanager.custom.js) : grille de

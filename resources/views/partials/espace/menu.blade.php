@@ -3,6 +3,9 @@
     // Calcule une fois par le layout, qui inclut aussi la barre mobile.
     $messagesNonLus ??= $creatif->conversationsNonLues();
     $memoTotal ??= $creatif->memoBooks()->count();
+    // Noms choisis pour les onglets « images » et « pages » du book, entre parentheses.
+    $nomMenuImages = trim((string) data_get($creatif->bookSetting?->theme_settings, 'data.nav_link.name_portfolio'));
+    $nomMenuPages = trim((string) data_get($creatif->bookSetting?->theme_settings, 'data.nav_link.name_page'));
 @endphp
 
 {{-- Carte du createur : vignette, nom, lien vers le book, et ses deux
@@ -46,8 +49,8 @@
     <x-espace.nav-lien route="espace.statistiques" icone="graphe">{{ __('Statistiques') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Contenu du portfolio') }}</x-espace.nav-groupe>
-    <x-espace.nav-lien route="espace.galeries">{{ __('Images') }}</x-espace.nav-lien>
-    <x-espace.nav-lien route="espace.pages">{{ __('Pages') }}</x-espace.nav-lien>
+    <x-espace.nav-lien route="espace.galeries">{{ __('Images') }}@if ($nomMenuImages !== '') <span class="font-light">({{ $nomMenuImages }})</span>@endif</x-espace.nav-lien>
+    <x-espace.nav-lien route="espace.pages">{{ __('Pages') }}@if ($nomMenuPages !== '') <span class="font-light">({{ $nomMenuPages }})</span>@endif</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.exporter">{{ __('Exporter') }}</x-espace.nav-lien>
 
     <div class="mx-3 my-2.5 h-px bg-ub-filet"></div>
