@@ -81,7 +81,7 @@
             'items-center text-center md:sticky md:top-10 md:items-start md:self-start md:text-left' => $zen,
         ])>
 
-            <a href="/" class="block transition duration-300 max-md:origin-top" :class="menu && 'max-md:scale-50'" data-curseur>
+            <a href="/" class="block transition duration-300 max-md:origin-top" data-curseur>
                 @if ($entete && $entete['type'] === 'photo')
                     <img src="{{ $entete['src'] }}" alt="{{ $vue->texte('titre') }}" @class(['rounded-full object-cover', $tailles])>
                 @elseif ($entete && $entete['type'] === 'icone')
@@ -104,14 +104,14 @@
             @endif
 
             {{-- Mobile : le burger, juste au-dessus de « les projets » ; il deplie le menu dessous. --}}
-            <button type="button" class="z-50 mt-5 p-2 md:hidden" @click="menu = ! menu"
+            <button type="button" class="z-50 mt-2 p-1 md:hidden" @click="menu = ! menu"
                     :aria-expanded="menu" aria-label="{{ __('Menu') }}">
                 <svg x-show="! menu" class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
                 <svg x-show="menu" x-cloak class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
             </button>
 
             <nav x-data="soulignement" @mouseleave="revenir()" aria-label="{{ __('Menu du book') }}" @class([
-                'relative mt-5 max-md:hidden',
+                'relative mt-5 max-md:mt-2 max-md:hidden',
                 'flex gap-7' => ! $zen,
                 'flex flex-col gap-2.5 md:items-start' => $zen,
             ]) :class="menu && 'max-md:flex! max-md:flex-col max-md:items-center max-md:gap-4'">

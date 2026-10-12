@@ -96,9 +96,14 @@ class StatistiquesAnnuelles
     public function libelles(int $annee): array
     {
         $janvier = CarbonImmutable::create($annee, 1, 1);
+        $maintenant = CarbonImmutable::now();
+        $courante = $annee === (int) $maintenant->year ? $this->semaine($maintenant) - 1 : null;
 
+        // Le dernier point de l'annee en cours est la semaine entamee : on
+        // l'etiquette du jour present, sinon la courbe semble s'arreter au
+        // premier jour de cette semaine.
         return array_map(
-            fn (int $i) => $janvier->addDays($i * 7)->translatedFormat('j M'),
+            fn (int $i) => ($i === $courante ? $maintenant : $janvier->addDays($i * 7))->translatedFormat('j M'),
             range(0, self::SEMAINES - 1),
         );
     }

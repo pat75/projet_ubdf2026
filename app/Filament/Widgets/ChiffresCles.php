@@ -17,8 +17,9 @@ class ChiffresCles extends StatsOverviewWidget
         $echues = User::where('plan', '>', 0)->where('plan_expires_at', '<', now())->count();
 
         return [
-            Stat::make('Créatifs', number_format(User::count(), 0, ',', ' '))
-                ->description(number_format(User::where('created_at', '>=', now()->subDays(30))->count(), 0, ',', ' ').' ce mois-ci')
+            Stat::make('Créatifs inscrits', number_format(User::count(), 0, ',', ' '))
+                ->description(number_format(User::where('last_login_at', '>=', now()->subDays(30))->count(), 0, ',', ' ').' actifs (connectés sur 30 j) · '
+                    .number_format(User::where('created_at', '>=', now()->subDays(30))->count(), 0, ',', ' ').' inscrits sur 30 j')
                 ->extraAttributes(['class' => 'ub-stat ub-stat-creatifs']),
             Stat::make('Formules payantes', number_format($payantes, 0, ',', ' '))
                 ->description($echues.' échues')
