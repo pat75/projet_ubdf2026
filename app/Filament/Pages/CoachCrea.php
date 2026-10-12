@@ -249,7 +249,7 @@ class CoachCrea extends Page implements HasTable
 
     protected function getViewData(): array
     {
-        $messages = CoachMessage::with('user.bookSetting')->where('statut', 'brouillon')->latest()->get();
+        $messages = CoachMessage::with('user.bookSetting')->has('user')->where('statut', 'brouillon')->latest()->get();
 
         // Dernier message envoye a chacun : « il y a N jours ».
         $derniersEnvois = CoachMessage::where('statut', 'envoye')->whereIn('user_id', $messages->pluck('user_id'))
@@ -257,7 +257,7 @@ class CoachCrea extends Page implements HasTable
 
 
         // Onglet « Déjà envoyés » : les plus récents, à relire.
-        $envoyes = CoachMessage::with('user')->where('statut', 'envoye')->latest('envoye_le')->limit(50)->get();
+        $envoyes = CoachMessage::with('user')->has('user')->where('statut', 'envoye')->latest('envoye_le')->limit(50)->get();
 
         return compact('messages', 'derniersEnvois', 'envoyes');
     }
