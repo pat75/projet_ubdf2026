@@ -31,6 +31,8 @@ export default function inscription(Alpine) {
         // Machine a ecrire pendant la progression (repris de ubdiff, start.blade.php) :
         // lignes deja tapees, la derniere en cours.
         lignes: [],
+        // Seconde phrase : affichee d'un bloc, en fondu (3 s).
+        pret: false,
         urlEspace: null,
         // Image du captcha local (App\Services\Captcha\Captcha, formulaire « inscription »).
         captcha: '',
@@ -125,53 +127,57 @@ export default function inscription(Alpine) {
             this.vue = 'formulaire';
         },
 
-        // Anneau de progression 0 -> 100 %, puis le message « Bravo ».
-        animerProgression() {
-            this.ecrire(this.$refs.machine?.dataset.texte ?? '');
-            const debut = performance.now();
-            const etape = (maintenant) => {
-                this.progression = Math.min(100, Math.round(((maintenant - debut) / DUREE_PROGRESSION) * 100));
-                this.dessiner();
-                if (this.progression < 100) {
-                    requestAnimationFrame(etape);
-                } else {
-                    this.bravo = true;
-                    // Sans clic au bout de 4 s, on entre seul dans l'espace.
-                    setTimeout(() => this.allerEspace(), 4000);
-                }
-            };
-            requestAnimationFrame(etape);
-        },
-
         /*
-         * Fait apparaitre le texte mot a mot ; « -stop- » marque une pause
-         * et un retour a la ligne. Le rythme suit la longueur de chaque mot,
-         * et l'ensemble tient dans la duree de la progression.
+         * Ecran final, sur le modele de ubdiff (start.blade.php) : une seule
+         * zone de texte en machine a ecrire. La premiere phrase s'ecrit
+         * pendant l'anneau de progression, la seconde apparait d'un bloc
+         * en fondu (3 s) ; puis le rappel des 12 images et le bouton apparaissent.
+         * Sans clic, on entre seul dans l'espace 4 s plus tard.
          */
-        ecrire(texte) {
-            const segments = texte.split(/\s*-stop-\s*/i).map((s) => s.trim().split(/\s+/).filter(Boolean)).filter((m) => m.length);
-            const mots = segments.flat();
-            if (!mots.length) return;
-
-            const poids = mots.reduce((n, m) => n + 2 + m.length, 0) + (segments.length - 1) * 8;
-            const unite = (DUREE_PROGRESSION * 0.85) / poids;
-            let s = 0;
-            let m = 0;
+        async animerProgression() {
+            const { phrase1 = '' } = this.$refs.machine?.dataset ?? {};
+            this.bravo = false;
+            this.pret = false;
             this.lignes = [''];
 
-            const suivant = () => {
-                const mot = segments[s][m];
-                const ligne = this.lignes.length - 1;
-                this.lignes[ligne] = (this.lignes[ligne] ? this.lignes[ligne] + ' ' : '') + mot;
-                m++;
-                if (m < segments[s].length) {
-                    setTimeout(suivant, unite * (2 + mot.length));
-                } else if (++s < segments.length) {
-                    m = 0;
-                    setTimeout(() => { this.lignes.push(''); suivant(); }, unite * 8);
-                }
-            };
-            suivant();
+            await Promise.all([this.anneau(), this.ecrire(phrase1, DUREE_PROGRESSION * 0.85)]);
+            await new Promise((fin) => setTimeout(fin, 500));
+            this.pret = true;
+            await new Promise((fin) => setTimeout(fin, 3000));
+
+            this.bravo = true;
+            setTimeout(() => this.allerEspace(), 4000);
+        },
+
+        // Anneau de progression 0 -> 100 % ; resolu a 100 %.
+        anneau() {
+            return new Promise((fin) => {
+                const debut = performance.now();
+                const etape = (maintenant) => {
+                    this.progression = Math.min(100, Math.round(((maintenant - debut) / DUREE_PROGRESSION) * 100));
+                    this.dessiner();
+                    this.progression < 100 ? requestAnimationFrame(etape) : fin();
+                };
+                requestAnimationFrame(etape);
+            });
+        },
+
+        // Ecrit `texte` lettre a lettre sur la derniere ligne, en `duree` ms ;
+        // un temps un peu plus long separe chaque mot (PAUSE_MOT lettres).
+        ecrire(texte, duree) {
+            const PAUSE_MOT = 2.5;
+            const lettres = [...texte.trim().replace(/\s+/g, ' ')];
+            const espaces = lettres.filter((c) => c === ' ').length;
+            const unite = duree / Math.max(1, lettres.length - espaces + espaces * PAUSE_MOT);
+
+            return new Promise((fin) => {
+                const suivant = (i) => {
+                    if (i >= lettres.length) return fin();
+                    this.lignes[this.lignes.length - 1] += lettres[i];
+                    setTimeout(() => suivant(i + 1), unite * (lettres[i] === ' ' ? PAUSE_MOT : 1));
+                };
+                suivant(0);
+            });
         },
 
         dessiner() {

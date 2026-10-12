@@ -389,6 +389,12 @@ $portail = function (?string $langue = null) {
         Route::delete('/pages/images/{image}', [PageImageController::class, 'destroy'])->name('pages.images.destroy');
         Route::get('/pages/{page}', [PageController::class, 'edit'])->name('pages.edit');
         Route::view('/habillage', 'espace.habillage')->name('design');
+        // Simulation de l'ecran final de « Creer un book » : local/dev seulement.
+        Route::get('/test-crea', function () {
+            abort_unless(app()->environment(['local', 'development']), 404);
+
+            return view('front.test-crea');
+        })->name('test-crea');
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
         Route::view('/compte', 'espace.compte')->name('compte');
         Route::view('/messages', 'espace.messages')->name('messages');
