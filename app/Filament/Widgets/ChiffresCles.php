@@ -13,7 +13,7 @@ class ChiffresCles extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $payantes = User::where('plan', '>', 0)->count();
+        $payantes = User::where('plan', '>', 0)->where('plan_expires_at', '>', now())->count();
         $echues = User::where('plan', '>', 0)->where('plan_expires_at', '<', now())->count();
 
         return [
