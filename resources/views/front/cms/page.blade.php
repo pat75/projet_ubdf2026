@@ -1,6 +1,6 @@
 @extends('layouts.portail')
 
-@section('title', texte_seo($page->title).' | '.$marque->nom)
+@section('title', texte_seo($page->seo_title ?: $page->title).' | '.$marque->nom)
 @section('description', texte_seo($page->excerpt ?: $page->body, 155))
 @section('body_class', 'page_cms')
 

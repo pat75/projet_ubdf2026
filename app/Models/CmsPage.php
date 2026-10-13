@@ -9,7 +9,7 @@ class CmsPage extends Model
 {
     protected $fillable = [
         'legacy_id', 'translation_group', 'slug', 'locale', 'parent_slug',
-        'title', 'body', 'excerpt', 'position', 'published_at',
+        'title', 'seo_title', 'body', 'excerpt', 'position', 'published_at',
     ];
 
     protected function casts(): array

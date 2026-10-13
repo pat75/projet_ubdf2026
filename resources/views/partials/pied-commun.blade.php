@@ -150,6 +150,7 @@
                         {{ __('Contact/aide') }}<span>{{ $marque->email }}</span>
                     </a>
                     <a href="/doc/doc">{{ __('Documentation') }}</a>
+                    <a href="/doc/creer-son-book">{{ __('Comment créer son book') }}</a>
                     <a href="/doc/les-formules-ultra-book">{{ __('Formules et tarifs') }}</a>
                     <a href="/doc/questions-frequentes-2">{{ __('Questions fréquentes') }}</a>
                     <a href="/doc/mentions-legales">{{ __('Mentions légales') }}</a>

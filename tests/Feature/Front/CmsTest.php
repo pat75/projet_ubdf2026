@@ -170,3 +170,17 @@ it('redirige /blog vers les actualites', function () {
     $this->get(page_portail('/blog'))
         ->assertRedirect(page_portail('/actus'));
 });
+
+it('sert le guide « Comment créer son book » avec son titre SEO et sa FAQ', function () {
+    $this->get(page_portail('/doc/creer-son-book'))
+        ->assertOk()
+        ->assertSee('<title>Comment créer son book (portfolio) en ligne gratuitement | Ultra-book</title>', false)
+        ->assertSee('<h1>Comment créer son book</h1>', false)
+        ->assertSee('"FAQPage"', false)
+        ->assertDontSee('noindex', false);
+});
+
+it('reprend le titre de la page quand le titre SEO est vide', function () {
+    $this->get(page_portail('/doc/presentation'))
+        ->assertSee('<title>Qui sommes nous | Ultra-book</title>', false);
+});

@@ -200,6 +200,10 @@ class CmsController extends Controller
         $contenu->title = $marque->adapter($contenu->title);
         $contenu->body = $marque->adapter($contenu->body);
         $contenu->excerpt = $marque->adapter($contenu->excerpt);
+
+        if ($contenu instanceof CmsPage) {
+            $contenu->seo_title = $marque->adapter($contenu->seo_title);
+        }
     }
 
     private function locale(): string
