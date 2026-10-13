@@ -1,0 +1,88 @@
+
+=== 2026-10-13 14:19:42 (essai a blanc) depuis id > 0
+#1 amelancholygraphiste (legacy 64969, login extra-book amelancholygraphiste) : vues 47 -> 49, coeurs 1 -> 1
+#2 amelielaffaiteur (legacy 74227, login extra-book amelielaffaiteur) : vues 0 -> 62804, coeurs 22 -> 22
+#3 hectordexet (legacy 23406, login extra-book hectordexet) : vues 112113 -> 112122, coeurs 53 -> 53
+#4 alexandreschlub (legacy 45304, login extra-book alexandreschlub) : vues 50837 -> 50885, coeurs 13 -> 13
+#5 arcenterre (legacy 47863, login extra-book arcenterre) : vues 11119 -> 11120, coeurs 0 -> 0
+#8 agenceelement (legacy 58654, login extra-book agenceelement) : vues 43371 -> 43372, coeurs 15 -> 15
+Bilan : 10 books vus, 6 a modifier, 0 inconnus d'extra-book
+
+=== 2026-10-13 14:25:08 (essai a blanc) depuis id > 0
+#1 amelancholygraphiste (legacy 64969, login extra-book amelancholygraphiste) : vues 47 -> 49, coeurs 1 -> 1 => enregistre : [49 vues et 1 coeurs]
+#2 amelielaffaiteur (legacy 74227, login extra-book amelielaffaiteur) : vues 0 -> 62804, coeurs 22 -> 22 => enregistre : [62804 vues et 22 coeurs]
+#3 hectordexet (legacy 23406, login extra-book hectordexet) : vues 112113 -> 112122, coeurs 53 -> 53 => enregistre : [112122 vues et 53 coeurs]
+#4 alexandreschlub (legacy 45304, login extra-book alexandreschlub) : vues 50837 -> 50885, coeurs 13 -> 13 => enregistre : [50885 vues et 13 coeurs]
+#5 arcenterre (legacy 47863, login extra-book arcenterre) : vues 11119 -> 11120, coeurs 0 -> 0 => enregistre : [11120 vues et 0 coeurs]
+#6 avkansau (legacy 75066, login extra-book avkansau) : vues 14966 -> 14968, coeurs 0 -> 0 => enregistre : [14968 vues et 0 coeurs]
+#8 agenceelement (legacy 58654, login extra-book agenceelement) : vues 43371 -> 43372, coeurs 15 -> 15 => enregistre : [43372 vues et 15 coeurs]
+Bilan : 10 books vus, 7 a modifier, 0 inconnus d'extra-book
+
+=== 2026-10-13 14:26:34 (essai a blanc) depuis id > 0
+#1 amelancholygraphiste (legacy 64969, login extra-book amelancholygraphiste) : vues 47 -> 49, coeurs 1 -> 1 => enregistre : [49 vues et 1 coeurs]
+#2 amelielaffaiteur (legacy 74227, login extra-book amelielaffaiteur) : vues 0 -> 62804, coeurs 22 -> 22 => enregistre : [62804 vues et 22 coeurs]
+#3 hectordexet (legacy 23406, login extra-book hectordexet) : vues 112113 -> 112122, coeurs 53 -> 53 => enregistre : [112122 vues et 53 coeurs]
+#4 alexandreschlub (legacy 45304, login extra-book alexandreschlub) : vues 50837 -> 50885, coeurs 13 -> 13 => enregistre : [50885 vues et 13 coeurs]
+#5 arcenterre (legacy 47863, login extra-book arcenterre) : vues 11119 -> 11121, coeurs 0 -> 0 => enregistre : [11121 vues et 0 coeurs]
+#6 avkansau (legacy 75066, login extra-book avkansau) : vues 14966 -> 14968, coeurs 0 -> 0 => enregistre : [14968 vues et 0 coeurs]
+#8 agenceelement (legacy 58654, login extra-book agenceelement) : vues 43371 -> 43372, coeurs 15 -> 15 => enregistre : [43372 vues et 15 coeurs]
+Bilan : 10 books vus, 7 a modifier, 0 inconnus d'extra-book
+
+=== 2026-10-13 14:26:44 (essai a blanc) depuis id > 0
+#1 amelancholygraphiste (legacy 64969, login extra-book amelancholygraphiste) : vues 47 -> 49, coeurs 1 -> 1 => enregistre : [49 vues et 1 coeurs]
+#2 amelielaffaiteur (legacy 74227, login extra-book amelielaffaiteur) : vues 0 -> 62804, coeurs 22 -> 22 => enregistre : [62804 vues et 22 coeurs]
+#3 hectordexet (legacy 23406, login extra-book hectordexet) : vues 112113 -> 112122, coeurs 53 -> 53 => enregistre : [112122 vues et 53 coeurs]
+#4 alexandreschlub (legacy 45304, login extra-book alexandreschlub) : vues 50837 -> 50886, coeurs 13 -> 13 => enregistre : [50886 vues et 13 coeurs]
+#5 arcenterre (legacy 47863, login extra-book arcenterre) : vues 11119 -> 11121, coeurs 0 -> 0 => enregistre : [11121 vues et 0 coeurs]
+#6 avkansau (legacy 75066, login extra-book avkansau) : vues 14966 -> 14968, coeurs 0 -> 0 => enregistre : [14968 vues et 0 coeurs]
+#8 agenceelement (legacy 58654, login extra-book agenceelement) : vues 43371 -> 43372, coeurs 15 -> 15 => enregistre : [43372 vues et 15 coeurs]
+#11 ar-creation (legacy 67820, login extra-book ar-creation) : vues 3356 -> 3371, coeurs 0 -> 0 => enregistre : [3371 vues et 0 coeurs]
+#13 anterion (legacy 40161, login extra-book anterion) : vues 16943 -> 16976, coeurs 4 -> 4 => enregistre : [16976 vues et 4 coeurs]
+#14 antoine-meurant (legacy 38829, login extra-book antoine-meurant) : vues 0 -> 82423, coeurs 20 -> 20 => enregistre : [82423 vues et 20 coeurs]
+#15 alexandrelagneau (legacy 49777, login extra-book alexandrelagneau) : vues 0 -> 36047, coeurs 31 -> 31 => enregistre : [36047 vues et 31 coeurs]
+#16 aureliedeheinzelin (legacy 32625, login extra-book aureliedeheinzelin) : vues 98654 -> 98656, coeurs 13 -> 13 => enregistre : [98656 vues et 13 coeurs]
+#17 adolie (legacy 400, login extra-book adolie) : vues 0 -> 82267, coeurs 33 -> 33 => enregistre : [82267 vues et 33 coeurs]
+#18 aiman-faisal (legacy 70218, login extra-book aiman-faisal) : vues 8 -> 10, coeurs 0 -> 0 => enregistre : [10 vues et 0 coeurs]
+#25 asakbay (legacy 68707, login extra-book asakbay) : vues 13 -> 15, coeurs 0 -> 0 => enregistre : [15 vues et 0 coeurs]
+#26 ameliefaliere (legacy 14123, login extra-book ameliefaliere) : vues 101452 -> 101489, coeurs 15 -> 15 => enregistre : [101489 vues et 15 coeurs]
+#27 alexandrapetracchi (legacy 31114, login extra-book alexandrapetracchi) : vues 57092 -> 57095, coeurs 26 -> 26 => enregistre : [57095 vues et 26 coeurs]
+#31 anneloup (legacy 8619, login extra-book anneloup) : vues 183688 -> 183689, coeurs 13 -> 13 => enregistre : [183689 vues et 13 coeurs]
+#34 kbstudios (legacy 9244, login extra-book kbstudios) : vues 40571 -> 40573, coeurs 16 -> 16 => enregistre : [40573 vues et 16 coeurs]
+#35 ameliebiggs (legacy 8668, login extra-book ameliebiggs) : vues 0 -> 34527, coeurs 14 -> 14 => enregistre : [34527 vues et 14 coeurs]
+#36 gabrielleka (legacy 34549, login extra-book gabrielleka) : vues 63369 -> 63370, coeurs 16 -> 16 => enregistre : [63370 vues et 16 coeurs]
+#37 allaxel (legacy 19522, login extra-book allaxel) : vues 0 -> 49164, coeurs 22 -> 22 => enregistre : [49164 vues et 22 coeurs]
+#38 alicedepage (legacy 45719, login extra-book alicedepage) : vues 36498 -> 36499, coeurs 21 -> 21 => enregistre : [36499 vues et 21 coeurs]
+#39 alexlanglois (legacy 49957, login extra-book alexlanglois) : vues 0 -> 23328, coeurs 19 -> 19 => enregistre : [23328 vues et 19 coeurs]
+#40 gargouille (legacy 23447, login extra-book gargouille) : vues 38238 -> 38246, coeurs 0 -> 0 => enregistre : [38246 vues et 0 coeurs]
+#41 annevelaval (legacy 10884, login extra-book annevelaval) : vues 119879 -> 119894, coeurs 16 -> 16 => enregistre : [119894 vues et 16 coeurs]
+#42 aurelienmartinez (legacy 26489, login extra-book aurelienmartinez) : vues 0 -> 7420, coeurs 13 -> 13 => enregistre : [7420 vues et 13 coeurs]
+#43 anneletuffe (legacy 77915, login extra-book anneletuffe) : vues 64510 -> 64517, coeurs 4 -> 4 => enregistre : [64517 vues et 4 coeurs]
+#44 gaeldezothez (legacy 35840, login extra-book gaeldezothez) : vues 0 -> 54267, coeurs 28 -> 28 => enregistre : [54267 vues et 28 coeurs]
+#46 amelinh (legacy 33737, login extra-book amelinh) : vues 75452 -> 75454, coeurs 27 -> 27 => enregistre : [75454 vues et 27 coeurs]
+#47 anaismazuez (legacy 33686, login extra-book anaismazuez) : vues 0 -> 23074, coeurs 13 -> 13 => enregistre : [23074 vues et 13 coeurs]
+#48 akumimpi (legacy 52591, login extra-book akumimpi) : vues 35413 -> 35414, coeurs 16 -> 16 => enregistre : [35414 vues et 16 coeurs]
+#49 alinecampana (legacy 32122, login extra-book alinecampana) : vues 70667 -> 70673, coeurs 12 -> 12 => enregistre : [70673 vues et 12 coeurs]
+#50 astridm (legacy 14855, login extra-book astridm) : vues 0 -> 34864, coeurs 18 -> 18 => enregistre : [34864 vues et 18 coeurs]
+#54 annelisenalin (legacy 17721, login extra-book annelisenalin) : vues 109582 -> 109623, coeurs 24 -> 24 => enregistre : [109623 vues et 24 coeurs]
+#57 arianeblanclebeaupin (legacy 50839, login extra-book arianeblanclebeaupin) : vues 1316 -> 1317, coeurs 0 -> 0 => enregistre : [1317 vues et 0 coeurs]
+#58 anneloreparot (legacy 13793, login extra-book anneloreparot) : vues 42929 -> 42932, coeurs 5 -> 5 => enregistre : [42932 vues et 5 coeurs]
+#60 amelieveaux (legacy 16531, login extra-book amelieveaux) : vues 67612 -> 67616, coeurs 17 -> 17 => enregistre : [67616 vues et 17 coeurs]
+#61 alainchiche (legacy 34978, login extra-book alainchiche) : vues 30092 -> 30099, coeurs 15 -> 15 => enregistre : [30099 vues et 15 coeurs]
+#62 asl (legacy 12806, login extra-book asl) : vues 55882 -> 55884, coeurs 22 -> 22 => enregistre : [55884 vues et 22 coeurs]
+#64 aurelielavaud (legacy 63695, login extra-book aurelielavaud) : vues 35202 -> 35203, coeurs 13 -> 13 => enregistre : [35203 vues et 13 coeurs]
+#65 7years (legacy 35466, login extra-book 7years) : vues 326 -> 327, coeurs 0 -> 0 => enregistre : [327 vues et 0 coeurs]
+#66 amandinebouchereau (legacy 41810, login extra-book amandinebouchereau) : vues 40991 -> 40996, coeurs 15 -> 15 => enregistre : [40996 vues et 15 coeurs]
+#67 abrivet (legacy 9704, login extra-book abrivet) : vues 54966 -> 54968, coeurs 14 -> 14 => enregistre : [54968 vues et 14 coeurs]
+#68 annerouvin (legacy 67234, login extra-book annerouvin) : vues 0 -> 4226, coeurs 1 -> 1 => enregistre : [4226 vues et 1 coeurs]
+#69 aylincarcoiffure (legacy 60939, login extra-book aylincarcoiffure) : vues 28 -> 29, coeurs 0 -> 0 => enregistre : [29 vues et 0 coeurs]
+#71 aurelieabolivier (legacy 10607, login extra-book aurelieabolivier) : vues 29901 -> 29905, coeurs 19 -> 19 => enregistre : [29905 vues et 19 coeurs]
+#75 audenguyenhuu (legacy 48349, login extra-book audenguyenhuu) : vues 8631 -> 8634, coeurs 6 -> 6 => enregistre : [8634 vues et 6 coeurs]
+#77 annabelleguerre (legacy 39517, login extra-book annabelleguerre) : vues 20984 -> 21006, coeurs 3 -> 3 => enregistre : [21006 vues et 3 coeurs]
+#78 atelierjamjam (legacy 47541, login extra-book atelierjamjam) : vues 22519 -> 22520, coeurs 13 -> 13 => enregistre : [22520 vues et 13 coeurs]
+#85 annabelleh (legacy 39530, login extra-book annabelleh) : vues 40384 -> 40391, coeurs 13 -> 13 => enregistre : [40391 vues et 13 coeurs]
+#88 agnesdruesne (legacy 60345, login extra-book agnesdruesne) : vues 18825 -> 18826, coeurs 13 -> 13 => enregistre : [18826 vues et 13 coeurs]
+#89 amandine-wanert (legacy 2067, login extra-book amandine-wanert) : vues 25273 -> 25274, coeurs 24 -> 24 => enregistre : [25274 vues et 24 coeurs]
+#91 alicebohl (legacy 21371, login extra-book alicebohl) : vues 48045 -> 48148, coeurs 15 -> 15 => enregistre : [48148 vues et 15 coeurs]
+#95 audreybrien (legacy 48207, login extra-book audreybrien) : vues 55708 -> 55710, coeurs 21 -> 21 => enregistre : [55710 vues et 21 coeurs]
+#96 aurelieblardquintard (legacy 1845, login extra-book aurelieblardquintard) : vues 41331 -> 41340, coeurs 16 -> 16 => enregistre : [41340 vues et 16 coeurs]
+Bilan : 100 books vus, 56 a modifier, 0 inconnus d'extra-book

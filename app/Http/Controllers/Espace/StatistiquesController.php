@@ -57,7 +57,9 @@ class StatistiquesController extends Controller
         return view('espace.statistiques', [
             'parJour' => $parJour,
             'parMois' => $parMois,
-            'total' => (int) $stats->clone()->sum('public_views'),
+            // Comme la carte du portail (User::vuesTotales) : vues du serveur
+            // de stats legacy (extra-book), plus celles comptees depuis.
+            'total' => (int) $request->user()->legacy_views + (int) $stats->clone()->sum('public_views'),
             'surfaces' => [
                 'book' => __('Book'),
                 'minibook' => __('MiniBook'),

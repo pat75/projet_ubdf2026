@@ -316,6 +316,11 @@ Route::group([], function () {
     Route::get('/ubvisite/{login}.gif', VisiteBookController::class)
         ->where('login', '[-a-zA-Z0-9_]+')->name('visiteur.vu');
 
+    // Vues d'un mini-book ouvert dans la visionneuse du portail (remplace
+    // l'appel au serveur de stats extra-book du legacy).
+    Route::get('/ubstats/{login}.gif', StatsBookController::class)
+        ->where('login', '[-a-zA-Z0-9_]+')->name('portail.stats');
+
     // Disponibilite d'un identifiant, interrogee a la frappe (texte brut).
     Route::get('/inscription', [InscriptionController::class, 'loginDisponible'])
         ->name('inscription.login-disponible');

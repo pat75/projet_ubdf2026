@@ -10,7 +10,8 @@
  * Mémo book : les books retenus par le visiteur, dans localStorage
  * (cle « books », meme format que le legacy pour garder les selections
  * existantes). Le legacy signalait aussi chaque ajout au serveur de
- * statistiques de production (extra-book.com) : retire.
+ * statistiques de production (extra-book.com) : remplace par le pixel
+ * /ubstats/{login}.gif?s=minibook (CompteurVisites).
  */
 const MOBILE = 750;
 
@@ -227,6 +228,9 @@ export default function visionneuse(Alpine) {
             this.ouverte = true;
             document.documentElement.classList.add('swipebox-html');
             history.replaceState(null, '', `#${this.login}`);
+
+            // Statistiques du book, surface « minibook » (StatsBookController).
+            new Image().src = `/ubstats/${encodeURIComponent(this.login)}.gif?s=minibook&r=${Math.random()}`;
 
             // Dernieres visites d'un visiteur connecte (VisiteBookController).
             if (Alpine.store('memo').visiteur) {
