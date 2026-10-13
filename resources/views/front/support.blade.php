@@ -35,7 +35,7 @@
                 @if ($compte)
                     {{-- Creatif connecte : il est identifie, rien a saisir. --}}
                     @php($profil = app(\App\Services\Espace\AffichageProfil::class))
-                    <div class="flex items-center gap-4">
+                    <div class="mb-7 flex items-center gap-4">
                         <img src="{{ $profil->photoUrl($compte) ?: $profil->medaillonCreatif($compte) }}" alt="" class="size-14 rounded-full object-cover">
                         <div class="text-[16px] font-light">
                             <strong class="font-semibold">{{ $compte->fullName() }}</strong><br>
@@ -54,8 +54,10 @@
                     {{-- Piece jointe : createur connecte uniquement, rangee dans son book. --}}
                     <div>
                         <label class="inline-flex cursor-pointer items-center gap-2 text-[14px] text-[#333] hover:text-[#111]">
-                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m21 12-8.5 8.5a5 5 0 0 1-7-7L14 5a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 8"/></svg>
-                            <span>{{ __('Joindre une image ou un PDF') }}</span>
+                            <span class="inline-flex h-[43.5px] items-center gap-2 border border-[#bbb] px-4">
+                                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m21 12-8.5 8.5a5 5 0 0 1-7-7L14 5a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L15 8"/></svg>
+                                <span>{{ __('Joindre une image ou un PDF') }}</span>
+                            </span>
                             <input type="file" name="piece" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" class="sr-only"
                                    onchange="this.nextElementSibling.textContent = this.files[0]?.name ?? ''">
                             <span class="font-light text-[#666]"></span>
