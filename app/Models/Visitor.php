@@ -24,7 +24,7 @@ class Visitor extends Authenticatable
         'blocked_at', 'blocked_reason',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'google_id'];
 
     protected function casts(): array
     {

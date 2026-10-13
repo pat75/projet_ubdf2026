@@ -467,13 +467,13 @@ it('inscrit et desinscrit le visiteur de la newsletter', function () {
     expect(App\Models\NewsletterMail::where('email', 'lea@example.com')->exists())->toBeFalse();
 });
 
-it('supprime le compte visiteur apres le mot de passe actuel', function () {
+it('supprime le compte visiteur apres avoir recopie supprimer', function () {
     $visiteur = Visitor::factory()->create(['password' => Hash::make('secret-2026')]);
     MemoBook::create(['visitor_id' => $visiteur->id, 'book_id' => $this->book->id]);
 
     Livewire\Livewire::actingAs($visiteur, 'visitor')->test(App\Livewire\Visiteur\Compte::class)
-        ->set('motDePasseActuel', 'faux')->call('supprimerCompte')->assertHasErrors('motDePasseActuel')
-        ->set('motDePasseActuel', 'secret-2026')->call('supprimerCompte')->assertRedirect(route('home'));
+        ->set('confirmation', 'supprim')->call('supprimerCompte')->assertHasErrors('confirmation')
+        ->set('confirmation', ' Supprimer ')->call('supprimerCompte')->assertRedirect(route('home'));
 
     expect(Visitor::withTrashed()->find($visiteur->id))->toBeNull()
         ->and(MemoBook::where('visitor_id', $visiteur->id)->count())->toBe(0);

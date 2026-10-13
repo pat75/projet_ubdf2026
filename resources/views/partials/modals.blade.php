@@ -602,8 +602,8 @@
      cree, connecte, et la selection du navigateur y est versee.
      Etats : resources/js/portail/memo-compte.js. --}}
 @if (! auth('web')->check() && ! auth('visitor')->check())
-<x-portail.modale nom="memo-compte" class="connexion_plein">
-    <div class="connexion" x-data="memoCompte">
+<x-portail.modale nom="memo-compte" class="connexion_plein" :ouverte="session()->has('memo_compte_erreur')">
+    <div class="connexion" x-data="memoCompte" x-init="erreur = @js(session('memo_compte_erreur', ''))">
 
         <button type="button" class="btn_close connexion_fermer" aria-label="{{ __('Fermer') }}">
             <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" aria-hidden="true">
@@ -623,7 +623,9 @@
                 <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémoBook') }}</p>
                 <p class="connexion_accroche">
                     <span class="block">{{ __('Pour mémoriser un book, connectez-vous ou créez un compte.') }}</span>
-                    <span class="block">{{ __('Compte visiteur gratuit : indiquez votre e-mail et un mot de passe.') }}</span>
+                    <span class="block">{{ \App\Models\Reglage::googleActif()
+                        ? __('Compte visiteur gratuit : avec Google, ou votre e-mail et un mot de passe.')
+                        : __('Compte visiteur gratuit : indiquez votre e-mail et un mot de passe.') }}</span>
                     <span class="block">{{ __('Retrouvez votre sélection sur tous vos appareils et exportez-la en PDF.') }}</span>
                 </p>
                 </div>
@@ -633,6 +635,12 @@
                     <p x-text="erreur"></p>
                     <p x-show="existe"><a href="#" @click.prevent="$store.modale.ouvrir('connexion')">{{ __('Me connecter') }}</a></p>
                 </div>
+
+                @if (\App\Models\Reglage::googleActif())
+                    <x-portail.bouton-google class="creer_book_google" :href="route('google.visiteur')" />
+
+                    <div class="creer_book_ou"><span>{{ __('ou avec votre e-mail') }}</span></div>
+                @endif
 
                 <form class="ui form creer_book_form" @submit.prevent="creer($el)" novalidate>
                     <div class="field">

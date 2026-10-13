@@ -25,7 +25,8 @@ class Compte extends Component
 
     public bool $newsletter = false;
 
-    public string $motDePasseActuel = '';
+    /** Mot « supprimer » recopie par le visiteur avant la suppression. */
+    public string $confirmation = '';
 
     public function mount(): void
     {
@@ -111,13 +112,18 @@ class Compte extends Component
     }
 
     /**
-     * Suppression definitive, apres le mot de passe actuel : le memoBook,
+     * Suppression definitive, apres avoir recopie « supprimer » (pas de mot
+     * de passe : un compte ouvert par Google n'en connait pas) : le memoBook,
      * les visites et le partage public partent avec le compte (cles
      * etrangeres en cascade), l'inscription newsletter aussi.
      */
     public function supprimerCompte(): void
     {
-        $this->validate(['motDePasseActuel' => ['required', 'current_password:visitor']]);
+        if (mb_strtolower(trim($this->confirmation)) !== 'supprimer') {
+            $this->addError('confirmation', __('Recopiez « supprimer » pour confirmer.'));
+
+            return;
+        }
 
         $visiteur = $this->visiteur();
 

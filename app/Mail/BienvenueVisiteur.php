@@ -8,13 +8,13 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 
-/** Mail d'ouverture d'un compte visiteur : lien de confirmation d'adresse. */
+/** Mail d'ouverture d'un compte visiteur : lien de confirmation d'adresse, sauf adresse deja prouvee. */
 class BienvenueVisiteur extends Mailable
 {
     public function __construct(
         public readonly Visitor $compte,
         public readonly Marque $marque,
-        public readonly string $lienConfirmation,
+        public readonly ?string $lienConfirmation,
     ) {}
 
     public function envelope(): Envelope

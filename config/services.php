@@ -90,6 +90,8 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => '/auth/google/callback',
+        // Comptes visiteurs (memo book) : URI a declarer aussi dans la console Google.
+        'redirect_visiteur' => '/auth/google/visiteur/callback',
     ],
 
     'google_maps' => [

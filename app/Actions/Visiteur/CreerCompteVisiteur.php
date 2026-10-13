@@ -25,7 +25,7 @@ class CreerCompteVisiteur
     /** @param  list<string>  $logins */
     public function executer(
         string $email, string $motDePasse, array $logins, Marque $marque, ?string $ip,
-        ?string $prenom = null, ?string $nom = null,
+        ?string $prenom = null, ?string $nom = null, bool $verifie = false,
     ): Visitor {
         $visiteur = Visitor::query()->create([
             'email' => $email,
@@ -37,12 +37,17 @@ class CreerCompteVisiteur
             'signup_ip' => $ip,
         ]);
 
+        // Adresse deja prouvee (Google) : pas de confirmation a demander.
+        if ($verifie) {
+            $visiteur->forceFill(['email_verified_at' => now()])->save();
+        }
+
         $this->memo->fusionner($visiteur, $logins);
 
         // Newsletter activee par defaut ; le visiteur la coupe dans « Mon compte ».
         NewsletterMail::query()->firstOrCreate(['email' => $visiteur->email], ['ip' => $ip]);
 
-        Mail::to($visiteur->email)->send(new BienvenueVisiteur($visiteur, $marque, $this->lienConfirmation($visiteur)));
+        Mail::to($visiteur->email)->send(new BienvenueVisiteur($visiteur, $marque, $verifie ? null : $this->lienConfirmation($visiteur)));
 
         return $visiteur;
     }

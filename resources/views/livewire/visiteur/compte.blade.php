@@ -137,12 +137,14 @@
                 {{ __('La suppression est définitive. Les messages déjà envoyés aux créatifs restent chez eux.') }}
             </p>
 
-            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2 sm:max-w-xs">{{ __('Mot de passe actuel') }}
-                <input type="password" wire:model="motDePasseActuel" autocomplete="current-password" class="champ-espace">
-                @error('motDePasseActuel') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
+            <label class="flex flex-col gap-1.5 text-[14px] text-ub-texte2 sm:max-w-xs">{{ __('Pour confirmer, recopiez « supprimer »') }}
+                <input type="text" wire:model="confirmation" autocomplete="off" spellcheck="false" placeholder="supprimer" class="champ-espace">
+                @error('confirmation') <span class="text-[13px] text-ub-danger">{{ $message }}</span> @enderror
             </label>
 
+            {{-- Actif seulement une fois le mot recopie ; le serveur le reverifie. --}}
             <button type="submit" wire:target="supprimerCompte" wire:loading.attr="disabled"
+                    :disabled="($wire.confirmation ?? '').trim().toLowerCase() !== 'supprimer'"
                     class="bouton-espace bouton-espace-grand mt-4 px-4">
                 {{ __('Supprimer définitivement mon compte') }}
             </button>

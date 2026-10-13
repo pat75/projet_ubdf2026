@@ -36,6 +36,7 @@ use App\Http\Controllers\Espace\PdfController;
 use App\Http\Controllers\Espace\StatistiquesController;
 use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\GoogleController;
+use App\Http\Controllers\Visiteur\GoogleVisiteurController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\SuppressionBookController;
 use App\Http\Controllers\Front\SupportController;
@@ -329,6 +330,10 @@ Route::group([], function () {
     Route::post('/auth/google/inscription', [GoogleController::class, 'inscrire'])
         ->middleware('throttle:10,1')->name('google.inscription');
     Route::post('/auth/google/abandon', [GoogleController::class, 'abandonner'])->name('google.abandon');
+
+    // Compte visiteur par Google, depuis la fenetre « Gardez votre mémoBook ».
+    Route::get('/auth/google/visiteur', [GoogleVisiteurController::class, 'redirection'])->name('google.visiteur');
+    Route::get('/auth/google/visiteur/callback', [GoogleVisiteurController::class, 'retour'])->name('google.visiteur.retour');
 
     Route::get('/messages/{role}/{selector}/{jeton}', [FilController::class, 'show'])
         ->where(['role' => 'owner|sender', 'selector' => '[a-z0-9]{24}', 'jeton' => '[a-f0-9]{64}'])
