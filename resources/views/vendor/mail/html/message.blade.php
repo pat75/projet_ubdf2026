@@ -22,7 +22,7 @@
 {{-- Footer --}}
 <x-slot:footer>
 <x-mail::footer>
-{{ config('app.name') }}
+© {{ date('Y') }} {{ config('app.name') }}. Tous droits réservés.
 </x-mail::footer>
 </x-slot:footer>
 </x-mail::layout>
