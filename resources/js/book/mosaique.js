@@ -38,7 +38,7 @@ export default function mosaique(Alpine) {
             // Filtre pilote depuis l'exterieur (colonne de Pinter).
             window.addEventListener('mosaique-filtrer', (e) => this.filtrer(e.detail.cle, e.detail.nom));
 
-            this.mesure = new ResizeObserver((entrees) => entrees.forEach(({ target }) => this.etendre(target.parentElement)));
+            this.mesure = new ResizeObserver((entrees) => this.etendre(entrees.map(({ target }) => target.parentElement)));
             this.vue = new IntersectionObserver((entrees) => entrees.forEach((e) => {
                 e.target._visible = e.isIntersecting;
                 this.reveler(e.target);
@@ -52,7 +52,9 @@ export default function mosaique(Alpine) {
                     this.reveler(item);
                 };
 
-                if (!reduit()) item.classList.add(...CACHE);
+                // Premieres vignettes jamais masquees : elles s'affichent des leur
+                // chargement, sans attendre le JS ni le fondu (LCP mobile).
+                if (!reduit() && !('prioritaire' in item.dataset)) item.classList.add(...CACHE);
                 // Intertitre de rubrique (Zoom, portfolio groupe) : rien a charger.
                 if (!img) return pret();
                 img.complete && img.naturalWidth ? pret() : img.addEventListener('load', pret, { once: true });
@@ -61,7 +63,7 @@ export default function mosaique(Alpine) {
 
             // Etendues calculees sur la grille en hauteur naturelle, puis
             // seulement passage en lignes de 1px (voir .mosaique.prete).
-            this.items.forEach((item) => this.etendre(item));
+            this.etendre(this.items);
             this.$refs.grille.classList.add('prete');
             this.items.forEach((item) => {
                 this.mesure.observe(item.firstElementChild);
@@ -78,9 +80,13 @@ export default function mosaique(Alpine) {
             this.vue?.disconnect();
         },
 
-        etendre(item) {
-            const hauteur = item.firstElementChild.getBoundingClientRect().height;
-            if (hauteur > 0) item.style.gridRowEnd = `span ${Math.ceil(hauteur)}`;
+        // Toutes les lectures, puis toutes les ecritures : une seule mise en
+        // page au lieu d'une par vignette (277 sur un gros book).
+        etendre(items) {
+            const hauteurs = items.map((item) => item.firstElementChild.getBoundingClientRect().height);
+            items.forEach((item, i) => {
+                if (hauteurs[i] > 0) item.style.gridRowEnd = `span ${Math.ceil(hauteurs[i])}`;
+            });
         },
 
         // Fondu a l'apparition, decale selon la colonne pour une cascade.
@@ -107,12 +113,11 @@ export default function mosaique(Alpine) {
             });
 
             // Laisse la grille se recomposer avant de rejouer l'apparition.
-            requestAnimationFrame(() => requestAnimationFrame(() => this.items.forEach((item) => {
-                if (!item.hidden) {
-                    this.etendre(item);
-                    this.reveler(item);
-                }
-            })));
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const affiches = this.items.filter((item) => !item.hidden);
+                this.etendre(affiches);
+                affiches.forEach((item) => this.reveler(item));
+            }));
         },
 
         // Visuels affiches, pour la visionneuse.

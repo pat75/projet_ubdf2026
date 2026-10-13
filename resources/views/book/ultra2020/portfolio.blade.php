@@ -80,7 +80,7 @@
         <div class="mosaique" x-ref="grille">
             @foreach ($vue->visuels() as $i => $visuel)
                 @php $prioritaire = $i < \App\Services\Book\VueUltra2020::PRIORITAIRES; @endphp
-                <figure data-visuel data-rubrique="{{ $visuel['rubrique'] }}" data-grand="{{ $visuel['grand'] }}"
+                <figure data-visuel @if ($prioritaire) data-prioritaire @endif data-rubrique="{{ $visuel['rubrique'] }}" data-grand="{{ $visuel['grand'] }}"
                         data-titre="{{ $visuel['titre'] }}" data-nom-rubrique="{{ $visuel['nom_rubrique'] }}"
                         data-description="{{ $visuel['description'] }}"
                         class="group relative self-start transition duration-700 ease-[cubic-bezier(.22,.61,.36,1)]">

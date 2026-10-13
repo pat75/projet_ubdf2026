@@ -47,6 +47,15 @@
         @endforeach
     </style>
 
+    @if ($vue->visuels() !== [] && in_array($b->page_type, ['accueil', 'portfolio'], true) && ! $vue->filtreInitial())
+        {{-- Premier visuel : demande avant meme l'analyse de la page (LCP).
+             Memes sources que le <picture> de portfolio.blade.php. --}}
+        @php $premier = $vue->visuels()[0]; @endphp
+        <link rel="preload" as="image" href="{{ $premier['moyen'] }}" media="(max-width: 767px)" fetchpriority="high">
+        <link rel="preload" as="image" imagesrcset="{{ $premier['moyen'] }} 550w, {{ $premier['grand'] }} 1980w"
+              imagesizes="(max-width: 1200px) 50vw, 400px" media="(min-width: 768px)" fetchpriority="high">
+    @endif
+
     @vite(['resources/css/book.css', 'resources/js/book.js'])
 
     @if (trim((string) ($vue->pref->expert_css ?? '')) !== '')
@@ -104,7 +113,7 @@
             @endif
 
             {{-- Mobile : le burger, juste au-dessus de « les projets » ; il deplie le menu dessous. --}}
-            <button type="button" class="z-50 mt-2 p-1 md:hidden" @click="menu = ! menu"
+            <button type="button" class="z-50 mt-[21px] p-1 md:hidden" @click="menu = ! menu"
                     :aria-expanded="menu" aria-label="{{ __('Menu') }}">
                 <svg x-show="! menu" class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
                 <svg x-show="menu" x-cloak class="size-7 text-book-texte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
@@ -143,7 +152,7 @@
             @endif
         </header>
 
-        <main @class(['mt-10', 'md:mt-0' => $zen, 'flex-1' => ! $zen])>
+        <main @class(['mt-10 md:mt-0' => $zen, 'mt-[21px] md:mt-10 flex-1' => ! $zen])>
             @yield('contenu')
         </main>
 
