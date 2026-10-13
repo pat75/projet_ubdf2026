@@ -19,9 +19,14 @@ class GoogleInscriptionRequest extends InscriptionRequest
         return array_intersect_key(parent::rules(), array_flip(['us_login', 'us_type', 'us_licence']));
     }
 
-    /** Formulaire classique : retour a la page, erreurs en session. */
+    /**
+     * Envoi en fetch : refus en JSON, le navigateur renvoie alors le
+     * formulaire normalement, et les erreurs reviennent en session.
+     */
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validateur): void
     {
-        throw new \Illuminate\Validation\ValidationException($validateur);
+        throw new \Illuminate\Validation\ValidationException($validateur, $this->expectsJson()
+            ? response()->json(['error' => true], 422)
+            : null);
     }
 }

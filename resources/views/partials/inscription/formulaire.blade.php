@@ -23,6 +23,17 @@
     <input type="hidden" name="form_id" value="form_adduser">
     <input type="hidden" name="form_action" value="form_valide">
 
+    <div class="field" :class="{ error: erreurs.us_login }">
+        <div class="adresse_page">
+            <span class="adresse_page_domaine">https://</span>
+            <input name="us_login" type="text" id="us_login" autocomplete="off" placeholder="{{ __('nom-du-book') }}" aria-label="{{ __('Adresse de votre book') }}"
+                   x-model="login" @input.debounce.400ms="erreurs.us_login = ''; verifierLogin()">
+            <span class="adresse_page_domaine">.{{ $marque->domaineBooks }}</span>
+        </div>
+        <div class="creer_book_erreur" x-show="erreurs.us_login" x-text="erreurs.us_login"></div>
+        <div class="creer_book_aide" x-show="! erreurs.us_login && loginLibre === true" x-cloak>{{ __('Adresse disponible') }}</div>
+    </div>
+
     <div class="field" :class="{ error: erreurs.us_nom }">
         <input id="us_nom" type="text" name="us_nom" autocomplete="name" placeholder="{{ __('Nom Prénom') }}" aria-label="{{ __('Nom Prénom') }}" @input="erreurs.us_nom = ''">
         <div class="creer_book_erreur" x-show="erreurs.us_nom" x-text="erreurs.us_nom"></div>
@@ -31,17 +42,6 @@
     <div class="field" :class="{ error: erreurs.us_mail }">
         <input id="mail" type="email" name="us_mail" autocomplete="email" placeholder="{{ __('Mail') }}" aria-label="{{ __('Mail') }}" @input="erreurs.us_mail = ''">
         <div class="creer_book_erreur" x-show="erreurs.us_mail" x-text="erreurs.us_mail"></div>
-    </div>
-
-    <div class="field" :class="{ error: erreurs.us_login }">
-        <div class="creer_book_adresse">
-            <span>https://</span>
-            <input name="us_login" type="text" id="us_login" autocomplete="off" placeholder="{{ __('adresse-de-votre-book') }}" aria-label="{{ __('Adresse de votre book') }}"
-                   x-model="login" @input.debounce.400ms="erreurs.us_login = ''; verifierLogin()">
-            <span>.{{ $marque->domaineBooks }}</span>
-        </div>
-        <div class="creer_book_erreur" x-show="erreurs.us_login" x-text="erreurs.us_login"></div>
-        <div class="creer_book_aide" x-show="! erreurs.us_login && loginLibre === true" x-cloak>{{ __('Adresse disponible') }}</div>
     </div>
 
     <div class="field" :class="{ error: erreurs.us_pass }" x-data="{ visible: false }">

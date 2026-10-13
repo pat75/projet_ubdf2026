@@ -7,10 +7,13 @@ use App\Http\Requests\Front\GoogleInscriptionRequest;
 use App\Models\Reglage;
 use App\Models\User;
 use App\Services\Auth\Inscription;
+use App\Services\Espace\DepotAvatar;
 use App\Support\Marque;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
@@ -74,7 +77,17 @@ class GoogleController extends Controller
             }
 
             $compte = $comptes->first();
-            $compte?->forceFill(['google_id' => $google->getId()])->save();
+
+            if ($compte && ! $compte->estBloque()) {
+                $compte->forceFill(['google_id' => $google->getId()])->save();
+            }
+        }
+
+        // Meme regle que la connexion par mot de passe (IdentifierCompte) :
+        // Google ne doit pas rouvrir un compte suspendu.
+        if ($compte?->estBloque()) {
+            return $this->echec(__('Ce compte a été suspendu. Contactez-nous pour en connaître la raison.'))
+                ->with('connexion_suspendue', true);
         }
 
         if ($compte) {
@@ -89,12 +102,13 @@ class GoogleController extends Controller
             'id' => $google->getId(),
             'email' => $google->getEmail(),
             'nom' => $google->getName() ?: Str::before((string) $google->getEmail(), '@'),
+            'avatar' => $google->getAvatar(),
         ]);
 
         return redirect()->to(lien('inscription.page'));
     }
 
-    public function inscrire(GoogleInscriptionRequest $requete): RedirectResponse
+    public function inscrire(GoogleInscriptionRequest $requete, DepotAvatar $avatars): RedirectResponse|JsonResponse
     {
         if (! Reglage::googleActif()) {
             $requete->session()->forget('google.inscription');
@@ -105,22 +119,43 @@ class GoogleController extends Controller
         $google = $requete->session()->pull('google.inscription');
         $marque = $requete->attributes->get('marque') ?? Marque::defaut();
 
-        $compte = $this->inscription->creer([
-            'login' => $requete->validated('us_login'),
-            'email' => $google['email'],
-            // Solution de secours : remplacable par « mot de passe oublie ».
-            'password' => Str::password(32),
-            'nom' => $google['nom'],
-            'categorie' => $requete->validated('us_type'),
-        ], $marque, $requete->ip(), $requete->header('referer'));
+        // Une seule transaction : un echec sur google_id ne laisse pas un
+        // compte cree a moitie, sans lien Google.
+        $compte = DB::transaction(function () use ($requete, $google, $marque) {
+            $compte = $this->inscription->creer([
+                'login' => $requete->validated('us_login'),
+                'email' => $google['email'],
+                // Solution de secours : remplacable par « mot de passe oublie ».
+                'password' => Str::password(32),
+                'nom' => $google['nom'],
+                'categorie' => $requete->validated('us_type'),
+            ], $marque, $requete->ip(), $requete->header('referer'));
 
-        // Adresse deja verifiee par Google.
-        $compte->forceFill(['google_id' => $google['id'], 'email_verified_at' => now()])->save();
+            // Adresse deja verifiee par Google.
+            $compte->forceFill(['google_id' => $google['id'], 'email_verified_at' => now()])->save();
+
+            return $compte;
+        });
+
+        if ($compte->bookSetting) {
+            $avatars->depuisGoogle($compte->bookSetting, $google['avatar'] ?? null);
+        }
 
         $this->inscription->envoyerBienvenue($compte, $marque);
 
         Auth::login($compte, remember: true);
         $requete->session()->regenerate();
+
+        // Envoi en fetch : l'ecran « creation en cours » mene ensuite a l'espace.
+        if ($requete->expectsJson()) {
+            $espace = lien('espace');
+
+            return response()->json([
+                'error' => false,
+                'url_domaine' => parse_url($espace, PHP_URL_HOST),
+                'url_action' => ltrim((string) parse_url($espace, PHP_URL_PATH), '/'),
+            ]);
+        }
 
         return redirect()->to(lien('espace'));
     }

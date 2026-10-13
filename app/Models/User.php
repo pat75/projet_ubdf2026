@@ -66,11 +66,16 @@ class User extends Authenticatable
          | sans perdre la trace de l'ancien.
          */
         static::deleted(function (self $compte) {
-            if ($compte->isForceDeleting() || str_starts_with($compte->login, self::PREFIXE_DESACTIVE)) {
+            if ($compte->isForceDeleting()) {
                 return;
             }
 
-            $compte->login = self::loginLibre(self::PREFIXE_DESACTIVE, $compte->login);
+            if (! str_starts_with($compte->login, self::PREFIXE_DESACTIVE)) {
+                $compte->login = self::loginLibre(self::PREFIXE_DESACTIVE, $compte->login);
+            }
+            // Unique en base, corbeille comprise : sinon le meme compte Google
+            // ne peut plus creer de book.
+            $compte->google_id = null;
             $compte->saveQuietly();
         });
 

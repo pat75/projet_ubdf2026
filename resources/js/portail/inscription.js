@@ -118,6 +118,29 @@ export default function inscription(Alpine) {
             this.animerProgression();
         },
 
+        /*
+         * Fin d'inscription par Google (partials/inscription/google) : meme
+         * ecran final que le formulaire classique. En cas de refus, le
+         * formulaire repart en envoi normal, qui affiche les erreurs en page.
+         */
+        async envoyerGoogle(formulaire) {
+            if (this.chargement) return;
+            this.chargement = true;
+            try {
+                const reponse = await fetch(formulaire.action, { method: 'POST', body: new FormData(formulaire), headers: { Accept: 'application/json' } });
+                const retour = reponse.ok ? await reponse.json() : { error: true };
+                if (retour.error === false) {
+                    this.urlEspace = `${window.location.protocol}//${retour.url_domaine}/${retour.url_action}`;
+                    this.vue = 'validation';
+                    this.animerProgression();
+                    return;
+                }
+            } catch {
+                // Repli sur l'envoi normal.
+            }
+            formulaire.submit();
+        },
+
         valide() {
             return Object.values(this.erreurs).every((e) => !e);
         },

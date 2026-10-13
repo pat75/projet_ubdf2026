@@ -26,7 +26,7 @@
                 <div class="creer_book_entete">
                 <img class="creer_book_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
                 <h1 class="creer_book_titre">{{ __('Créer mon book') }}</h1>
-                <p class="creer_book_accroche">{{ __('Gratuit, prêt en quelques minutes.') }}</p>
+                <p class="creer_book_accroche">{{ __('Tout votre travail en ligne, prêt en quelques minutes, gratuitement.') }}</p>
                 </div>
 
                 <div class="creer_book_corps">

@@ -269,6 +269,15 @@
     max-width: 440px;
     margin: auto 0;
 }
+@media only screen and (min-width: 768px) {
+    .creer_book_colonne {
+        translate: 0 -50px;
+    }
+    /* Une seule ligne : deborde a droite de la colonne de 440px. */
+    .creer_book_accroche {
+        white-space: nowrap;
+    }
+}
 /* Mobile : meme disposition que la fenetre « Gardez votre mémoBook » —
    entete en haut, formulaire au centre (rangees 1fr egales), titre et
    accroche reduits de 20 %. Le bureau ne change pas. */
@@ -292,8 +301,9 @@
     .creer_book .creer_book_entete .creer_book_titre {
         font-size: 36px;
     }
-    .creer_book_entete .creer_book_accroche {
-        font-size: 13.2px;
+    .creer_book_entete .creer_book_accroche,
+    .creer_book .creer_book_google_compte {
+        font-size: 14.5px;
     }
 }
 .creer_book_logo {
@@ -311,7 +321,7 @@
     color: #2b2b2b;
 }
 .creer_book_accroche {
-    font-size: 16.5px; /* 15px + 10 % */
+    font-size: 18.15px; /* 15px + 10 %, puis + 10 % */
     line-height: 1.5;
     color: #777;
     margin: 0 0 8px;
@@ -476,6 +486,54 @@
     font-size: 13px;
     color: #777;
     margin: 16px 0;
+}
+/* Adresse du book, sur le modele de « Adresse de ma page » de Tesli :
+   libelle en capitales espacees, pilule blanche, domaine en gris. */
+.creer_book .creer_book_corps .creer_book_google_compte {
+    margin-bottom: 63px;
+}
+.creer_book_form.ui.form .field > .adresse_page_libelle {
+    display: block;
+    font: 400 11px/1 ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 10px;
+    /* Aligne sur le « h » de https:// : padding + filet de .adresse_page. */
+    padding-left: 23px;
+}
+.adresse_page {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #fff;
+    border: 1px solid #d4d4d4;
+    border-radius: 999px;
+    padding: 7px 22px;
+    box-shadow: 0 14px 30px -22px rgba(0, 0, 0, .5);
+}
+.adresse_page_domaine {
+    flex-shrink: 0;
+    font-size: 17px;
+    font-weight: 500;
+    color: #9aa29e;
+    white-space: nowrap;
+}
+.creer_book_form.ui.form .adresse_page input[type=text] {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background: transparent;
+    font-size: 17px;
+    font-weight: 600;
+    color: #0d1310;
+    padding: 8px 0;
+}
+/* Meme taille que l'accroche juste au-dessus. */
+.creer_book_google_compte {
+    font-size: 18.15px;
 }
 /* Semantic impose `.ui.form .field > label { display: block }` : d'ou le
    selecteur plus precis. La case s'aligne sur la premiere ligne du texte. */
@@ -714,6 +772,14 @@
 .creer_book_form.ui.form .field {
     margin-bottom: 20px;
 }
+/* Champs et bouton alignes sur le « h » de https:// de l'adresse du book
+   (padding + filet de .adresse_page). */
+#inscription_classic > .field:not(:has(.adresse_page)) {
+    padding-left: 23px;
+}
+#inscription_classic > .creer_book_valider {
+    margin-left: 23px;
+}
 .creer_book_form.ui.form input[type="text"],
 .creer_book_form.ui.form input[type="email"],
 .creer_book_form.ui.form input[type="password"] {
@@ -738,26 +804,6 @@
 }
 .creer_book_form.ui.form .ui.icon.input > i.icon {
     width: 1.5em;
-}
-.creer_book_adresse {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #767676;
-}
-.creer_book_adresse:focus-within {
-    border-bottom-color: #000;
-}
-.creer_book_adresse span {
-    color: #666;
-    font-size: 16px;
-    font-weight: 300;
-    white-space: nowrap;
-}
-.creer_book_form.ui.form .creer_book_adresse input {
-    font-weight: 700;
-    flex: 1;
-    min-width: 0;
-    border-bottom: 0;
 }
 .creer_book_captcha {
     display: flex;
