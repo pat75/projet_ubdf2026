@@ -5,6 +5,15 @@
 
     RewriteEngine On
 
+    # Ancien domaine ultra-book.pro -> ultra-book.com (portail et books).
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteCond %{HTTP_HOST} ^(www\.)?ultra-book\.pro$ [NC]
+    RewriteRule ^ https://www.ultra-book.com%{REQUEST_URI} [L,R=301]
+
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteCond %{HTTP_HOST} ^([^.]+)\.ultra-book\.pro$ [NC]
+    RewriteRule ^ https://%1.ultra-book.com%{REQUEST_URI} [L,R=301]
+
     # Une seule adresse par page, en un seul saut : domaine nu -> www
     # (portails), puis http -> https (portails et books). Le challenge
     # ACME (certificats) reste joignable en http.
