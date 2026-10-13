@@ -67,6 +67,8 @@
      en tient lieu. --}}
 <div class="hidden min-[900px]:block">
     @include('partials.pied-commun')
+    {{-- Sur mobile, la barre d'onglets occupe le bas de l'ecran. --}}
+    <x-support.bouton />
 </div>
 
 @include('partials.espace.barre-mobile')

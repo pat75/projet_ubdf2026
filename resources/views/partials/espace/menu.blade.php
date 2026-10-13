@@ -41,6 +41,11 @@
     <x-espace.nav-lien route="espace.formule">{{ __('Ma formule') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.messages" :pastille="$messagesNonLus">{{ __('Mes messages') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="memobook" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mon mémoBook') }}</x-espace.nav-lien>
+    {{-- Des la premiere demande au support : lien vers la derniere discussion,
+         pastille couleur d accent tant qu'une reponse n'a pas ete lue. --}}
+    @if ($support = \App\Models\SupportTicket::dernierePour($creatif))
+        <x-espace.nav-lien :href="$support->lien()" :pastille="(int) $support->reponseNonLue()" couleur="text-ub-accent-fonce" pastille-fond="bg-ub-accent-fonce">{{ __('Support') }}</x-espace.nav-lien>
+    @endif
     <x-espace.nav-lien route="espace.aide">{{ __('Aide') }}</x-espace.nav-lien>
 
     <x-espace.nav-groupe>{{ __('Mon portfolio') }}</x-espace.nav-groupe>

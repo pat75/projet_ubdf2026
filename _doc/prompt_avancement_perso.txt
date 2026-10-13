@@ -104,9 +104,39 @@ qui permettent d'envoyer des images directement à partir de son poste de travai
 
 
 
-+ module de support
++ module de support - nous contacter
 Ce module de support doit permettre de communiquer avec le support de l'application. Ultra-book.
 
+Il doit pouvoir être utilisé si l'utilisateur est connecté ou déconnecté
+Créer une page spécifique /support 
+
+Cette page est accessible via un bouton en bas à droite, en position fixe ; s'inspirer de ce qui a été fait sur Ultra-book diffusion pour ce bouton, design et positionnement
+
+
+Le titre de la page sera  "nous contacter"
+Si l'utilisateur est connecté alors son avatar, son nom et lui de son book s'affiche
+Et en dessous, il peut écrire son message
+
+S'il utilisateur n'est pas connecté, il peut écrire son message et en dessous le système de
+captchat (service existant) s'affiche, il il doit également obligatoirement déposer un e-mail pour que l'on puisse lui répondre
+
+Dans l'administration, créer une page support & contact
+Cette page liste les derniers messages en affichant, soit l'avatar et le nom du créatif ou du visiteur, soit son adresse e-mail
+Un bouton permet visualiser et de répondre à chacune des demandes.
+Si l'utilisateur est identifié comme connecter alors afficher un bouton de connexion au compte et un bouton de sélection du compte.
+Indiquer si l'utilisateur est en formule payante ajouter également un lien pour visualiser son book
+
+
+Sur la fenêtre de réponse, ajouter un bouton pour corriger l'orthographe via le service d'IA openrouter
+Ensuite, il est possible d'envoyer directement la réponse.
+
+Sur chaque réponse envoyée, créer un lien unique qui permet à nouveau de répondre tout en conservant la discussion précédente et existante
+
+Lors de chaque réponse, créer une base de connaissances type RAG, qui permettra de traiter et générer par la suite automatiquement, les réponses
+Ajouter dans l apage admin contact support un bouton pour accéder à cette base de connaissances et pouvoir la modifier.
+
+
+Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 
 

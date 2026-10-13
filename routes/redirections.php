@@ -58,12 +58,9 @@ Route::get('/formuleexits', fn () => redirect('/espace/formule', 301));
 Route::get('/ubajax__{reste}', fn () => redirect('/', 301))->where('reste', '.*');
 Route::get('/fm_ajax', fn () => redirect('/espace/formule', 301));
 
-/*
- | Support : le legacy renvoyait vers les sites vitrines
- | (ultra-book.pro, dustfolio.fr). Ces liens restent valables.
- */
-Route::get('/support', [RedirectionLegacyController::class, 'support']);
-Route::get('/contact', [RedirectionLegacyController::class, 'support']);
+// « Nous contacter » vit sur /contact. 302 et non 301 : l'ancienne
+// redirection permanente vers ultrabook.pro est restee dans les caches.
+Route::get('/support', fn () => redirect(lien('support')));
 
 // Japonais : la langue n'est plus servie.
 Route::redirect('/ja', '/', 301);

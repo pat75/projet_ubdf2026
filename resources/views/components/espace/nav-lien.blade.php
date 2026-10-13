@@ -1,8 +1,9 @@
-@props(['route', 'icone' => null, 'pastille' => 0, 'pastilleEvenement' => null])
+@props(['route' => null, 'href' => null, 'icone' => null, 'pastille' => 0, 'pastilleEvenement' => null, 'gras' => false, 'couleur' => null, 'pastilleFond' => 'bg-ub-messages'])
 
 {{-- Les rubriques pas encore livrees n'apparaissent pas : pas de lien mort.
      La rubrique ouverte prend le fond leger de l'accent. --}}
-@if (Route::has(nom_route($route)))
+{{-- `href` : lien direct (URL signee…), sans route nommee ni etat actif. --}}
+@if ($href || Route::has(nom_route($route)))
     @php
         /*
          | Une rubrique reste allumee sur ses sous-pages — `espace.galeries`
@@ -12,19 +13,21 @@
          */
         $motifs = [$route, '*.'.$route];
 
-        if (str_contains($route, '.')) {
+        if ($route && str_contains($route, '.')) {
             $motifs[] = $route.'.*';
             $motifs[] = '*.'.$route.'.*';
         }
 
-        $actif = request()->routeIs(...$motifs);
+        $actif = ! $href && request()->routeIs(...$motifs);
     @endphp
 
-    <a href="{{ route(nom_route($route)) }}"
+    <a href="{{ $href ?? route(nom_route($route)) }}"
        @class([
            'flex items-center gap-2 rounded-ub px-3 py-[7.5px] no-underline',
            'bg-ub-accent-fond font-semibold text-ub-accent-texte' => $actif,
-           'text-[#333] hover:bg-[#f5f5f3]' => ! $actif,
+           'text-[#333] hover:bg-[#f5f5f3]' => ! $actif && ! $couleur,
+           $couleur.' hover:bg-[#f5f5f3]' => ! $actif && $couleur,
+           'font-bold' => $gras,
        ])
        @if ($actif) aria-current="page" @endif>
 
@@ -42,7 +45,7 @@
                   class="rounded-[10px] bg-ub-messages px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
         @elseif ($pastille > 0)
             {{-- Le compteur de messages non lus. --}}
-            <span class="rounded-[10px] bg-ub-messages px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
+            <span class="rounded-[10px] {{ $pastilleFond }} px-2 py-px text-[12px] font-bold text-white">{{ $pastille }}</span>
         @endif
     </a>
 @endif

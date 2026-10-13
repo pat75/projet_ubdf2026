@@ -13,6 +13,11 @@
     <x-espace.nav-lien route="visiteur.messages" icone="enveloppe" :pastille="$messagesNonLus">{{ __('Mes messages') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="visiteur.compte" icone="utilisateur">{{ __('Mon compte') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="memobook" icone="coeur" :pastille="$memoTotal" pastille-evenement="memo-change">{{ __('Mémo book') }}</x-espace.nav-lien>
+    {{-- Des la premiere demande au support : lien vers la derniere discussion,
+         pastille couleur d accent tant qu'une reponse n'a pas ete lue. --}}
+    @if ($support = \App\Models\SupportTicket::dernierePour($visiteur))
+        <x-espace.nav-lien :href="$support->lien()" icone="enveloppe" :pastille="(int) $support->reponseNonLue()" couleur="text-ub-accent-fonce" pastille-fond="bg-ub-accent-fonce">{{ __('Support') }}</x-espace.nav-lien>
+    @endif
 
     <div class="mx-3 my-2.5 h-px bg-ub-filet"></div>
 

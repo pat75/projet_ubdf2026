@@ -21,6 +21,7 @@
 
 @unless (View::hasSection('plein_ecran'))
     @include('partials.footer')
+    <x-support.bouton />
 @endunless
 @include('partials.modals')
 @include('partials.visionneuse')

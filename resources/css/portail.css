@@ -12,6 +12,10 @@
 @source "../views/components/portail/";
 @source "../views/partials/footer.blade.php";
 @source "../views/partials/visionneuse-contact.blade.php";
+@source "../views/front/support.blade.php";
+@source "../views/front/support-fil.blade.php";
+@source "../views/front/partials/support-piece.blade.php";
+@source "../views/front/partials/support-etoiles.blade.php";
 
 /* Masque les elements Alpine tant qu'Alpine n'a pas demarre. */
 [x-cloak] {

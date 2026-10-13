@@ -38,6 +38,7 @@ use App\Http\Controllers\Front\FilController;
 use App\Http\Controllers\Front\GoogleController;
 use App\Http\Controllers\Front\InscriptionController;
 use App\Http\Controllers\Front\SuppressionBookController;
+use App\Http\Controllers\Front\SupportController;
 use App\Http\Controllers\Front\MotDePasseController;
 use App\Http\Controllers\Front\PortfolioController;
 use App\Http\Controllers\Front\RechercheController;
@@ -542,6 +543,21 @@ $portail = function (?string $langue = null) {
     // Selections editoriales.
     Route::get('/les-ultra-books', fn () => redirect()->to(lien('home')))->name('selection.lub');
     Route::get('/les-ultra-selections', fn () => redirect()->to(lien('home')))->name('selection.ult');
+
+    // Support « Nous contacter » (App\Http\Controllers\Front\SupportController).
+    // Le fil se rouvre par une URL signee (SupportTicket::lien()) : elle
+    // tient lieu d'identification, connecte ou non.
+    Route::get('/contact', [SupportController::class, 'page'])->name('support');
+    Route::post('/contact', [SupportController::class, 'envoyer'])
+        ->middleware('throttle:5,10')->name('support.envoyer');
+    Route::get('/contact/fil/{ticket}', [SupportController::class, 'fil'])
+        ->middleware('signed')->whereNumber('ticket')->name('support.fil');
+    Route::post('/contact/fil/{ticket}', [SupportController::class, 'repondre'])
+        ->middleware(['signed', 'throttle:10,10'])->whereNumber('ticket')->name('support.repondre');
+    Route::post('/contact/fil/{ticket}/resolu', [SupportController::class, 'resoudre'])
+        ->middleware('signed')->whereNumber('ticket')->name('support.resoudre');
+    Route::get('/contact/piece/{message}', [SupportController::class, 'piece'])
+        ->middleware('signed')->whereNumber('message')->name('support.piece');
 
     // Annuaire alphabetique.
     Route::get('/annuaire', [AnnuaireController::class, 'index'])->name('annuaire');

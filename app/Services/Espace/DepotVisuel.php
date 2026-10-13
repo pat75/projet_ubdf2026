@@ -104,10 +104,12 @@ class DepotVisuel
                 'position' => (int) $galerie->media()->max('position') + 1,
             ]);
 
-            // Le nouveau visuel prend la derniere place de l'ordre du book.
-            if ($galerie->media_order) {
-                $galerie->update(['media_order' => [...$galerie->media_order, (string) $media->id]]);
-            }
+            // Le nouveau visuel prend la premiere place de l'ordre du book.
+            // Sans ordre enregistre, l'ordre implicite (par identifiant) est fige d'abord.
+            $ordre = $galerie->media_order ?: $galerie->media()->whereKeyNot($media->id)->get()
+                ->map(fn ($m) => (string) ($m->legacy_id ?? $m->id))
+                ->sort(SORT_NATURAL)->values()->all();
+            $galerie->update(['media_order' => [(string) $media->id, ...$ordre]]);
 
             $creatif->increment('media_count');
             $creatif->increment('storage_used', $media->size);

@@ -7,7 +7,6 @@ use App\Models\CmsPost;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /** Redirections des anciennes URL qui demandent de regarder en base. */
 class RedirectionLegacyController extends Controller
@@ -34,16 +33,6 @@ class RedirectionLegacyController extends Controller
         $article = CmsPost::where('legacy_id', $id)->first();
 
         return redirect($article ? '/actus/'.$article->slug : '/actus', 301);
-    }
-
-    /** `/support` et `/contact` : le site vitrine de la marque servie. */
-    public function support(Request $requete): RedirectResponse
-    {
-        $marque = $requete->attributes->get('marque');
-
-        return redirect($marque?->code === 'df'
-            ? 'https://www.dustfolio.fr/contact/'
-            : 'https://www.ultrabook.pro/contact/', 301);
     }
 
     /**

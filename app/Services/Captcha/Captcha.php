@@ -24,7 +24,7 @@ use Illuminate\Support\Str;
 class Captcha
 {
     /** Formulaires qui disposent d'un captcha. */
-    public const FORMULAIRES = ['contact', 'contact_book', 'inscription'];
+    public const FORMULAIRES = ['contact', 'contact_book', 'inscription', 'support'];
 
     /** Sans I, O ni L : ils se confondent avec 1 et 0. */
     public const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ0123456789';

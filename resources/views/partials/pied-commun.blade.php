@@ -77,8 +77,6 @@
         .pied-footer .pf-nav { display: flex; flex-direction: column; gap: 16px; }
         .pied-footer .pf-liens { display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
         .pied-footer .pf-liens > a { color: #d6d3cf; }
-        .pied-footer .pf-lien-contact { display: flex; flex-direction: column; gap: 2px; color: #d6d3cf; }
-        .pied-footer .pf-lien-contact span { color: #8a8784; font-size: 14px; }
         .pied-footer .pf-lien-fleche { display: flex; align-items: center; gap: 8px; color: #d6d3cf; transition: gap .2s; }
         .pied-footer .pf-lien-fleche:hover { gap: 12px; }
         .pied-footer .pf-lien-fleche .pf-puce { color: oklch(0.62 0.2 25); }
@@ -146,9 +144,7 @@
             <nav class="pf-nav">
                 <h2 class="pf-titre-section">{{ __('Plateforme portfolio') }}</h2>
                 <div class="pf-liens">
-                    <a class="pf-lien-contact" href="mailto:{{ $marque->email }}?subject={{ rawurlencode(__('Aide').' '.$marque->nom) }}&body={{ rawurlencode(__('Indiquez l’adresse de votre portfolio, merci.')) }}">
-                        {{ __('Contact/aide') }}<span>{{ $marque->email }}</span>
-                    </a>
+                    <a href="{{ lien('support') }}">{{ __('Contact/aide') }}</a>
                     <a href="/doc/doc">{{ __('Documentation') }}</a>
                     <a href="/doc/creer-son-book">{{ __('Comment créer son book') }}</a>
                     <a href="/doc/les-formules-ultra-book">{{ __('Formules et tarifs') }}</a>
