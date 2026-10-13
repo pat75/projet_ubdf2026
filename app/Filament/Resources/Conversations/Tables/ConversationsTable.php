@@ -13,6 +13,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -62,7 +63,7 @@ class ConversationsTable
             ->filters([
                 TernaryFilter::make('is_spam')->label('Indésirable'),
             ])
-            ->recordActions([
+            ->recordActions(position: RecordActionsPosition::BeforeColumns, actions: [
                 Action::make('basculerSpam')->label(fn (Conversation $c) => $c->is_spam ? 'Rendre légitime' : 'Marquer indésirable')
                     ->icon('heroicon-o-shield-exclamation')
                     ->action(fn (Conversation $c) => $c->update(['is_spam' => ! $c->is_spam])),

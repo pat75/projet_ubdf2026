@@ -16,7 +16,7 @@ class SupportTicket extends Model
     public const STATUTS = ['nouveau' => 'Nouveau', 'repondu' => 'Répondu', 'clos' => 'Clos'];
 
     protected $fillable = [
-        'user_id', 'email', 'compte_requis', 'statut', 'note', 'clos_at', 'page_origine', 'navigateur', 'ip',
+        'user_id', 'brand', 'email', 'compte_requis', 'statut', 'note', 'clos_at', 'page_origine', 'navigateur', 'ip',
         'is_spam', 'lu_admin_at', 'lu_client_at', 'last_message_at',
     ];
 

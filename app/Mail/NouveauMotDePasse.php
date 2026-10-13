@@ -35,6 +35,9 @@ class NouveauMotDePasse extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->marque->code);
+
         return new Content(markdown: 'mail.nouveau-mot-de-passe', with: [
             'lienConnexion' => rtrim($this->marque->canonique, '/')
                 .($this->marque->multilingue() ? '/'.$this->marque->locale() : '')

@@ -104,7 +104,27 @@ qui permettent d'envoyer des images directement à partir de son poste de travai
 
 
 
-+ module de support - nous contacter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+================ ok
+
+
+
++ module de support - nous contacter - OK
 Ce module de support doit permettre de communiquer avec le support de l'application. Ultra-book.
 
 Il doit pouvoir être utilisé si l'utilisateur est connecté ou déconnecté
@@ -140,12 +160,6 @@ Analyser la demande, proposée des améliorations, poser des questions et faire 
 
 
 
-
-
-
-
-
-================ ok
 
 
 + visite - ok

@@ -41,6 +41,8 @@ return [
 
             // Version claire, pour les fonds sombres (pied de page).
             'logo_clair' => '/img_front/ultra-book_logo_nb_inverse.svg',
+            // Logo des mails : GIF, Gmail et Outlook n'affichent pas le SVG.
+            'logo_mail' => '/img_admin/ultra-book_logo_nb.gif',
             // Image de partage par defaut (Open Graph / X), 1200 x 630.
             'image_partage' => '/img_front/partage/ultra-book.png',
 
@@ -87,6 +89,7 @@ return [
             'assets' => '_df',
             'logo' => '/img_front_df/dustfolio.svg',
             'logo_clair' => '/img_front_df/dustfolio_b.svg',
+            'logo_mail' => '/img_front_df/mail_logo_top.gif',
             'image_partage' => '/img_front/partage/dustfolio.png',
             'domaine_books' => (env('DF_BOOK_DOMAIN') ?: 'ubdf-dust-2026.ultra-book.name'),
 

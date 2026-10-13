@@ -21,7 +21,7 @@ it('affiche la page Statistiques avec les books du lot', function () {
     $book->visitesAjoutees()->create(['lot' => '01K0000000000000000000000', 'prevue_at' => now()->addDay(), 'nb' => 2]);
 
     $this->actingAs($admin, 'admin')->get('/admin_/statistiques')
-        ->assertOk()->assertSee('ariane')->assertSee('Ajouter des visites à 10 portfolios');
+        ->assertOk()->assertSee('ariane')->assertSee('Ajouter des visites à 1000 portfolios');
 });
 
 it('verse les visites echues puis les retire', function () {

@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use App\Filament\Resources\SupportTickets\SupportTicketResource;
 use App\Models\SupportTicket;
 use Filament\Facades\Filament;
@@ -21,6 +22,9 @@ class SupportNouveauMessage extends Mailable
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->ticket->brand);
+
         // Rendu hors requete (queue) : le panneau sert plusieurs domaines,
         // Filament exige qu'on lui designe celui de l'URL.
         Filament::currentDomain(config('ubdf.portail_domain'));

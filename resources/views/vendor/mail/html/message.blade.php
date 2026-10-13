@@ -1,9 +1,15 @@
 @props(['petitLogo' => false])
+@php
+    // Logo, lien et pied suivent la marque du mail (Ultra-book ou Dustfolio).
+    $marqueMail = \App\Support\Marque::duMail();
+    $hauteurLogo = $petitLogo ? 40 : 50;
+    [$l, $h] = @getimagesize(public_path(ltrim($marqueMail->logoMail, '/'))) ?: [280, 99];
+@endphp
 <x-mail::layout>
 {{-- Header --}}
 <x-slot:header>
-<x-mail::header :url="config('app.url')">
-<img src="{{ asset('img_admin/ultra-book_logo_nb.gif') }}" width="{{ $petitLogo ? 112 : 140 }}" height="{{ $petitLogo ? 40 : 50 }}" alt="{{ config('app.name') }}" style="display:block;border:0;">
+<x-mail::header :url="$marqueMail->canonique">
+<img src="{{ asset(ltrim($marqueMail->logoMail, '/')) }}" width="{{ (int) round($hauteurLogo * $l / $h) }}" height="{{ $hauteurLogo }}" alt="{{ $marqueMail->nom }}" style="display:block;border:0;">
 </x-mail::header>
 </x-slot:header>
 
@@ -22,7 +28,7 @@
 {{-- Footer --}}
 <x-slot:footer>
 <x-mail::footer>
-© {{ date('Y') }} {{ config('app.name') }}. Tous droits réservés.
+© {{ date('Y') }} {{ $marqueMail->nom }}. Tous droits réservés.
 </x-mail::footer>
 </x-slot:footer>
 </x-mail::layout>

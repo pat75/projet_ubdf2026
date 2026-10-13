@@ -40,9 +40,11 @@ class VisitesAjoutees
     }
 
     /** Cree un lot ; rend le nombre de books retenus. */
-    public function creerLot(int $nbBooks = 10, int $jours = 30): int
+    public function creerLot(int $nbBooks = 1000, int $jours = 30): int
     {
-        $books = $this->eligibles()->withSum('visitStats', 'public_views')->inRandomOrder()->limit($nbBooks)->get();
+        // Tirage au hasard parmi les 10 000 derniers portfolios eligibles.
+        $ids = $this->eligibles()->orderByDesc('id')->limit(10000)->pluck('id');
+        $books = User::whereIn('id', $ids->shuffle()->take($nbBooks))->withSum('visitStats', 'public_views')->get();
         $lot = (string) Str::ulid();
         $lignes = [];
 
@@ -53,7 +55,10 @@ class VisitesAjoutees
             }
         }
 
-        VisiteAjoutee::insert($lignes);
+        // Par paquets : 1000 books x 30 jours depasse la limite de parametres MySQL.
+        foreach (array_chunk($lignes, 250) as $paquet) {
+            VisiteAjoutee::insert($paquet);
+        }
 
         return $books->count();
     }

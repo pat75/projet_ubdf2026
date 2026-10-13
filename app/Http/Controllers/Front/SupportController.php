@@ -44,6 +44,8 @@ class SupportController extends Controller
         $ticket = SupportTicket::create([
             'user_id' => $compte?->id ?? ($existants->count() === 1 ? $existants->first() : null),
             'email' => $compte ? null : $email,
+            // Marque du site ou la demande est deposee : logo et objet des mails.
+            'brand' => ($request->attributes->get('marque') ?? Marque::defaut())->code,
             'compte_requis' => $compteRequis,
             'page_origine' => $request->validated('page_origine'),
             'navigateur' => substr((string) $request->userAgent(), 0, 500),

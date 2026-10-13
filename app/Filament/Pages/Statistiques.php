@@ -13,6 +13,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -57,10 +58,10 @@ class Statistiques extends Page implements HasTable
             ->defaultSort('dernier_ajout', 'desc')
             ->headerActions([
                 Action::make('lot')
-                    ->label('Ajouter des visites à 10 portfolios')
+                    ->label('Ajouter des visites à 1000 portfolios')
                     ->icon(Heroicon::OutlinedPlus)
                     ->schema([
-                        TextInput::make('books')->label('Portfolios')->integer()->minValue(1)->maxValue(100)->default(10)->required(),
+                        TextInput::make('books')->label('Portfolios')->integer()->minValue(1)->maxValue(1000)->default(1000)->required(),
                         TextInput::make('jours')->label('Durée (jours)')->integer()->minValue(1)->maxValue(90)->default(30)->required(),
                     ])
                     ->action(function (array $data) {
@@ -68,7 +69,7 @@ class Statistiques extends Page implements HasTable
                         Notification::make()->title($nb.' portfolio(s) ajouté(s) au lot')->success()->send();
                     }),
             ])
-            ->recordActions([
+            ->recordActions(position: RecordActionsPosition::BeforeColumns, actions: [
                 Action::make('retirer')
                     ->label('Retirer')
                     ->icon(Heroicon::OutlinedTrash)

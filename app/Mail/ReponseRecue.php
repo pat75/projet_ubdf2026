@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use App\Models\Conversation;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -23,6 +24,9 @@ class ReponseRecue extends Mailable
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->conversation->user?->brand);
+
         return new Content(markdown: 'mail.reponse-recue');
     }
 }

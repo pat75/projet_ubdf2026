@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use App\Mail\Concerns\VisuelAleatoire;
 use App\Models\CoachMessage;
 use Illuminate\Bus\Queueable;
@@ -25,6 +26,9 @@ class CoachingMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->message->user?->brand);
+
         return new Content(markdown: 'mail.coaching', with: [
             // Espace protege : sans session, le createur passe d'abord par la connexion.
             'lienEspace' => lien('espace'),

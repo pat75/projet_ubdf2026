@@ -28,6 +28,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -214,7 +215,7 @@ class UsersTable
              | qu'on repete des dizaines de fois par jour ; quatre icones de
              | 24 px tiennent la ou deux boutons libelles ne tenaient pas.
              */
-            ->recordActions([
+            ->recordActions(position: RecordActionsPosition::BeforeColumns, actions: [
                 ActionsCompte::selection(),
                 self::dateSelection(),
                 self::formule(),

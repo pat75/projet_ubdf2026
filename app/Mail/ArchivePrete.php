@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use App\Models\DataExport;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -22,6 +23,9 @@ class ArchivePrete extends Mailable
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->export->user?->brand);
+
         return new Content(markdown: 'mail.archive-prete');
     }
 }

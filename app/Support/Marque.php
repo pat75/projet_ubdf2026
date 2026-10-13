@@ -23,6 +23,8 @@ final class Marque
         public readonly string $logo,
         /** Version claire du logo, pour les fonds sombres. */
         public readonly string $logoClair,
+        /** Logo des mails (GIF : le SVG n'est pas lu par Gmail ni Outlook). */
+        public readonly string $logoMail,
         public readonly string $canonique,
         public readonly string $titre,
         public readonly string $description,
@@ -72,6 +74,7 @@ final class Marque
             assets: $marque['assets'],
             logo: $marque['logo'],
             logoClair: $marque['logo_clair'] ?? $marque['logo'],
+            logoMail: $marque['logo_mail'] ?? $marque['logo'],
             canonique: $marque['canonique'],
             titre: $marque['titre'],
             description: $marque['description'],
@@ -79,6 +82,26 @@ final class Marque
             // non ??, sinon le lien du book devient https://<login>./
             domaineBooks: ($marque['domaine_books'] ?? '') ?: (string) config('ubdf.book_domain'),
         );
+    }
+
+    /**
+     * Marque du mail en cours de construction : chaque Mailable la designe
+     * dans content() (code du compte, de la campagne, de la demande…), le
+     * gabarit commun (vendor/mail/html/message) en tire logo et pied.
+     * A defaut : la marque de la requete, sinon celle par defaut.
+     */
+    public static function pourMail(?string $code): self
+    {
+        $marque = $code ? self::depuisCode($code) : (request()?->attributes->get('marque') ?? self::defaut());
+        app()->instance('marque.mail', $marque);
+
+        return $marque;
+    }
+
+    /** Marque a afficher dans le gabarit des mails (voir pourMail()). */
+    public static function duMail(): self
+    {
+        return app()->bound('marque.mail') ? app('marque.mail') : (request()?->attributes->get('marque') ?? self::defaut());
     }
 
     public static function defaut(): self

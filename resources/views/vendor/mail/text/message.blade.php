@@ -1,8 +1,8 @@
 <x-mail::layout>
     {{-- Header --}}
     <x-slot:header>
-        <x-mail::header :url="config('app.url')">
-            {{ config('app.name') }}
+        <x-mail::header :url="\App\Support\Marque::duMail()->canonique">
+            {{ \App\Support\Marque::duMail()->nom }}
         </x-mail::header>
     </x-slot:header>
 
@@ -21,7 +21,7 @@
     {{-- Footer --}}
     <x-slot:footer>
         <x-mail::footer>
-            © {{ date('Y') }} {{ config('app.name') }}. Tous droits réservés.
+            © {{ date('Y') }} {{ \App\Support\Marque::duMail()->nom }}. Tous droits réservés.
         </x-mail::footer>
     </x-slot:footer>
 </x-mail::layout>

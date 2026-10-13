@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use App\Models\Campaign;
 use App\Services\Newsletter\DestinataireNewsletter;
 use Illuminate\Bus\Queueable;
@@ -41,6 +42,9 @@ class CampagneMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->campagne->brand);
+
         return new Content(view: 'mail.campagne', with: [
             'corps' => $this->corps(),
         ]);

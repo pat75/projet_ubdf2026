@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Support\Marque;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -22,6 +23,9 @@ class MotDePasseOublie extends Mailable
 
     public function content(): Content
     {
+        // Envoye pendant la requete du portail : sa marque fait foi.
+        Marque::pourMail(null);
+
         return new Content(markdown: 'mail.mot-de-passe-oublie');
     }
 }

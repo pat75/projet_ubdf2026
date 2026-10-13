@@ -24,6 +24,9 @@ class BienvenueCreatif extends Mailable
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->marque->code);
+
         return new Content(view: 'mail.bienvenue-creatif', text: 'mail.bienvenue-creatif-texte');
     }
 }

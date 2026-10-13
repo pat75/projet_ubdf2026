@@ -38,6 +38,9 @@ class RelanceFormule extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        // Logo et pied du gabarit commun (Marque::duMail()).
+        Marque::pourMail($this->marque->code);
+
         // Hors requete (envoi planifie), on part du domaine canonique de la
         // marque du createur, pas de l'hote courant.
         return new Content(view: 'mail.relance-formule', text: 'mail.relance-formule-texte', with: [

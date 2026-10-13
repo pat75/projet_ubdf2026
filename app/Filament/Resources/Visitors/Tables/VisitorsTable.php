@@ -21,6 +21,7 @@ use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -123,7 +124,7 @@ class VisitorsTable
             ->filtersLayout(FiltersLayout::Dropdown)
             ->filtersFormWidth(Width::SixExtraLarge)
             ->filtersFormColumns(['default' => 1, 'md' => 2, 'xl' => 3])
-            ->recordActions([
+            ->recordActions(position: RecordActionsPosition::BeforeColumns, actions: [
                 self::blocage(),
                 ActionsCompte::priseIdentiteVisiteur(),
                 ActionGroup::make([
