@@ -180,11 +180,11 @@ it('cree un compte et connecte le creatif', function () {
         ->and(Hash::check('un-mot-de-passe', $compte->password))->toBeTrue()
         ->and(auth()->id())->toBe($compte->id);
 
-    // Le book existe mais n'est diffuse nulle part : un compte vide
-    // n'apparait pas sur le portail.
+    // Reglages par defaut d'un nouveau book (BookSetting::$attributes) :
+    // Ultra-frais, diffuse partout.
     expect($compte->bookSetting)->not->toBeNull()
-        ->and($compte->bookSetting->diffuse_web)->toBeFalse()
-        ->and($compte->bookSetting->diffuse_ub)->toBeFalse();
+        ->and($compte->bookSetting->diffuse_web)->toBeTrue()
+        ->and($compte->bookSetting->diffuse_ub)->toBeTrue();
 
     Mail::assertSent(BienvenueCreatif::class);
 });

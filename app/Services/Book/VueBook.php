@@ -403,7 +403,9 @@ class VueBook
     {
         $chemin = '/'.ltrim(request()->path(), '/');
 
-        return rtrim(request()->getSchemeAndHttpHost().(in_array($chemin, ['/', '/accueil', '/portfolio'], true) ? '/' : $chemin), '/') ?: '/';
+        // url() plutot que l'hote de la requete : sur un domaine perso, la
+        // passerelle (ServirDomainePerso) y substitue le domaine du createur.
+        return rtrim(url(in_array($chemin, ['/', '/accueil', '/portfolio'], true) ? '/' : $chemin), '/') ?: '/';
     }
 
     /** Image de partage : la photo du createur, sinon le premier visuel. */
@@ -425,7 +427,7 @@ class VueBook
      */
     public function donneesStructurees(): array
     {
-        $racine = request()->getSchemeAndHttpHost().'/';
+        $racine = url('/').'/'; // url() : domaine perso compris (ServirDomainePerso)
         $personne = array_filter([
             '@type' => 'Person',
             '@id' => $racine.'#createur',

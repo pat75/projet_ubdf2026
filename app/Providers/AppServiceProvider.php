@@ -26,7 +26,13 @@ use Filament\Tables\Table;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
@@ -56,6 +62,31 @@ class AppServiceProvider extends ServiceProvider
         if ($adresse = config('mail.toujours_vers')) {
             Mail::alwaysTo($adresse);
         }
+
+        // Marque par defaut des vues : une page d'erreur rendue hors du
+        // middleware ResoudreMarque (requete Livewire, erreur precoce) en a
+        // besoin. ResoudreMarque la remplace pour chaque requete web.
+        View::share('marque', \App\Support\Marque::depuisHote(request()->getHost()));
+
+        // API : par jeton (ou par IP avant connexion). La creation de jeton
+        // a sa propre limite, plus serree : c'est la que se tente un mot de passe.
+        RateLimiter::for('api', fn (Request $requete) => Limit::perMinute(120)->by($requete->user()?->id ?: $requete->ip()));
+        // Depot d'images : traitement lourd (reencodage), borne a part.
+        RateLimiter::for('api-depots', fn (Request $requete) => Limit::perMinute(60)->by($requete->user()?->id ?: $requete->ip()));
+        // Interrogation en boucle de la connexion par code (une toutes les 5 s).
+        RateLimiter::for('api-codes', fn (Request $requete) => Limit::perMinute(20)->by($requete->ip()));
+        // Par IP, et par identifiant vise : l'API n'a pas le captcha du formulaire
+        // du portail, un essai de mots de passe reparti sur plusieurs IP bute ici.
+        RateLimiter::for('api-jetons', fn (Request $requete) => [
+            Limit::perMinute(5)->by('ip|'.$requete->ip()),
+            Limit::perHour(10)->by('identifiant|'.mb_strtolower(trim((string) $requete->input('identifiant')))),
+        ]);
+
+        // Un compte bloque au back-office perd ses jetons a la requete suivante,
+        // comme ses sessions web (RefuserComptesBloques).
+        Sanctum::authenticateAccessTokensUsing(
+            fn (PersonalAccessToken $jeton, bool $valide) => $valide && ! $jeton->tokenable?->estBloque()
+        );
 
         /*
          | Un creatif et un visiteur ne partagent jamais une session : se

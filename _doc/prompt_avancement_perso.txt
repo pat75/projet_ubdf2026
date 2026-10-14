@@ -52,24 +52,25 @@ En vue de communiquer avec un serveur externe VPS, qui permettra de gérer les n
 En vue de communiquer avec une application mobile
 Et en vue de communiquer avec une application installée sur un poste de travail desoktop type Mac/PC 
 
-Il faudrait créer un système d'API
+Il faudrait créer un module système d'API
 Capable de gérer tous tes fonctionnalités du menu image du menu, page de la modification du compte est en règle générale des réglages
 Accessible via les menus :  
 Mon compte
 Ma formule
 Mes messages
 Mon mémoBook
- 
-Configurer
-Diffuser
+
 Statistiques
  
 Images (Portfolio)
 Pages (Bio)
 
-Il faut que cette API soit sécurisé, car elle permettra de peloter des images sur les book
+Il faut que cette API soit sécurisé, car elle permettra de uploader des images sur les book
 De se connecter automatiquement au compte, créatif
 De lire, les messages, etc.
+
+  Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
+
 
 
 
@@ -82,6 +83,19 @@ https://www.ovhcloud.com/fr/vps/configurator/?planCode=vps-2027-model1&brick=VPS
 
 + prévoir l'utilisation d'un nom de domaine servi, viens un serveur virtual,  proposer un système de connexion
  aux contenu par API ou proxy.
+  
+  le VPS  avec nom de domaines sera ecrits sur mesure
+Détail concernant le VPS avec nom de domaine :
+Un créatif doit pouvoir par la suite, acheter un nom de domaine qui sera connecté à son book.
+Les noms de domaines seront achetés via l'API OVH
+Comme pour le moment, la plate-forme est hébergée sur un serveur mutualisé la configuration des noms de domaine n'est pas possible automatiquement.
+Donc je pense installer un serveur VPS, où seront enregistrés sur Apache les noms de domaine, dans l'objectif d'afficher les books à partir du nom de domaine.
+Les images seront afficher à partir du domaine. Ultra-book.
+Il ne s'agit pour l'instant que d'un BRIEF n'hésite pas à l'analyser en vue de l'améliorer
+
+Un premier temps ne pas traiter ma formule
+
+  
    Analyser la demande, proposée des améliorations, poser des questions et faire un plan de codage.
 
 

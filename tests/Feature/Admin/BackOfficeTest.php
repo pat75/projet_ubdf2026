@@ -51,11 +51,11 @@ it('ouvre chaque ecran du back-office', function () {
 
     $this->get('/admin_')->assertOk()->assertSee('Créatifs');
 
-    foreach (['users', 'conversations', 'invoices', 'promo-codes', 'selections', 'campaigns', 'categories', 'admins'] as $ecran) {
+    foreach (['users', 'conversations', 'invoices', 'promo-codes', 'campaigns', 'categories', 'admins'] as $ecran) {
         $this->get('/admin_/'.$ecran)->assertOk();
     }
 
-    foreach (['promo-codes', 'selections', 'campaigns', 'admins'] as $ecran) {
+    foreach (['promo-codes', 'campaigns', 'admins'] as $ecran) {
         $this->get('/admin_/'.$ecran.'/create')->assertOk();
     }
 });

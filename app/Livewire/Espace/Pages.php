@@ -5,10 +5,9 @@ namespace App\Livewire\Espace;
 use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\BookArticle;
 use App\Models\BookSection;
-use App\Services\Espace\NettoyeurHtml;
+use App\Services\Espace\PagesBook;
 use App\Services\Espace\RenduBlocsPage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -38,17 +37,7 @@ class Pages extends Component
      */
     public function creerRubrique(): void
     {
-        // En tete de liste : position non signee, on decale les autres
-        // plutot que de descendre sous 0.
-        Auth::user()->sections()->increment('position');
-
-        Auth::user()->sections()->create([
-            'kind' => BookSection::PAGES,
-            'title' => '',
-            'slug' => 'rubrique',
-            'is_published' => false,
-            'position' => 0,
-        ]);
+        app(PagesBook::class)->creerRubrique(Auth::user());
     }
 
     public function basculerRubrique(int $id): void
@@ -59,14 +48,8 @@ class Pages extends Component
 
     public function supprimerRubrique(int $id): void
     {
-        $rubrique = $this->rubrique($id);
-
         // Une rubrique ne se supprime que vide : ses pages d'abord, une a une.
-        if ($rubrique->articles()->exists()) {
-            return;
-        }
-
-        $rubrique->delete();
+        app(PagesBook::class)->supprimerRubrique($this->rubrique($id));
     }
 
     /**
@@ -75,18 +58,7 @@ class Pages extends Component
      */
     public function creerPage(int $rubriqueId): void
     {
-        $rubrique = $this->rubrique($rubriqueId);
-        $page = $rubrique->articles()->create([
-            'user_id' => Auth::id(),
-            'title' => '',
-            'slug' => 'page',
-            'status' => 'draft',
-            'position' => (int) $rubrique->articles()->max('position') + 1,
-        ]);
-
-        if ($rubrique->page_order) {
-            $rubrique->update(['page_order' => [...$rubrique->page_order, (string) $page->id]]);
-        }
+        $page = app(PagesBook::class)->creerPage($this->rubrique($rubriqueId));
 
         $this->ouvrirPage($page->id);
     }
@@ -115,24 +87,20 @@ class Pages extends Component
         $this->resetErrorBag(['corps', 'blocs']);
     }
 
-    public function enregistrerPage(NettoyeurHtml $nettoyeur): void
+    public function enregistrerPage(): void
     {
         $this->validate(['corps' => 'nullable|string|max:200000']);
 
-        $this->page($this->edition)->update(['body' => $nettoyeur->nettoyer($this->corps), 'status' => 'published']);
+        app(PagesBook::class)->enregistrer($this->page($this->edition), (string) $this->corps, $this->page($this->edition)->body_blocks);
         $this->dispatch('page-enregistree');
     }
 
     /** Enregistrement pour config('pages.editeur_texte') === 'redactor_bloc' : voir resources/js/espace-blocs.js. */
-    public function enregistrerBlocs(RenduBlocsPage $rendu, NettoyeurHtml $nettoyeur): void
+    public function enregistrerBlocs(RenduBlocsPage $rendu): void
     {
         $this->validate(['blocs' => 'array']);
 
-        $this->page($this->edition)->update([
-            'body_blocks' => $this->blocs,
-            'body' => $nettoyeur->nettoyer($rendu->versHtml($this->blocs)),
-            'status' => 'published',
-        ]);
+        app(PagesBook::class)->enregistrer($this->page($this->edition), $rendu->versHtml($this->blocs), $this->blocs);
         $this->dispatch('page-enregistree');
     }
 
@@ -163,25 +131,12 @@ class Pages extends Component
     /** @param  list<int|string>  $ids */
     public function ordonnerPages(int $rubriqueId, array $ids): void
     {
-        $rubrique = $this->rubrique($rubriqueId);
-        $pages = $rubrique->articles()->whereIn('id', $ids)->get()->keyBy('id');
-
-        $rubrique->update(['page_order' => collect($ids)
-            ->map(fn ($id) => $pages->get((int) $id))->filter()
-            ->map(fn (BookArticle $p) => (string) ($p->legacy_id ?? $p->id))
-            ->values()->all()]);
+        app(PagesBook::class)->ordonnerPages($this->rubrique($rubriqueId), $ids);
     }
 
     public function render(): View
     {
-        $rubriques = Auth::user()->sections()->with('articles')->orderBy('position')->orderBy('id')->get();
-
-        foreach ($rubriques as $rubrique) {
-            $ordre = array_flip($rubrique->page_order ?? []);
-            $rubrique->setRelation('articles', $rubrique->articles->sortBy(
-                fn (BookArticle $p) => [$ordre[(string) ($p->legacy_id ?? $p->id)] ?? PHP_INT_MAX, $p->legacy_id ?? $p->id]
-            )->values());
-        }
+        $rubriques = app(PagesBook::class)->rubriques(Auth::user());
 
         return view('livewire.espace.pages', [
             'rubriques' => $rubriques,
@@ -250,21 +205,11 @@ class Pages extends Component
         $valeur = trim((string) $valeur);
 
         match ($champ) {
-            'rubrique' => $this->nommerRubrique($this->rubrique((int) $id), $valeur),
-            'page' => $this->page((int) $id)->update(['title' => $valeur, 'slug' => Str::slug($valeur) ?: 'page']),
+            'rubrique' => app(PagesBook::class)->nommerRubrique($this->rubrique((int) $id), $valeur),
+            'page' => app(PagesBook::class)->nommerPage($this->page((int) $id), $valeur),
         };
     }
 
-    private function nommerRubrique(BookSection $rubrique, string $titre): void
-    {
-        $premiereFois = $rubrique->title === '';
-
-        $rubrique->update([
-            'title' => $titre,
-            'slug' => Str::slug($titre) ?: 'rubrique',
-            'is_published' => $premiereFois ? true : $rubrique->is_published,
-        ]);
-    }
 
     private function rubrique(int $id): BookSection
     {

@@ -8,6 +8,13 @@ return [
      */
     'book_domain' => (env('BOOK_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
 
+    /*
+     | Secret partage avec le VPS des domaines personnels (en-tete
+     | X-Proxy-Secret, voir App\Http\Middleware\ServirDomainePerso et
+     | _doc/_doc_VPS). Vide : la passerelle est fermee.
+     */
+    'proxy_secret' => env('PROXY_SECRET'),
+
     // Hote du portail : sert a cantonner le back-office.
     'portail_domain' => (env('PORTAIL_DOMAIN') ?: 'ubdf2026.ultra-book.name'),
 

@@ -54,3 +54,6 @@ Schedule::command('ubdf:preparer-coaching')->hourly()->withoutOverlapping();
 Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+// Domaines personnels : DNS verifie, pointage OVH, activation (voir _doc/_doc_VPS).
+Schedule::command('ubdf:verifier-domaines')->hourly();

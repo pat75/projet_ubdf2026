@@ -89,13 +89,20 @@ it('refuse un lien de changement d adresse falsifie ou perime', function () {
     expect($this->creatif->fresh()->email)->toBe('autre@example.test');
 });
 
-it('refuse une adresse mail deja prise', function () {
+/*
+ | Une meme adresse peut servir a plusieurs books (heritage legacy) : la
+ | connexion se fait par le login. L'adresse deja prise n'est donc pas
+ | refusee ; comme toute nouvelle adresse, elle doit etre confirmee.
+ */
+it('accepte une adresse mail deja utilisee par un autre book, apres confirmation', function () {
+    Mail::fake();
     User::factory()->create(['email' => 'pris@example.test']);
 
     $reponse = Livewire::test(Compte::class)->call('enregistrerChamp', 'email', 'pris@example.test')->effects['returns'][0];
 
-    expect($reponse)->toHaveKey('erreur')
+    expect($reponse)->not->toHaveKey('erreur')
         ->and($this->creatif->fresh()->email)->toBe('moi@example.test');
+    Mail::assertSent(ConfirmationAdresse::class, fn ($m) => $m->hasTo('pris@example.test'));
 });
 
 it('change le mot de passe, sans mot de passe actuel ni confirmation', function () {

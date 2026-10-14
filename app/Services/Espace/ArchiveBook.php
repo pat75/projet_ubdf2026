@@ -5,6 +5,7 @@ namespace App\Services\Espace;
 use App\Models\User;
 use App\Support\DossierBook;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use RuntimeException;
 use ZipArchive;
 
@@ -36,7 +37,9 @@ final class ArchiveBook
             : collect();
 
         File::ensureDirectoryExists(storage_path(self::DOSSIER));
-        $archive = storage_path(self::DOSSIER.'/'.$creatif->login.'_'.$creatif->id.'_'.now()->format('Ymd_His').'.zip');
+        // Suffixe aleatoire : deux suppressions dans la meme seconde (meme
+        // login, meme id apres une reprise) ne se disputent pas le fichier.
+        $archive = storage_path(self::DOSSIER.'/'.$creatif->login.'_'.$creatif->id.'_'.now()->format('Ymd_His').'_'.Str::lower(Str::random(6)).'.zip');
 
         $zip = new ZipArchive;
         if ($zip->open($archive, ZipArchive::CREATE | ZipArchive::EXCL) !== true) {

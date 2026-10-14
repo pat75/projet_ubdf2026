@@ -14,12 +14,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Domaine personnel relaye par le VPS : traite comme le sous-domaine
+        // du book, avant tout middleware qui lit l'hote.
+        $middleware->prepend(\App\Http\Middleware\ServirDomainePerso::class);
+
         // Toute entree utilisateur est ramenee a de l'UTF-8 normalise (NFC).
         $middleware->append(NormalizeUnicodeInput::class);
+
+        // Droits portes par un jeton d API (routes/api.php).
+        $middleware->alias([
+            'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+        ]);
 
         // Un hote de hasard sous nos domaines (joker DNS) est renvoye au
         // portail avant de construire quoi que ce soit avec lui.

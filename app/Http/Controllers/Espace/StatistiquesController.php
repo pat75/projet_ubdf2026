@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Espace;
 
 use App\Http\Controllers\Controller;
-use App\Services\Stats\CompteurVisites;
+use App\Services\Stats\TableauVisites;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 /**
@@ -17,49 +18,15 @@ use Illuminate\View\View;
  */
 class StatistiquesController extends Controller
 {
-    public const JOURS = 90;
-
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, TableauVisites $tableau): View
     {
-        $stats = $request->user()->visitStats();
-
-        // Plusieurs lignes par jour (une par surface) : on les regroupe.
-        $lignes = $stats->clone()
-            ->where('date', '>=', now()->subDays(self::JOURS - 1)->toDateString())
-            ->selectRaw('date, surface, SUM(public_views) as vues')
-            ->groupBy('date', 'surface')
-            ->get()
-            ->groupBy(fn ($l) => $l->date->toDateString());
-
-        $parJour = collect(range(self::JOURS - 1, 0))->mapWithKeys(function ($i) use ($lignes) {
-            $date = now()->subDays($i)->toDateString();
-            $surfaces = collect(CompteurVisites::SURFACES)->mapWithKeys(fn ($s) => [$s => 0]);
-
-            foreach ($lignes[$date] ?? [] as $ligne) {
-                $surfaces[$ligne->surface] = (int) $ligne->vues;
-            }
-
-            return [$date => $surfaces->all()];
-        });
-
-        $mois = $stats->clone()
-            ->where('date', '>=', now()->startOfMonth()->subMonths(11)->toDateString())
-            ->get(['date', 'public_views'])
-            ->groupBy(fn ($s) => $s->date->format('Y-m'))
-            ->map->sum('public_views');
-
-        $parMois = collect(range(11, 0))->mapWithKeys(function ($i) use ($mois) {
-            $debut = now()->startOfMonth()->subMonths($i);
-
-            return [$debut->translatedFormat('M Y') => (int) ($mois[$debut->format('Y-m')] ?? 0)];
-        });
+        $stats = $tableau->pour($request->user());
 
         return view('espace.statistiques', [
-            'parJour' => $parJour,
-            'parMois' => $parMois,
-            // Comme la carte du portail (User::vuesTotales) : vues du serveur
-            // de stats legacy (extra-book), plus celles comptees depuis.
-            'total' => (int) $request->user()->legacy_views + (int) $stats->clone()->sum('public_views'),
+            'parJour' => collect($stats['par_jour']),
+            'parMois' => collect($stats['par_mois'])
+                ->mapWithKeys(fn ($vues, $mois) => [Carbon::createFromFormat('!Y-m', $mois)->translatedFormat('M Y') => $vues]),
+            'total' => $stats['total'],
             'surfaces' => [
                 'book' => __('Book'),
                 'minibook' => __('MiniBook'),

@@ -6,12 +6,10 @@ use App\Livewire\Concerns\EnregistreChamps;
 use App\Models\Gallery;
 use App\Models\Media;
 use App\Services\Espace\DepotVisuel;
+use App\Services\Espace\Portfolios;
 use App\Services\Espace\Quotas;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -39,9 +37,16 @@ class Galeries extends Component
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $remplacement = null;
 
+    protected Portfolios $portfolios;
+
+    public function boot(Portfolios $portfolios): void
+    {
+        $this->portfolios = $portfolios;
+    }
+
     public function mount(): void
     {
-        $this->cible = $this->portfolios()->first()?->id;
+        $this->cible = $this->portfolios->liste(Auth::user())->first()?->id;
     }
 
     /*
@@ -52,24 +57,14 @@ class Galeries extends Component
 
     public function creer(): void
     {
-        $creatif = Auth::user();
-        $nom = __('Portfolio :n', ['n' => $creatif->galleries()->whereNull('parent_id')->count() + 1]);
-
-        $galerie = $creatif->galleries()->create([
-            'name' => $nom,
-            'slug' => $this->slugLibre($nom),
-            'status' => 'published',
-            // En tete de liste : avant le premier portfolio existant.
-            'position' => (int) $creatif->galleries()->whereNull('parent_id')->min('position') - 1,
-        ]);
+        $galerie = $this->portfolios->creer(Auth::user());
 
         $this->cible ??= $galerie->id;
     }
 
     public function basculerPublication(int $id): void
     {
-        $galerie = $this->galerie($id);
-        $galerie->update(['status' => $galerie->status === 'published' ? 'draft' : 'published']);
+        $this->portfolios->basculerPublication($this->galerie($id));
     }
 
     /**
@@ -93,31 +88,17 @@ class Galeries extends Component
 
     public function supprimer(int $id): void
     {
-        $galerie = $this->galerie($id);
-
-        DB::transaction(function () use ($galerie) {
-            $visuels = $galerie->media()->get(['id', 'size']);
-
-            $galerie->media()->delete();
-            $galerie->delete();
-
-            Auth::user()->decrement('media_count', $visuels->count());
-            Auth::user()->decrement('storage_used', (int) $visuels->sum('size'));
-        });
+        $this->portfolios->supprimer(Auth::user(), $this->galerie($id));
 
         if ($this->cible === $id) {
-            $this->cible = $this->portfolios()->first()?->id;
+            $this->cible = $this->portfolios->liste(Auth::user())->first()?->id;
         }
     }
 
     /** @param  list<int|string>  $ids  ordre voulu, du premier au dernier */
     public function ordonner(array $ids): void
     {
-        $galeries = Auth::user()->galleries()->whereIn('id', $ids)->get()->keyBy('id');
-
-        foreach (array_values($ids) as $rang => $id) {
-            $galeries->get((int) $id)?->update(['position' => $rang + 1]);
-        }
+        $this->portfolios->ordonner(Auth::user(), $ids);
     }
 
     /*
@@ -183,17 +164,13 @@ class Galeries extends Component
 
     public function supprimerVisuel(int $id): void
     {
-        $visuel = $this->visuel($id);
-        $visuel->delete();
-
-        Auth::user()->decrement('media_count');
-        Auth::user()->decrement('storage_used', (int) $visuel->size);
+        $this->portfolios->supprimerVisuel(Auth::user(), $this->visuel($id));
     }
 
     /** @param  list<int|string>  $ids */
     public function ordonnerVisuels(int $galerieId, array $ids): void
     {
-        $this->ranger($this->galerie($galerieId), $ids);
+        $this->portfolios->ranger($this->galerie($galerieId), $ids);
     }
 
     /**
@@ -203,28 +180,7 @@ class Galeries extends Component
      */
     public function deplacerVisuel(int $id, int $galerieId, array $ids): void
     {
-        $visuel = $this->visuel($id);
-        $depart = $visuel->gallery;
-        $arrivee = $this->galerie($galerieId);
-
-        if ($depart->is($arrivee)) {
-            $this->ranger($arrivee, $ids);
-
-            return;
-        }
-
-        DB::transaction(function () use ($visuel, $depart, $arrivee, $ids) {
-            $visuel->update(['gallery_id' => $arrivee->id]);
-
-            // Un visuel absent de la liste d'ordre est mal range par le
-            // book (voir ContexteBook::ordonner) : on le retire du depart.
-            if ($depart->media_order) {
-                $cle = (string) ($visuel->legacy_id ?? $visuel->id);
-                $depart->update(['media_order' => array_values(array_diff($depart->media_order, [$cle]))]);
-            }
-
-            $this->ranger($arrivee, $ids);
-        });
+        $this->portfolios->deplacerVisuel($this->visuel($id), $this->galerie($galerieId), $ids);
     }
 
     /*
@@ -264,11 +220,11 @@ class Galeries extends Component
 
     public function render(Quotas $quotas): View
     {
-        $portfolios = $this->portfolios()->load('media');
+        $portfolios = $this->portfolios->liste(Auth::user())->load('media');
 
         return view('livewire.espace.galeries', [
             'portfolios' => $portfolios,
-            'visuels' => $portfolios->mapWithKeys(fn (Gallery $g) => [$g->id => $this->dansLOrdre($g)]),
+            'visuels' => $portfolios->mapWithKeys(fn (Gallery $g) => [$g->id => $this->portfolios->dansLOrdre($g)]),
             'quota' => $quotas->pour(Auth::user())['images'],
         ]);
     }
@@ -278,39 +234,6 @@ class Galeries extends Component
     | Outils
     |--------------------------------------------------------------------------
     */
-
-    /** @return Collection<int, Gallery> */
-    private function portfolios(): Collection
-    {
-        return Auth::user()->galleries()->whereNull('parent_id')->orderBy('position')->get();
-    }
-
-    /** Les visuels d'un portfolio, dans l'ordre du book (`media_order`). */
-    private function dansLOrdre(Gallery $galerie): Collection
-    {
-        $ordre = array_flip($galerie->media_order ?? []);
-
-        return $galerie->media
-            ->sortBy(fn (Media $m) => [$ordre[(string) ($m->legacy_id ?? $m->id)] ?? PHP_INT_MAX, $m->legacy_id ?? $m->id])
-            ->values();
-    }
-
-    /**
-     * L'ordre du book est la liste `media_order`, en identifiants legacy
-     * pour les visuels repris : c'est ce que lit ContexteBook::ordonner().
-     *
-     * @param  list<int|string>  $ids
-     */
-    private function ranger(Gallery $galerie, array $ids): void
-    {
-        $visuels = $galerie->media()->whereIn('id', $ids)->get()->keyBy('id');
-
-        $galerie->update(['media_order' => collect($ids)
-            ->map(fn ($id) => $visuels->get((int) $id))
-            ->filter()
-            ->map(fn (Media $m) => (string) ($m->legacy_id ?? $m->id))
-            ->values()->all()]);
-    }
 
     private function galerie(int $id): Gallery
     {
@@ -325,15 +248,4 @@ class Galeries extends Component
         return Media::where('user_id', Auth::id())->findOrFail($id);
     }
 
-    private function slugLibre(string $nom): string
-    {
-        $base = Str::slug($nom) ?: 'galerie';
-        $slug = $base;
-
-        for ($i = 2; Auth::user()->galleries()->withTrashed()->where('slug', $slug)->exists(); $i++) {
-            $slug = $base.'-'.$i;
-        }
-
-        return $slug;
-    }
 }

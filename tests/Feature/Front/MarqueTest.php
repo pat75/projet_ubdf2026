@@ -83,21 +83,32 @@ it('sert bien un book sur un sous-domaine ordinaire', function () {
 
 it('substitue le nom de la marque dans les contenus editoriaux', function () {
     CmsPage::create([
-        'slug' => 'qui-sommes-nous',
+        'slug' => 'presentation',
         'locale' => 'fr',
         'title' => 'Qui sommes nous',
         'body' => '<p>Ultra-book est une plate-forme, éditée par POLYGUN.</p>',
         'published_at' => now()->subYear(),
     ]);
+    // « qui-sommes-nous » est une page retiree (CmsController::RETIREES) :
+    // un slug ordinaire. Dustfolio sert l'anglais : sans version anglaise, la page francaise
+    // y serait redirigee (CmsController::page). Page commune aux deux
+    // marques (pas de colonne marque), comme celles reprises du legacy.
+    CmsPage::create([
+        'slug' => 'presentation',
+        'locale' => 'en',
+        'title' => 'About us',
+        'body' => '<p>Ultra-book est une plate-forme, éditée par POLYGUN.</p>',
+        'published_at' => now()->subYear(),
+    ]);
 
-    // Dustfolio n'a jamais eu de pages a lui : le legacy servait celles
-    // d'Ultra-book en y remplacant le nom juste avant l'affichage.
-    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en/doc/qui-sommes-nous'))
+    // Le legacy servait les pages d'Ultra-book a Dustfolio en y remplacant
+    // le nom juste avant l'affichage : la substitution vaut toujours.
+    $this->get(hote('ubdf-dust-2026.ultra-book.name', '/en/doc/presentation'))
         ->assertOk()
         ->assertSee('Dustfolio est une plate-forme', false)
         ->assertSee('DustWare SAS', false);
 
-    $this->get(hote('ubdf2026.ultra-book.name', '/doc/qui-sommes-nous'))
+    $this->get(hote('ubdf2026.ultra-book.name', '/doc/presentation'))
         ->assertOk()
         ->assertSee('Ultra-book est une plate-forme', false)
         ->assertSee('POLYGUN', false);

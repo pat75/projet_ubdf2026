@@ -10,12 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     use Concerns\PeutEtreBloque;
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'legacy_id', 'login', 'email', 'password', 'google_id', 'category_id', 'brand', 'locale',
@@ -163,7 +164,16 @@ class User extends Authenticatable
     {
         // Domaine des books de la marque du compte : un book Dustfolio n'a
         // qu'une adresse, sur le domaine Dustfolio.
-        return 'https://'.$this->login.'.'.\App\Support\Marque::depuisCode((string) $this->brand)->domaineBooks;
+        $sousDomaine = $this->login.'.'.\App\Support\Marque::depuisCode((string) $this->brand)->domaineBooks;
+
+        // Page servie sur son domaine perso (ServirDomainePerso) : c'est
+        // l'adresse a donner. Ailleurs (portail, sitemap), le sous-domaine
+        // redirige en 301 vers le domaine perso actif.
+        if (($perso = request()->attributes->get('domaine_perso')) && request()->getHost() === $sousDomaine) {
+            return 'https://'.$perso;
+        }
+
+        return 'https://'.$sousDomaine;
     }
 
     public function fullName(): string

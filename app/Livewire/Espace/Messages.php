@@ -4,11 +4,10 @@ namespace App\Livewire\Espace;
 
 use App\Models\Conversation;
 use App\Services\Messagerie\DetecteurSpamIA;
-use App\Models\Message;
 use App\Services\IA\CorrectionMessage;
+use App\Services\Messagerie\Boite;
 use App\Services\Messagerie\Intermediation;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
@@ -57,6 +56,13 @@ class Messages extends Component
     /** Le cookie qui retient que l'utilisateur a ferme la note de securite. */
     private const COOKIE_ALERTE = 'espace_messages_alerte_masquee';
 
+    protected Boite $boite;
+
+    public function boot(Boite $boite): void
+    {
+        $this->boite = $boite;
+    }
+
     public function mount(): void
     {
         $this->alerteEscroquerieMasquee = (bool) request()->cookie(self::COOKIE_ALERTE);
@@ -82,8 +88,7 @@ class Messages extends Component
 
     public function ouvrir(int $id): void
     {
-        $conversation = $this->conversation($id);
-        $conversation->messages()->where('from_owner', false)->whereNull('read_at')->update(['read_at' => now()]);
+        $this->boite->marquerLue($this->conversation($id));
 
         $this->ouvert = $id;
         $this->reset('reponse', 'suggestionIA', 'erreurIA');
@@ -162,9 +167,7 @@ class Messages extends Component
      */
     public function supprimer(int $id): void
     {
-        $conversation = $this->conversation($id);
-
-        $conversation->trashed() ? $conversation->restore() : $conversation->delete();
+        $this->boite->basculerCorbeille($this->conversation($id));
 
         if ($this->ouvert === $id) {
             $this->ouvert = null;
@@ -174,8 +177,7 @@ class Messages extends Component
     /** Supprime pour de bon toutes les demandes de la poubelle. */
     public function viderCorbeille(): void
     {
-        Auth::user()->conversations()->onlyTrashed()->get()
-            ->each(fn (Conversation $conversation) => $conversation->forceDelete());
+        $this->boite->viderCorbeille(Auth::user());
 
         $this->ouvert = null;
     }
@@ -218,7 +220,7 @@ class Messages extends Component
     /** Retire le signalement d'une demande, qu'il vienne de l'administration ou de l'IA. */
     public function rendreLegitime(int $id): void
     {
-        $this->conversation($id)->forceFill(['is_spam' => false, 'spam_ia' => false])->save();
+        $this->boite->rendreLegitime($this->conversation($id));
     }
 
     /**
@@ -228,7 +230,7 @@ class Messages extends Component
      */
     public function supprimerIndesirables(): void
     {
-        $this->indesirables()->get()->each(fn (Conversation $conversation) => $conversation->delete());
+        $this->boite->supprimerIndesirables(Auth::user());
 
         $this->ouvert = null;
         $this->resetPage();
@@ -241,7 +243,7 @@ class Messages extends Component
         $fil = $this->ouvert ? $this->conversation($this->ouvert)->load('messages') : null;
 
         if ($fil) {
-            $fil->setRelation('messages', $this->sansDoublons($fil->messages));
+            $fil->setRelation('messages', $this->boite->sansDoublons($fil->messages));
         }
 
         return view('livewire.espace.messages', [
@@ -254,25 +256,8 @@ class Messages extends Component
             'fil' => $fil,
             'analyseRestante' => app(DetecteurSpamIA::class)->actif() && $this->dossier !== 'poubelle'
                 ? $this->aAnalyser()->count() : 0,
-            'nbIndesirables' => $this->dossier === 'contacts' ? $this->indesirables()->count() : 0,
+            'nbIndesirables' => $this->dossier === 'contacts' ? $this->boite->indesirables(Auth::user())->count() : 0,
         ]);
-    }
-
-    /**
-     * Un expediteur (ou le createur) qui renvoie plusieurs fois d'affilee
-     * exactement le meme texte — un double clic sur « Envoyer », un souci
-     * de connexion — n'affiche qu'une seule fois : seule une reponse au
-     * contenu different rouvre une bulle.
-     */
-    private function sansDoublons(EloquentCollection $messages): EloquentCollection
-    {
-        $messages = $messages->values();
-
-        return $messages->filter(function (Message $message, int $i) use ($messages) {
-            $precedent = $messages->get($i - 1);
-
-            return ! $precedent || $precedent->from_owner !== $message->from_owner || $precedent->body !== $message->body;
-        })->values();
     }
 
     /**
@@ -284,48 +269,20 @@ class Messages extends Component
      */
     private function dossiers(): array
     {
-        // Un indesirable ne compte pas dans les non lus : la pastille ne
-        // doit pas reclamer l'attention pour un spam.
-        $nonLus = fn ($q) => $q->where('is_spam', false)->where(fn (Builder $q) => $q->where('spam_ia', false)->orWhereNull('spam_ia'))->whereHas('messages', fn (Builder $m) => $m->where('from_owner', false)->whereNull('read_at'));
-
         return [
-            ['cle' => 'contacts', 'libelle' => __('Contacts'), 'non_lus' => $nonLus($this->parDossier('contacts'))->count()],
+            ['cle' => 'contacts', 'libelle' => __('Contacts'), 'non_lus' => $this->boite->nonLues(Auth::user())],
             ['cle' => 'poubelle', 'libelle' => __('Supprimer'), 'non_lus' => 0],
         ];
     }
 
-    /**
-     * `conversations()` est une relation HasMany : Eloquent la fait
-     * passer pour un Builder une fois une premiere portee posee, mais son
-     * type declare reste HasMany — d'ou l'absence de type de retour ici,
-     * plutot qu'une signature que PHP rejetterait a l'execution.
-     */
     private function requete()
     {
-        return $this->parDossier($this->dossier);
-    }
-
-    private function parDossier(string $dossier)
-    {
-        // Les indesirables restent dans la liste, signales par un badge :
-        // le createur doit les voir pour les supprimer (ou les garder).
-        $base = Auth::user()->conversations();
-
-        return match ($dossier) {
-            'poubelle' => $base->onlyTrashed(),
-            default => $base,
-        };
+        return $this->boite->parDossier(Auth::user(), $this->dossier);
     }
 
     private function conversation(int $id): Conversation
     {
-        return Auth::user()->conversations()->withTrashed()->findOrFail($id);
+        return $this->boite->conversation(Auth::user(), $id);
     }
 
-    /** Demandes indesirables du dossier Contacts (administration ou IA). */
-    private function indesirables()
-    {
-        return $this->parDossier('contacts')
-            ->where(fn (Builder $q) => $q->where('is_spam', true)->orWhere('spam_ia', true));
-    }
 }

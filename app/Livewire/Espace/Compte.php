@@ -28,7 +28,7 @@ class Compte extends Component
     use EnregistreChamps;
 
     /** Champs du profil modifiables ici, avec leur regle. */
-    private const CHAMPS = [
+    public const CHAMPS = [
         'firstname' => 'nullable|string|max:100',
         'lastname' => 'nullable|string|max:100',
         'company' => 'nullable|string|max:150',

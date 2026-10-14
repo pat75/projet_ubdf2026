@@ -40,6 +40,22 @@ return [
     | site (correction de message, et ce qui suivra), via
     | App\Services\IA\OpenRouterModelSelector.
     */
+    /*
+     | API OVH : achat des noms de domaine des creatifs et pointage DNS vers
+     | le VPS (App\Services\Domaines\Ovh). Cles creees sur
+     | https://eu.api.ovh.com/createToken/ ; sans elles, le service refuse.
+     */
+    'ovh' => [
+        'endpoint' => env('OVH_ENDPOINT', 'https://eu.api.ovh.com/1.0'),
+        'application_key' => env('OVH_APPLICATION_KEY'),
+        'application_secret' => env('OVH_APPLICATION_SECRET'),
+        'consumer_key' => env('OVH_CONSUMER_KEY'),
+        'filiale' => env('OVH_SUBSIDIARY', 'FR'),
+        // IP du VPS des domaines personnels : cible des enregistrements DNS.
+        'ip_vps' => env('VPS_IP'),
+        'ip6_vps' => env('VPS_IP6'),
+    ],
+
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
     ],

@@ -13,6 +13,18 @@ use Livewire\Livewire;
  | depliables et les champs de la fiche.
  */
 
+/*
+ | Supprimer un portfolio archive le book dans storage/books_effaces : on
+ | retire apres chaque test les archives qu'il a creees, et elles seules.
+ */
+beforeEach(function () {
+    $this->archivesAvant = File::glob(storage_path(ArchiveBook::DOSSIER.'/*.zip'));
+});
+
+afterEach(function () {
+    File::delete(array_diff(File::glob(storage_path(ArchiveBook::DOSSIER.'/*.zip')), $this->archivesAvant));
+});
+
 it('montre l en-tete, le rappel de connexion et les sections', function () {
     $this->actingAs(User::factory()->create())->get(route('espace.compte'))
         ->assertOk()

@@ -308,6 +308,9 @@
         </div>
     </section>
 
+    {{-- Applications mobile et desktop (jetons d'API). --}}
+    <livewire:espace.appareils />
+
     {{-- Zone dangereuse. --}}
     <section x-data="{ ouvert: false }"
              class="rounded-ub-carte border border-ub-danger-bord bg-ub-danger-fond px-7 py-5">
