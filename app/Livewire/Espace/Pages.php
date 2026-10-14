@@ -38,13 +38,16 @@ class Pages extends Component
      */
     public function creerRubrique(): void
     {
+        // En tete de liste : position non signee, on decale les autres
+        // plutot que de descendre sous 0.
+        Auth::user()->sections()->increment('position');
+
         Auth::user()->sections()->create([
             'kind' => BookSection::PAGES,
             'title' => '',
             'slug' => 'rubrique',
             'is_published' => false,
-            // En tete de liste : avant la premiere rubrique existante.
-            'position' => (int) Auth::user()->sections()->min('position') - 1,
+            'position' => 0,
         ]);
     }
 

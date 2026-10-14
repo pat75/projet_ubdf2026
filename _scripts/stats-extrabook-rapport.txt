@@ -86,3 +86,6 @@ Bilan : 10 books vus, 7 a modifier, 0 inconnus d'extra-book
 #95 audreybrien (legacy 48207, login extra-book audreybrien) : vues 55708 -> 55710, coeurs 21 -> 21 => enregistre : [55710 vues et 21 coeurs]
 #96 aurelieblardquintard (legacy 1845, login extra-book aurelieblardquintard) : vues 41331 -> 41340, coeurs 16 -> 16 => enregistre : [41340 vues et 16 coeurs]
 Bilan : 100 books vus, 56 a modifier, 0 inconnus d'extra-book
+
+=== 2026-10-13 14:45:51 (essai a blanc) depuis id > 0
+Bilan : 0 books vus, 0 a modifier, 0 inconnus d'extra-book

@@ -6,6 +6,7 @@
  *   php _scripts/stats-extrabook.php                essai a blanc : rapport seul
  *   php _scripts/stats-extrabook.php --ecrire       met a jour la base
  *   php _scripts/stats-extrabook.php --recommencer  repart du premier book
+ *   php _scripts/stats-extrabook.php --login=fixel  un seul book (ni log ni reprise)
  *
  * Compare st_book a users.legacy_views et st_memo a users.legacy_likes (la
  * part extra-book du total ; visit_stats reste a part). Ne baisse jamais un
@@ -16,9 +17,9 @@
  */
 
 // Nombre de books par paquet : 10 pour les essais, 100 ensuite.
-$PAQUET = 100;
+$PAQUET = 10000;
 // Nombre de paquets par lancement (0 = jusqu'au bout).
-$MAX_PAQUETS = 1;
+$MAX_PAQUETS = 0;
 
 const API = 'https://www.extra-book.com/2012_stats/st_action.php';
 const LOGINS_PAR_APPEL = 20; // au-dela d'une cinquantaine, le serveur repond 500
@@ -37,6 +38,12 @@ $rapport = __DIR__.'/stats-extrabook-rapport.txt';
 
 if (in_array('--recommencer', $argv, true)) {
     @unlink($log);
+}
+$seul = null;
+foreach ($argv as $a) {
+    if (str_starts_with($a, '--login=')) {
+        $seul = substr($a, 8);
+    }
 }
 $dernierId = is_file($log) ? (int) trim(file_get_contents($log)) : 0;
 
@@ -75,7 +82,8 @@ $paquets = 0;
 $totaux = ['vus' => 0, 'modifies' => 0, 'inconnus' => 0];
 
 while ($MAX_PAQUETS === 0 || $paquets < $MAX_PAQUETS) {
-    $books = User::where('id', '>', $dernierId)->orderBy('id')->limit($PAQUET)
+    $books = User::when($seul, fn ($q) => $q->where('login', $seul), fn ($q) => $q->where('id', '>', $dernierId))
+        ->orderBy('id')->limit($PAQUET)
         ->get(['id', 'login', 'legacy_id', 'legacy_views', 'legacy_likes']);
     if ($books->isEmpty()) {
         echo "Termine : tous les books sont passes.\n";
@@ -90,11 +98,31 @@ while ($MAX_PAQUETS === 0 || $paquets < $MAX_PAQUETS) {
         // Un lot refuse est repris login par login.
         $stats = appelStats($noms) ?? array_map(fn ($l) => appelStats([$l])[0] ?? null, $noms);
 
+        // Login inconnu : la migration a converti les « _ » du legacy en « - »,
+        // et la base legacy n'est pas toujours lisible. On retente en « _ ».
+        $retente = [];
+        foreach ($noms as $i => $nom) {
+            if (! is_array($stats[$i] ?? null) && str_contains($nom, '-')) {
+                $retente[$i] = str_replace('-', '_', $nom);
+            }
+        }
+        if ($retente) {
+            $bis = appelStats(array_values($retente)) ?? array_map(fn ($l) => appelStats([$l])[0] ?? null, array_values($retente));
+            foreach (array_values(array_keys($retente)) as $k => $i) {
+                if (is_array($bis[$k] ?? null)) {
+                    $stats[$i] = $bis[$k];
+                    $logins[$lot->values()[$i]->id] = $retente[$i];
+                }
+            }
+        }
+
         foreach ($lot->values() as $i => $b) {
             $totaux['vus']++;
             $s = $stats[$i] ?? null;
             if (! is_array($s)) {
                 $totaux['inconnus']++;
+                fwrite($fr, sprintf("#%d %s (legacy %s, login extra-book %s) : INCONNU d'extra-book, inchange [%d vues et %d coeurs]\n",
+                    $b->id, $b->login, $b->legacy_id ?? '-', $logins[$b->id], $b->legacy_views, $b->legacy_likes));
                 continue;
             }
             $vues = max((int) $b->legacy_views, (int) ($s['st_book'] ?? 0));
@@ -114,6 +142,9 @@ while ($MAX_PAQUETS === 0 || $paquets < $MAX_PAQUETS) {
 
     $dernierId = $books->last()->id;
     // En essai a blanc, le log n'avance pas : le passage reel refera les memes books.
+    if ($seul) {
+        break;
+    }
     if ($ecrire) {
         file_put_contents($log, $dernierId);
     }
