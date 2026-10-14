@@ -34,6 +34,19 @@ class ResoudreMarque
             'mail.from.name' => $marque->nom,
         ]);
 
+        // Cookies de session et de connexion partages entre le portail et
+        // les books de la marque (.ultra-book.com ou .dustfolio.com) : une
+        // seule connexion vaut sur <login>.<domaineBooks>. Jamais entre deux
+        // marques. Hote hors domaine des books : cookie limite a l'hote.
+        $domaine = ltrim(strtolower($marque->domaineBooks), '.');
+        $hote = strtolower($request->getHost());
+
+        $partage = $domaine !== '' && ($hote === $domaine || str_ends_with($hote, '.'.$domaine));
+
+        if ($partage) {
+            config(['session.domain' => '.'.$domaine]);
+        }
+
         // Langue par defaut de la marque. Sur une marque multilingue, le
         // segment de langue de l'URL la remplacera (ForcerLangue).
         app()->setLocale($marque->locale());
@@ -48,6 +61,21 @@ class ResoudreMarque
             }
         }
 
-        return $next($request);
+        $reponse = $next($request);
+
+        // Anciens cookies poses sans domaine (limites a l'hote) : le
+        // navigateur les envoie avant ceux du domaine, Laravel lirait une
+        // session perimee (419) et un remember_* qui survit a la
+        // deconnexion. Les expirer n'efface que ces copies-la.
+        // ponytail: a retirer quand les cookies d'avant le partage auront expire (~1 an).
+        if ($partage) {
+            foreach (array_keys($request->cookies->all()) as $nom) {
+                if ($nom === config('session.cookie') || $nom === 'XSRF-TOKEN' || str_starts_with($nom, 'remember_')) {
+                    $reponse->headers->clearCookie($nom, '/', null);
+                }
+            }
+        }
+
+        return $reponse;
     }
 }

@@ -1530,3 +1530,24 @@
 .limite_anonyme_boutons .ui.button {
     margin: 0;
 }
+
+/* Creer un book, retour Google : proposition du compte visiteur. */
+.creer_book_visiteur {
+    margin: 0 0 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555;
+}
+.creer_book_visiteur_bouton.ui.button {
+    display: inline-flex;
+    align-items: center;
+    height: 33px;
+    margin: 0;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 0;
+}
+.creer_book .creer_book_ou.creer_book_ou_visiteur {
+    margin: 64px 0 48px;
+}

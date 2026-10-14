@@ -164,3 +164,13 @@ it('laisse la connexion par mot de passe a un compte cree par Google', function 
     $this->post('/ubaction__user_open', ['login' => 'viagoogle', 'pass' => 'choisi-plus-tard'])
         ->assertRedirect(route('espace'));
 });
+
+it('connecte un visiteur deja inscrit par Google au lieu de proposer un book', function () {
+    $visiteur = \App\Models\Visitor::factory()->create(['google_id' => 'g-vis']);
+    retourGoogle('g-vis', $visiteur->email);
+
+    $this->get('/auth/google/callback')->assertRedirect(lien('memobook'));
+
+    expect(auth('visitor')->id())->toBe($visiteur->id)
+        ->and(auth('web')->check())->toBeFalse();
+});

@@ -41,6 +41,7 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            'remember' => 60 * 24 * 90, // minutes : 90 jours
         ],
 
         // Back-office : comptes d'administration, table a part.
@@ -53,6 +54,7 @@ return [
         'visitor' => [
             'driver' => 'session',
             'provider' => 'visitors',
+            'remember' => 60 * 24 * 365, // minutes : 1 an
         ],
     ],
 

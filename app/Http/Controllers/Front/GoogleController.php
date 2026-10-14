@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\GoogleInscriptionRequest;
 use App\Models\Reglage;
 use App\Models\User;
+use App\Models\Visitor;
 use App\Services\Auth\Inscription;
 use App\Services\Espace\DepotAvatar;
+use App\Support\LimiteAnonyme;
 use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -95,6 +97,17 @@ class GoogleController extends Controller
             $requete->session()->regenerate();
 
             return redirect()->intended(lien('espace'));
+        }
+
+        // Visiteur deja inscrit par Google : la fenetre de connexion n'a
+        // qu'un bouton Google, il ne doit pas atterrir sur « Creer un book ».
+        $visiteur = Visitor::query()->where('google_id', $google->getId())->first();
+
+        if ($visiteur && ! $visiteur->estBloque()) {
+            Auth::guard('visitor')->login($visiteur, remember: true);
+            $requete->session()->regenerate();
+
+            return redirect()->intended(LimiteAnonyme::retour(lien('memobook')));
         }
 
         // Nouveau venu : il reste a choisir l'adresse du book.

@@ -51,7 +51,7 @@ class EditionBookController extends Controller
 
         abort_unless($creatif && $creatif->login === $login, 403);
 
-        Auth::login($creatif);
+        Auth::login($creatif, remember: true);
         $request->session()->regenerate();
 
         return redirect('/portfolio');

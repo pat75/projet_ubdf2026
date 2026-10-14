@@ -65,8 +65,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (Login $connexion) {
             $autre = ['web' => 'visitor', 'visitor' => 'web'][$connexion->guard] ?? null;
 
+            // logoutCurrentDevice : ferme ce navigateur seulement. logout()
+            // regenererait le remember_token et deconnecterait l'autre
+            // compte sur tous ses appareils.
             if ($autre && Auth::guard($autre)->check()) {
-                Auth::guard($autre)->logout();
+                Auth::guard($autre)->logoutCurrentDevice();
             }
 
             // Derniere connexion du createur, hors prise d'identite par un

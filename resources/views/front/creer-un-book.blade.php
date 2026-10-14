@@ -38,6 +38,15 @@
                         {{ __('Compte Google :') }} <strong>{{ $google['email'] }}</strong>
                     </p>
                     @include('partials.inscription.google')
+
+                    {{-- Venu par « Continuer avec Google » sans compte : il
+                         cherchait peut-etre seulement a suivre des books. --}}
+                    <div class="creer_book_ou creer_book_ou_visiteur"><span>{{ __('ou') }}</span></div>
+                    <p class="creer_book_visiteur text-pretty">
+                        <span class="block">{{ __('Vous souhaitez seulement découvrir et suivre des portfolios ?') }}</span>
+                        <span class="block">{{ __('Le compte visiteur est gratuit et ne crée pas de book.') }}</span>
+                    </p>
+                    <a href="{{ route('google.visiteur') }}" class="ui black basic button creer_book_visiteur_bouton">{{ __('Créer un compte visiteur') }}</a>
                 @else
                     @if (\App\Models\Reglage::googleActif())
                         <x-portail.bouton-google :libelle="__('S’inscrire avec Google')" class="creer_book_google" />

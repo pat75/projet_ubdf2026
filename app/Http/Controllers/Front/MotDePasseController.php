@@ -40,7 +40,7 @@ class MotDePasseController extends Controller
 
         // Le lien de mail vaut preuve de possession de l'adresse : la
         // connexion suit, sans redemander le mot de passe qu'on vient de poser.
-        Auth::login($compte);
+        Auth::login($compte, remember: true);
         $requete->session()->regenerate();
 
         return redirect()->to(lien('espace'))
