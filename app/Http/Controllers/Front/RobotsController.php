@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Support\Robots;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
  * robots.txt (contenu : App\Support\Robots).
  *
- * En pratique le serveur web sert le fichier public/robots.txt, ecrit par
- * la commande planifiee `ubdf:robots` ; cette route reste pour un serveur
- * qui lui passerait la main.
+ * Rendu par Laravel pour suivre la marque de l'hote : le serveur web ne
+ * doit plus servir de fichier statique a cette adresse.
  *
  * Le legacy avait trois fichiers statiques (robots.txt, robots_df.txt,
  * robots_redirect.txt) choisis par une regle de reecriture. Celui-ci
@@ -20,8 +20,8 @@ use Illuminate\Http\Response;
  */
 class RobotsController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(Request $requete): Response
     {
-        return response(Robots::contenu(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        return response(Robots::contenu(Robots::marqueDeHote($requete->getHost())), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }
 }

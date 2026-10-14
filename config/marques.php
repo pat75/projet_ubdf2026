@@ -100,7 +100,7 @@ return [
             | production : ce ne sont pas celles d'Ultra-book traduites.
             | Elles passent par __() pour suivre la langue de l'URL.
             */
-            'titre' => 'Dustfolio, create an online portfolio, book and online portfolio',
+            'titre' => 'Dustfolio, create your online portfolio',
             'description' => 'Dustfolio allows you to create your portfolio, add your images, captions, web links, presentation texts, and above all customize it.',
 
             'hotes' => array_filter([

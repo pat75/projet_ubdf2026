@@ -52,52 +52,116 @@ class SitemapController extends Controller
         return $this->xml(view('sitemap.index', ['fichiers' => $fichiers]));
     }
 
-    /** Pages fixes : accueil, metiers, landings SEO, documentation, actus. */
+    /**
+     * Pages fixes : accueil, metiers, landings SEO, documentation, pages mot-cle.
+     *
+     * Une marque multilingue (Dustfolio) les liste dans chacune de ses
+     * langues : la route n'a pas de segment de langue, et sans cette boucle
+     * seules les pages de la langue par defaut etaient annoncees. Chaque
+     * page porte ses versions (xhtml:link hreflang), comme dans le <head>.
+     */
     public function pages(Request $requete): Response
     {
         $marque = $this->marque($requete);
 
-        $xml = Cache::remember('sitemap:pages:'.$marque->code.':'.app()->getLocale(), now()->addHours(self::CACHE_HEURES),
+        $xml = Cache::remember('sitemap:pages:'.$marque->code, now()->addHours(self::CACHE_HEURES),
             function () use ($marque) {
-                // L'accueil a pour adresse canonique la racine, pas /accueil.
-                $accueil = rtrim($marque->canonique, '/').($marque->multilingue() ? '/'.app()->getLocale() : '/');
-                $urls = [['loc' => $accueil, 'priorite' => '1.00']];
+                $langueServie = app()->getLocale();
+                $parLangue = [];
 
-                foreach (Category::where('is_active', true)->orderBy('position')->pluck('slug') as $slug) {
-                    $urls[] = ['loc' => $this->url($marque, '/'.Metier::slugUrl($slug)), 'priorite' => '0.80'];
+                try {
+                    foreach ($marque->langues as $langue) {
+                        app()->setLocale($langue);
+                        $parLangue[$langue] = $this->pagesDeLaLangue($marque);
+                    }
+                } finally {
+                    app()->setLocale($langueServie);
                 }
 
-                // Landings : francaises, absentes de la version anglaise.
-                foreach (app()->getLocale() === 'fr' ? array_keys(config('seo_routes.landings')) : [] as $chemin) {
-                    $urls[] = ['loc' => $this->url($marque, '/'.$chemin), 'priorite' => '0.60'];
-                }
-
-                // Pages dans la langue servie seulement : les pages anglaises
-                // n'ont rien a faire dans le sitemap francais d'Ultra-book. Publiees
-                // seulement : une page non publiee repond 404.
-                foreach (CmsPage::publiees()->where('locale', app()->getLocale())->pluck('slug')->unique() as $slug) {
-                    $urls[] = ['loc' => $this->url($marque, '/doc/'.$slug), 'priorite' => '0.50'];
-                }
-
-                // Pages mot-cle de l'analyse IA, seulement celles assez riches pour etre indexees.
-                foreach (\App\Models\Media::visiblesSurPortail($marque->code)
-                    ->join('media_tag', 'media_tag.media_id', '=', 'media.id')
-                    ->join('tags', 'tags.id', '=', 'media_tag.tag_id')
-                    ->where('tags.lang', \App\Models\Tag::langueCourante())
-                    ->groupBy('tags.slug')
-                    ->havingRaw('COUNT(DISTINCT media.id) >= ? AND COUNT(DISTINCT media.user_id) >= ?',
-                        [\App\Models\Tag::INDEXABLE_IMAGES, \App\Models\Tag::INDEXABLE_CREATIFS])
-                    ->pluck('tags.slug') as $slug) {
-                    $urls[] = ['loc' => $this->url($marque, '/images/'.$slug), 'priorite' => '0.50'];
-                }
-
-                // Plus d'actualites : 2008-2013 pour l'essentiel (« Mozy », « IE »),
-                // aucune n'est liee depuis le site. Elles restent en ligne.
-
-                return view('sitemap.urls', ['urls' => $urls])->render();
+                return view('sitemap.urls', ['urls' => $this->avecVersions($parLangue)])->render();
             });
 
         return $this->xml($xml);
+    }
+
+    /**
+     * Pages de la langue courante, indexees par une cle commune a toutes les
+     * langues (une page et sa traduction partagent la meme cle).
+     *
+     * @return array<string, array{loc: string, priorite: string}>
+     */
+    private function pagesDeLaLangue(Marque $marque): array
+    {
+        $langue = app()->getLocale();
+
+        // L'accueil a pour adresse canonique la racine, pas /accueil.
+        $urls = ['accueil' => ['loc' => rtrim($marque->canonique, '/').($marque->multilingue() ? '/'.$langue : '/'), 'priorite' => '1.00']];
+
+        foreach (Category::where('is_active', true)->orderBy('position')->pluck('slug') as $slug) {
+            $urls['metier:'.$slug] = ['loc' => $this->url($marque, '/'.Metier::slugUrl($slug)), 'priorite' => '0.80'];
+        }
+
+        // Landings : francaises, absentes de la version anglaise.
+        foreach ($langue === 'fr' ? array_keys(config('seo_routes.landings')) : [] as $chemin) {
+            $urls['landing:'.$chemin] = ['loc' => $this->url($marque, '/'.$chemin), 'priorite' => '0.60'];
+        }
+
+        // Pages dans la langue servie seulement, publiees seulement : une page
+        // non publiee repond 404. Le groupe de traduction relie les versions.
+        // Pages en noindex (copies d'Ultra-book, pages trop minces) : absentes.
+        foreach (CmsPage::publiees()->pourMarque($marque->code)->where('locale', $langue)
+            ->get(['slug', 'locale', 'marque', 'translation_group', 'body'])
+            ->reject(fn (CmsPage $page) => $page->estUneCopiePour($marque) || $page->estMince())->unique('slug') as $page) {
+            $cle = 'cms:'.($page->translation_group ?: $langue.':'.$page->slug);
+            $urls[$cle] = ['loc' => $this->url($marque, '/doc/'.$page->slug), 'priorite' => '0.50'];
+        }
+
+        // Pages mot-cle de l'analyse IA, seulement celles assez riches pour etre indexees.
+        foreach (Media::visiblesSurPortail($marque->code)
+            ->join('media_tag', 'media_tag.media_id', '=', 'media.id')
+            ->join('tags', 'tags.id', '=', 'media_tag.tag_id')
+            ->where('tags.lang', \App\Models\Tag::langueCourante())
+            ->groupBy('tags.slug')
+            ->havingRaw('COUNT(DISTINCT media.id) >= ? AND COUNT(DISTINCT media.user_id) >= ?',
+                [\App\Models\Tag::INDEXABLE_IMAGES, \App\Models\Tag::INDEXABLE_CREATIFS])
+            ->pluck('tags.slug') as $slug) {
+            $urls['mot:'.$langue.':'.$slug] = ['loc' => $this->url($marque, '/images/'.$slug), 'priorite' => '0.50'];
+        }
+
+        // Plus d'actualites : 2008-2013 pour l'essentiel (« Mozy », « IE »),
+        // aucune n'est liee depuis le site. Elles restent en ligne.
+
+        return $urls;
+    }
+
+    /**
+     * Aplatit les pages de chaque langue ; une page presente dans plusieurs
+     * langues recoit la liste de ses versions, x-default compris.
+     *
+     * @param  array<string, array<string, array{loc: string, priorite: string}>>  $parLangue
+     */
+    private function avecVersions(array $parLangue): array
+    {
+        $urls = [];
+
+        foreach ($parLangue as $pages) {
+            foreach ($pages as $cle => $page) {
+                $versions = [];
+                foreach ($parLangue as $langue => $autres) {
+                    if (isset($autres[$cle])) {
+                        $versions[$langue] = $autres[$cle]['loc'];
+                    }
+                }
+
+                if (count($versions) > 1) {
+                    $page['versions'] = $versions + ['x-default' => reset($versions)];
+                }
+
+                $urls[] = $page;
+            }
+        }
+
+        return $urls;
     }
 
     /** Un paquet de books diffuses. */

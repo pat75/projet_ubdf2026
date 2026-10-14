@@ -22,17 +22,20 @@ class ListSupportTickets extends ListRecords
         ];
     }
 
-    /** Discussions en cours (par defaut) ou cloturees, avec leur nombre. */
+    /** Discussions en cours (par defaut), cloturees ou a la corbeille, avec leur nombre. */
     public function getTabs(): array
     {
-        $compte = fn (bool $closes) => SupportTicket::where('is_spam', false)
+        $compte = fn (bool $closes) => SupportTicket::where('is_spam', false)->whereNull('corbeille_at')
             ->where('statut', $closes ? '=' : '!=', 'clos')->count();
 
         return [
             'en_cours' => Tab::make('En cours')->badge($compte(false))
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('statut', '!=', 'clos')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('corbeille_at')->where('statut', '!=', 'clos')),
             'closes' => Tab::make('Clôturées')->badge($compte(true))
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('statut', 'clos')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('corbeille_at')->where('statut', 'clos')),
+            'corbeille' => Tab::make('Corbeille')->icon('heroicon-o-trash')
+                ->badge(SupportTicket::where('is_spam', false)->whereNotNull('corbeille_at')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereNotNull('corbeille_at')),
         ];
     }
 }

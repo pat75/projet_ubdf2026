@@ -40,7 +40,7 @@ class SupportTicketResource extends Resource
     /** Demandes en attente de reponse, hors spam. */
     public static function getNavigationBadge(): ?string
     {
-        $n = SupportTicket::where('statut', 'nouveau')->where('is_spam', false)->count();
+        $n = SupportTicket::where('statut', 'nouveau')->where('is_spam', false)->whereNull('corbeille_at')->count();
 
         return $n > 0 ? (string) $n : null;
     }
@@ -113,6 +113,14 @@ class SupportTicketResource extends Resource
                 static::selection()->iconButton(),
                 Action::make('ouvrir')->label('Voir et répondre')->icon('heroicon-o-chat-bubble-left-right')->iconButton()
                     ->url(fn (SupportTicket $record) => static::getUrl('view', ['record' => $record])),
+                Action::make('corbeille')->label('Mettre à la corbeille')->tooltip('Mettre à la corbeille')
+                    ->icon('heroicon-o-trash')->color('danger')->iconButton()
+                    ->visible(fn (SupportTicket $record) => ! $record->corbeille_at)
+                    ->action(fn (SupportTicket $record) => $record->update(['corbeille_at' => now()])),
+                Action::make('restaurer')->label('Restaurer')->tooltip('Restaurer')
+                    ->icon('heroicon-o-arrow-uturn-left')->color('gray')->iconButton()
+                    ->visible(fn (SupportTicket $record) => (bool) $record->corbeille_at)
+                    ->action(fn (SupportTicket $record) => $record->update(['corbeille_at' => null])),
             ], position: RecordActionsPosition::BeforeColumns);
     }
 

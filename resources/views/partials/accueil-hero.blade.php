@@ -60,6 +60,9 @@
                 left: calc(50% + 60px);
                 right: 0;
                 width: auto;
+                /* Descendu de 60px ; le debord est coupe par l'overflow
+                   hidden du conteneur bleu. */
+                transform: translateY(60px);
             }
             .accroche_header {
                 /* Le degrade est deja porte par .bloc_slide_video : le

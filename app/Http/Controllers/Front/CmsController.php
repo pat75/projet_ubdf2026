@@ -53,7 +53,7 @@ class CmsController extends Controller
         // le moteur indexe une page anglaise declaree lang="fr".
         if ($page->locale !== $this->locale()) {
             $traduction = $page->translation_group
-                ? CmsPage::publiees()->where('translation_group', $page->translation_group)
+                ? CmsPage::publiees()->pourMarque($this->codeMarque())->where('translation_group', $page->translation_group)
                     ->where('locale', $this->locale())->value('slug')
                 : null;
 
@@ -151,6 +151,7 @@ class CmsController extends Controller
     private function trouver(string $slug): CmsPage
     {
         $page = CmsPage::publiees()
+            ->pourMarque($this->codeMarque())
             ->where('slug', $slug)
             ->orderByRaw('locale = ? DESC', [$this->locale()])
             ->first();
@@ -173,12 +174,18 @@ class CmsController extends Controller
 
         // La page racine (/doc/doc) ouvre le sommaire de ses propres filles.
         return CmsPage::publiees()
+            ->pourMarque($this->codeMarque())
             ->where('locale', $page->locale)
             ->where(fn ($q) => $q->where('parent_slug', $parent)->orWhere('slug', $parent))
             ->orderByRaw('slug = ? DESC', [$parent])
             ->orderBy('position')
             ->orderBy('title')
             ->get();
+    }
+
+    private function codeMarque(): string
+    {
+        return (request()->attributes->get('marque') ?? Marque::defaut())->code;
     }
 
     /**

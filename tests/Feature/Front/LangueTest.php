@@ -121,7 +121,7 @@ it('donne a Dustfolio ses propres accroches, pas celles d Ultra-book traduites',
     $this->get(df('/en'))
         ->assertOk()
         ->assertSee('Find the best creative portfolios.', false)
-        ->assertSee('Dustfolio, create an online portfolio', false);
+        ->assertSee('Dustfolio, create your online portfolio', false);
 
     $this->get(ub('/'))
         ->assertOk()

@@ -55,12 +55,17 @@ Même correctif appliqué au bloc `~/.config/valet/Nginx/ubdf-dust-2026.ultra-bo
 
 ## robots.txt
 
-Le bloc serveur de Valet (comme celui de Forge) contient
-`location = /robots.txt { access_log off; log_not_found off; }` : nginx sert
-le fichier statique et ne passe jamais la main à Laravel (404 s'il manque).
+robots.txt est propre à chaque marque : chaque domaine n'annonce que son
+sitemap (`App\Support\Robots`, `RobotsController`). Il est donc rendu par
+Laravel, et `public/robots.txt` ne doit **pas** exister.
 
-Plutôt que de modifier nginx, `public/robots.txt` est écrit par la commande
-`ubdf:robots` (contenu : `App\Support\Robots`), planifiée chaque nuit dans
-`routes/console.php`. **À lancer aussi après chaque déploiement.** Le
-fichier sert les deux marques : il annonce les sitemaps d'Ultra-book et de
-Dustfolio.
+Le bloc serveur de Valet (comme celui de Forge) contient
+`location = /robots.txt { … }`, qui sert le fichier statique et renvoie 404
+s'il manque. Il faut lui ajouter le passage à Laravel, dans chaque bloc
+(Valet ubdf2026, Valet Dustfolio, **Forge en production**) :
+
+```nginx
+location = /robots.txt  { access_log off; log_not_found off; try_files $uri /index.php?$query_string; }
+```
+
+Correctif déjà reporté dans `_doc/valet/*.conf`.

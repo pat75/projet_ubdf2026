@@ -181,6 +181,16 @@ final class Marque
     }
 
     /**
+     * Une page editoriale dans cette langue n'est-elle qu'une copie de celle
+     * d'Ultra-book (nom substitue par adapter()) ? Copie servie, mais pas
+     * indexee : deux domaines au meme texte se font concurrence.
+     */
+    public function reprendLeContenuDe(string $langue): bool
+    {
+        return ! $this->estDefaut() && self::defaut()->sert($langue);
+    }
+
+    /**
      * Chemin d'une ressource propre a la marque.
      *
      * Le legacy repartissait ces fichiers par dossier — `img_front` et

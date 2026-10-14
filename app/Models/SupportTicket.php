@@ -16,13 +16,13 @@ class SupportTicket extends Model
     public const STATUTS = ['nouveau' => 'Nouveau', 'repondu' => 'Répondu', 'clos' => 'Clos'];
 
     protected $fillable = [
-        'user_id', 'brand', 'email', 'compte_requis', 'statut', 'note', 'clos_at', 'page_origine', 'navigateur', 'ip',
+        'user_id', 'brand', 'email', 'compte_requis', 'statut', 'note', 'clos_at', 'corbeille_at', 'page_origine', 'navigateur', 'ip',
         'is_spam', 'lu_admin_at', 'lu_client_at', 'last_message_at',
     ];
 
     protected function casts(): array
     {
-        return ['is_spam' => 'boolean', 'compte_requis' => 'boolean', 'lu_admin_at' => 'datetime', 'lu_client_at' => 'datetime', 'clos_at' => 'datetime', 'last_message_at' => 'datetime'];
+        return ['is_spam' => 'boolean', 'compte_requis' => 'boolean', 'lu_admin_at' => 'datetime', 'lu_client_at' => 'datetime', 'clos_at' => 'datetime', 'corbeille_at' => 'datetime', 'last_message_at' => 'datetime'];
     }
 
     public function user(): BelongsTo

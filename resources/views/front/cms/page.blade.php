@@ -63,7 +63,8 @@
 
 {{-- Page quasi vide (fiches ecoles reprises du WordPress) : servie, mais
      pas indexee — du contenu mince affaiblit toute la documentation. --}}
-@if (str_word_count(strip_tags($page->body ?? '')) < 80)
+{{-- Copie d'une page d'Ultra-book servie sur Dustfolio : meme regle. --}}
+@if ($page->estMince() || $page->estUneCopiePour($marque))
     @section('robots', 'noindex, follow')
 @endif
 

@@ -33,9 +33,9 @@ it('liste les pages du portail', function () {
 });
 
 it('ne liste que les pages statiques de la langue servie, sans doublon', function () {
-    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'fr', 'title' => 'Doc', 'published_at' => now()]);
-    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'en', 'title' => 'Doc', 'published_at' => now()]);
-    App\Models\CmsPage::query()->create(['slug' => 'legal-notice', 'locale' => 'en', 'title' => 'Legal notice', 'published_at' => now()]);
+    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'fr', 'title' => 'Doc', 'published_at' => now(), 'body' => str_repeat('mot ', 100)]);
+    App\Models\CmsPage::query()->create(['slug' => 'doc', 'locale' => 'en', 'title' => 'Doc', 'published_at' => now(), 'body' => str_repeat('mot ', 100)]);
+    App\Models\CmsPage::query()->create(['slug' => 'legal-notice', 'locale' => 'en', 'title' => 'Legal notice', 'published_at' => now(), 'body' => str_repeat('mot ', 100)]);
 
     $xml = $this->get('/sitemap-pages.xml')->assertOk()->getContent();
 
@@ -68,21 +68,25 @@ it('sert un robots.txt qui ferme l espace et le back-office', function () {
         ->assertSee('Sitemap: ');
 });
 
-it('ecrit public/robots.txt avec les sitemaps des deux marques', function () {
-    $chemin = public_path('robots.txt');
-    $avant = file_exists($chemin) ? file_get_contents($chemin) : null;
+it('n annonce dans robots.txt que le sitemap de la marque de l hote', function () {
+    $ub = rtrim(config('marques.marques.ub.canonique'), '/').'/sitemap.xml';
+    $df = rtrim(config('marques.marques.df.canonique'), '/').'/sitemap.xml';
+    $hoteDf = 'http://'.config('marques.marques.df.hotes')[0];
+    $bookDf = 'http://ariane.'.config('marques.marques.df.domaine_books');
 
-    try {
-        @unlink($chemin);
-        $this->artisan('ubdf:robots')->assertSuccessful();
+    expect($this->get('/robots.txt')->getContent())->toContain($ub)->not->toContain($df)
+        ->and($this->get($hoteDf.'/robots.txt')->getContent())->toContain($df)->not->toContain($ub)
+        ->and(App\Support\Robots::contenu(App\Support\Robots::marqueDeHote(parse_url($bookDf, PHP_URL_HOST))))->toContain($df);
+});
 
-        expect(file_get_contents($chemin))
-            ->toContain('Disallow: /espace')
-            ->toContain('Sitemap: '.rtrim(config('marques.marques.ub.canonique'), '/').'/sitemap.xml')
-            ->toContain('Sitemap: '.rtrim(config('marques.marques.df.canonique'), '/').'/sitemap.xml');
-    } finally {
-        $avant === null ? @unlink($chemin) : file_put_contents($chemin, $avant);
-    }
+it('liste les pages de chaque langue de Dustfolio avec leurs versions', function () {
+    $xml = $this->get('http://'.config('marques.marques.df.hotes')[0].'/sitemap-pages.xml')->assertOk()->getContent();
+    $racine = rtrim(config('marques.marques.df.canonique'), '/');
+
+    expect($xml)->toContain('<loc>'.$racine.'/en</loc>')
+        ->toContain('<loc>'.$racine.'/fr</loc>')
+        ->toContain('hreflang="fr" href="'.$racine.'/fr"')
+        ->toContain('hreflang="x-default" href="'.$racine.'/en"');
 });
 
 it('liste les pages image indexables avec leur visuel', function () {
@@ -156,4 +160,25 @@ it('ne met plus les vieilles actualites dans le sitemap', function () {
     App\Models\CmsPost::create(['slug' => 'mozy-backup', 'locale' => 'fr', 'title' => 'Mozy', 'published_at' => now()->subYears(15)]);
 
     $this->get('/sitemap-pages.xml')->assertOk()->assertDontSee('/actus/mozy-backup');
+});
+
+it('n indexe pas sur Dustfolio les copies francaises des pages d Ultra-book', function () {
+    App\Models\CmsPage::query()->create(['slug' => 'qui', 'locale' => 'fr', 'title' => 'Qui', 'published_at' => now(),
+        'body' => str_repeat('Ultra-book est une plate-forme de portfolios. ', 20)]);
+    $df = 'https://'.config('marques.marques.df.hotes')[0];
+
+    $this->get($df.'/fr/doc/qui')->assertOk()->assertSee('noindex, follow', false);
+    $this->get('https://'.config('marques.marques.ub.hotes')[0].'/doc/qui')->assertOk()->assertDontSee('noindex, follow', false);
+    expect($this->get($df.'/sitemap-pages.xml')->getContent())->not->toContain('/doc/qui');
+});
+
+it('indexe sur Dustfolio sa propre version francaise d une page', function () {
+    $texte = str_repeat('Un portfolio en ligne pour les créatifs. ', 20);
+    App\Models\CmsPage::query()->create(['slug' => 'qui', 'locale' => 'fr', 'title' => 'Qui', 'published_at' => now(), 'body' => 'Ultra-book '.$texte]);
+    App\Models\CmsPage::query()->create(['slug' => 'qui', 'locale' => 'fr', 'marque' => 'df', 'title' => 'Qui', 'published_at' => now(), 'body' => 'Propre à Dustfolio. '.$texte]);
+    $df = 'https://'.config('marques.marques.df.hotes')[0];
+
+    $this->get($df.'/fr/doc/qui')->assertOk()->assertSee('Propre à Dustfolio', false)->assertDontSee('noindex', false);
+    $this->get('https://'.config('marques.marques.ub.hotes')[0].'/doc/qui')->assertOk()->assertDontSee('Propre à Dustfolio', false);
+    expect($this->get($df.'/sitemap-pages.xml')->getContent())->toContain('/fr/doc/qui');
 });

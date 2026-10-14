@@ -94,6 +94,6 @@ final class VersionsLangue
             return null;
         }
 
-        return CmsPage::publiees()->where('translation_group', $groupe)->where('locale', $vers)->value('slug');
+        return CmsPage::publiees()->pourMarque((request()->attributes->get('marque') ?? Marque::defaut())->code)->where('translation_group', $groupe)->where('locale', $vers)->value('slug');
     }
 }
