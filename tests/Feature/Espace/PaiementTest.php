@@ -22,6 +22,14 @@ it('propose le 12 mois a un nouveau createur, le reabonnement a un ancien', func
     $this->actingAs($this->creatif)->get(route('espace.formule'))->assertSee('29,80');
 });
 
+it('renvoie l adresse Payplug en JSON pour la fenetre flottante', function () {
+    $this->payplug->shouldReceive('creerPaiement')->once()
+        ->andReturn(['id' => 'pay_1', 'url' => 'https://secure.payplug.com/pay/x']);
+
+    $this->actingAs($this->creatif)->postJson(route('espace.formule.payer', 2))
+        ->assertOk()->assertExactJson(['url' => 'https://secure.payplug.com/pay/x']);
+});
+
 it('envoie vers Payplug avec le bon montant', function () {
     $this->payplug->shouldReceive('creerPaiement')->once()
         ->withArgs(fn ($d) => $d['amount'] === 3680 && $d['metadata']['customer_id'] === $this->creatif->id && $d['metadata']['product_option'] === 2)
@@ -103,4 +111,30 @@ it('numerote a la suite des factures reprises du legacy, pas selon l id', functi
     $this->postJson(route('payplug.notification'), ['id' => 'pay_legacy'])->assertOk();
 
     expect($this->creatif->invoices()->where('gateway', 'payplug')->value('number'))->toBe('ub-10923');
+});
+
+it('active la formule au retour de Payplug, sans attendre la notification', function () {
+    $this->payplug->shouldReceive('creerPaiement')->once()->andReturn(['id' => 'pay_r', 'url' => 'https://secure.payplug.com/pay/x']);
+    $this->payplug->shouldReceive('lirePaiement')->with('pay_r')->once()->andReturn(notification($this->creatif->id, 2, 3680, 'pay_r'));
+
+    $this->actingAs($this->creatif)->post(route('espace.formule.payer', 2));
+    $this->get(route('espace.formule.retour'))->assertRedirect(route('espace.formule'))
+        ->assertSessionHas('paiement_ok', true)
+        ->assertSessionHas('paiement', fn ($m) => str_contains($m, 'activée'));
+
+    expect($this->creatif->fresh()->invoices()->count())->toBe(1)->and($this->creatif->fresh()->plan)->not->toBe(0);
+
+    // Retour rejoue : le paiement est deja applique, rien de plus.
+    $this->get(route('espace.formule.retour'));
+    expect($this->creatif->fresh()->invoices()->count())->toBe(1);
+});
+
+it('n active rien au retour si le paiement n est pas confirme', function () {
+    $this->payplug->shouldReceive('creerPaiement')->andReturn(['id' => 'pay_n', 'url' => 'https://x']);
+    $this->payplug->shouldReceive('lirePaiement')->andReturn(notification($this->creatif->id, 2, 3680, 'pay_n', false));
+
+    $this->actingAs($this->creatif)->post(route('espace.formule.payer', 2));
+    $this->get(route('espace.formule.retour'))->assertSessionHas('paiement', fn ($m) => str_contains($m, 'en cours'));
+
+    expect($this->creatif->fresh()->invoices()->count())->toBe(0);
 });

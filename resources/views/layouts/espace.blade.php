@@ -51,6 +51,60 @@
 <main class="mx-auto flex max-w-[1140px] flex-wrap items-start gap-8 px-5 pb-18 pt-11">
 
     <div class="flex min-w-0 flex-[1_1_560px] flex-col gap-5">
+        @if (session('paiement'))
+            <div class="flex flex-col items-center text-center">
+                @if (session('paiement_ok'))
+                    <img src="{{ asset('img_front/thank-you.png') }}" alt="{{ __('Merci') }}" width="200" height="200" id="visuel-merci" class="w-[200px] mix-blend-multiply">
+                    {{-- Feu d'artifice de pixels couleur tonique, parti du visuel. --}}
+                    <script>
+                    (() => {
+                        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                        const lancer = () => {
+                            const img = document.getElementById('visuel-merci');
+                            const r = img.getBoundingClientRect();
+                            const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+                            const c = Object.assign(document.createElement('canvas'), { width: innerWidth, height: innerHeight });
+                            c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:60';
+                            document.body.appendChild(c);
+                            const ctx = c.getContext('2d');
+                            const couleur = getComputedStyle(document.documentElement).getPropertyValue('--color-ub-accent').trim() || '#16a9b5';
+                            const parts = [];
+                            // Trois salves successives depuis le centre du visuel.
+                            [0, 350, 700].forEach((delai) => setTimeout(() => {
+                                for (let i = 0; i < 90; i++) {
+                                    const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 9;
+                                    parts.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vie: 1, t: 3 + Math.random() * 3 });
+                                }
+                            }, delai));
+                            const debut = performance.now();
+                            const image = (now) => {
+                                ctx.clearRect(0, 0, c.width, c.height);
+                                ctx.fillStyle = couleur;
+                                for (const p of parts) {
+                                    p.vx *= 0.985; p.vy = p.vy * 0.985 + 0.12;
+                                    p.x += p.vx; p.y += p.vy; p.vie -= 0.009;
+                                    if (p.vie <= 0) continue;
+                                    ctx.globalAlpha = p.vie;
+                                    ctx.fillRect(Math.round(p.x), Math.round(p.y), p.t, p.t);
+                                }
+                                if (now - debut < 3200) requestAnimationFrame(image); else c.remove();
+                            };
+                            requestAnimationFrame(image);
+                        };
+                        document.readyState === 'complete' ? lancer() : addEventListener('load', lancer);
+                    })();
+                    </script>
+                @endif
+                <p class="my-[30px] text-[22px] font-semibold leading-snug text-ub-succes">✓ {{ session('paiement') }}
+                    @if (session('paiement_detail'))
+                        <span class="mt-1 block text-[16px] font-normal text-ub-texte2">{{ session('paiement_detail') }}</span>
+                    @endif
+                </p>
+                @if (session('paiement_lien'))
+                    <a href="{{ session('paiement_lien')[0] }}" class="bouton-espace bouton-espace-grand -mt-2 mb-[30px] px-6">{{ session('paiement_lien')[1] }}</a>
+                @endif
+            </div>
+        @endif
         @if (session('statut'))
             <div class="self-start rounded-ub bg-[#e7f5ec] px-3.5 py-2 text-[14px] text-[#1f7a4a]">✓ {{ session('statut') }}</div>
         @endif

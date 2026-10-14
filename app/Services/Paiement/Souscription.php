@@ -95,7 +95,41 @@ class Souscription
             'notification_url' => route('payplug.notification'),
         ]);
 
+        // Le retour relit ce paiement : la notification n'atteint pas un poste local.
+        session(['payplug.formule' => $paiement['id']]);
+
         return $paiement['url'];
+    }
+
+    /**
+     * Retour du createur apres Payplug : relit le paiement chez Payplug et
+     * applique la formule sans attendre la notification (jamais recue en
+     * local, parfois en retard en production). Idempotent, comme la
+     * notification qui peut arriver ensuite.
+     */
+    public function confirmer(User $creatif): ?Invoice
+    {
+        $id = session('payplug.formule');
+
+        if (! $id) {
+            return null;
+        }
+
+        try {
+            $p = $this->payplug->lirePaiement($id);
+        } catch (\Payplug\Exception\PayplugException $e) {
+            report($e);
+
+            return null;
+        }
+
+        if (! $p['paye'] || (int) ($p['metadata']['customer_id'] ?? 0) !== $creatif->id) {
+            return null;
+        }
+
+        session()->forget('payplug.formule');
+
+        return $this->appliquer($p);
     }
 
     /**
@@ -107,6 +141,19 @@ class Souscription
         $p = $this->payplug->lireNotification($corps);
 
         if (! $p || ! $p['paye']) {
+            return null;
+        }
+
+        return $this->appliquer($p);
+    }
+
+    /** @param  array{id: string, paye: bool, montant: int, metadata: array, brut: array}  $p  Paiement paye, relu chez Payplug. */
+    private function appliquer(array $p): ?Invoice
+    {
+        // Paiement d'un nom de domaine : meme adresse de notification, autre traitement.
+        if ((int) ($p['metadata']['product_id'] ?? 0) === PaiementDomaine::PRODUIT) {
+            app(PaiementDomaine::class)->traiter($p);
+
             return null;
         }
 
@@ -170,7 +217,7 @@ class Souscription
      * deja pris (ub-9231). Le FOR UPDATE serialise deux paiements
      * simultanes de la meme marque, jusqu'a la fin de la transaction.
      */
-    private function prochainNumero(string $marque): string
+    public function prochainNumero(string $marque): string
     {
         $dernier = (int) Invoice::where('number', 'like', $marque.'-%')
             ->lockForUpdate()

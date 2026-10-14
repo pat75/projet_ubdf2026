@@ -29,7 +29,7 @@ l'instant.**
 | 2 — Lecture | portfolios & visuels, pages (bio), messages, mémoBook, statistiques, compte | **fait** |
 | 3 — Écriture | upload d'image (`DepotVisuel` + quotas), ordre, déplacement, réponse aux messages, champs du compte, pages, mémoBook | **fait** (48 tests API au total) |
 | 4 — Appareils | page « Appareils connectés » (Mon compte), révocation, connexion desktop par code | **fait** (5 tests) |
-| 5 — Domaines | `domaines/autorise` pour Caddy, passerelle, service OVH | **fait** sauf la page « Mon nom de domaine » (liée à la facturation) |
+| 5 — Domaines | `domaines/autorise` pour Caddy, passerelle, service OVH, achat par le créatif | **fait** ; achat en développement seulement (`_doc_VPS/03_achat_domaine.md`) |
 | 6 — Durcissement | audit sécurité, documentation OpenAPI (Scramble), CORS fermé | **fait** (Scramble écarté, voir journal) |
 
 ## Journal

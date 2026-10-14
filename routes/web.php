@@ -408,6 +408,8 @@ $portail = function (?string $langue = null) {
         })->name('test-crea');
         Route::view('/diffusion', 'espace.diffusion')->name('diffusion');
         Route::view('/compte', 'espace.compte')->name('compte');
+        // Nom de domaine achete (developpement seulement : Domaine::achatOuvert, verifie par le composant).
+        Route::view('/domaine', 'espace.domaine')->name('domaine');
         Route::view('/messages', 'espace.messages')->name('messages');
         Route::get('/statistiques', StatistiquesController::class)->name('statistiques');
         Route::get('/formule', [FormuleController::class, 'index'])->name('formule');

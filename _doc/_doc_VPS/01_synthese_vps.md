@@ -1,3 +1,16 @@
+
+
+
+Il faudrait créer ce VPS dans un Docker de façon à pouvoir l'installer rapidement sur ubuntu.
+
+
+
+
+
+
+
+
+
 # VPS « domaines personnalisés » — synthèse
 
 Objectif : un créatif achète un nom de domaine (ex. `jeanne-dupont.fr`)
@@ -119,7 +132,7 @@ Reste : alias `passerelle.ultra-book.com` sur le mutualisé, page « Mon
 nom de domaine », SEO (canonical, 301), premier achat OVH réel pour
 valider l'enchaînement de commande.
 
-Détail : `_doc/_doc_API/01_plan_et_avancement.md`.
+Détail : `_doc/_doc_API/01_plan_et_avancement.md`. Achat par le créatif : `03_achat_domaine.md`.
 
 ## 7. Ordre de réalisation
 

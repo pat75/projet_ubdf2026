@@ -43,6 +43,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // OVH simule tant que domaines.ovh_mode vaut « simulation » (local, tests).
+        $this->app->bind(\App\Services\Domaines\Ovh::class, fn ($app) => config('domaines.ovh_mode') === 'simulation'
+            ? new \App\Services\Domaines\FauxOvh
+            : new \App\Services\Domaines\Ovh);
+
         /*
          | Intervention Image, pilote choisi a l'execution.
          |

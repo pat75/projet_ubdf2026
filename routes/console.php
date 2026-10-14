@@ -57,3 +57,6 @@ Schedule::command('queue:work --stop-when-empty --max-time=55 --tries=3')
 
 // Domaines personnels : DNS verifie, pointage OVH, activation (voir _doc/_doc_VPS).
 Schedule::command('ubdf:verifier-domaines')->hourly();
+
+// Noms de domaine : relances J-30, J-15, J-5 avant l'echeance.
+Schedule::command('ubdf:relancer-domaines')->dailyAt('10:30')->timezone('Europe/Paris')->withoutOverlapping();

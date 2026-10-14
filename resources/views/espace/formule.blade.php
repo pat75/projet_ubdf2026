@@ -245,7 +245,7 @@
                 $parMois = $o['ttc'] / $o['mois'];
             @endphp
 
-            <form method="post" action="{{ route(nom_route('espace.formule.payer'), $numero) }}"
+            <form data-payplug method="post" action="{{ route(nom_route('espace.formule.payer'), $numero) }}"
                   class="relative rounded-3xl px-8 py-10 shadow-xl transition duration-300 ease-out hover:-translate-y-2 sm:mx-8 sm:px-12 lg:mx-0 lg:px-8
                          {{ $vedette ? 'z-2 bg-[#22292f] text-white ring-1 ring-white/10' : 'z-1 bg-white ring-1 ring-black/10 lg:-mr-6' }}">
                 @csrf
@@ -291,7 +291,12 @@
         @endforeach
     </div>
 
-    <p class="mt-3 text-[12px] text-ub-gris-fonce">{{ __('Paiement sécurisé par Payplug. Une formule en cours est prolongée à partir de son échéance.') }}</p>
+    <p class="mt-3 text-[13.8px] text-ub-texte2">{{ __('SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.') }}</p>
+
+    {{-- Option nom de domaine : developpement seulement pour l'instant. --}}
+    @if (\App\Models\Domaine::achatOuvert())
+        <livewire:espace.nom-de-domaine />
+    @endif
 
     <livewire:espace.parrainage />
 
@@ -364,4 +369,78 @@
             </div>
         </x-espace.section-pliante>
     </div>
+
+{{-- Paiement Payplug dans une fenetre flottante (formules et nom de domaine).
+     Sans le script Payplug ou en cas d'echec : redirection classique. --}}
+<style>
+    /* Fenetre flottante Payplug. Son script etend l'iframe a toute la page
+       (transparente) et y dessine la carte de paiement : on la ramene a la
+       taille de cette carte, centree, avec 20px de blanc autour et l'arrondi
+       des formules. Styles poses en ligne par form.latest.js : !important. */
+    :root { --pp-h: min(480px, calc(100vh - 162px)); }
+    #iframe-payplug {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%);
+        width: min(400px, calc(100vw - 92px)) !important;
+        height: var(--pp-h) !important;
+        margin: 0 !important;
+        border: 30px solid #fff !important;
+        border-bottom-width: 100px !important; /* place de la mention legale */
+        background: #fff !important;
+        border-radius: 1.5rem !important;
+        box-sizing: content-box !important;
+    }
+    /* Croix de fermeture : dans le coin haut droit de la fenetre. */
+    #wrapper-close-3ds {
+        position: fixed !important;
+        top: calc(50% - (var(--pp-h) + 130px) / 2 + 6px) !important;
+        left: calc(50% + min(200px, 50vw - 46px) - 9px) !important;
+        z-index: 10000;
+    }
+    /* Mention legale, dans la bande blanche sous le formulaire Payplug. */
+    #mention-payplug {
+        position: fixed;
+        z-index: 9999;
+        left: 50%;
+        top: calc(50% - (var(--pp-h) + 130px) / 2 + var(--pp-h) + 38px);
+        transform: translateX(-50%);
+        width: min(400px, calc(100vw - 92px));
+        font: 12.65px/1.4 system-ui, sans-serif;
+        color: #474747;
+        text-align: center;
+        text-wrap: pretty;
+    }
+</style>
+<script src="https://api.payplug.com/js/1/form.latest.js"></script>
+<script>
+(() => {
+    const ouvrir = (url) => {
+        if (! window.Payplug) return (window.location.href = url);
+        Payplug.showPayment(url);
+        // Disparait avec la fenetre : Payplug retire tout son conteneur a la fermeture.
+        const mention = Object.assign(document.createElement('p'), { id: 'mention-payplug', textContent: {{ Js::from(__('SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.')) }} });
+        document.getElementById('wrapper-payplug-iframe')?.appendChild(mention);
+    };
+
+    window.addEventListener('payplug-ouvrir', (e) => ouvrir(e.detail.url));
+
+    document.addEventListener('submit', async (e) => {
+        const form = e.target;
+        if (! form.matches || ! form.matches('form[data-payplug]')) return;
+        e.preventDefault();
+        try {
+            const r = await fetch(form.action, {
+                method: 'POST', body: new FormData(form),
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (! r.ok) throw new Error(r.status);
+            ouvrir((await r.json()).url);
+        } catch (err) {
+            form.submit();
+        }
+    });
+})();
+</script>
 @endsection

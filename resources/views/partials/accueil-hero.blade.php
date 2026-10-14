@@ -592,12 +592,12 @@
                 <div class="accueil_stats ">
 
                     <div class="stats_nbselection">
-                        <p class="t-h3">58 133</p>
+                        <p class="t-h3">{{ number_format(\App\Models\User::count(), 0, ',', ' ') }}</p>
                         <p class="t-h6">{{ __('Books actifs') }}</p>
                     </div>
 
                     <div class="stats_nbbook">
-                        <p class="t-h3">4 325</p>
+                        <p class="t-h3">{{ number_format(\App\Models\User::where('in_home_selection', true)->count(), 0, ',', ' ') }}</p>
                         <p class="t-h6">{{ __('Books sélectionnés') }}</p>
                     </div>
 

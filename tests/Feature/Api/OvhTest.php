@@ -7,6 +7,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
+    config(['domaines.ovh_mode' => 'reel']);
     config(['services.ovh' => [
         'endpoint' => 'https://eu.api.ovh.com/1.0',
         'application_key' => 'ak', 'application_secret' => 'as', 'consumer_key' => 'ck',
@@ -95,4 +96,50 @@ it('active un domaine dont le DNS pointe vers le VPS, et pointe un domaine OVH l
     expect($this->domaine->fresh()->statut)->toBe('actif')
         ->and($ovh->fresh()->statut)->toBe('en_attente');
     Http::assertSent(fn (Illuminate\Http\Client\Request $r) => str_ends_with($r->url(), '/domain/zone/achete.fr/record'));
+});
+
+it('en dry-run, valide le panier a blanc sans jamais commander', function () {
+    config(['domaines.ovh_mode' => 'dry-run']);
+    Http::fake([
+        '*/me/contact' => Http::response(['id' => 77]),
+        '*/order/cart' => Http::response(['cartId' => 'c1']),
+        '*/order/cart/c1/assign' => Http::response(null),
+        '*/order/cart/c1/domain' => Http::response(['itemId' => 5]),
+        '*/order/cart/c1/item/5/configuration' => Http::response([]),
+        '*/order/cart/c1/checkout' => Http::response(['orderId' => null, 'prices' => ['withTax' => ['value' => 9.59]]]),
+    ]);
+
+    $commande = app(Ovh::class)->commander($this->domaine, [
+        'prenom' => 'J', 'nom' => 'D', 'email' => 'j@x.fr', 'telephone' => '+33.600000000',
+        'adresse' => 'x', 'code_postal' => '69001', 'ville' => 'Lyon', 'pays' => 'FR',
+    ]);
+
+    expect($commande)->toStartWith('dry-run-');
+    Http::assertNotSent(fn (Request $r) => $r->method() === 'POST' && str_ends_with($r->url(), '/checkout'));
+});
+
+it('verifie la commande avant paiement et rend le prix OVH', function () {
+    Http::fake([
+        '*/order/cart' => Http::response(['cartId' => 'c1']),
+        '*/order/cart/c1/assign' => Http::response(null),
+        '*/order/cart/c1/domain' => Http::response(['itemId' => 5]),
+        '*/order/cart/c1/checkout' => Http::response(['prices' => ['withTax' => ['value' => 9.59]]]),
+    ]);
+
+    expect(app(Ovh::class)->verifierCommande('jeanne-dupont.fr'))->toBe(9.59);
+    Http::assertNotSent(fn (Request $r) => $r->method() === 'POST' && str_ends_with($r->url(), '/checkout'));
+});
+
+it('simule OVH sans aucun appel reseau', function () {
+    config(['domaines.ovh_mode' => 'simulation']);
+    Http::fake();
+    $ovh = app(Ovh::class);
+
+    expect($ovh)->toBeInstanceOf(App\Services\Domaines\FauxOvh::class)
+        ->and($ovh->disponibilite('libre.fr'))->toBe(['disponible' => true, 'prix' => '16.00 €'])
+        ->and($ovh->disponibilite('deja-pris.com')['disponible'])->toBeFalse()
+        ->and($ovh->verifierCommande('libre.com'))->toBe(19.0)
+        ->and($ovh->commander($this->domaine, []))->toStartWith('simulation-');
+
+    Http::assertNothingSent();
 });

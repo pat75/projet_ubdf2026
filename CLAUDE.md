@@ -82,3 +82,43 @@ Toute modification graphique d'une page de l'espace suit la charte :
 Toute traduction d'une version Dustfolio (Ultra-book reste en français) suit :
 
 @Claude-Dustfolio-traduction.md
+
+## Fenetre de paiement Payplug (ne pas modifier sans demande explicite)
+
+Validee par Pat le 2026-10-14. Code : fin de `resources/views/espace/formule.blade.php`
+(bloc `<style>` + script). Sert aux formules **et** au nom de domaine.
+
+- **Ouverture** : script officiel `https://api.payplug.com/js/1/form.latest.js`,
+  `Payplug.showPayment(url)`. Formules : formulaire `form[data-payplug]` poste en
+  JSON (`PaiementController::payer` renvoie `{url}` si `expectsJson`). Domaine :
+  `NomDeDomaine::payer` emet l'evenement Livewire `payplug-ouvrir`. Sans le script
+  ou en cas d'echec : redirection classique vers la page Payplug.
+- **Piege** : le script etend son iframe `#iframe-payplug` a **toute la page**,
+  transparente. Ne jamais lui donner un fond blanc sans la reduire : la page
+  entiere devient blanche.
+- **Taille** : iframe reduite a la carte Payplug, centree (`position: fixed`,
+  `translate(-50%, -50%)`), 400px de large, hauteur `--pp-h` =
+  `min(480px, 100vh - 162px)` (variable sur `:root`).
+- **Cadre** : bordure blanche de 30px, 100px en bas (place de la mention),
+  arrondi `1.5rem` (celui des formules), styles en `!important` (Payplug les pose
+  en ligne).
+- **Croix** `#wrapper-close-3ds` : dans le coin haut droit, a l'interieur du cadre.
+- **Mention legale** `#mention-payplug`, ajoutee par le script dans
+  `#wrapper-payplug-iframe` (disparait avec la fenetre), dans la bande blanche
+  du bas : « SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS,
+  établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France,
+  75013 Paris. » — 12.65px, `#474747`, centree. Texte passe par `Js::from(__())`,
+  jamais `@json` (les parentheses du texte cassent la directive Blade).
+- **Retour** : la formule est appliquee au retour en relisant le paiement chez
+  Payplug (`Souscription::confirmer`, id en session `payplug.formule`), sans
+  attendre la notification (qui n'atteint pas un poste local). Domaine :
+  `PaiementDomaine::confirmer` au montage de `NomDeDomaine` (`?domaine=retour`).
+- **Remerciement** (layout `layouts/espace.blade.php`, flash `paiement`,
+  `paiement_ok`, `paiement_detail`, `paiement_lien`) : visuel
+  `img_front/thank-you.png` 200px centre, message vert 22px semi-gras avec 30px
+  au-dessus et en dessous, feu d'artifice de pixels couleur `--color-ub-accent`
+  parti du visuel (~3 s, coupe si `prefers-reduced-motion`). Domaine : bouton
+  « Gérer mon nom de domaine » vers `/espace/domaine`.
+- Les identifiants `#iframe-payplug`, `#wrapper-payplug-iframe`,
+  `#wrapper-close-3ds` viennent du script Payplug : a reverifier si Payplug change
+  de version.

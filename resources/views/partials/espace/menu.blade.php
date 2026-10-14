@@ -52,6 +52,9 @@
     <x-espace.nav-lien route="espace.design" icone="reglage">{{ __('Configurer') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.diffusion" icone="diffusion">{{ __('Diffuser') }}</x-espace.nav-lien>
     <x-espace.nav-lien route="espace.statistiques" icone="graphe">{{ __('Statistiques') }}</x-espace.nav-lien>
+@if (\App\Models\Domaine::achatOuvert() && \App\Models\Domaine::where('user_id', $creatif->id)->whereIn('statut', array_diff(\App\Models\Domaine::EN_COURS, ['a_payer']))->exists())
+    <div class="dev_only"><x-espace.nav-lien route="espace.domaine" icone="globe">{{ __('Nom de domaine') }}</x-espace.nav-lien></div>
+@endif
 
     <x-espace.nav-groupe>{{ __('Contenu du portfolio') }}</x-espace.nav-groupe>
     <x-espace.nav-lien route="espace.galeries">{{ __('Images') }}@if ($nomMenuImages !== '') <span class="font-light">({{ $nomMenuImages }})</span>@endif</x-espace.nav-lien>

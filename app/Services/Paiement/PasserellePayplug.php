@@ -33,10 +33,28 @@ class PasserellePayplug
     {
         $ressource = Notification::treat($corps, $this->client());
 
-        if (! $ressource instanceof \Payplug\Resource\Payment) {
-            return null;
-        }
+        return $ressource instanceof \Payplug\Resource\Payment ? $this->formater($ressource) : null;
+    }
 
+    /**
+     * Paiement relu aupres de l'API par son identifiant (retour du createur
+     * sur le site) : meme forme que lireNotification().
+     *
+     * @return array{id: string, paye: bool, montant: int, metadata: array, brut: array}
+     */
+    public function lirePaiement(string $id): array
+    {
+        return $this->formater(Payment::retrieve($id, $this->client()));
+    }
+
+    /** Remboursement total d'un paiement (commande OVH impossible apres encaissement). */
+    public function rembourser(string $id): void
+    {
+        \Payplug\Refund::create($id, null, $this->client());
+    }
+
+    private function formater(\Payplug\Resource\Payment $ressource): array
+    {
         return [
             'id' => $ressource->id,
             'paye' => (bool) $ressource->is_paid,

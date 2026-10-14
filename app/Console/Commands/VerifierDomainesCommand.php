@@ -31,10 +31,10 @@ class VerifierDomainesCommand extends Command
             return self::FAILURE;
         }
 
-        Domaine::whereIn('statut', ['en_attente', 'dns_ok', 'actif'])->each(function (Domaine $domaine) use ($dns, $ovh, $ip) {
+        Domaine::whereIn('statut', ['commande', 'en_attente', 'dns_ok', 'actif'])->each(function (Domaine $domaine) use ($dns, $ovh, $ip) {
             $pointe = in_array($ip, $dns->ipv4($domaine->nom), true);
 
-            if (! $pointe && $domaine->source === 'ovh' && $domaine->statut === 'en_attente') {
+            if (! $pointe && $domaine->source === 'ovh' && in_array($domaine->statut, ['commande', 'en_attente'], true)) {
                 try {
                     $ovh->pointerVersVps($domaine);
                 } catch (RuntimeException $e) {

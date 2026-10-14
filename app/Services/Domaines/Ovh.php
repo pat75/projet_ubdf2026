@@ -35,6 +35,39 @@ class Ovh
     }
 
     /**
+     * Verification juste avant le paiement du createur : le domaine est
+     * toujours libre et le panier OVH passerait (validation a blanc, sans
+     * bon de commande). Rend le prix TTC facture par OVH, pour controle.
+     */
+    public function verifierCommande(string $nom): ?float
+    {
+        $panier = $this->panier();
+        $this->appeler('POST', "/order/cart/{$panier}/domain", ['domain' => Domaine::normaliser($nom)]);
+        $total = $this->appeler('GET', "/order/cart/{$panier}/checkout")->json('prices.withTax.value');
+
+        return $total === null ? null : (float) $total;
+    }
+
+    /**
+     * Code de transfert (AuthCode) a remettre au createur, verrou leve.
+     * ponytail: routes d'apres la console API (/domain/{nom}), a valider en reel.
+     */
+    public function authCode(Domaine $domaine): string
+    {
+        $this->appeler('PUT', "/domain/{$domaine->nom}", ['transferLockStatus' => 'unlocked']);
+
+        return (string) $this->appeler('GET', "/domain/{$domaine->nom}/authInfo")->json();
+    }
+
+    /** Pas de renouvellement : le domaine reste actif jusqu'a son echeance puis est supprime. */
+    public function resilier(Domaine $domaine): void
+    {
+        $this->appeler('PUT', "/domain/{$domaine->nom}/serviceInfos", [
+            'renew' => ['automatic' => false, 'deleteAtExpiration' => true, 'forced' => false, 'period' => null],
+        ]);
+    }
+
+    /**
      * Commande le domaine au nom du creatif et rend l'identifiant de commande.
      * Paye avec le moyen de paiement par defaut du compte OVH.
      *
@@ -65,10 +98,13 @@ class Ovh
             'value' => "/me/contact/{$contact}",
         ]);
 
-        $commande = (string) $this->appeler('POST', "/order/cart/{$panier}/checkout", [
-            'autoPayWithPreferredPaymentMethod' => true,
-            'waiveRetractationPeriod' => true,
-        ])->json('orderId');
+        // dry-run : validation a blanc du panier complet, jamais de bon de commande.
+        $commande = config('domaines.ovh_mode') === 'reel'
+            ? (string) $this->appeler('POST', "/order/cart/{$panier}/checkout", [
+                'autoPayWithPreferredPaymentMethod' => true,
+                'waiveRetractationPeriod' => true,
+            ])->json('orderId')
+            : 'dry-run-'.$this->appeler('GET', "/order/cart/{$panier}/checkout")->json('orderId', $panier);
 
         $domaine->update(['source' => 'ovh', 'ovh_commande_id' => $commande, 'statut' => 'en_attente']);
 
