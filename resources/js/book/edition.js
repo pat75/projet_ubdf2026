@@ -91,8 +91,14 @@ export default function edition(Alpine) {
         edition: false,
         enregistrement: false,
         valide: false,
+        vide: false,
         avant: '',
         minuteur: null,
+
+        // Texte vide : seul le crayon reste, pour redonner un intitule.
+        init() {
+            this.vide = !this.$refs.texte.textContent.trim();
+        },
 
         // Le texte est dans un lien : en edition, le clic edite au lieu de naviguer.
         clic(e) {
@@ -130,6 +136,7 @@ export default function edition(Alpine) {
             if (!this.edition) return;
             this.edition = false;
             const valeur = this.$refs.texte.textContent.trim();
+            this.vide = !valeur;
             if (valeur === this.avant) return;
 
             this.enregistrement = true;
@@ -140,6 +147,7 @@ export default function edition(Alpine) {
                 this.minuteur = setTimeout(() => (this.valide = false), 4000);
             } catch (e) {
                 this.$refs.texte.textContent = this.avant;
+                this.vide = !this.avant;
                 Alpine.store('edition').signaler(e.message, true);
             } finally {
                 setTimeout(() => (this.enregistrement = false), 1200);

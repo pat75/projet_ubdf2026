@@ -75,9 +75,16 @@ class VueUltra2020 extends VueBook
         return self::deslasher((string) ($this->pref->{$cle} ?? ''));
     }
 
-    public function lien(string $cle, string $defaut): string
+    /** $videPermis : un intitule vide volontairement reste vide (sinon : $defaut). */
+    public function lien(string $cle, string $defaut, bool $videPermis = false): string
     {
-        return self::deslasher((string) ($this->pref->nav_link->{$cle} ?? '')) ?: $defaut;
+        $valeur = $this->pref->nav_link->{$cle} ?? null;
+
+        if ($valeur === null || ($valeur === '' && ! $videPermis)) {
+            return $defaut;
+        }
+
+        return self::deslasher((string) $valeur) ?: ($videPermis ? '' : $defaut);
     }
 
     public function curseur(): bool

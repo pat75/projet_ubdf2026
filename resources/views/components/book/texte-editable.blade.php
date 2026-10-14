@@ -7,7 +7,7 @@
      le texte garde celles du theme du book. Hors edition : la balise seule. --}}
 @if ($edition)
     <span x-data="texteBook(@js($cle))" class="inline-flex max-w-full items-baseline">
-        <{{ $tag }} x-ref="texte" data-editable @click="clic($event)" @keydown="touche($event)" @blur="valider()"
+        <{{ $tag }} x-ref="texte" x-show="edition || ! vide" data-editable @click="clic($event)" @keydown="touche($event)" @blur="valider()"
             :contenteditable="edition ? 'plaintext-only' : 'false'"
             :class="{ 'border-current/40': edition, 'border-transparent': ! edition, 'texte-book-enregistre': enregistrement }"
             {{ $attributes->merge(['class' => 'break-words border-b pb-0.5 outline-none']) }}>{{ $slot }}</{{ $tag }}><button type="button"

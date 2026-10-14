@@ -41,12 +41,12 @@
                     {{-- En edition : l'intitule se modifie sur place, hors du bouton
                          (un crayon ne peut pas etre dans un bouton) ; le + ouvre le filtre. --}}
                     <div @class($typo)>
-                        <x-book.texte-editable cle="nav_link.name_projets" tag="span" :edition="true">{{ $vue->lien('name_projets', __('les projets')) }}</x-book.texte-editable>
+                        <x-book.texte-editable cle="nav_link.name_projets" tag="span" :edition="true">{{ $vue->lien('name_projets', __('les projets'), true) }}</x-book.texte-editable>
                         <button type="button" @click="menu = ! menu" :aria-expanded="menu" aria-label="{{ __('Filtrer les projets') }}" data-curseur>{!! $plus !!}</button>
                     </div>
                 @else
                     <button type="button" @click="menu = ! menu" :aria-expanded="menu" data-curseur @class($typo)>
-                        <span x-ref="libelle" x-text="libelle">{{ $vue->lien('name_projets', __('les projets')) }}</span>
+                        <span x-ref="libelle" x-text="libelle">{{ $vue->lien('name_projets', __('les projets'), true) }}</span>
                         {!! $plus !!}
                     </button>
                 @endif
