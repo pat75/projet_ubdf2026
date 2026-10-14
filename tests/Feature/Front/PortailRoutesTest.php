@@ -171,7 +171,8 @@ it('sert au defilement des cartes activables par le JavaScript du front', functi
     // « #user_<login> », a partir de data-slider. Une carte chargee au
     // defilement doit donc porter le meme identifiant et le meme diaporama
     // qu'une carte rendue au chargement, sans quoi elle reste muette.
-    $html = $this->get(portail('/cartes/illustrateur/0'))->assertOk()->json('html');
+    // Connecte : un anonyme n'a qu'une ligne (LimiteAnonyme).
+    $html = $this->actingAs($this->book)->get(portail('/cartes/illustrateur/0'))->assertOk()->json('html');
 
     expect($html)->toContain('id="user_pat10"')
         ->toContain('data-user="pat10"')
@@ -260,7 +261,15 @@ it('pagine les pages metier en liens que les moteurs suivent', function () {
     }
     Cache::flush();
 
+    // Anonyme : une ligne, l'invitation, ni pagination ni page 2.
     $this->get(portail('/illustrateur'))->assertOk()
+        ->assertSee('limite_anonyme_message', false)
+        ->assertDontSee('?page=2', false);
+    $this->get(portail('/illustrateur?page=2'))->assertRedirect(portail('/illustrateur'));
+
+    $this->actingAs($this->book);
+    $this->get(portail('/illustrateur'))->assertOk()
+        ->assertDontSee('limite_anonyme_message', false)
         ->assertSee('href="'.portail('/illustrateur').'?page=2"', false);
 
     $this->get(portail('/illustrateur?page=2'))->assertOk()

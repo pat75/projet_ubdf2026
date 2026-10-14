@@ -128,6 +128,15 @@
     background: #ddd;
     color: #000;
 }
+.rech2018 .recherche_trop_courte {
+    position: absolute;
+    z-index: 2;
+    transform: translateY(-50%);
+    color: #509fdb;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+}
 .bloc_rechercher .rech2018 input.prompt {
     padding-right: 3em;
 }
@@ -658,7 +667,20 @@
 /* « Gardez votre mémoBook » : titre et phrases d'aide sur une ligne
    chacun (le titre seul mesure 407px). */
 .connexion_colonne.memo_compte_colonne {
-    max-width: 480px;
+    max-width: 520px; /* titre « Créer un compte visiteur gratuit » sur une ligne (514px) */
+}
+.memo_compte_colonne .connexion_titre {
+    white-space: nowrap;
+}
+.memo_compte_colonne .connexion_accroche .block {
+    display: block;
+    text-wrap: balance;
+}
+@media (max-width: 767px) {
+    /* Une ligne aussi sur mobile : la taille suit la largeur de l'ecran. */
+    .connexion .memo_compte_colonne .connexion_titre {
+        font-size: min(32.4px, 7.2vw);
+    }
 }
 /* Mobile, fenetres « Connexion » et « Gardez votre mémoBook » : entete
    (logo, titre, accroche) en haut de l'ecran, formulaire au centre exact
@@ -1455,3 +1477,56 @@
 /* Rappel des 12 images et bouton : place reservee, apparition en fondu sans rien decaler. */
 #inscription_segment_validation .inscription_segment_bravo { opacity: 0; pointer-events: none; transition: opacity .6s ease; }
 #inscription_segment_validation .inscription_segment_bravo.visible { opacity: 1; pointer-events: auto; cursor: pointer; }
+
+/* Liste bornee pour un anonyme (composant portail/limite-anonyme) : ligne
+   fantome qui s'efface vers le bas, puis l'invitation a se connecter. */
+.limite_anonyme {
+    position: relative;
+    margin: -1em 0 4em; /* ecart avec la suite (questions frequentes) */
+}
+.limite_anonyme_fantomes {
+    filter: blur(3px);
+    opacity: .9;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+}
+.limite_anonyme_fantomes .card .image {
+    aspect-ratio: 4 / 3;
+    background: #ddd;
+}
+.limite_anonyme_fantomes .card .content {
+    height: 6em;
+}
+.limite_anonyme_message {
+    position: relative;
+    margin: -6em auto 3em;
+    max-width: 36em;
+    text-align: center;
+}
+.limite_anonyme_message h2 {
+    margin-bottom: .5em;
+    font-size: 26.4px; /* h2 du portail (24px) + 10 % */
+}
+.limite_anonyme .limite_anonyme_message p {
+    margin-bottom: 1.5em;
+    font-size: 18.7px; /* texte du portail (17px) + 10 % */
+    color: #555;
+}
+.limite_anonyme_message .block {
+    display: block;
+}
+/* Deux boutons de meme largeur : celle du plus long. */
+.limite_anonyme_boutons {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75em;
+}
+@media (max-width: 480px) {
+    .limite_anonyme_boutons {
+        grid-template-columns: 1fr;
+    }
+}
+.limite_anonyme_boutons .ui.button {
+    margin: 0;
+}

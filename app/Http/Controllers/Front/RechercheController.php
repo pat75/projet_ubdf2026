@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
 use App\Models\SearchQuery;
+use App\Models\User;
 use App\Repository\BookRepository;
 use App\Support\CarteLegacy;
+use App\Support\LimiteAnonyme;
+use App\Support\Marque;
 use App\Support\Recherche;
 use App\Support\SuggestionsMotsCles;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
@@ -114,7 +118,7 @@ class RechercheController extends Controller
      * mots-cles interroges, pour borner le cout de la page.
      *
      * @param  list<array{q: string}>  $populaires
-     * @return \Illuminate\Support\Collection<int, \App\Models\User>
+     * @return Collection<int, User>
      */
     private function portfoliosDuMoment(array $populaires, string $brand, int $nombre = 5)
     {
@@ -149,15 +153,23 @@ class RechercheController extends Controller
         SearchQuery::journaliser($recherche, $total, $images->count(),
             $books->pluck('id')->merge($images->pluck('user_id'))->unique()->values()->all());
 
+        // Anonyme : une ligne de portfolios et d'images, puis l'invitation
+        // a se connecter ; le total reste affiche.
+        $bornee = LimiteAnonyme::bornee($total);
+        $books = LimiteAnonyme::premierEcran($books, $total);
+        $images = $bornee ? $images->take(LimiteAnonyme::IMAGES) : $images;
+
         return [
             'recherche' => $recherche,
             'books' => $books,
             'images' => $images,
             'total' => $total,
+            'bornee' => $bornee,
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
                 'total' => $total,
-                'cartes_url' => '/recherche/cartes',
+                'cartes_url' => $bornee ? null : '/recherche/cartes',
+                // null (et non absent) : /search fusionne ces reglages a chaque recherche.
                 'cartes_params' => [
                     'q' => $recherche->q,
                     'recherche' => $recherche->mode,
@@ -165,7 +177,7 @@ class RechercheController extends Controller
                     'flt_sel' => $recherche->selection ? 'true' : 'false',
                     'flt_pro' => $recherche->abonnes ? 'true' : 'false',
                 ],
-                'book_domain' => (\App\Support\Marque::depuisCode(request()->attributes->get('brand', 'ub')))->domaineBooks,
+                'book_domain' => (Marque::depuisCode(request()->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ];
     }
@@ -182,7 +194,7 @@ class RechercheController extends Controller
         $recherche = Recherche::depuisRequete($request)->page($page);
 
         $books = $recherche->exploitable()
-            ? $this->books->rechercher($recherche)
+            ? LimiteAnonyme::pageSuivante($this->books->rechercher($recherche))
             : collect();
 
         return response()->json([
@@ -209,8 +221,10 @@ class RechercheController extends Controller
             return response()->json([]);
         }
 
+        $books = $this->books->rechercher($recherche);
+
         return response()->json(
-            $this->books->rechercher($recherche)->map(CarteLegacy::depuis(...))->values()
+            (LimiteAnonyme::active() ? $books->take(LimiteAnonyme::BOOKS) : $books)->map(CarteLegacy::depuis(...))->values()
         );
     }
 }

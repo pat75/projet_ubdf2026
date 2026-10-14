@@ -69,6 +69,7 @@ export default function recherche(Alpine) {
         },
         resultats: [],
         erreurVide: false,
+        tropCourt: false,
         // Loader du bouton Rechercher, jusqu'a l'affichage des resultats.
         enCours: false,
         liste: suggestions(document.documentElement.lang === 'en' ? 'en' : 'fr'),
@@ -146,6 +147,12 @@ export default function recherche(Alpine) {
             const hautContenu = champ.offsetTop + parseFloat(style.borderTopWidth) + parseFloat(style.paddingTop);
             const hauteurContenu = champ.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
             vider.style.top = `${hautContenu + hauteurContenu / 2}px`;
+
+            const { court } = this.$refs;
+            if (court) {
+                court.style.left = `${parseFloat(vider.style.left) + vider.offsetWidth + 12}px`;
+                court.style.top = vider.style.top;
+            }
         },
 
         /* Bouton ✕ : champ vide, suggestions fermees, curseur rendu au champ. */
@@ -168,6 +175,12 @@ export default function recherche(Alpine) {
             if (!q.value.trim()) {
                 this.erreurVide = true;
                 setTimeout(() => (this.erreurVide = false), 2000);
+                return;
+            }
+            // Meme seuil que Recherche::exploitable() cote serveur.
+            if (q.value.trim().length < 3) {
+                this.resultats = [];
+                this.tropCourt = true;
                 return;
             }
 

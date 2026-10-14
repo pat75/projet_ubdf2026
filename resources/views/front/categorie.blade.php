@@ -128,9 +128,13 @@
             <div class="ui large centered inline text loader" :class="{ active: enCours }">{{ __('Chargement...') }}</div>
         </div>
 
+        @if ($bornee)
+            <x-portail.limite-anonyme :total="$total" :visibles="\App\Support\LimiteAnonyme::BOOKS_METIER" />
+        @endif
+
         {{-- Pages de la liste en vrais liens : les moteurs ne font pas
              defiler, c'est par la qu'ils atteignent les books suivants. --}}
-        @if ($pages > 1)
+        @if ($pages > 1 && ! $bornee)
             <nav class="metier_pages" aria-label="{{ __('Pages') }}" style="display:flex;justify-content:center;gap:24px;margin:8px 0 40px;font-size:15px">
                 @if ($page > 1)
                     <a rel="prev" href="{{ $page === 2 ? $base : $base.'?page='.($page - 1) }}">← {{ __('Page précédente') }}</a>

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reglage;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Support\LimiteAnonyme;
 use App\Support\Marque;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -98,7 +99,8 @@ class GoogleVisiteurController extends Controller
         Auth::guard('visitor')->login($visiteur, remember: true);
         $requete->session()->regenerate();
 
-        return redirect()->to(lien('memobook'));
+        // Ouvert depuis une liste bornee (LimiteAnonyme) : retour sur cette liste.
+        return redirect()->to(LimiteAnonyme::retour(lien('memobook')));
     }
 
     /** Photo Google en 256px, seulement depuis le domaine de Google. */

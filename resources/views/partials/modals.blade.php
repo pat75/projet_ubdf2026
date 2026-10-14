@@ -620,13 +620,13 @@
                 {{-- Sur mobile : entete en haut, formulaire au centre de l'ecran (portail.css). --}}
                 <div class="connexion_entete">
                 <img class="connexion_logo" src="{{ $marque->logo }}" alt="{{ $marque->nom }}">
-                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Gardez votre mémoBook') }}</p>
+                <p class="connexion_titre" role="heading" aria-level="2">{{ __('Créer un compte visiteur gratuit') }}</p>
                 <p class="connexion_accroche">
-                    <span class="block">{{ __('Pour mémoriser un book, connectez-vous ou créez un compte.') }}</span>
+                    <span class="block">{{ __('Consultez tous les portfolios et mémorisez vos books préférés.') }}</span>
+                    <span class="block">{{ __('Retrouvez votre sélection sur tous vos appareils, et exportez-la en PDF.') }}</span>
                     <span class="block">{{ \App\Models\Reglage::googleActif()
-                        ? __('Compte visiteur gratuit : avec Google, ou votre e-mail et un mot de passe.')
-                        : __('Compte visiteur gratuit : indiquez votre e-mail et un mot de passe.') }}</span>
-                    <span class="block">{{ __('Retrouvez votre sélection sur tous vos appareils et exportez-la en PDF.') }}</span>
+                        ? __('Inscription en un clic avec Google, ou avec votre e-mail.')
+                        : __('Il suffit de votre e-mail et d’un mot de passe.') }}</span>
                 </p>
                 </div>
 

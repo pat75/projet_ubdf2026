@@ -88,6 +88,14 @@ export default function cartes(Alpine) {
                 rootMargin: '0px 0px 600px 0px',
             });
             observateur.observe(this.$refs.fin);
+            // Filet de securite : la sentinelle (0 px de large dans la grille
+            // flex) n'est pas toujours signalee par l'observateur.
+            window.addEventListener('scroll', () => this.verifier(), { passive: true });
+            this.verifier();
+        },
+
+        verifier() {
+            if (!this.termine && this.$refs.fin.getBoundingClientRect().top < window.innerHeight + 600) this.charger();
         },
 
         async charger() {
@@ -95,7 +103,8 @@ export default function cartes(Alpine) {
             this.enCours = true;
             const conf = window.ubdf;
             const url = new URL(`${conf.cartes_url}/${this.page + 1}`, window.location.origin);
-            Object.entries(conf.cartes_params ?? {}).forEach(([cle, valeur]) => url.searchParams.set(cle, valeur));
+            // null : parametre omis (sinon envoye comme la chaine « null »).
+            Object.entries(conf.cartes_params ?? {}).forEach(([cle, valeur]) => valeur != null && url.searchParams.set(cle, valeur));
 
             try {
                 const reponse = await fetch(url, { headers: { Accept: 'application/json' } });
@@ -119,11 +128,7 @@ export default function cartes(Alpine) {
 
             // Des cartes trop peu nombreuses pour rallonger la page ne
             // relancent aucune intersection : on revérifie.
-            if (!this.termine) {
-                requestAnimationFrame(() => {
-                    if (this.$refs.fin.getBoundingClientRect().top < window.innerHeight + 600) this.charger();
-                });
-            }
+            requestAnimationFrame(() => this.verifier());
         },
     }));
 }

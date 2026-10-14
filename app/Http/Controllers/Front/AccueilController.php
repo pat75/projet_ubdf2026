@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\AccueilBloc;
 use App\Repository\BookRepository;
 use App\Support\CarteLegacy;
+use App\Support\LimiteAnonyme;
+use App\Support\Marque;
 use App\Support\Metier;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -66,7 +69,7 @@ class AccueilController extends Controller
             'accueilBlocs' => AccueilBloc::etats(),
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
-                'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
+                'book_domain' => (Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ]);
     }
@@ -92,7 +95,7 @@ class AccueilController extends Controller
      * Page d'une categorie : liste continue, alimentee par le defilement
      * infini a partir du deuxieme ecran.
      */
-    public function categorie(Request $request, string $categorie): View
+    public function categorie(Request $request, string $categorie): View|RedirectResponse
     {
         // Segment d'URL (« illustrator » en anglais) -> slug interne.
         $categorie = Metier::depuisSlugUrl($categorie);
@@ -106,21 +109,29 @@ class AccueilController extends Controller
         $pages = max(1, (int) ceil($total / BookRepository::PER_PAGE));
         abort_if($page > $pages, 404);
 
+        // Anonyme : une ligne, puis l'invitation a se connecter
+        // (LimiteAnonyme) ; les pages suivantes renvoient a la premiere.
+        $bornee = LimiteAnonyme::bornee($total, LimiteAnonyme::BOOKS_METIER);
+        if ($bornee && $page > 1) {
+            return redirect()->to($request->url());
+        }
+
         return view('front.categorie', [
             'categorie' => $categorie,
             // Page d'accroche SEO (config/seo_contenus.php), sinon null.
             'landing' => $request->route('landing') ? config('seo_contenus.landings.'.$request->route('landing')) : null,
-            'books' => $this->books->portfolios('sel', $categorie, $page - 1, $brand),
+            'books' => LimiteAnonyme::premierEcran($this->books->portfolios('sel', $categorie, $page - 1, $brand), $total, LimiteAnonyme::BOOKS_METIER),
             'total' => $total,
+            'bornee' => $bornee,
             'page' => $page,
             'pages' => $pages,
             'ubdf' => [
                 'per_page' => BookRepository::PER_PAGE,
                 'page_depart' => $page - 1,
                 'total' => $total,
-                'cartes_url' => '/cartes/'.$categorie,
+                'cartes_url' => $bornee ? null : '/cartes/'.$categorie,
                 'cartes_params' => ['selection' => 'sel'],
-                'book_domain' => (\App\Support\Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
+                'book_domain' => (Marque::depuisCode($request->attributes->get('brand', 'ub')))->domaineBooks,
             ],
         ]);
     }
@@ -143,7 +154,7 @@ class AccueilController extends Controller
         $brand = $request->attributes->get('brand', 'ub');
         $selection = $request->query('selection', 'sel');
 
-        $books = $this->books->portfolios($selection, $categorie, $page, $brand);
+        $books = LimiteAnonyme::pageSuivante($this->books->portfolios($selection, $categorie, $page, $brand));
 
         return response()->json([
             'html' => view('front.partials.cartes', ['books' => $books])->render(),
@@ -191,6 +202,10 @@ class AccueilController extends Controller
         $brand = $request->attributes->get('brand', 'ub');
 
         $books = $this->books->portfolios($selection, $type, $page, $brand);
+        // Contrat legacy : meme borne qu'au premier ecran pour un anonyme.
+        if (LimiteAnonyme::active()) {
+            $books = $page > 0 ? collect() : $books->take(LimiteAnonyme::BOOKS_METIER);
+        }
 
         return response()->json($books->map(CarteLegacy::depuis(...))->values());
     }

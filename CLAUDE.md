@@ -76,3 +76,9 @@ Rules:
 Toute modification graphique d'une page de l'espace suit la charte :
 
 @Claude_design.md
+
+## Traduction Dustfolio
+
+Toute traduction d'une version Dustfolio (Ultra-book reste en français) suit :
+
+@Claude-Dustfolio-traduction.md

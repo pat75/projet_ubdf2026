@@ -23,9 +23,7 @@
     @if (! $recherche->exploitable())
         {{-- Regle reprise du legacy : en deca de trois caracteres, la
              requete balaierait la table sans rien discriminer. --}}
-        <div class="ui basic segment center aligned recherche_mini">
-            {{ __('Indiquez au moins trois caractères.') }}
-        </div>
+        {{-- Message affiche dans le champ, a droite de la saisie (bloc-recherche). --}}
     @elseif ($books->isEmpty() && ($images ?? collect())->isEmpty())
         <div class="ui basic segment center aligned recherche_vide">
             <img src="/img_front/recherche-vide.webp" alt="" width="343" height="400" style="display:block;margin:0 auto 1em;max-width:60%;height:auto">
@@ -74,4 +72,8 @@
 
         <div class="ui large centered inline text loader" :class="{ active: enCours }">{{ __('Chargement...') }}</div>
     </div>
+
+    @if ($bornee ?? false)
+        <x-portail.limite-anonyme :total="$total" />
+    @endif
 </div>

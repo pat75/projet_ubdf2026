@@ -1626,7 +1626,6 @@
     "Actualités, sélections et conseils de :marque. Vous pouvez vous désinscrire à tout moment.": ":marque news, selections and tips. You can unsubscribe at any time.",
     "Tendances": "Trends",
     "Identifiant ou e-mail": "Username or e-mail",
-    "Gardez votre mémoBook": "Keep your memoBook",
     "Me connecter": "Log in",
     "Adresse e-mail": "E-mail address",
     "Mot de passe (8 caractères minimum)": "Password (8 characters minimum)",
@@ -2138,5 +2137,14 @@
     "Connectez-vous pour la lire.": "Log in to read it.",
     "Cette adresse correspond à un compte : connectez-vous pour lire la réponse.": "This address belongs to an account: log in to read the reply.",
     "Vous n’arrivez plus à vous connecter, malgré une demande de nouveau mot de passe ?": "Still unable to log in, even after requesting a new password?",
-    "Écrivez-nous à :email.": "Email us at :email."
+    "Écrivez-nous à :email.": "Email us at :email.",
+    "Consultez tous les portfolios et mémorisez vos books préférés.": "Browse every portfolio and save your favourite books.",
+    "Retrouvez votre sélection sur tous vos appareils, et exportez-la en PDF.": "Find your selection on all your devices, and export it as a PDF.",
+    "Inscription en un clic avec Google, ou avec votre e-mail.": "Sign up in one click with Google, or with your email.",
+    "Il suffit de votre e-mail et d’un mot de passe.": "All you need is your email and a password.",
+    "Créez votre compte visiteur gratuit": "Create your free visitor account",
+    "pour consulter tous les résultats.": "to see all the results.",
+    "Déjà inscrit ? Connectez-vous.": "Already registered? Log in.",
+    "Créer un compte visiteur": "Create a visitor account",
+    ":n autre portfolio vous attend|:n autres portfolios vous attendent": ":n more portfolio awaits you|:n more portfolios await you"
 }

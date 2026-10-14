@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Visiteur;
 
 use App\Actions\Visiteur\CreerCompteVisiteur;
 use App\Http\Controllers\Controller;
-use App\Mail\BienvenueVisiteur;
 use App\Http\Requests\Visiteur\InscriptionVisiteurRequest;
+use App\Mail\BienvenueVisiteur;
 use App\Models\Visitor;
 use App\Services\Auth\Recaptcha;
+use App\Support\LimiteAnonyme;
 use App\Support\Marque;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -52,7 +53,8 @@ class InscriptionVisiteurController extends Controller
         Auth::guard('visitor')->login($visiteur, remember: true);
         $requete->session()->regenerate();
 
-        return response()->json(['url' => lien('memobook')]);
+        // Ouvert depuis une liste bornee (LimiteAnonyme) : retour sur cette liste.
+        return response()->json(['url' => LimiteAnonyme::retour(lien('memobook'))]);
     }
 
     /** Confirmation de l'adresse, depuis le lien signe du mail de bienvenue. */
