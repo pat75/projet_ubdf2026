@@ -95,8 +95,8 @@
 
                                 @if ($edition === $page->id)
                                     <div class="flex flex-col gap-4 border-t border-ub-filet px-5 pb-6 pt-4">
-                                        {{-- Titre et editeur, encadres d'un filet gris. --}}
-                                        <div class="flex flex-col gap-4 border border-ub-bord p-4">
+                                        {{-- Titre et editeur, encadres d'un filet gris moyen. --}}
+                                        <div class="flex flex-col gap-4 border border-ub-texte/30 p-4">
                                         <div class="flex items-start gap-3">
                                             <div class="min-w-0 flex-1">
                                                 <x-espace.champ-editable nom="page-{{ $page->id }}" :valeur="$page->title"
@@ -139,11 +139,19 @@
 
                                         </div>
 
-                                        <div class="flex items-center gap-4">
+                                        {{-- Enregistre : bouton vert puis retour en fondu, coche verte 3 s. --}}
+                                        <div class="flex items-center gap-4"
+                                             x-data="{ ok: false, minuteur: null }"
+                                             @page-enregistree.window="ok = true; clearTimeout(minuteur); minuteur = setTimeout(() => ok = false, 3000)">
                                             <button type="button"
                                                     wire:click="{{ $editeurTexte === 'redactor_bloc' ? 'enregistrerBlocs' : 'enregistrerPage' }}"
                                                     wire:loading.attr="disabled"
-                                                    class="bouton-espace bouton-espace-petit px-4">{{ __('Enregistrer') }}</button>
+                                                    :class="ok && 'bg-ub-succes! hover:bg-ub-succes!'"
+                                                    class="bouton-espace bouton-espace-petit px-4 transition-colors duration-700">{{ __('Enregistrer') }}</button>
+                                            <svg x-show="ok" x-cloak x-transition.opacity.duration.700ms class="h-5 w-5 text-ub-succes" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span x-show="ok" x-cloak class="sr-only" role="status">{{ __('Enregistré') }}</span>
                                         </div>
                                     </div>
                                 @endif

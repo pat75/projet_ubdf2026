@@ -120,6 +120,7 @@ class Pages extends Component
         $this->validate(['corps' => 'nullable|string|max:200000']);
 
         $this->page($this->edition)->update(['body' => $nettoyeur->nettoyer($this->corps), 'status' => 'published']);
+        $this->dispatch('page-enregistree');
     }
 
     /** Enregistrement pour config('pages.editeur_texte') === 'redactor_bloc' : voir resources/js/espace-blocs.js. */
@@ -132,6 +133,7 @@ class Pages extends Component
             'body' => $nettoyeur->nettoyer($rendu->versHtml($this->blocs)),
             'status' => 'published',
         ]);
+        $this->dispatch('page-enregistree');
     }
 
     public function supprimerPage(int $id): void

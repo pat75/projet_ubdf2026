@@ -45,6 +45,8 @@
             <div style="display:flex;flex-wrap:wrap;gap:8px">
                 <x-filament::button type="submit" icon="heroicon-o-paper-airplane" wire:target="envoyer">Envoyer</x-filament::button>
                 <x-filament::button type="button" color="gray" icon="heroicon-o-sparkles" wire:click="corriger" wire:target="corriger">Corriger l’orthographe</x-filament::button>
+                <x-filament::button type="button" color="gray" icon="heroicon-o-pencil" wire:click="signer('patrice')" wire:target="signer">Signature Patrice</x-filament::button>
+                <x-filament::button type="button" color="gray" icon="heroicon-o-pencil" wire:click="signer('equipe')" wire:target="signer">Signature {{ \App\Support\Marque::depuisCode($this->record->brand ?: 'ub')->nom }}</x-filament::button>
                 <x-filament::button type="button" color="gray" icon="heroicon-o-light-bulb" wire:click="suggerer" wire:target="suggerer">Suggérer une réponse</x-filament::button>
             </div>
             <p style="font-size:12px;opacity:.6">La suggestion s’appuie sur les fiches actives de la base de connaissances. Elle remplace le texte en cours.</p>

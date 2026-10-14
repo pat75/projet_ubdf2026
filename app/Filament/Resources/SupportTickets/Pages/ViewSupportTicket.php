@@ -8,6 +8,7 @@ use App\Mail\SupportReponse;
 use App\Models\SupportTicket;
 use App\Services\IA\CorrectionMessage;
 use App\Services\Support\BaseConnaissance;
+use App\Support\Marque;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
@@ -60,6 +61,22 @@ class ViewSupportTicket extends Page
         } catch (Throwable $e) {
             Notification::make()->title('Correction indisponible')->body($e->getMessage())->danger()->send();
         }
+    }
+
+    /** Signature collee en fin de reponse, selon la marque de la demande. */
+    public function signer(string $qui): void
+    {
+        $marque = Marque::depuisCode($this->record->brand ?: 'ub');
+        $dustfolio = $marque->code !== 'ub';
+
+        $signature = match (true) {
+            $qui === 'patrice' && $dustfolio => "Have a nice day,\n\nPatrice Tardif\n{$marque->nom}",
+            $qui === 'patrice' => "Bonne journée\n\nPatrice Tardif\n{$marque->nom}",
+            $dustfolio => "Have a nice day,\n\nThe {$marque->nom} team",
+            default => "Bonne journée.\n\nL’équipe {$marque->nom}",
+        };
+
+        $this->reponse = rtrim($this->reponse)."\n\n".$signature;
     }
 
     public function suggerer(BaseConnaissance $base): void
