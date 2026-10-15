@@ -25,7 +25,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // 200 si le domaine est a nous et servi, 404 sinon. Sans corps.
     Route::get('domaines/autorise', fn (Illuminate\Http\Request $requete) => response()->noContent(
         Domaine::servis()->where('nom', Domaine::normaliser((string) $requete->query('domain')))->exists() ? 200 : 404
-    ))->middleware('throttle:api-codes')->name('domaines.autorise');
+    ))->middleware('throttle:api-autorise')->name('domaines.autorise');
 
     // Connexion desktop par code (le mot de passe ne passe jamais par l'application).
     Route::post('appareils/code', [AppareilController::class, 'code'])

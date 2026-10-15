@@ -1,0 +1,28 @@
+# Configuration du VPS « domaines personnalises ».
+# Copier en vps.config (non versionne), renseigner, puis envoyer sur le VPS
+# avec le reste du dossier (voir _doc/_doc_VPS/02_installation_vps.md).
+
+# Utilisateur d'administration (SSH par cle uniquement)
+ADMIN_USER="pat"
+# Cle publique autorisee pour cet utilisateur (contenu de ~/.ssh/id_ed25519.pub)
+ADMIN_SSH_KEY="ssh-ed25519 AAAA... pat@mac"
+
+HOSTNAME_VPS="proxy-ub"
+TIMEZONE="Europe/Paris"
+
+# Let's Encrypt : mail des alertes d'expiration
+ACME_EMAIL="technique@ultra-book.com"
+# Sous-domaine de sante du proxy lui-meme
+PROXY_HOST="proxy.ultra-book.com"
+# Cible du reverse proxy : alias de l'application sur le mutualise
+PASSERELLE_HOST="passerelle.ultra-book.com"
+
+# Secret partage avec Laravel (PROXY_SECRET du .env de prod).
+# Generer : openssl rand -hex 32. Vide : le script en genere un et l'affiche.
+PROXY_SECRET=""
+
+# Sauvegarde des certificats (rsync sur SSH), voir 04_sauvegardes.md.
+# Destination « utilisateur@hote:chemin ». Vide : sauvegarde desactivee.
+SAUVEGARDE_DEST="<compte>@<compte>.universe.wf:sauvegardes/vps-proxy"
+# Heure de la sauvegarde quotidienne (systemd OnCalendar)
+SAUVEGARDE_HEURE="03:15"

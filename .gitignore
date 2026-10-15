@@ -74,3 +74,4 @@ liens_books_acces.TXT
 /script_bkp_externe/logs
 /script_bkp_externe/pull.config
 .history/
+/deploy/vps/vps.config

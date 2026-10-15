@@ -47,6 +47,16 @@ le bon éditeur
 
 
 
+
+
+
+
+
+
+
+
+
+
 + API
 En vue de communiquer avec un serveur externe VPS, qui permettra de gérer les noms de domaine et commander par les créatifs pour visualiser leur book
 En vue de communiquer avec une application mobile

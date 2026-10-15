@@ -4,6 +4,7 @@ namespace App\Livewire\Espace;
 
 use App\Models\Domaine;
 use App\Services\Domaines\AchatDomaine;
+use App\Services\Domaines\BrancherDomaine;
 use App\Services\Paiement\PaiementDomaine;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -38,6 +39,9 @@ class NomDeDomaine extends Component
     public array $titulaire = [];
 
     public bool $cgu = false;
+
+    /** Domaine deja possede ailleurs, saisi par le createur. */
+    public string $existant = '';
 
     public bool $renonciation = false;
 
@@ -146,6 +150,26 @@ class NomDeDomaine extends Component
 
         // Fenetre flottante Payplug (script de espace/formule).
         $this->dispatch('payplug-ouvrir', url: $url);
+    }
+
+    /** « J'ai déjà un nom de domaine » : declaration, puis page de configuration. */
+    public function brancher(BrancherDomaine $brancher): void
+    {
+        $this->validate(['existant' => 'required|string|max:253']);
+
+        $cle = 'brancher-domaine|'.Auth::id();
+        abort_if(RateLimiter::tooManyAttempts($cle, 10), 429);
+        RateLimiter::hit($cle, 600);
+
+        try {
+            $brancher->declarer(Auth::user(), $this->existant);
+        } catch (RuntimeException $e) {
+            $this->addError('existant', $e->getMessage());
+
+            return;
+        }
+
+        $this->redirectRoute(nom_route('espace.domaine'));
     }
 
     public function render(): View

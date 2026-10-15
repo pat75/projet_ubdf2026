@@ -22,7 +22,9 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <span class="text-[15px] text-pretty">
                     <span class="block text-[18px] font-semibold text-ub-accent">{{ $domaine->nom }}</span>
-                    <span class="block text-[14px] text-white/70">{{ __('Réservé pour vous. Il pointe vers votre book dès que sa configuration est terminée.') }}</span>
+                    <span class="block text-[14px] text-white/70">{{ $domaine->source === 'externe'
+                        ? __('Votre domaine est déclaré. Il pointe vers votre book dès que sa configuration DNS est vérifiée.')
+                        : __('Réservé pour vous. Il pointe vers votre book dès que sa configuration est terminée.') }}</span>
                 </span>
                 <a href="{{ route('espace.domaine') }}" class="{{ $bouton }} bouton-espace-grand px-5">{{ __('Gérer mon domaine') }}</a>
             </div>
@@ -65,6 +67,26 @@
                             class="self-stretch rounded-full bg-[#141414] px-[18px] text-[14px] font-semibold text-[#f2f0ed] transition-colors hover:bg-[oklch(0.62_0.2_25)] disabled:opacity-60">{{ __('Vérifier') }}</button>
                 </form>
                 @error('recherche') <span class="mt-2 block {{ $erreur }}">{{ $message }}</span> @enderror
+
+                {{-- Domaine deja possede ailleurs (BrancherDomaine). --}}
+                <div x-data="{ ouvert: {{ $errors->has('existant') ? 'true' : 'false' }} }" class="mt-4">
+                    <button type="button" x-show="! ouvert" @click="ouvert = true; $nextTick(() => $refs.existant.focus())"
+                            class="text-[14px] text-white/80 underline hover:text-white">{{ __('J’ai déjà un nom de domaine') }}</button>
+                    <form x-show="ouvert" x-cloak wire:submit="brancher" class="sm:max-w-xl">
+                        <label for="domaine-existant" class="block text-[14px] text-white/80">{{ __('Votre nom de domaine, acheté chez un autre registrar') }}</label>
+                        <div class="mt-1.5 flex flex-wrap gap-3">
+                            <input id="domaine-existant" x-ref="existant" type="text" wire:model="existant" autocomplete="off" maxlength="253"
+                                   placeholder="{{ __('mon-domaine.fr') }}" class="{{ $champ }} min-w-0 flex-1">
+                            <button type="submit" wire:loading.attr="disabled" wire:target="brancher"
+                                    class="{{ $bouton }} bouton-espace-grand px-5">{{ __('Brancher') }}</button>
+                        </div>
+                        @error('existant') <span class="mt-2 block {{ $erreur }}">{{ $message }}</span> @enderror
+                        <span class="mt-2 block text-[13px] text-white/60 text-pretty">
+                            <span class="block">{{ __('Gratuit : vous gardez votre domaine chez votre registrar.') }}</span>
+                            <span class="block">{{ __('Nous vous indiquons ensuite les deux réglages DNS à faire.') }}</span>
+                        </span>
+                    </form>
+                </div>
 
                 @if ($resultats)
                     <div class="mt-5">

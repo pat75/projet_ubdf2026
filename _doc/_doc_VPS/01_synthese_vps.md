@@ -48,7 +48,8 @@ quand un créatif ajoute un domaine.
 | Autoriser un domaine | Caddy → Laravel | avant tout certificat, Caddy appelle `GET https://passerelle.ultra-book.com/api/v1/domaines/autorise?domain=…` ; 200 = oui, 404 = refus |
 | Relayer vers le mutualisé | Caddy reverse_proxy | vers `passerelle.ultra-book.com`, en-tête `X-Forwarded-Host` = domaine du créatif |
 | Cache des pages publiques | Caddy (option, phase 2) | soulage le mutualisé |
-| Sécurité | UFW, fail2ban, SSH par clé, mises à jour auto | voir `02_installation_vps.md` |
+| Sécurité | UFW, fail2ban, SSH par clé, mises à jour auto | voir `02_installation_vps.md` (script `deploy/vps/installer.sh`) |
+| Sauvegarde | rsync quotidien des certificats vers o2switch | voir `04_sauvegardes.md` |
 | Supervision | Uptime Kuma ou sonde externe | alerte si le VPS tombe |
 
 Pourquoi Caddy et pas Apache : Apache impose un vhost et un certificat

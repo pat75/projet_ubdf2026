@@ -3,8 +3,10 @@
 namespace App\Livewire\Espace;
 
 use App\Models\Domaine;
+use App\Services\Domaines\BrancherDomaine;
 use App\Services\Domaines\Ovh;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 use Livewire\Component;
 use RuntimeException;
@@ -32,6 +34,7 @@ class MonDomaine extends Component
     public function resilier(Ovh $ovh): void
     {
         $domaine = $this->domaine();
+        abort_if($domaine->source === 'externe', 409);
         // Un transfert demande peut ne jamais aboutir : la resiliation reste possible.
         abort_unless(in_array($domaine->statut, ['commande', 'en_attente', 'dns_ok', 'actif', 'transfert'], true), 409);
 
@@ -57,7 +60,7 @@ class MonDomaine extends Component
     public function transferer(Ovh $ovh): void
     {
         $domaine = $this->domaine();
-        abort_if(in_array($domaine->statut, ['paye', 'expire'], true), 409);
+        abort_if($domaine->source === 'externe' || in_array($domaine->statut, ['paye', 'expire'], true), 409);
 
         try {
             $this->authCode = $ovh->authCode($domaine);
@@ -69,6 +72,31 @@ class MonDomaine extends Component
         }
 
         $domaine->update(['statut' => 'transfert']);
+    }
+
+    /** Domaine externe : relit tout de suite le TXT, sans attendre la verification horaire. */
+    public function verifierMaintenant(BrancherDomaine $brancher): void
+    {
+        $domaine = $this->domaine();
+        abort_unless($domaine->source === 'externe', 409);
+
+        $cle = 'verifier-domaine|'.Auth::id();
+        abort_if(RateLimiter::tooManyAttempts($cle, 20), 429);
+        RateLimiter::hit($cle, 600);
+
+        $this->erreur = $brancher->verifier($domaine)
+            ? null
+            : __('L’enregistrement TXT n’est pas encore visible. La propagation du DNS peut prendre quelques heures.');
+    }
+
+    /** Domaine externe : le detache du book (il reste au createur chez son registrar). */
+    public function retirer(): void
+    {
+        $domaine = $this->domaine();
+        abort_unless($domaine->source === 'externe', 409);
+
+        $domaine->delete();
+        $this->redirectRoute(nom_route('espace.formule'));
     }
 
     public function render(): View

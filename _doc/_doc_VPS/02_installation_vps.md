@@ -3,6 +3,25 @@
 Plan pas à pas pour le proxy des domaines personnalisés décrit dans
 `01_synthese_vps.md`. Les valeurs entre `<…>` sont à remplacer.
 
+## Installation automatique (recommandée)
+
+Les étapes 1 à 8 ci-dessous, plus la sauvegarde des certificats, sont
+scriptées dans `deploy/vps/` (relançable sans dommage) :
+
+```bash
+# Sur le Mac
+cp deploy/vps/vps.config.example deploy/vps/vps.config   # puis renseigner
+rsync -av deploy/vps/ ubuntu@<IP_VPS>:vps/
+# Sur le VPS (premier accès, utilisateur ubuntu d'OVH)
+ssh ubuntu@<IP_VPS> 'cd vps && sudo bash installer.sh'
+```
+
+Garder la session ouverte et vérifier `ssh pat@<IP_VPS>` dans un second
+terminal avant de la fermer (SSH durci à l'étape 3). Le script affiche à la
+fin le `PROXY_SECRET` (s'il l'a généré) et la clé publique de sauvegarde.
+Sauvegardes : `04_sauvegardes.md`. Les sections suivantes détaillent ce que
+fait le script, pour une installation à la main ou un diagnostic.
+
 ## 0. Commande du VPS chez OVH
 
 - Gamme : **VPS** d'entrée de gamme (2 vCPU, 4 Go RAM, 80 Go) — un
@@ -246,10 +265,9 @@ ou `deploy/vps/`) :
   de passe) ;
 - ce document.
 
-Les certificats (`/var/lib/caddy`) se régénèrent seuls. Attention à la
-limite Let's Encrypt (50 certificats / domaine enregistré / semaine) :
-en cas de reconstruction avec beaucoup de domaines, sauvegarder aussi
-`/var/lib/caddy/.local/share/caddy` pour éviter de tout redemander.
+Les certificats se régénèrent seuls, mais sont sauvegardés chaque nuit
+par rsync pour éviter les limites Let's Encrypt lors d'une reconstruction :
+voir `04_sauvegardes.md`.
 
 ## 12. Côté Laravel (rappel, mutualisé)
 
@@ -278,4 +296,5 @@ en cas de reconstruction avec beaucoup de domaines, sauvegarder aussi
 - [ ] Alias passerelle + endpoint `autorise` en ligne
 - [ ] Domaine de test servi en HTTPS, domaine inconnu refusé
 - [ ] Sonde de supervision en place
-- [ ] Caddyfile versionné
+- [ ] Caddyfile versionné (`deploy/vps/Caddyfile`)
+- [ ] Sauvegarde des certificats : clé autorisée sur o2switch, premier `sauvegarder-certificats` OK

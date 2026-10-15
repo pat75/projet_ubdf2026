@@ -113,3 +113,31 @@ la page formule relit le paiement et termine le parcours.
   (paiement Payplug puis renouvellement OVH), bouton « Renouveler » sur la
   page Nom de domaine, nouvelle `expire_le`, remise à zéro de
   `relances_envoyees` et `derniere_relance_le`.
+
+## Domaine déjà possédé ailleurs (source externe)
+
+Gratuit : le domaine reste chez le registrar du créatif (Gandi, IONOS…),
+qui le fait pointer vers le VPS.
+
+1. Bloc « Réserver mon nom de domaine » > « J'ai déjà un nom de domaine » :
+   saisie du domaine (`NomDeDomaine::brancher`, service `BrancherDomaine`).
+   Refusés : nom invalide, domaine de la plateforme, domaine déjà utilisé,
+   créatif qui a déjà un domaine.
+2. Ligne `domaines` : `source = externe`, `statut = a_verifier`, `jeton`
+   aléatoire (32 caractères).
+3. Page Nom de domaine : deux réglages DNS chez le registrar :
+   - `TXT  _ultra-book.<domaine>  ultra-book-verification=<jeton>`
+     (Dustfolio : `_dustfolio.<domaine>  dustfolio-verification=<jeton>`) : preuve
+     que le créatif a la main sur le domaine (sinon n'importe qui pourrait
+     attacher le domaine d'un autre à son book) ;
+   - `A  <domaine>  <VPS_IP>` (et `AAAA` vers `VPS_IP6` si renseigné).
+4. `ubdf:verifier-domaines` (horaire) ou bouton « Vérifier maintenant » :
+   TXT vu → `en_attente` ; puis A vers le VPS → `actif`, servi par la
+   passerelle (`autorise` répond 200).
+5. Une déclaration jamais prouvée est supprimée après 7 jours
+   (`Domaine::DELAI_VERIFICATION`) et ne bloque pas le vrai propriétaire :
+   s'il déclare le même domaine, la déclaration non prouvée est remplacée.
+6. Pas de facture, de relance d'échéance, de transfert ni de résiliation :
+   c'est le registrar qui gère. « Retirer ce domaine » le détache du book.
+
+Transfert d'un domaine vers le compte OVH d'Ultra-book (cas B) : non fait.

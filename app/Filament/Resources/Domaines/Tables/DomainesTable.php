@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
 class DomainesTable
 {
     private const STATUTS = [
-        'a_payer' => 'À payer', 'paye' => 'Payé', 'commande' => 'Commandé', 'echec_commande' => 'Échec commande',
+        'a_verifier' => 'TXT à vérifier', 'a_payer' => 'À payer', 'paye' => 'Payé', 'commande' => 'Commandé', 'echec_commande' => 'Échec commande',
         'rembourse' => 'Remboursé', 'en_attente' => 'DNS en attente', 'dns_ok' => 'DNS ok', 'actif' => 'Actif',
         'suspendu' => 'Suspendu', 'resilie' => 'Résilié', 'transfert' => 'Transfert', 'expire' => 'Expiré',
     ];
@@ -40,6 +40,7 @@ class DomainesTable
                     ->url(fn (Domaine $record) => 'https://'.$record->nom, shouldOpenInNewTab: true),
                 TextColumn::make('statut')->label('Statut')->badge()
                     ->formatStateUsing(fn (string $state) => self::STATUTS[$state] ?? $state)
+                    ->description(fn (Domaine $record) => $record->source === 'externe' ? 'Domaine externe' : null)
                     ->color(fn (string $state) => match ($state) {
                         'actif' => 'success',
                         'echec_commande', 'rembourse', 'suspendu', 'expire' => 'danger',

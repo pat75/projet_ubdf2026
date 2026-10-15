@@ -80,6 +80,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api-depots', fn (Request $requete) => Limit::perMinute(60)->by($requete->user()?->id ?: $requete->ip()));
         // Interrogation en boucle de la connexion par code (une toutes les 5 s).
         RateLimiter::for('api-codes', fn (Request $requete) => Limit::perMinute(20)->by($requete->ip()));
+        // Question « ce domaine est-il servi ? » de Caddy : toutes les demandes
+        // viennent de la seule IP du VPS, y compris les noms de hasard des robots.
+        RateLimiter::for('api-autorise', fn (Request $requete) => Limit::perMinute(600)->by($requete->ip()));
         // Par IP, et par identifiant vise : l'API n'a pas le captcha du formulaire
         // du portail, un essai de mots de passe reparti sur plusieurs IP bute ici.
         RateLimiter::for('api-jetons', fn (Request $requete) => [

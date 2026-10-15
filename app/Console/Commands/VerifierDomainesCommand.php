@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Domaine;
+use App\Services\Domaines\BrancherDomaine;
 use App\Services\Domaines\Dns;
 use App\Services\Domaines\Ovh;
 use Illuminate\Console\Command;
@@ -13,7 +14,9 @@ use RuntimeException;
  *  - un domaine achete chez OVH est pointe vers le VPS des qu'OVH l'a livre ;
  *  - un domaine dont le DNS pointe vers le VPS devient actif ;
  *  - un domaine actif dont le DNS ne pointe plus vers le VPS repasse en attente
- *    (le creatif a change son DNS : Caddy n'aurait plus de certificat valable).
+ *    (le creatif a change son DNS : Caddy n'aurait plus de certificat valable) ;
+ *  - un domaine deja possede (externe) attend la preuve TXT ; une declaration
+ *    jamais prouvee est oubliee apres Domaine::DELAI_VERIFICATION jours.
  */
 class VerifierDomainesCommand extends Command
 {
@@ -21,7 +24,7 @@ class VerifierDomainesCommand extends Command
 
     protected $description = 'Verifie le DNS des domaines personnels et les active';
 
-    public function handle(Dns $dns, Ovh $ovh): int
+    public function handle(Dns $dns, Ovh $ovh, BrancherDomaine $brancher): int
     {
         $ip = config('services.ovh.ip_vps');
 
@@ -30,6 +33,10 @@ class VerifierDomainesCommand extends Command
 
             return self::FAILURE;
         }
+
+        Domaine::where('statut', 'a_verifier')
+            ->where('created_at', '<', now()->subDays(Domaine::DELAI_VERIFICATION))->delete();
+        Domaine::where('statut', 'a_verifier')->each(fn (Domaine $domaine) => $brancher->verifier($domaine));
 
         Domaine::whereIn('statut', ['commande', 'en_attente', 'dns_ok', 'actif'])->each(function (Domaine $domaine) use ($dns, $ovh, $ip) {
             $pointe = in_array($ip, $dns->ipv4($domaine->nom), true);

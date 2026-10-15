@@ -10,4 +10,10 @@ class Dns
     {
         return array_column(@dns_get_record($nom, DNS_A) ?: [], 'ip');
     }
+
+    /** @return list<string> valeurs TXT publiees pour ce nom */
+    public function txt(string $nom): array
+    {
+        return array_column(@dns_get_record($nom, DNS_TXT) ?: [], 'txt');
+    }
 }

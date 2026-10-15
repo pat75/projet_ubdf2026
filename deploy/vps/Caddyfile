@@ -1,0 +1,51 @@
+# Caddyfile du VPS « domaines personnalises » (gabarit).
+# installer.sh remplace __ACME_EMAIL__, __PROXY_HOST__, __PASSERELLE_HOST__
+# et ecrit le resultat dans /etc/caddy/Caddyfile.
+# Le meme fichier sert pour tous les domaines : rien a ajouter quand un
+# createur achete un domaine (Caddy demande a Laravel s'il est autorise).
+{
+    email __ACME_EMAIL__
+
+    on_demand_tls {
+        # Caddy ne demande un certificat que si Laravel valide le domaine.
+        ask https://__PASSERELLE_HOST__/api/v1/domaines/autorise
+    }
+
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
+# Page de sante du proxy lui-meme
+__PROXY_HOST__ {
+    respond /sante "ok" 200
+    respond 404
+}
+
+# Tous les domaines personnalises
+https:// {
+    tls {
+        on_demand
+    }
+
+    encode zstd gzip
+
+    reverse_proxy https://__PASSERELLE_HOST__ {
+        header_up Host __PASSERELLE_HOST__
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-Proto https
+        header_up X-Proxy-Secret {env.PROXY_SECRET}
+
+        transport http {
+            tls_server_name __PASSERELLE_HOST__
+        }
+    }
+
+    log {
+        output file /var/log/caddy/domaines.log {
+            roll_size 50mb
+            roll_keep 10
+        }
+        format json
+    }
+}

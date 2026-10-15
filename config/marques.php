@@ -137,5 +137,7 @@ return [
     'sous_domaines_reserves' => [
         'www', 'df', 'api', 'admin', 'mail', 'ftp', 'cdn', 'static',
         'assets', 'blog', 'magazine', 'dev', 'test', 'staging',
+        // Passerelle et proxy des domaines personnels (_doc/_doc_VPS).
+        'passerelle', 'proxy',
     ],
 ];

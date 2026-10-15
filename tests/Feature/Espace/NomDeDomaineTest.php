@@ -155,7 +155,7 @@ it('rembourse le createur si OVH refuse la commande', function () {
 it('affiche la page du domaine et le menu, puis resilie et transfere', function () {
     $domaine = Domaine::create([
         'user_id' => $this->creatif->id, 'nom' => 'jeanne-dupont.fr', 'extension' => 'fr', 'prix_ttc' => 16,
-        'statut' => 'actif', 'titulaire' => ['prenom' => 'Jeanne', 'nom' => 'Dupont'], 'expire_le' => now()->addYear(),
+        'statut' => 'actif', 'source' => 'ovh', 'titulaire' => ['prenom' => 'Jeanne', 'nom' => 'Dupont'], 'expire_le' => now()->addYear(),
     ]);
 
     $this->get(route('espace.domaine'))->assertOk()->assertSee('jeanne-dupont.fr')->assertSee('Nom de domaine');
