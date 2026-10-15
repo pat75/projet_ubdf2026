@@ -71,13 +71,12 @@ it('montre le bloc d activation et replie le parrainage', function () {
         ->assertSee('Activer un code formule')
         ->assertSee('Comment obtenir un code formule ?', false)
         ->assertSee('chat-code-formule.webp')
-        ->assertSee('Parrainage');
+        ->assertSee('Mon code de parrainage');
 
     /*
-     | Le parrainage est dans un depliant : son titre est porte par le
-     | bouton d'ouverture de x-espace.section-pliante, celui-la meme qui
-     | sert aux factures. On le reconnait a son aria-expanded.
+     | Le parrainage est dans le bloc d'activation, replie : le titre est
+     | porte par le bouton d'ouverture (aria-expanded), le code dessous.
      */
     expect($reponse->getContent())
-        ->toMatch('/:aria-expanded="ouvert".{0,400}Parrainage/s');
+        ->toMatch('/:aria-expanded="ouvert".{0,400}Activer un code formule ou de parrainage.*Mon code de parrainage/s');
 });

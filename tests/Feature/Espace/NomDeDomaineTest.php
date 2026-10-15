@@ -40,7 +40,7 @@ function parcoursJusquAuPaiement(string $libelle = 'jeanne-dupont', string $exte
 }
 
 it('affiche l option sous les formules', function () {
-    $this->get(route('espace.formule'))->assertOk()->assertSee('Réserver mon nom de domaine')->assertSee('dev_only', false);
+    $this->get(route('espace.formule'))->assertOk()->assertSee('Réserver mon domaine')->assertSee('dev_only', false);
 });
 
 it('donne la disponibilite et le prix de l extension choisie', function () {

@@ -12,7 +12,7 @@
             <h1 class="mt-1.5 mb-1 text-[38px] font-bold leading-[1.1] text-[#1b1b1b]">
                 @if ($creatif->plan)
                     {{-- Meme degrade que le fond du bloc « merci pour votre soutien ». --}}
-                    <span class="bg-linear-to-br from-[#22c1c3] to-[#16a6d9] bg-clip-text text-transparent">{{ __('Merci pour votre soutien, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}</span>
+                    <span class="bg-linear-to-br from-[#22c1c3] to-[#16a6d9] bg-clip-text text-transparent">{{ __('Merci pour votre soutien, :prenom', ['prenom' => $creatif->fullName()]) }}</span>
                 @else
                     {{ __('Votre formule, :prenom', ['prenom' => $creatif->firstname ?: $creatif->login]) }}
                 @endif
@@ -25,22 +25,39 @@
     @if ($creatif->plan)
         @php
             /*
-             | La barre mesure la part ecoulee de la formule en cours : du
-             | jour ou elle a commence a son echeance. Une formule prolongee
-             | plusieurs fois peut afficher une part infime — c'est le cas
-             | des comptes dont l'echeance part loin dans le temps.
+             | La barre mesure les jours restants sur une annee (maquette :
+             | 182 jours restants = barre a moitie). L'echelle est fixe, quelle
+             | que soit la duree de la formule : une 6 mois neuve remplit la
+             | moitie, une 12 mois neuve la remplit. Au-dela d'un an (jours
+             | reportes), la barre reste pleine.
              */
-            $debut = $creatif->plan_started_at;
-            $ecoule = 0;
-
-            if ($debut && $echeance && $echeance->greaterThan($debut)) {
-                $total = $debut->diffInSeconds($echeance);
-                $ecoule = max(0, min(100, round($debut->diffInSeconds(now()) / $total * 100)));
-            }
+            $restant = $echeance
+                ? max(0, min(100, round(now()->diffInDays($echeance, false) / 365 * 100)))
+                : 0;
         @endphp
 
+        {{-- Le remerciement de l'annee. --}}
+        <section class="mt-6 grid items-center overflow-hidden rounded-ub-carte bg-gradient-to-br from-[#22c1c3] to-[#16a6d9] text-white sm:grid-cols-[243px_minmax(0,1fr)]">
+            <div class="flex items-center justify-center p-6 sm:pr-3.75">
+                <img src="{{ asset('img_front/thank-you.png') }}" alt="" class="w-[188px] mix-blend-multiply">
+            </div>
+
+            <div class="px-8 py-[75px] sm:pl-1.5">
+                <h2 class="mb-2 text-[28.6px] font-bold">{{ __('Félicitations !') }}</h2>
+
+                <p class="mb-5 text-[15px] leading-[1.5] text-pretty">
+                    {{ __('Votre contribution est essentielle pour nous permettre de continuer à améliorer nos services et vous offrir la meilleure expérience possible.') }}
+                </p>
+
+                <a href="{{ lien('support') }}" class="bouton-espace bouton-espace-petit px-3.5">
+                    <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Nous contacter') }}
+                </a>
+                <span class="ml-3 text-[14px]">{{ __('Équipe disponible pour toute question sur votre portfolio.') }}</span>
+            </div>
+        </section>
+
         {{-- L'etat de la formule, et les deux boutons vers la grille. --}}
-        <section class="mt-6 grid items-center gap-6 rounded-ub-carte bg-white px-8 py-7 md:grid-cols-[minmax(0,1fr)_auto]">
+        <section class="mt-6 grid items-center gap-6 rounded-ub-carte bg-white px-8 py-[58px] md:grid-cols-[minmax(0,1fr)_auto]">
             <div>
                 <div class="mb-2.5 flex items-center gap-2.5">
                     <span class="rounded-full bg-[#1b1b1b] px-2.5 py-1 text-[12px] font-bold uppercase tracking-[.1em] text-white">{{ __('Premium') }}</span>
@@ -50,17 +67,20 @@
                     </span>
                 </div>
 
-                <h2 class="mb-1 text-[22px] font-bold">{{ __('Vous êtes actuellement en formule Premium') }}</h2>
+                <h2 class="mb-1 text-[26.5px] font-bold">{{ __('Vous êtes actuellement en formule Premium') }}</h2>
 
                 @if ($echeance)
                     <p class="text-[16px] text-ub-texte2">
                         {{ __('Renouvelable jusqu’au') }}
                         <b class="text-[#1b1b1b]">{{ $echeance->translatedFormat('j F Y') }}</b>
+                        @if ($echeance->isFuture())
+                            · {{ trans_choice(':n jour restant|:n jours restants', $n = (int) now()->diffInDays($echeance), ['n' => $n]) }}
+                        @endif
                     </p>
                 @endif
 
-                <div class="mt-4.5 h-1.5 overflow-hidden rounded bg-[#eef0f0]">
-                    <div class="h-full bg-ub-accent" style="width: {{ $ecoule }}%"></div>
+                <div class="mt-4.5 h-2.5 overflow-hidden rounded-full bg-[#eef0f0]">
+                    <div class="h-full rounded-full bg-ub-accent" style="width: {{ $restant }}%"></div>
                 </div>
 
                 <p class="mt-2.5 text-[14px] text-pretty text-[#6a6a6a]">
@@ -71,51 +91,16 @@
             {{-- Le bouton mene a la grille, plus bas sur la page. Rien a
                  charger, c'est une ancre. --}}
             <div class="flex min-w-[180px] flex-col gap-2">
-                <a href="#offres" class="bouton-espace bouton-espace-grand px-4.5">
+                <a href="#offres" class="bouton-espace bouton-espace-grand gap-2 px-4.5">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
                     {{ __('Renouveler') }}
-                </a>
-            </div>
-        </section>
-
-        {{-- Le remerciement de l'annee. --}}
-        <section class="mt-6 grid overflow-hidden rounded-ub-carte bg-gradient-to-br from-[#22c1c3] to-[#16a6d9] text-white sm:grid-cols-[180px_minmax(0,1fr)]">
-            <div class="flex items-center justify-center p-6">
-                <img src="{{ asset('img_front/thank-you.png') }}" alt="" class="w-[140px] mix-blend-multiply">
-            </div>
-
-            <div class="p-8 sm:pl-1.5">
-                <h2 class="mb-2.5 text-[26px] font-bold">{{ __(':annee : merci pour votre soutien !', ['annee' => now()->year]) }}</h2>
-
-                <p class="mb-5 text-[16px] leading-[1.55] text-pretty">
-                    {{ __('Votre contribution est essentielle pour nous permettre de continuer à améliorer nos services et vous offrir la meilleure expérience possible.') }}
-                </p>
-
-                <div class="mb-5 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
-                    <div class="rounded-ub-bandeau bg-white/15 px-4 py-3.5 text-[15px] leading-[1.45]">
-                        <b class="mb-1 block">{{ __('Un espace professionnel') }}</b>
-                        {{ __('Grâce à votre formule :marque, votre travail est mis en valeur sur un portfolio optimisé.', ['marque' => $marque->nom]) }}
-                    </div>
-                    <div class="rounded-ub-bandeau bg-white/15 px-4 py-3.5 text-[15px] leading-[1.45]">
-                        <b class="mb-1 block">{{ __('Un accompagnement') }}</b>
-                        {{ __('Notre équipe reste disponible pour toute question concernant votre portfolio.') }}
-                    </div>
-                </div>
-
-                @php
-                    $sujet = __('Question sur mon compte :book', ['book' => $creatif->login]);
-                    $mailto = 'mailto:'.$marque->email.'?subject='.rawurlencode($sujet);
-                @endphp
-
-                <a href="{{ $mailto }}"
-                   class="bouton-espace bouton-espace-grand px-4.5">
-                    <x-espace.icone nom="enveloppe" class="h-4 w-4" />{{ __('Écrire à :email', ['email' => $marque->email]) }}
                 </a>
             </div>
         </section>
 
         {{-- Offre couplee avec le site de diffusion : le code se recalcule
              des deux cotes, il n'est stocke nulle part. --}}
-        <section class="mt-6 rounded-ub-carte bg-white px-8 py-7"
+        <section class="mt-6 rounded-ub-carte bg-gradient-to-br from-[#fde4ec] to-[#f08080] px-8 py-7"
                  x-data="{ copie: null, aide: false, copier(cle, valeur) {
                      navigator.clipboard?.writeText(valeur);
                      this.copie = cle;
@@ -132,12 +117,12 @@
                 {!! __('et profitez d’une <b class="text-ub-formule">formule optimisée</b> avec votre code personnel.') !!}
             </p>
 
-            <div class="mt-5.5 grid gap-3 sm:grid-cols-2">
+            <div class="mt-5 grid max-w-[520px] gap-2.5 sm:grid-cols-2">
                 @foreach ([['id', __('Identifiant'), $creatif->login], ['code', __('Code promo'), $codeDiffusion]] as [$cle, $libelle, $valeur])
-                    <div class="flex items-center justify-between gap-3 rounded-ub-bandeau border border-[#e3e5e5] px-4 py-3.5">
+                    <div class="flex items-center justify-between gap-3 rounded-ub-bandeau bg-white border border-[#e3e5e5] px-3 py-2">
                         <div>
-                            <div class="mb-0.5 text-[13px] text-ub-texte3">{{ $libelle }}</div>
-                            <div class="font-mono text-[18px] tracking-[.04em]">{{ $valeur }}</div>
+                            <div class="text-[11px] text-ub-texte3">{{ $libelle }}</div>
+                            <div class="font-mono text-[15px] tracking-[.04em]">{{ $valeur }}</div>
                         </div>
 
                         <button type="button" @click="copier('{{ $cle }}', @js($valeur))"
@@ -180,127 +165,151 @@
 
     {{-- Prolonger ou souscrire. --}}
     {{-- En formule gratuite, le label ci-dessus tient lieu de titre. --}}
-    @if ($creatif->plan)
-        <h2 id="offres" class="mt-12 scroll-mt-6 font-titre text-[22px] font-light">{{ __('Prolonger ma formule') }}</h2>
-    @else
-        <div id="offres" class="scroll-mt-6"></div>
-    @endif
-
     {{-- Le createur qui a deja paye une fois ne souscrit plus : il
          renouvelle. La page le dit, et le douze mois porte alors le tarif
-         de reabonnement. --}}
-    @if ($reabonnement)
-        <p class="mt-1 text-[15px] text-ub-texte2">{{ __('Vos tarifs de renouvellement, réservés aux créatifs déjà abonnés.') }}</p>
-    @endif
+         de reabonnement. La bascule affiche les prix par mois ou au total. --}}
+    <div x-data="{ total: false }">
+    <div id="offres" class="mt-[58px] flex scroll-mt-6 flex-wrap items-end justify-between gap-4">
+        <div>
+            @if ($creatif->plan)
+                <h2 class="font-titre text-[35px] font-normal">{{ __('Prolonger ma formule') }}</h2>
+            @endif
+            <p class="mt-1 text-[16.5px] text-pretty text-ub-texte2">
+                @if ($reabonnement)
+                    <span class="block">{{ __('Tarifs de renouvellement réservés aux créatifs déjà abonnés.') }}</span>
+                @endif
+                <span class="block">{{ __('Paiement unique, sans reconduction.') }}</span>
+            </p>
+        </div>
+
+        <div class="flex rounded-full bg-white p-1 text-[14px] font-semibold">
+            <button type="button" @click="total = false" :class="total ? 'text-ub-texte2' : 'bg-black text-white'" class="rounded-full px-4 py-1.5">{{ __('Par mois') }}</button>
+            <button type="button" @click="total = true" :class="total ? 'bg-black text-white' : 'text-ub-texte2'" class="rounded-full px-4 py-1.5">{{ __('Total') }}</button>
+        </div>
+    </div>
 
     {{--
      | Trois cartes, et trois seulement : la gratuite, le six mois et le
      | douze mois. Le Pack Luxe et le Pack Site ne se vendent plus en
      | ligne — ils sont ecartes dans la grille, pas ici.
      |
-     | Presentation reprise de la page tarifs des Illustrateurs : la
-     | gratuite en retrait a gauche, en gris, chevauchee par les deux
-     | offres payantes ; la derniere — le douze mois — est la vedette, sur
-     | fond sombre. Les couleurs sont celles de l'espace : le turquoise a
-     | la place de l'indigo, et pas de mode sombre, l'espace n'en a pas.
-     |
-     | La carte de gauche n'est pas une offre a payer : elle rappelle ce
-     | dont dispose un compte gratuit, et sert de point de comparaison aux
-     | deux autres. Elle est donc en `div`, pas en `form`.
+     | Maquette « Ma formule » : la gratuite, plus etroite et en retrait,
+     | rappelle ce dont dispose un compte gratuit (une `div`, pas un
+     | `form`). Le douze mois est la vedette, sur fond sombre. Un clic sur
+     | une carte payante la selectionne (contour turquoise) ; son bouton
+     | ouvre le paiement.
     --}}
     @php
         $limites = config('formules.limites');
         $dernier = array_key_last($options);
+        $avantages = [
+            __(':n visuels', ['n' => $limites['payante']['visuels']]),
+            __('Pages illimitées'),
+            __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]),
+            __('Référencement IA de vos images'),
+        ];
     @endphp
 
-    <div class="mt-6 grid grid-cols-1 items-center gap-y-6 sm:gap-y-0 lg:grid-cols-[4fr_5fr_5fr]">
+    <div x-data="{ choisie: @js($dernier) }"
+         class="mt-4 grid grid-cols-1 items-center gap-1 pt-3.5 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]">
 
-        {{-- La gratuite : en retrait, sans ombre, elle passe dessous. --}}
-        <div class="relative z-0 rounded-3xl bg-[#e4e4e1] px-8 py-14 ring-1 ring-black/5 sm:mx-8 sm:px-12 lg:mx-0 lg:-mr-6 lg:self-center lg:px-8 lg:py-23">
-            <h3 class="text-[22px] text-ub-texte2">{{ __('Formule gratuite') }}</h3>
-            <p class="text-[16px] font-semibold text-ub-texte3">{{ __('Sans limite de durée') }}</p>
+        {{-- La gratuite : en retrait, sans ombre. --}}
+        <div class="flex flex-col rounded-xl bg-[#f6f5f3] px-4.5 py-[38px] text-ub-texte opacity-75">
+            <h3 class="text-[17px] font-bold">{{ __('Formule gratuite') }}</h3>
+            <p class="text-[13px] text-[#6b7178]">{{ __('Sans limite de durée') }}</p>
 
-            <p class="mt-4 flex items-baseline gap-x-2">
-                <span class="text-[44px] font-semibold leading-none tracking-tight text-ub-texte2">0 €</span>
+            <p class="mt-4 mb-0.5 text-[36px] font-bold leading-none tracking-[-.02em]">0 €</p>
+
+            <p class="min-h-9 text-[13px] text-[#6b7178]">
+                {{ $creatif->plan ? __('Votre formule précédente') : __('Votre formule actuelle') }}
             </p>
 
-            <div class="my-4 h-px bg-black/10"></div>
+            <div class="my-3.5 border-t border-[#eceae6]"></div>
 
-            <ul role="list" class="space-y-3 text-[15px] text-ub-texte2">
-                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n visuels', ['n' => $limites['gratuite']['visuels']]) }}</li>
-                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n pages', ['n' => $limites['gratuite']['pages']]) }}</li>
-                <li class="flex gap-x-3"><x-espace.puce class="text-ub-texte4" />{{ __(':n Mo d’espace', ['n' => round($limites['gratuite']['poids_ko'] / 1000)]) }}</li>
+            <ul role="list" class="flex flex-1 flex-col gap-2.25 text-[14px]">
+                <li class="flex gap-2"><span class="font-bold text-ub-accent" aria-hidden="true">✓</span>{{ __(':n visuels', ['n' => $limites['gratuite']['visuels']]) }}</li>
+                <li class="flex gap-2"><span class="font-bold text-ub-accent" aria-hidden="true">✓</span>{{ __(':n pages', ['n' => $limites['gratuite']['pages']]) }}</li>
+                <li class="flex gap-2"><span class="font-bold text-ub-accent" aria-hidden="true">✓</span>{{ __(':n Mo d’espace', ['n' => round($limites['gratuite']['poids_ko'] / 1000)]) }}</li>
+                <li class="flex gap-2 opacity-45"><span class="font-bold text-ub-accent" aria-hidden="true">—</span>{{ __('Référencement IA') }}</li>
             </ul>
 
-            <p class="mt-6 text-[14px] text-ub-texte3">
-                {{ $creatif->plan ? __('Votre formule précédente.') : __('Votre formule actuelle.') }}
-            </p>
+            <p class="mt-5 py-2.75 text-center text-[14px] font-semibold text-[#7a8087]">{{ __('Formule actuelle de base') }}</p>
         </div>
 
         @foreach ($options as $numero => $o)
             @php
-                // La derniere offre de la grille — le douze mois — est mise
-                // en avant : fond sombre, et elle passe par-dessus.
                 $vedette = $numero === $dernier;
                 $parMois = $o['ttc'] / $o['mois'];
+                $sous = $vedette ? 'text-[#9fd9df]' : 'text-[#6b7178]';
             @endphp
 
             <form data-payplug method="post" action="{{ route(nom_route('espace.formule.payer'), $numero) }}"
-                  class="relative rounded-3xl px-8 py-10 shadow-xl transition duration-300 ease-out hover:-translate-y-2 sm:mx-8 sm:px-12 lg:mx-0 lg:px-8
-                         {{ $vedette ? 'z-2 bg-[#22292f] text-white ring-1 ring-white/10' : 'z-1 bg-white ring-1 ring-black/10 lg:-mr-6' }}">
+                  @click="choisie = @js($numero)"
+                  :class="choisie === @js($numero) ? 'outline-2 -outline-offset-2 outline-ub-accent' : ''"
+                  class="relative flex cursor-pointer flex-col rounded-xl px-6.5 py-[54px]
+                         {{ $vedette ? 'bg-[#1a1d21] text-white shadow-[0_24px_48px_-16px_rgba(20,30,40,.45)]' : 'bg-white text-ub-texte shadow-[0_18px_40px_-18px_rgba(20,30,40,.25)]' }}">
                 @csrf
 
                 @if ($o['promo'] ?? false)
-                    <span class="absolute -top-3.5 right-8 rounded-full bg-ub-rouge px-4 py-1.5 text-[13px] font-semibold text-white shadow">
+                    <span class="absolute -top-2.75 left-5.5 rounded-full bg-ub-rouge px-2.5 py-0.75 text-[11px] font-bold text-white">
                         {{ $o['promo'] === 'blackfriday' ? 'Black Friday' : __('Promotion du jour') }}
                     </span>
                 @elseif ($vedette)
-                    <span class="absolute -top-3.5 right-8 rounded-full bg-ub-accent px-4 py-1.5 text-[13px] font-semibold text-white shadow">
-                        {{ $reabonnement ? __('Offre renouvellement') : __('Meilleure offre') }}
+                    <span class="absolute -top-2.75 left-5.5 rounded-full bg-ub-accent px-2.5 py-0.75 text-[11px] font-bold text-white">
+                        {{ __('Meilleur prix') }}@isset($o['barre']) · −{{ round((1 - $o['ttc'] / $o['barre']) * 100) }} %@endisset
                     </span>
                 @endif
 
-                <h3 class="text-[22px] font-semibold {{ $vedette ? 'text-white' : 'text-ub-texte' }}">{{ __($o['libelle']) }}</h3>
-                <p class="text-[16px] font-semibold text-ub-accent">{{ __(':n mois', ['n' => $o['mois']]) }}</p>
-
-                <p class="mt-4 flex items-baseline gap-x-2">
-                    <span class="text-[44px] font-semibold leading-none tracking-tight {{ $vedette ? 'text-white' : 'text-ub-texte' }}">{{ number_format($parMois, 2, ',', ' ') }} €</span>
-                    <span class="text-[18px] text-ub-accent">{{ __('/ mois') }}</span>
+                <h3 class="text-[17px] font-bold">{{ __($o['mois'] === 12 ? 'Formule 12 mois' : 'Formule 6 mois') }}</h3>
+                <p class="text-[13px] {{ $sous }}">
+                    {{ ($o['reabonnement'] ?? false) ? __('Réabonnement · :n mois', ['n' => $o['mois']]) : __(':n mois', ['n' => $o['mois']]) }}
                 </p>
 
-                <p class="mt-2 text-[15px] {{ $vedette ? 'text-white/70' : 'text-ub-texte2' }}">
-                    {{ __('Facturé :montant € en une seule fois', ['montant' => number_format($o['ttc'], 2, ',', ' ')]) }}
+                <p class="mt-4 mb-0.5 flex items-baseline gap-1.5">
+                    <span class="text-[36px] font-bold leading-none tracking-[-.02em]"
+                          x-text="total ? @js(number_format($o['ttc'], 2, ',', ' ').' €') : @js(number_format($parMois, 2, ',', ' ').' €')">{{ number_format($parMois, 2, ',', ' ') }} €</span>
+                    <span class="text-[13px] {{ $sous }}" x-text="total ? @js(__('au total')) : @js(__('/ mois'))">{{ __('/ mois') }}</span>
+                </p>
+
+                <p class="min-h-9 text-[13px] {{ $sous }}">
+                    {{ __('Facturé :montant € en une fois', ['montant' => number_format($o['ttc'], 2, ',', ' ')]) }}
                     @isset($o['barre'])
-                        <span class="ml-1 font-semibold text-ub-accent">{{ __('au lieu de') }} <s>{{ number_format($o['barre'], 2, ',', ' ') }} €</s></span>
+                        {{ __('au lieu de') }} <s>{{ number_format($o['barre'], 2, ',', ' ') }} €</s>
                     @endisset
                 </p>
 
-                <ul role="list" class="mt-6 space-y-3 text-[15px] {{ $vedette ? 'text-white/85' : 'text-ub-texte2' }}">
-                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n visuels', ['n' => $limites['payante']['visuels']]) }}</li>
-                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Pages illimitées') }}</li>
-                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Référencement automatique de vos images par IA') }}</li>
-                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __(':n Mo d’espace', ['n' => round($limites['payante']['poids_ko'] / 1000)]) }}</li>
-                    <li class="flex gap-x-3"><x-espace.puce class="text-ub-accent" />{{ __('Paiement unique, sans reconduction automatique') }}</li>
+                <div class="my-3.5 border-t {{ $vedette ? 'border-[#33383d]' : 'border-[#eceae6]' }}"></div>
+
+                <ul role="list" class="flex flex-1 flex-col gap-2.25 text-[14px]">
+                    @foreach ($avantages as $a)
+                        <li class="flex gap-2"><span class="font-bold text-ub-accent" aria-hidden="true">✓</span>{{ $a }}</li>
+                    @endforeach
                 </ul>
 
+                {{-- Carte choisie : bouton turquoise. Sinon noir, ou blanc
+                     sur la carte sombre. --}}
                 <button type="submit"
-                        class="bouton-espace bouton-espace-grand mt-8 w-full px-8 {{ $vedette ? 'ring-1 ring-white/40' : '' }}">
-                    {{ __('Sélectionner') }}
+                        :class="choisie === @js($numero) ? '!bg-ub-accent !text-white' : @js($vedette ? '!bg-white !text-[#1a1d21]' : '')"
+                        class="bouton-espace bouton-espace-grand mt-5 w-full !rounded-sm">
+                    <span x-text="choisie === @js($numero) ? @js(__('Sélectionnée ✓')) : @js(__('Sélectionner'))">{{ __('Sélectionner') }}</span>
                 </button>
             </form>
         @endforeach
     </div>
 
-    <p class="mt-3 text-[13.8px] text-ub-texte2">{{ __('SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.') }}</p>
+    <p class="mt-3 mb-10 text-[13.8px] text-ub-texte2">{{ __('SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.') }}</p>
+    </div>
 
     {{-- Option nom de domaine : developpement seulement pour l'instant. --}}
     @if (\App\Models\Domaine::achatOuvert())
         <livewire:espace.nom-de-domaine />
     @endif
 
-    <livewire:espace.parrainage />
-
+    {{-- Activation de code, puis factures, CGV et securite : une pile de
+         cartouches identiques. --}}
     <div class="mt-10">
+        <livewire:espace.parrainage />
+
         <x-espace.section-pliante :titre="__('Factures')" icone="factures" cartouche clair>
             @forelse ($factures as $f)
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ub-gris-clair py-2 text-[14px] last:border-b-0">
@@ -314,27 +323,6 @@
             @empty
                 <p class="py-3 text-[14px] text-ub-gris-fonce">{{ __('Aucune facture.') }}</p>
             @endforelse
-        </x-espace.section-pliante>
-
-        {{-- Le parrainage, a la suite des factures et dans le meme
-             depliant : son code et ses filleuls. La saisie, elle, est
-             dans le bloc d'activation ci-dessus — un seul champ sert aux
-             deux sortes de codes. --}}
-        <x-espace.section-pliante :titre="__('Parrainage')" cartouche>
-            <p class="text-[15px] text-ub-texte2">
-                {{ __('Votre code de parrainage :') }}
-                <strong class="font-mono text-ub-texte">{{ $monCodeParrain }}</strong>.
-                {{ __('Quand un créatif avec une formule payante l’utilise, vous gagnez chacun 1 à 3 mois de formule.') }}
-                {{ __('Il s’active dans le champ ci-dessus.') }}
-            </p>
-
-            @if ($filleuls->isNotEmpty())
-                <ul class="mt-3 space-y-1 text-[14px] text-ub-texte2">
-                    @foreach ($filleuls as $f)
-                        <li>{{ $f->referred?->fullName() }} — {{ $f->confirmed_at?->format('d/m/Y') }}</li>
-                    @endforeach
-                </ul>
-            @endif
         </x-espace.section-pliante>
 
         <x-espace.section-pliante :titre="__('Conditions générales de vente')" cartouche>

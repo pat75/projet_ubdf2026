@@ -13,7 +13,7 @@
 <div id="nom-de-domaine" class="mt-10">
     <section class="dev_only rounded-3xl! bg-black px-7 py-11 text-white ring-1 ring-white/10 sm:px-8 sm:py-12">
         <div class="text-[12px] font-semibold uppercase tracking-[.08em] text-white/60">{{ __('Option') }}</div>
-        <h2 class="mt-1 text-[31px] font-semibold">{{ __('Réserver mon nom de domaine') }}</h2>
+        <h2 class="mt-1 text-[31px] font-semibold">{{ __('Réserver mon domaine') }}</h2>
         <p class="mt-1 text-[14px] text-white/70">{{ __('Votre book à votre adresse, en .fr ou en .com.') }}</p>
 
         <div class="mt-6">
@@ -21,7 +21,7 @@
             {{-- Domaine paye : le detail est sur sa page. --}}
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <span class="text-[15px] text-pretty">
-                    <span class="block text-[18px] font-semibold text-ub-accent">{{ $domaine->nom }}</span>
+                    <span class="block text-[21.6px] font-semibold text-ub-accent">{{ $domaine->nom }}</span>
                     <span class="block text-[14px] text-white/70">{{ $domaine->source === 'externe'
                         ? __('Votre domaine est déclaré. Il pointe vers votre book dès que sa configuration DNS est vérifiée.')
                         : __('Réservé pour vous. Il pointe vers votre book dès que sa configuration est terminée.') }}</span>
@@ -45,16 +45,19 @@
                 {{-- 1. Recherche : meme pastille que le champ newsletter du pied de page
                      (fond #f2f0ed, bouton noir arrondi), globe au lieu de l'enveloppe,
                      extension choisie juste avant le bouton. --}}
-                <form wire:submit="rechercher" class="flex items-center rounded-full bg-[#f2f0ed] py-1 pr-1 pl-4 sm:max-w-xl">
+                {{-- Interrupteur « J'ai deja un nom de domaine » : le meme champ
+                     sert alors a le declarer (BrancherDomaine), sans extension. --}}
+                <div x-data="{ deja: @js($errors->has('existant')) }">
+                <form @submit.prevent="deja ? ($wire.existant = $wire.recherche, $wire.brancher()) : $wire.rechercher()" class="flex items-center rounded-full bg-[#f2f0ed] py-1 pr-1 pl-4 sm:max-w-xl">
                     <svg class="h-[18px] w-[18px] flex-none text-[#6e6b68]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                         <circle cx="12" cy="12" r="9"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>
                     </svg>
                     <label for="recherche-domaine" class="sr-only">{{ __('Nom de domaine') }}</label>
                     <input id="recherche-domaine" type="text" wire:model="recherche" autocomplete="off" maxlength="70"
-                           placeholder="{{ __('mon-domaine') }}"
+                           :placeholder="deja ? @js(__('mon-domaine.fr')) : @js(__('mon-domaine'))"
                            class="min-w-0 flex-1 border-none bg-transparent px-3 py-2.5 text-[15px] text-[#141414] placeholder-[#8a8580] outline-none focus:ring-0">
-                    <fieldset class="mr-2 flex flex-none gap-1.5">
+                    <fieldset x-show="! deja" class="mr-2 flex flex-none gap-1.5">
                         <legend class="sr-only">{{ __('Extension') }}</legend>
                         @foreach (array_keys(config('domaines.extensions')) as $ext)
                             <label class="cursor-pointer">
@@ -63,29 +66,26 @@
                             </label>
                         @endforeach
                     </fieldset>
-                    <button type="submit" wire:loading.attr="disabled" wire:target="rechercher"
-                            class="self-stretch rounded-full bg-[#141414] px-[18px] text-[14px] font-semibold text-[#f2f0ed] transition-colors hover:bg-[oklch(0.62_0.2_25)] disabled:opacity-60">{{ __('Vérifier') }}</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="rechercher, brancher"
+                            class="self-stretch rounded-full bg-[#141414] px-[18px] text-[14px] font-semibold text-[#f2f0ed] transition-colors hover:bg-[oklch(0.62_0.2_25)] disabled:opacity-60"
+                            x-text="deja ? @js(__('Configurer')) : @js(__('Vérifier'))">{{ __('Vérifier') }}</button>
                 </form>
                 @error('recherche') <span class="mt-2 block {{ $erreur }}">{{ $message }}</span> @enderror
+                @error('existant') <span class="mt-2 block {{ $erreur }}">{{ $message }}</span> @enderror
 
-                {{-- Domaine deja possede ailleurs (BrancherDomaine). --}}
-                <div x-data="{ ouvert: {{ $errors->has('existant') ? 'true' : 'false' }} }" class="mt-4">
-                    <button type="button" x-show="! ouvert" @click="ouvert = true; $nextTick(() => $refs.existant.focus())"
-                            class="text-[14px] text-white/80 underline hover:text-white">{{ __('J’ai déjà un nom de domaine') }}</button>
-                    <form x-show="ouvert" x-cloak wire:submit="brancher" class="sm:max-w-xl">
-                        <label for="domaine-existant" class="block text-[14px] text-white/80">{{ __('Votre nom de domaine, acheté chez un autre registrar') }}</label>
-                        <div class="mt-1.5 flex flex-wrap gap-3">
-                            <input id="domaine-existant" x-ref="existant" type="text" wire:model="existant" autocomplete="off" maxlength="253"
-                                   placeholder="{{ __('mon-domaine.fr') }}" class="{{ $champ }} min-w-0 flex-1">
-                            <button type="submit" wire:loading.attr="disabled" wire:target="brancher"
-                                    class="{{ $bouton }} bouton-espace-grand px-5">{{ __('Brancher') }}</button>
-                        </div>
-                        @error('existant') <span class="mt-2 block {{ $erreur }}">{{ $message }}</span> @enderror
-                        <span class="mt-2 block text-[13px] text-white/60 text-pretty">
-                            <span class="block">{{ __('Gratuit : vous gardez votre domaine chez votre registrar.') }}</span>
-                            <span class="block">{{ __('Nous vous indiquons ensuite les deux réglages DNS à faire.') }}</span>
-                        </span>
-                    </form>
+                <div class="mt-4 flex items-center gap-3">
+                    <button type="button" role="switch" :aria-checked="deja" @click="deja = ! deja"
+                            :class="deja ? 'justify-end bg-ub-accent' : 'justify-start bg-[#d6d6d3]'"
+                            class="flex h-6.5 w-[46px] shrink-0 cursor-pointer rounded-[13px] p-[3px] transition-colors duration-200">
+                        <span class="h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,.2)]"></span>
+                        <span class="sr-only">{{ __('J’ai déjà un nom de domaine') }}</span>
+                    </button>
+                    <span class="text-[16px] text-white/80" aria-hidden="true" @click="deja = ! deja">{{ __('J’ai déjà un nom de domaine') }}</span>
+                </div>
+                <span x-show="deja" x-cloak class="mt-2 block text-[14.3px] text-white/90 text-pretty">
+                    <span class="block">{{ __('Gratuit : vous gardez votre domaine chez votre fournisseur.') }}</span>
+                    <span class="block">{{ __('Nous vous indiquons ensuite les deux réglages DNS à faire.') }}</span>
+                </span>
                 </div>
 
                 @if ($resultats)

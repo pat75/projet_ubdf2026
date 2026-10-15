@@ -65,28 +65,26 @@ it('presente les offres au mois et met le douze mois en avant', function () {
         ->assertOk()
         // 36,80 € sur douze mois.
         ->assertSee('3,07 €')
-        ->assertSee('Facturé 36,80 € en une seule fois')
-        ->assertSee('Meilleure offre')
+        ->assertSee('Facturé 36,80 € en une fois')
+        ->assertSee('Meilleur prix')
         // 21,90 € sur six mois.
         ->assertSee('3,65 €');
 });
 
 /*
  | Un createur qui a deja paye ne souscrit plus : il renouvelle. La page
- | le lui dit, et le badge de la carte vedette change de libelle.
+ | le lui dit, et la carte vedette porte la mention « Réabonnement ».
  */
 it('annonce le renouvellement a qui a deja paye une facture', function () {
     // Le createur du beforeEach a une facture payee.
     $this->get(route('espace.formule'))->assertOk()
-        ->assertSee('Vos tarifs de renouvellement, réservés aux créatifs déjà abonnés.', false)
-        ->assertSee('Offre renouvellement')
-        ->assertDontSee('Meilleure offre');
+        ->assertSee('Tarifs de renouvellement réservés aux créatifs déjà abonnés.', false)
+        ->assertSee('Réabonnement · 12 mois');
 
-    // Un nouveau venu garde « Meilleure offre ».
+    // Un nouveau venu voit le douze mois classique.
     $this->actingAs(User::factory()->create(['plan' => 0]))
         ->get(route('espace.formule'))->assertOk()
-        ->assertSee('Meilleure offre')
-        ->assertDontSee('Offre renouvellement');
+        ->assertDontSee('Réabonnement · 12 mois');
 });
 
 it('intitule les boutons de la grille « Sélectionner »', function () {
@@ -109,17 +107,13 @@ it('renvoie le bouton de la carte vers la grille des offres', function () {
         ->toContain('id="offres"');
 });
 
-it('place le parrainage a la suite des factures', function () {
+it('range le parrainage dans le bloc d activation, replie', function () {
     $this->get(route('espace.formule'))->assertOk()
-        ->assertSeeInOrder(['Activer un code formule', 'Factures', 'Parrainage', 'Conditions générales de vente'], escape: false);
+        ->assertSeeInOrder(['Activer un code formule ou de parrainage', 'Mon code de parrainage', 'Factures', 'Conditions générales de vente'], escape: false)
+        ->assertDontSee('Il s’active dans le champ ci-dessus.', false);
 });
 
-it('integre le login du book au sujet du mail de contact', function () {
-    $login = $this->creatif->login;
-    $reponse = $this->get(route('espace.formule'))->assertOk();
-
-    // Le lien mailto contient le sujet encode avec le login du createur.
-    expect($reponse->getContent())
-        ->toContain('?subject=Question')
-        ->toContain(urlencode($login));
+it('renvoie le bouton de contact vers le support', function () {
+    $this->get(route('espace.formule'))->assertOk()
+        ->assertSee(lien('support'), false);
 });

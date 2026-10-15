@@ -2308,5 +2308,15 @@
     "Brancher": "Connect",
     "Gratuit : vous gardez votre domaine chez votre registrar.": "Free: your domain stays with your registrar.",
     "Nous vous indiquons ensuite les deux réglages DNS à faire.": "We then show you the two DNS settings to make.",
-    "SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.": "SAS POLYGUN — payments secured by PayPlug Enterprise SAS, a payment institution authorised by the ACPR (CIB: 16778), 110 avenue de France, 75013 Paris, France."
+    "SAS POLYGUN — paiements sécurisés par PayPlug Enterprise SAS, établissement de paiement agréé par l’ACPR (CIB : 16778), 110 avenue de France, 75013 Paris.": "SAS POLYGUN — payments secured by PayPlug Enterprise SAS, a payment institution authorised by the ACPR (CIB: 16778), 110 avenue de France, 75013 Paris, France.",
+    "Merci pour votre soutien !": "Thank you for your support!",
+    "Félicitations !": "Congratulations!",
+    "Réserver mon domaine": "Reserve my domain",
+    "Configuration chez votre fournisseur de domaine": "Settings at your domain provider",
+    "Dans l’espace DNS de votre fournisseur de domaine (Gandi, IONOS, OVH…), créez les enregistrements ci-dessous.": "In your domain provider's DNS area (Gandi, IONOS, OVH…), create the records below.",
+    "Chez votre fournisseur de domaine (renouvellement, facturation)": "At your domain provider (renewal, billing)",
+    "Gratuit : vous gardez votre domaine chez votre fournisseur.": "Free: you keep your domain at your provider.",
+    "Votre nom de domaine, acheté chez un autre fournisseur": "Your domain name, bought from another provider",
+    "Pour confier votre domaine à un autre fournisseur, demandez son code de transfert.": "To move your domain to another provider, request its transfer code.",
+    "Votre nouveau fournisseur vous le demandera.": "Your new provider will ask you for it."
 }

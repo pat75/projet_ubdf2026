@@ -31,9 +31,6 @@ class FormuleController extends Controller
             'codeDiffusion' => $diffusion->pour($creatif),
             // Le parrainage est un depliant de la page, a la suite des
             // factures ; la saisie du code, elle, reste au composant.
-            'monCodeParrain' => $parrainage->code($creatif),
-            'filleuls' => Referral::where('sponsor_id', $creatif->id)
-                ->with('referred:id,login,firstname,lastname')->latest('confirmed_at')->get(),
         ]);
     }
 

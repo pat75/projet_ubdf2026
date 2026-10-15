@@ -30,7 +30,7 @@
     <x-espace.carte :titre="__('Informations')">
         <x-espace.ligne :libelle="__('Statut')">{{ $libelles[$domaine->statut] ?? $domaine->statut }}</x-espace.ligne>
         @if ($domaine->source === 'externe')
-            <x-espace.ligne :libelle="__('Gestion')">{{ __('Chez votre registrar (renouvellement, facturation)') }}</x-espace.ligne>
+            <x-espace.ligne :libelle="__('Gestion')">{{ __('Chez votre fournisseur de domaine (renouvellement, facturation)') }}</x-espace.ligne>
         @else
         <x-espace.ligne :libelle="__('Réservé le')">{{ $domaine->reserve_le?->translatedFormat('j F Y') ?? '—' }}</x-espace.ligne>
         <x-espace.ligne :libelle="__('Échéance')">{{ $domaine->expire_le?->translatedFormat('j F Y') ?? '—' }}</x-espace.ligne>
@@ -50,38 +50,49 @@
         @php($txt = $domaine->enregistrementTxt())
         @php($ip = config('services.ovh.ip_vps'))
         @php($ip6 = config('services.ovh.ip6_vps'))
-        <x-espace.carte :titre="__('Configuration chez votre registrar')" class="mt-6">
+        <x-espace.carte :titre="__('Configuration chez votre fournisseur de domaine')" class="mt-6">
             <span class="block text-[14px] text-ub-texte2 text-pretty">
-                <span class="block">{{ __('Dans l’espace DNS de votre registrar (Gandi, IONOS, OVH…), créez les enregistrements ci-dessous.') }}</span>
+                <span class="block">{{ __('Dans l’espace DNS de votre fournisseur de domaine (Gandi, IONOS, OVH…), créez les enregistrements ci-dessous.') }}</span>
                 <span class="block">{{ __('Nous vérifions toutes les heures ; la propagation peut prendre quelques heures.') }}</span>
             </span>
 
-            <div class="mt-4 overflow-x-auto">
+            @php($lignes = array_filter([
+                ['TXT', $txt['nom'], $txt['valeur'], $domaine->statut === 'a_verifier' ? __('À créer') : __('Vérifié')],
+                ['A', $domaine->nom, $ip ?: '—', in_array($domaine->statut, \App\Models\Domaine::SERVIS, true) ? __('Vérifié') : __('À créer')],
+                $ip6 ? ['AAAA', $domaine->nom, $ip6, __('Conseillé')] : null,
+            ]))
+
+            {{-- Valeurs sur une ligne : police sans empattement serree plutot
+                 que la chasse fixe, meme taille. Chaque nom et valeur se copie. --}}
+            <div class="mt-4 overflow-x-auto"
+                 x-data="{ copie: null, copier(cle, v) { navigator.clipboard?.writeText(v); this.copie = cle; clearTimeout(this.t); this.t = setTimeout(() => this.copie = null, 1500) } }">
                 <table class="w-full text-left text-[14px]">
                     <thead class="text-[12px] uppercase tracking-[.06em] text-ub-texte3">
                         <tr><th class="py-2 pr-4">{{ __('Type') }}</th><th class="py-2 pr-4">{{ __('Nom') }}</th><th class="py-2 pr-4">{{ __('Valeur') }}</th><th class="py-2">{{ __('État') }}</th></tr>
                     </thead>
-                    <tbody class="font-mono text-[13px]">
-                        <tr class="border-t border-ub-filet">
-                            <td class="py-2.5 pr-4">TXT</td>
-                            <td class="py-2.5 pr-4 break-all">{{ $txt['nom'] }}</td>
-                            <td class="py-2.5 pr-4 break-all">{{ $txt['valeur'] }}</td>
-                            <td class="py-2.5 font-sans">{{ $domaine->statut === 'a_verifier' ? __('À créer') : __('Vérifié') }}</td>
-                        </tr>
-                        <tr class="border-t border-ub-filet">
-                            <td class="py-2.5 pr-4">A</td>
-                            <td class="py-2.5 pr-4 break-all">{{ $domaine->nom }}</td>
-                            <td class="py-2.5 pr-4">{{ $ip ?: '—' }}</td>
-                            <td class="py-2.5 font-sans">{{ in_array($domaine->statut, \App\Models\Domaine::SERVIS, true) ? __('Vérifié') : __('À créer') }}</td>
-                        </tr>
-                        @if ($ip6)
+                    <tbody class="text-[13px] tracking-tight tabular-nums">
+                        @foreach ($lignes as $i => [$type, $nom, $valeur, $etat])
                             <tr class="border-t border-ub-filet">
-                                <td class="py-2.5 pr-4">AAAA</td>
-                                <td class="py-2.5 pr-4 break-all">{{ $domaine->nom }}</td>
-                                <td class="py-2.5 pr-4 break-all">{{ $ip6 }}</td>
-                                <td class="py-2.5 font-sans">{{ __('Conseillé') }}</td>
+                                <td class="py-2.5 pr-4 font-semibold">{{ $type }}</td>
+                                @foreach (['n' => $nom, 'v' => $valeur] as $k => $texte)
+                                    <td class="py-2.5 pr-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1.5">
+                                            {{ $texte }}
+                                            @if ($texte !== '—')
+                                                <x-espace.info-bulle :texte="__('Copier')">
+                                                    <button type="button" @click="copier('{{ $i.$k }}', @js($texte))"
+                                                            class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-ub-bord bg-white text-ub-texte3 transition hover:border-ub-texte hover:bg-ub-fond hover:text-ub-texte" aria-label="{{ __('Copier') }}">
+                                                        <svg x-show="copie !== '{{ $i.$k }}'" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                                        <svg x-show="copie === '{{ $i.$k }}'" x-cloak class="h-3.5 w-3.5 text-ub-succes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+                                                    </button>
+                                                </x-espace.info-bulle>
+                                            @endif
+                                        </span>
+                                    </td>
+                                @endforeach
+                                <td class="py-2.5 whitespace-nowrap">{{ $etat }}</td>
                             </tr>
-                        @endif
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -94,7 +105,7 @@
                     <button type="button" wire:click="verifierMaintenant" wire:loading.attr="disabled" wire:target="verifierMaintenant"
                             class="bouton-espace bouton-espace-grand px-5">{{ __('Vérifier maintenant') }}</button>
                 @endif
-                <button type="button" wire:click="retirer" wire:confirm="{{ __('Retirer :nom de votre book ? Le domaine reste à vous chez votre registrar.', ['nom' => $domaine->nom]) }}"
+                <button type="button" wire:click="retirer" wire:confirm="{{ __('Retirer :nom de votre book ? Le domaine reste à vous chez votre fournisseur.', ['nom' => $domaine->nom]) }}"
                         class="inline-flex h-[43px] items-center border border-ub-bord bg-white px-5 text-[14px] hover:bg-ub-fond">{{ __('Retirer ce domaine') }}</button>
             </div>
         </x-espace.carte>
@@ -117,8 +128,8 @@
     @if ($domaine->source !== 'externe')
     <x-espace.carte :titre="__('Transférer mon domaine')" class="mt-6">
         <span class="block text-[14px] text-ub-texte2 text-pretty">
-            <span class="block">{{ __('Pour confier votre domaine à un autre registrar, demandez son code de transfert.') }}</span>
-            <span class="block">{{ __('Votre nouveau registrar vous le demandera.') }}</span>
+            <span class="block">{{ __('Pour confier votre domaine à un autre fournisseur, demandez son code de transfert.') }}</span>
+            <span class="block">{{ __('Votre nouveau fournisseur vous le demandera.') }}</span>
         </span>
 
         @if ($authCode)
