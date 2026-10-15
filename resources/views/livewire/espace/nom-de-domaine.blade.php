@@ -11,9 +11,22 @@
     $erreur = 'text-[13px] text-red-300';
 @endphp
 <div id="nom-de-domaine" class="mt-10">
-    <section class="dev_only rounded-3xl! bg-black px-7 py-11 text-white ring-1 ring-white/10 sm:px-8 sm:py-12">
+    {{-- La fleche replie le bloc sur son surtitre et son titre ; le choix
+         est retenu sur le compte (meme mecanique que l'offre couplee). --}}
+    <section class="dev_only relative rounded-3xl! bg-black px-7 py-11 text-white ring-1 ring-white/10 sm:px-8 sm:py-12"
+             x-data="{ repliee: @js((bool) auth()->user()->domaine_replie),
+                 basculer() {
+                     this.repliee = ! this.repliee;
+                     fetch(@js(route(nom_route('espace.formule.replier'), 'domaine')), { method: 'POST',
+                         headers: { 'X-CSRF-TOKEN': @js(csrf_token()), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ repliee: this.repliee }) });
+                 } }">
+        <x-espace.replier-bloc clair />
+
         <div class="text-[12px] font-semibold uppercase tracking-[.08em] text-white/60">{{ __('Option') }}</div>
-        <h2 class="mt-1 text-[31px] font-semibold">{{ __('Réserver mon domaine') }}</h2>
+        <h2 class="mt-1 pr-10 text-[31px] font-semibold">{{ __('Réserver mon domaine') }}</h2>
+
+        <div x-show="! repliee" x-collapse @if (auth()->user()->domaine_replie) x-cloak @endif>
         <p class="mt-1 text-[14px] text-white/70">{{ __('Votre book à votre adresse, en .fr ou en .com.') }}</p>
 
         <div class="mt-6">
@@ -174,6 +187,7 @@
                 </form>
             @endif
         @endif
+        </div>
         </div>
     </section>
 </div>

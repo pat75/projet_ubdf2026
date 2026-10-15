@@ -34,6 +34,23 @@ class FormuleController extends Controller
         ]);
     }
 
+    /** Croix du bloc « Félicitations » : masque jusqu'a la prochaine formule. */
+    public function masquerMerci(Request $request): Response
+    {
+        $request->user()->update(['merci_masque_le' => now()]);
+
+        return response()->noContent();
+    }
+
+    /** Fleche d'un bloc repliable (offre couplee, domaine) : retient son etat. */
+    public function replier(Request $request, string $bloc): Response
+    {
+        $colonne = ['offre' => 'offre_repliee', 'domaine' => 'domaine_replie'][$bloc];
+        $request->user()->update([$colonne => $request->boolean('repliee')]);
+
+        return response()->noContent();
+    }
+
     public function facture(Invoice $facture): View
     {
         $this->autoriser($facture);

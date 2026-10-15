@@ -36,8 +36,21 @@
                 : 0;
         @endphp
 
-        {{-- Le remerciement de l'annee. --}}
-        <section class="mt-6 grid items-center overflow-hidden rounded-ub-carte bg-gradient-to-br from-[#22c1c3] to-[#16a6d9] text-white sm:grid-cols-[243px_minmax(0,1fr)]">
+        {{-- Le remerciement. La croix le masque (memorise sur le compte)
+             jusqu'a ce qu'une nouvelle formule demarre. --}}
+        @unless ($creatif->merci_masque_le && (! $creatif->plan_started_at || $creatif->merci_masque_le->gte($creatif->plan_started_at)))
+        <section x-data="{ vu: true }" x-show="vu" x-transition.opacity
+                 class="relative mt-6 grid items-center overflow-hidden rounded-ub-carte bg-gradient-to-br from-[#22c1c3] to-[#16a6d9] text-white sm:grid-cols-[243px_minmax(0,1fr)]">
+            <div class="absolute top-3 right-3 z-10">
+            <x-espace.info-bulle :texte="__('Ne plus afficher')">
+                <button type="button" aria-label="{{ __('Fermer') }}"
+                        @click="vu = false; fetch(@js(route(nom_route('espace.formule.merci.masquer'))), { method: 'POST', headers: { 'X-CSRF-TOKEN': @js(csrf_token()), 'Accept': 'application/json' } })"
+                        class="flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition hover:bg-white/15 hover:text-white">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </x-espace.info-bulle>
+            </div>
+
             <div class="flex items-center justify-center p-6 sm:pr-3.75">
                 <img src="{{ asset('img_front/thank-you.png') }}" alt="" class="w-[188px] mix-blend-multiply">
             </div>
@@ -55,6 +68,7 @@
                 <span class="ml-3 text-[14px]">{{ __('Équipe disponible pour toute question sur votre portfolio.') }}</span>
             </div>
         </section>
+        @endunless
 
         {{-- L'etat de la formule, et les deux boutons vers la grille. --}}
         <section class="mt-6 grid items-center gap-6 rounded-ub-carte bg-white px-8 py-[58px] md:grid-cols-[minmax(0,1fr)_auto]">
@@ -99,17 +113,30 @@
         </section>
 
         {{-- Offre couplee avec le site de diffusion : le code se recalcule
-             des deux cotes, il n'est stocke nulle part. --}}
-        <section class="mt-6 rounded-ub-carte bg-gradient-to-br from-[#fde4ec] to-[#f08080] px-8 py-7"
-                 x-data="{ copie: null, aide: false, copier(cle, valeur) {
+             des deux cotes, il n'est stocke nulle part. La fleche replie le
+             bloc sur son surtitre et son titre ; le choix est retenu sur le
+             compte. --}}
+        <section class="relative mt-6 rounded-ub-carte bg-gradient-to-br from-[#fde4ec] to-[#f08080] px-8 py-7"
+                 x-data="{ copie: null, aide: false, repliee: @js($creatif->offre_repliee),
+                     basculer() {
+                         this.repliee = ! this.repliee;
+                         fetch(@js(route(nom_route('espace.formule.replier'), 'offre')), { method: 'POST',
+                             headers: { 'X-CSRF-TOKEN': @js(csrf_token()), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                             body: JSON.stringify({ repliee: this.repliee }) });
+                     },
+                     copier(cle, valeur) {
                      navigator.clipboard?.writeText(valeur);
                      this.copie = cle;
                      clearTimeout(this.t); this.t = setTimeout(() => this.copie = null, 1500);
                  } }">
 
+            <x-espace.replier-bloc />
+
             <div class="text-[13px] font-semibold uppercase tracking-[.12em] text-ub-formule">{{ __('Offre réservée') }}</div>
 
-            <h2 class="mt-1.5 mb-1.5 text-[22px] font-bold">{{ __('Offre couplée :marque Classique + Diffusion', ['marque' => $marque->nom]) }}</h2>
+            <h2 class="mt-1.5 mb-1.5 pr-10 text-[22px] font-bold">{{ __('Offre couplée :marque Classique + Diffusion', ['marque' => $marque->nom]) }}</h2>
+
+            <div x-show="! repliee" x-collapse @if ($creatif->offre_repliee) x-cloak @endif>
 
             <p class="max-w-[520px] text-[16px] text-pretty text-ub-texte2">
                 {{ __('Donnez plus de visibilité à votre travail sur') }}
@@ -152,6 +179,7 @@
                 <li>{!! __('Connectez-vous avec votre identifiant <b>:login</b>.', ['login' => e($creatif->login)]) !!}</li>
                 <li>{!! __('Saisissez le code promo <b>:code</b> au moment du paiement.', ['code' => e($codeDiffusion)]) !!}</li>
             </ol>
+            </div>
         </section>
     @else
         {{-- Label : l'etat du compte, et l'ancre vers la grille. --}}
@@ -365,12 +393,17 @@
        (transparente) et y dessine la carte de paiement : on la ramene a la
        taille de cette carte, centree, avec 20px de blanc autour et l'arrondi
        des formules. Styles poses en ligne par form.latest.js : !important. */
-    :root { --pp-h: min(480px, calc(100vh - 162px)); }
+    /* --pp-rogne : la page Payplug (dans l'iframe, autre domaine, non
+       stylable) ouvre sur une marge de 100px. On en rogne 90px par le
+       haut (clip-path) pour n'en garder que 10px, et on remonte la fenetre
+       de la moitie pour qu'elle reste centree. */
+    :root { --pp-h: min(634px, calc(100vh - 162px)); --pp-rogne: 90px; }
     #iframe-payplug {
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, calc(-50% - var(--pp-rogne) / 2));
+        clip-path: inset(var(--pp-rogne) 0 0 0 round 1.5rem);
         width: min(400px, calc(100vw - 92px)) !important;
         height: var(--pp-h) !important;
         margin: 0 !important;
@@ -383,7 +416,7 @@
     /* Croix de fermeture : dans le coin haut droit de la fenetre. */
     #wrapper-close-3ds {
         position: fixed !important;
-        top: calc(50% - (var(--pp-h) + 130px) / 2 + 6px) !important;
+        top: calc(50% - (var(--pp-h) + 130px) / 2 + var(--pp-rogne) / 2 + 6px) !important;
         left: calc(50% + min(200px, 50vw - 46px) - 9px) !important;
         z-index: 10000;
     }
@@ -392,7 +425,7 @@
         position: fixed;
         z-index: 9999;
         left: 50%;
-        top: calc(50% - (var(--pp-h) + 130px) / 2 + var(--pp-h) + 38px);
+        top: calc(50% - (var(--pp-h) + 130px) / 2 + var(--pp-h) + 38px - var(--pp-rogne) / 2);
         transform: translateX(-50%);
         width: min(400px, calc(100vw - 92px));
         font: 12.65px/1.4 system-ui, sans-serif;

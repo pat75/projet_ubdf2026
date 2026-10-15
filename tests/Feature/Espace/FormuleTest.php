@@ -117,3 +117,33 @@ it('renvoie le bouton de contact vers le support', function () {
     $this->get(route('espace.formule'))->assertOk()
         ->assertSee(lien('support'), false);
 });
+
+it('masque le bloc de remerciement jusqu a la prochaine formule', function () {
+    $this->creatif->update(['plan' => 1, 'plan_started_at' => now()->subDay(), 'plan_months' => 6]);
+    $this->get(route('espace.formule'))->assertSee('Félicitations !');
+
+    $this->post(route('espace.formule.merci.masquer'))->assertNoContent();
+    $this->get(route('espace.formule'))->assertDontSee('Félicitations !');
+
+    // Une nouvelle formule demarre : le remerciement revient.
+    $this->creatif->update(['plan_started_at' => now()->addMinute()]);
+    $this->get(route('espace.formule'))->assertSee('Félicitations !');
+});
+
+it('retient le repli du bloc offre couplee', function () {
+    $this->creatif->update(['plan' => 1]);
+
+    $this->postJson(route('espace.formule.replier', 'offre'), ['repliee' => true])->assertNoContent();
+    expect($this->creatif->fresh()->offre_repliee)->toBeTrue();
+    $this->get(route('espace.formule'))->assertSee('repliee: true', false);
+
+    $this->postJson(route('espace.formule.replier', 'offre'), ['repliee' => false])->assertNoContent();
+    expect($this->creatif->fresh()->offre_repliee)->toBeFalse();
+});
+
+it('retient le repli du bloc domaine et refuse un bloc inconnu', function () {
+    $this->postJson(route('espace.formule.replier', 'domaine'), ['repliee' => true])->assertNoContent();
+    expect($this->creatif->fresh()->domaine_replie)->toBeTrue();
+
+    expect($this->postJson('/espace/formule/replier/password', ['repliee' => true])->isClientError())->toBeTrue();
+});

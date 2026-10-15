@@ -98,10 +98,15 @@ Validee par Pat le 2026-10-14. Code : fin de `resources/views/espace/formule.bla
   entiere devient blanche.
 - **Taille** : iframe reduite a la carte Payplug, centree (`position: fixed`,
   `translate(-50%, -50%)`), 400px de large, hauteur `--pp-h` =
-  `min(480px, 100vh - 162px)` (variable sur `:root`).
+  `min(634px, 100vh - 162px)` (480px portes a 576px puis 634px, le 2026-10-15) (variable sur `:root`).
 - **Cadre** : bordure blanche de 30px, 100px en bas (place de la mention),
   arrondi `1.5rem` (celui des formules), styles en `!important` (Payplug les pose
   en ligne).
+- **Marge haute Payplug** : la page dans l'iframe (domaine Payplug, non stylable)
+  commence par `padding-top:100px`. On en rogne 90px par le haut
+  (`clip-path: inset(var(--pp-rogne) …)`, `--pp-rogne: 90px`) : il reste 10px.
+  La fenetre, la croix et la mention remontent de `--pp-rogne / 2` pour rester
+  centrees. Validee par Pat le 2026-10-15.
 - **Croix** `#wrapper-close-3ds` : dans le coin haut droit, a l'interieur du cadre.
 - **Mention legale** `#mention-payplug`, ajoutee par le script dans
   `#wrapper-payplug-iframe` (disparait avec la fenetre), dans la bande blanche

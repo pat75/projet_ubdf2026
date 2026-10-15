@@ -416,6 +416,9 @@ $portail = function (?string $langue = null) {
         Route::post('/formule/payer/{option}', [PaiementController::class, 'payer'])
             ->whereNumber('option')->middleware('throttle:10,1')->name('formule.payer');
         Route::get('/formule/retour', [PaiementController::class, 'retour'])->name('formule.retour');
+        Route::post('/formule/merci/masquer', [FormuleController::class, 'masquerMerci'])->name('formule.merci.masquer');
+        Route::post('/formule/replier/{bloc}', [FormuleController::class, 'replier'])
+            ->whereIn('bloc', ['offre', 'domaine'])->name('formule.replier');
         Route::view('/exporter', 'espace.exporter')->name('exporter');
         Route::get('/exporter/archive/{export}', [ExportController::class, 'telecharger'])
             ->whereNumber('export')->name('export.telecharger');
